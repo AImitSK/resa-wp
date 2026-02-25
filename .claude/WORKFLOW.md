@@ -52,6 +52,13 @@ Je nach Umfang können Schritte übersprungen werden (siehe [Wann welchen Schrit
 - Abhängigkeiten identifizieren
 - **User-Freigabe einholen**
 
+**Bei Modul-Features zusätzlich klären:**
+- Gehört das Feature in den Kern oder in ein Modul?
+- Falls neues Modul: `modules/{slug}/` Struktur mit `module.php` + `ModuleInterface`
+- REST-Endpoints unter `/resa/v1/modules/{slug}/*`
+- FeatureGate: Welches Flag? (free/pro/paid)
+- Welche Kern-Services werden konsumiert? (StepWizard, LeadForm, PDF, Icons)
+
 **Wann überspringen:** Bei einfachen Änderungen mit klarer Spec, wo der Pfad offensichtlich ist.
 
 **Ergebnis:** Freigegebener Implementierungsplan.
@@ -72,14 +79,31 @@ Diese Skills sind passiv und werden **immer** beim Coden beachtet — nicht erst
 | **wp-i18n** | Bei jedem User-facing String | Text-Domain `'resa'`, esc_html__(), Translator-Kommentare, _n() für Plurale, DACH-Formatierung |
 | **freemius** | Bei Premium/Free-Logik | can_use_premium_code(), FeatureGate, Free-Limits, Upgrade-CTAs |
 
-### Implementierungsreihenfolge (typisch)
+### Implementierungsreihenfolge
 
+**Kern-Features (typisch):**
 1. **Datenbank/Migration** — Neue Tabellen oder Spalten
 2. **Models/Repository** — Daten-Zugriff
 3. **Services** — Geschäftslogik
 4. **REST API Controller** — Endpoints mit Validation, Sanitization, Permissions
 5. **React Komponenten** — UI mit Typen, i18n, Feature-Gating
 6. **Integration** — Alles zusammenführen (Shortcode, Admin-Menu, etc.)
+
+**Lead Tool Module:**
+1. **Modul-Verzeichnis** — `modules/{slug}/module.php` + `{Name}Module.php` (ModuleInterface)
+2. **Calculator-Service** — `{Name}Service.php` (CalculatorInterface)
+3. **Settings-Schema** — `getSettingsSchema()` im Modul definieren
+4. **Frontend-Steps** — React-Komponenten in `modules/{slug}/src/steps/`
+5. **Ergebnis-Komponente** — `modules/{slug}/src/result/`
+6. **PDF-Bausteine** — `getPdfBlocks()` im Modul
+7. **Tests** — `modules/{slug}/tests/`
+
+**Integration Add-ons (separates Plugin):**
+1. **Plugin-Bootstrap** — `resa-{name}/resa-{name}.php` mit Freemius Add-on Init
+2. **Integration-Klasse** — `IntegrationInterface` implementieren
+3. **Hook-Registrierung** — `add_action( 'resa_register_integrations', ... )`
+4. **REST-Endpoints** — Unter `/resa/v1/admin/integrations/{slug}/*`
+5. **Admin-Settings** — Konfigurationsseite
 
 ### Regeln während der Implementierung
 
@@ -149,6 +173,8 @@ Diese Skills sind passiv und werden **immer** beim Coden beachtet — nicht erst
 | Aufgabe | Spec | Plan | Impl | Test | Review |
 |---|---|---|---|---|---|
 | **Neues Feature (groß)** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Neues Lead Tool Modul** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Neue Integration** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Neues Feature (klein)** | ❌ | ✅ | ✅ | ✅ | ✅ |
 | **Bugfix** | ❌ | ❌* | ✅ | ✅ | ✅ |
 | **Refactoring** | ❌ | ✅ | ✅ | ✅ | ✅ |

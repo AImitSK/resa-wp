@@ -48,62 +48,97 @@ npm run plugin:zip                # Full build + ZIP creation
 **Static analysis:** PHPStan (level 6), PHP_CodeSniffer (WordPress standards).
 **Pre-commit:** Husky + lint-staged.
 
-## Architecture: Two Entry Points
+## Architecture: Three-Tier Modular System
 
-RESA builds **two separate React applications** from a single codebase:
+RESA follows a **plugin-in-plugin architecture** (like Chrome Extension Store):
+
+**Tier 1: Kernplugin** (`includes/` + `src/`) — The platform. Dashboard, lead management, locations, StepWizard framework, LeadForm, PDF service, email service, tracking, icon registry, module registry, REST API base, Freemius SDK, feature gating. Always present.
+
+**Tier 2: Lead Tool Module** (`modules/`) — Registerable, activatable modules. Each module brings its own frontend steps, calculation logic, settings, result template, and PDF blocks. Consumes core services (StepWizard, LeadForm, PDF, email, locations, icons). Flag system: `free` (2 tools), `pro` (6 tools), `paid` (future).
+
+**Tier 3: Integrationen** — Basis integrations (webhooks, email notifications) in core. Paid CRM integrations (onOffice, Propstack, etc.) as separate WordPress plugins via Freemius add-ons.
+
+See `docs/planning/RESA-Modulare-Architektur.md` for full details (registry system, module interface, icon registry, data flow).
+
+### Two Entry Points
 
 1. **Frontend Widget** (`src/frontend/main.tsx`) — Visitor-facing calculators embedded via `[resa]` shortcode. Bundles its own React (isolation from themes). CSS scoped via `.resa-widget-root` container + Tailwind `resa-` prefix. No Tailwind preflight (would break host theme). Target: <120 KB gzip.
 
-2. **Admin Dashboard** (`src/admin/main.tsx`) — WP-Admin pages for lead management, settings, configuration. Uses WordPress-bundled React (`wp-element`). Target: <250 KB gzip.
+2. **Admin Dashboard** (`src/admin/main.tsx`) — WP-Admin pages for lead management, module store, settings, configuration. Uses WordPress-bundled React (`wp-element`). Target: <250 KB gzip.
 
 Both communicate with the backend via WordPress REST API at `/wp-json/resa/v1/`.
 
 ## Key Architectural Patterns
 
-- **Multi-Step Wizard:** Shared `StepWizard` component drives all calculator assets. Each step validates independently via Zod. Framer Motion handles animated transitions.
+- **Module Registry:** Lead tools register via `ModuleInterface` and `ModuleRegistry`. Each module declares its slug, flag (free/pro/paid), frontend steps, settings schema, calculator service, and PDF blocks. Core discovers and orchestrates modules.
+- **Icon Registry:** Central `ResaIcon` component with semantic names (e.g. `'house'`, `'calculator-rent'`). Modules reference icons by name, never import icon libraries directly. Icon sets are swappable.
+- **Multi-Step Wizard:** Shared `StepWizard` component drives all calculator modules. Module provides its steps, core appends LeadForm + Result automatically. Each step validates independently via Zod. Framer Motion handles animated transitions.
 - **Two-Phase Lead Capture:** Phase 1 (partial lead with UUID session) when user reaches the form, Phase 2 (complete lead) on submission. Enables funnel tracking and GDPR compliance.
-- **Feature Gating:** `FeatureGate` class checks Freemius plan to enforce limits (free: 1 asset, 1 location, 50 leads).
-- **Service Layer:** Backend calculators implement `CalculatorInterface`. Email dispatches through SMTP or Brevo transport. PDF generates via DOMPDF or Puppeteer.
-- **REST Controller Base:** All API endpoints extend `RestController` with nonce verification, permission checks, response formatting.
+- **Feature Gating:** `FeatureGate` class checks module flag + Freemius plan. Free: 2 modules (Mietpreis + Immobilienwert), Pro: all 8, paid: future Freemius add-ons. Limits: free max 1 location, 50 visible leads.
+- **Service Layer:** Backend calculators implement `CalculatorInterface`. Email dispatches through SMTP or Brevo transport. PDF generates via DOMPDF or Puppeteer. All services are core — modules consume them.
+- **REST Controller Base:** All API endpoints extend `RestController` with nonce verification, permission checks, response formatting. Module endpoints under `/resa/v1/modules/{slug}/*`.
 - **CSS Isolation:** Frontend widget uses Tailwind `resa-` prefix, `.resa-widget-root` importance scope, custom mini-reset, no preflight. This is critical — the widget must not break host themes.
 
 ## Source Layout (Planned)
 
 ```
-resa.php                   # Plugin entry point
-includes/                  # PHP backend (PSR-4: Resa\)
-  Core/                    # Plugin bootstrap, activation, i18n
-  Admin/                   # WP-Admin menu, pages, settings
-  Api/                     # REST controllers (/resa/v1/*)
-  Models/                  # Lead, Location, Asset, EmailTemplate CRUD
-  Services/                # Calculator/, Pdf/, Email/, Integration/
-  Database/                # Schema, migrations (dbDelta), seeders
-  Shortcode/               # [resa] shortcode handler
-  Freemius/                # SDK init + FeatureGate
+resa.php                        # Plugin entry point
+includes/                       # PHP backend (PSR-4: Resa\)
+  Core/                         # Plugin bootstrap, activation, i18n
+    ModuleRegistry.php          # Module discovery + registry
+    ModuleInterface.php         # Contract for all lead tool modules
+    FeatureGate.php             # Plan + flag check (free/pro/paid)
+    IconRegistry.php            # Central icon management
+  Admin/                        # WP-Admin menu, pages, settings
+    ModuleStorePage.php         # Module overview ("Store")
+  Api/                          # REST controllers (/resa/v1/*)
+    ModulesController.php       # /resa/v1/modules/* (registry API)
+  Models/                       # Lead, Location, Agent, EmailTemplate CRUD
+  Services/                     # Calculator/, Pdf/, Email/, Integration/
+    Calculator/CalculatorInterface.php  # Interface modules implement
+  Database/                     # Schema, migrations (dbDelta), seeders
+  Shortcode/                    # [resa] shortcode handler
+  Freemius/                     # SDK init
+modules/                        # Lead Tool Modules (each self-contained)
+  rent-calculator/              # [free] Mietpreis-Kalkulator
+    module.php                  # Bootstrap, registers with ModuleRegistry
+    RentCalculatorModule.php    # ModuleInterface implementation
+    RentCalculatorService.php   # Calculation logic
+    src/steps/                  # React step components
+    src/result/                 # Result component
+    tests/                      # Module-specific tests
+  value-calculator/             # [free] Immobilienwert-Kalkulator
+  purchase-costs/               # [pro] Kaufnebenkosten-Rechner
+  budget-calculator/            # [pro] Budgetrechner
+  roi-calculator/               # [pro] Renditerechner
+  energy-check/                 # [pro] Energieeffizienz-Check
+  seller-checklist/             # [pro] Verkäufer-Checkliste
+  buyer-checklist/              # [pro] Käufer-Checkliste
 src/
-  frontend/                # Widget React app
-    assets/                # Per-asset components (rent-calculator/, value-calculator/)
-      shared/              # StepWizard, LeadForm, ProgressBar, ResultCard
-    components/ui/         # shadcn/ui components (copied, not dependency)
-    hooks/                 # useApi, useLocale, useAssetConfig
-    lib/                   # api-client, format, validation (Zod schemas)
-    types/                 # TypeScript interfaces
-  admin/                   # Admin React app
-    pages/                 # Dashboard, Leads, Communication, Settings, etc.
-    components/            # LeadTable, AssetConfigurator, PdfBlockEditor
-    hooks/                 # useLeads, useLocations, useSettings
-dist/                      # Vite build output with manifest.json
-languages/                 # i18n: POT, PO, MO, JSON files
-tests/php/                 # PHPUnit (Unit/ + Integration/)
-tests/js/                  # Vitest (components/ + hooks/)
+  frontend/                     # Widget React app (shared core)
+    components/shared/          # StepWizard, LeadForm, ProgressBar, ResultCard
+    components/ui/              # shadcn/ui components (copied)
+    components/icons/           # Icon Registry (ResaIcon, sets/)
+    hooks/                      # useApi, useLocale, useModuleConfig
+    lib/                        # api-client, format, module-loader
+    types/                      # TypeScript interfaces (incl. module.ts)
+  admin/                        # Admin React app
+    pages/                      # Dashboard, Leads, ModuleStore, ModuleSettings, etc.
+    components/                 # LeadTable, ModuleCard, ModuleSettingsPanel
+    hooks/                      # useLeads, useLocations, useSettings
+dist/                           # Vite build output with manifest.json
+languages/                      # i18n: POT, PO, MO, JSON files
+tests/php/                      # PHPUnit core tests (Unit/ + Integration/)
+tests/js/                       # Vitest core tests (components/ + hooks/)
 ```
 
 ## REST API
 
-Public endpoints (no auth): asset config, calculations, lead submission, tracking.
-Admin endpoints (nonce + capability): leads CRUD, locations, assets, settings, email/PDF templates, integrations, analytics.
+Public endpoints (no auth): module config, calculations, lead submission, tracking.
+Admin endpoints (nonce + capability): leads CRUD, locations, module management, settings, email/PDF templates, integrations, analytics.
+Module endpoints: `/resa/v1/modules/{slug}/config`, `/resa/v1/modules/{slug}/calculate`, `/resa/v1/admin/modules/{slug}/settings`.
 
-All under `/wp-json/resa/v1/`. See `docs/planning/RESA-Technischer-Stack.md` section 7 for full endpoint list.
+All under `/wp-json/resa/v1/`. See `docs/planning/RESA-Modulare-Architektur.md` section 9 for full endpoint list.
 
 ## Database
 
@@ -126,19 +161,20 @@ Ausführliche Version: `.claude/WORKFLOW.md`
 **Passive Skills (immer automatisch anwenden):**
 - `wp-security` — Sanitization, Escaping, Nonces, Capabilities, prepare(), permission_callback
 - `wp-i18n` — Text-Domain `'resa'`, esc_html__(), Translator-Kommentare, _n(), DACH-Format
-- `freemius` — can_use_premium_code(), FeatureGate, Free-Limits (1 Asset, 1 Location, 50 Leads)
+- `freemius` — can_use_premium_code(), FeatureGate, Module-Flags (free/pro/paid), Free-Limits (2 Free-Tools, 1 Location, 50 Leads)
 
 **Sprache:** Kommunikation immer auf Deutsch. Rückfragen statt Annahmen.
 
 ## Planning Documentation
 
 All specifications are in `docs/planning/`:
-- `RESA-Technischer-Stack.md` — Full tech stack, directory structure, Vite config, DB schema, API design
+- **`RESA-Modulare-Architektur.md`** — **Central architecture doc:** Three-tier model, module registry, module interface, icon registry, flag system, data flow, developer API
+- `RESA-Technischer-Stack.md` — Full tech stack, Vite config, DB schema
 - `RESA-Plugin-Architektur.md` — Admin UI structure, page components, workflows
-- `RESA-Teststrategie.md` — Test pyramid, CI/CD pipeline, coverage targets
-- `RESA-Charts-und-PDF.md` — Nivo chart types, dual rendering (web + PDF), DOMPDF limitations
-- `RESA-Lead-Formular.md` — Lead form components, validation, GDPR consent flow
 - `RESA-Freemius-Monetarisierung.md` — Pricing tiers, feature gating, add-ons
+- `RESA-Lead-Formular.md` — Lead form components, validation, GDPR consent flow
+- `RESA-Charts-und-PDF.md` — Nivo chart types, dual rendering (web + PDF), DOMPDF limitations
+- `RESA-Teststrategie.md` — Test pyramid, CI/CD pipeline, coverage targets
 - `RESA-Integrationsstrategie.md` — CRM integrations (onOffice, Propstack, FLOWFACT)
 - `RESA-i18n-Planung.md` — Translation workflow, DACH locale variants
 - `RESA-Tracking-und-Conversion.md` — Funnel tracking, offline conversion (GCLID/FBCLID)

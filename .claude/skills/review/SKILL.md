@@ -72,6 +72,14 @@ Führe einen umfassenden Code-Review durch, orientiert an den RESA-Architekturvo
 - [ ] **Empty States:** Sinnvolle Anzeige wenn keine Daten?
 - [ ] **Accessibility:** aria-Labels, Keyboard-Navigation?
 
+### Modulare Architektur (bei Modul-Features)
+- [ ] **Modul-Verzeichnis:** Unter `modules/{slug}/` mit `module.php`?
+- [ ] **ModuleInterface:** Implementiert `ModuleInterface` korrekt?
+- [ ] **FeatureGate:** `canUseModule( $slug )` korrekt geprüft?
+- [ ] **REST-Pfad:** Endpoints unter `/resa/v1/modules/{slug}/*`?
+- [ ] **Icon Registry:** Nur semantische Icon-Namen (`<ResaIcon name="..." />`), keine direkten Lucide-Imports in Modulen?
+- [ ] **Kern-Bausteine:** Nutzt StepWizard, LeadForm, PDF-Service vom Kern (nicht eigen implementiert)?
+
 ### Architektur / Code-Qualität
 - [ ] **CLAUDE.md Patterns:** Architekturvorgaben befolgt?
 - [ ] **Over-Engineering:** Unnötige Abstraktion/Komplexität?

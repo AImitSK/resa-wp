@@ -6,7 +6,12 @@
 
 ## 1. Architektur-Überblick
 
-RESA ist ein **WordPress-Plugin mit React-Frontend**. Das Backend läuft in PHP (WordPress-Konventionen), das Frontend als isolierte React-App die per Shortcode in beliebige Seiten eingebettet wird.
+RESA ist ein **WordPress-Plugin mit React-Frontend und modularer Architektur**. Das Backend läuft in PHP (WordPress-Konventionen), das Frontend als isolierte React-App die per Shortcode in beliebige Seiten eingebettet wird.
+
+RESA folgt einem **Three-Tier-Modell** (siehe `RESA-Modulare-Architektur.md`):
+- **Tier 1: Kernplugin** (`includes/` + `src/`) — Plattform mit allen Services
+- **Tier 2: Lead Tool Module** (`modules/`) — Registrierbare, aktivierbare Tools mit eigenem Flag (free/pro/paid)
+- **Tier 3: Integrationen** — Basis (free im Kern) + kostenpflichtige Add-ons (separate Plugins)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -136,7 +141,8 @@ WP-Integration          @kucrut/vite-for-wp    —           Manifest, Asset-Enq
 Styling                 Tailwind CSS           3.x         Utility-First, Prefixed
 UI-Komponenten          shadcn/ui              —           Radix-basiert, kopiert
 Animation               Framer Motion          11.x        Schritt-Übergänge, Micro
-Icons                   Lucide React           —           Konsistente Icons
+Icons                   Lucide React           —           Zentrale Icon Registry
+                                                                (ResaIcon + semantische Namen)
 Formulare               React Hook Form        7.x         Performant, Validierung
 Validierung             Zod                    3.x         Schema-basiert, TS-first
 State Management        Zustand                4.x         Leichtgewichtig, kein Redux
@@ -196,110 +202,110 @@ resa/
 │   │   ├── Plugin.php               ← Haupt-Bootstrap, Hooks
 │   │   ├── Activator.php            ← DB-Tabellen erstellen
 │   │   ├── Deactivator.php          ← Aufräumen
-│   │   └── I18n.php                 ← Sprachladung
+│   │   ├── I18n.php                 ← Sprachladung
+│   │   ├── ModuleRegistry.php       ← ★ Modul-Discovery + Registry
+│   │   ├── ModuleInterface.php      ← ★ Vertrag für alle Lead Tool Module
+│   │   ├── AbstractModule.php       ← ★ Basis-Implementierung
+│   │   ├── FeatureGate.php          ← ★ Plan + Flag Prüfung (free/pro/paid)
+│   │   └── IconRegistry.php         ← ★ Zentrale Icon-Verwaltung
 │   │
 │   ├── Admin/
 │   │   ├── AdminMenu.php            ← WP-Admin Menü registrieren
 │   │   ├── AdminPages.php           ← React-Admin mounten
+│   │   ├── ModuleStorePage.php      ← ★ Modul-Übersicht ("Store")
 │   │   └── Settings.php             ← Options API Wrapper
 │   │
 │   ├── Api/
 │   │   ├── RestController.php       ← Basis REST-Controller
 │   │   ├── LeadsController.php      ← /resa/v1/leads
 │   │   ├── LocationsController.php  ← /resa/v1/locations
-│   │   ├── AssetsController.php     ← /resa/v1/assets
+│   │   ├── ModulesController.php    ← ★ /resa/v1/modules/* (Registry-API)
 │   │   ├── SettingsController.php   ← /resa/v1/settings
 │   │   └── EmailController.php      ← /resa/v1/emails
 │   │
 │   ├── Models/
 │   │   ├── Lead.php                 ← Lead CRUD
 │   │   ├── Location.php             ← Location CRUD
-│   │   ├── Asset.php                ← Asset Konfiguration
+│   │   ├── Agent.php                ← Makler
 │   │   └── EmailTemplate.php        ← E-Mail-Vorlagen
 │   │
 │   ├── Services/
 │   │   ├── Calculator/
-│   │   │   ├── CalculatorInterface.php  ← Vertrag für alle Rechner
-│   │   │   ├── RentCalculator.php       ← Mietpreis-Logik
-│   │   │   ├── ValueCalculator.php      ← Immobilienwert-Logik
-│   │   │   └── CostCalculator.php       ← Kaufnebenkosten-Logik
+│   │   │   └── CalculatorInterface.php  ← Vertrag, den Module implementieren
 │   │   │
 │   │   ├── Pdf/
-│   │   │   ├── PdfGenerator.php         ← DOMPDF Wrapper
-│   │   │   ├── PdfTemplateEngine.php    ← Baustein-Renderer
-│   │   │   └── templates/               ← Blade-ähnliche Templates
-│   │   │       ├── base-layout.php
-│   │   │       ├── rent-analysis.php
-│   │   │       └── value-analysis.php
+│   │   │   ├── PdfService.php           ← DOMPDF/Puppeteer Wrapper
+│   │   │   ├── PdfBlockInterface.php    ← Vertrag für Modul-PDF-Bausteine
+│   │   │   └── templates/
+│   │   │       └── base-layout.php      ← Basis-Layout (global)
 │   │   │
 │   │   ├── Email/
-│   │   │   ├── EmailSender.php          ← Dispatcher (SMTP/API)
+│   │   │   ├── EmailService.php         ← Dispatcher (SMTP/API)
 │   │   │   ├── SmtpTransport.php        ← SMTP-Versand
 │   │   │   ├── BrevoTransport.php       ← Brevo API
 │   │   │   └── EmailLogger.php          ← Versandlog
 │   │   │
 │   │   ├── Integration/
-│   │   │   ├── IntegrationInterface.php ← Vertrag
-│   │   │   ├── WebhookDispatcher.php    ← Generischer Webhook
-│   │   │   └── ZapierConnector.php      ← Zapier-spezifisch
+│   │   │   ├── IntegrationInterface.php ← Vertrag für Add-on-Integrationen
+│   │   │   ├── WebhookIntegration.php   ← Basis-Integration (Free)
+│   │   │   └── EmailNotification.php    ← Basis-Integration (Free)
+│   │   │
+│   │   ├── Tracking/
+│   │   │   └── TrackingService.php      ← Funnel-Tracking, Events
 │   │   │
 │   │   └── LeadDistribution/
 │   │       └── LeadRouter.php           ← Makler-Zuordnung
 │   │
 │   ├── Database/
 │   │   ├── Schema.php               ← Tabellen-Definition
-│   │   ├── Migrations.php           ← dbDelta Wrapper
+│   │   ├── Migrator.php             ← dbDelta Wrapper
 │   │   └── Seeder.php               ← Demo-Daten (Dev)
 │   │
 │   ├── Shortcode/
 │   │   └── ResaShortcode.php        ← [resa] Shortcode Handler
 │   │
 │   └── Freemius/
-│       ├── FreemiusInit.php         ← SDK Bootstrap
-│       └── FeatureGate.php          ← Plan-basierte Freischaltung
+│       └── FreemiusInit.php         ← SDK Bootstrap
+│
+├── modules/                         ← ★ LEAD TOOL MODULE
+│   ├── rent-calculator/             ← 🟢 Free
+│   │   ├── module.php               ← Bootstrap
+│   │   ├── RentCalculatorModule.php ← ModuleInterface
+│   │   ├── RentCalculatorService.php← Berechnungslogik
+│   │   ├── src/                     ← Frontend-Komponenten
+│   │   └── tests/                   ← Modul-Tests
+│   ├── value-calculator/            ← 🟢 Free
+│   ├── purchase-costs/              ← 🔵 Pro
+│   ├── budget-calculator/           ← 🔵 Pro
+│   ├── roi-calculator/              ← 🔵 Pro
+│   ├── energy-check/                ← 🔵 Pro
+│   ├── seller-checklist/            ← 🔵 Pro
+│   └── buyer-checklist/             ← 🔵 Pro
 │
 ├── src/                             ← TypeScript/React Quellcode
-│   ├── frontend/                    ← Widget (Besucherseite)
+│   ├── frontend/                    ← Widget (Besucherseite) — Kern-Bausteine
 │   │   ├── main.tsx                 ← Entry Point Frontend
 │   │   ├── App.tsx                  ← Widget Root Component
-│   │   ├── assets/
-│   │   │   ├── rent-calculator/
-│   │   │   │   ├── RentCalculator.tsx
-│   │   │   │   ├── steps/
-│   │   │   │   │   ├── PropertyTypeStep.tsx
-│   │   │   │   │   ├── AreaStep.tsx
-│   │   │   │   │   ├── ConditionStep.tsx
-│   │   │   │   │   ├── LocationStep.tsx
-│   │   │   │   │   └── ExtrasStep.tsx
-│   │   │   │   ├── result/
-│   │   │   │   │   └── RentResult.tsx
-│   │   │   │   └── hooks/
-│   │   │   │       └── useRentCalculation.ts
-│   │   │   │
-│   │   │   ├── value-calculator/
-│   │   │   │   └── ... (gleiche Struktur)
-│   │   │   │
-│   │   │   └── shared/              ← Geteilte Asset-Komponenten
-│   │   │       ├── StepWizard.tsx   ← Multi-Step Framework
-│   │   │       ├── LeadForm.tsx     ← Universelles Lead-Formular
-│   │   │       ├── ProgressBar.tsx
-│   │   │       └── ResultCard.tsx
 │   │   │
-│   │   ├── components/              ← Basis-UI-Komponenten
-│   │   │   └── ui/                  ← shadcn/ui (kopiert)
-│   │   │       ├── button.tsx
-│   │   │       ├── input.tsx
-│   │   │       ├── select.tsx
-│   │   │       ├── card.tsx
-│   │   │       ├── slider.tsx
-│   │   │       ├── radio-group.tsx
-│   │   │       ├── progress.tsx
-│   │   │       └── ...
+│   │   ├── components/
+│   │   │   ├── shared/              ← Geteilte Bausteine (alle Module nutzen diese)
+│   │   │   │   ├── StepWizard.tsx   ← Multi-Step Framework
+│   │   │   │   ├── LeadForm.tsx     ← Universelles Lead-Formular
+│   │   │   │   ├── ProgressBar.tsx
+│   │   │   │   └── ResultCard.tsx
+│   │   │   ├── ui/                  ← shadcn/ui (kopiert)
+│   │   │   │   ├── button.tsx
+│   │   │   │   └── ...
+│   │   │   └── icons/               ← ★ Icon Registry
+│   │   │       ├── ResaIcon.tsx     ← <ResaIcon name="house" />
+│   │   │       ├── registry.ts      ← Semantischer Name → Komponente
+│   │   │       └── sets/
+│   │   │           └── default.ts   ← Standard-Set (Lucide-basiert)
 │   │   │
 │   │   ├── hooks/                   ← Shared React Hooks
 │   │   │   ├── useApi.ts           ← REST-API Wrapper
 │   │   │   ├── useLocale.ts        ← Sprache & Zahlenformat
-│   │   │   └── useAssetConfig.ts   ← Konfiguration laden
+│   │   │   └── useModuleConfig.ts  ← ★ Modul-Konfiguration laden
 │   │   │
 │   │   ├── lib/                     ← Utilities
 │   │   │   ├── api-client.ts       ← Fetch + Nonce
@@ -323,9 +329,10 @@ resa/
 │       │   ├── Dashboard.tsx
 │       │   ├── Leads.tsx
 │       │   ├── LeadDetail.tsx
+│       │   ├── ModuleStore.tsx      ← ★ Modul-Übersicht ("Chrome Store")
+│       │   ├── ModuleSettings.tsx   ← ★ Einstellungen pro aktivem Modul
 │       │   ├── Communication.tsx
 │       │   ├── PdfDesigner.tsx
-│       │   ├── Assets.tsx
 │       │   ├── Locations.tsx
 │       │   ├── ShortcodeGenerator.tsx
 │       │   ├── Integrations.tsx
@@ -334,7 +341,8 @@ resa/
 │       ├── components/              ← Admin-spezifische Komponenten
 │       │   ├── LeadTable.tsx
 │       │   ├── LocationForm.tsx
-│       │   ├── AssetConfigurator.tsx
+│       │   ├── ModuleCard.tsx       ← ★ Karte im Store (Icon, Flag, Toggle)
+│       │   ├── ModuleSettingsPanel.tsx ← ★ Dynamisches Settings-Panel
 │       │   ├── EmailTemplateEditor.tsx
 │       │   ├── PdfBlockEditor.tsx
 │       │   └── StatsCard.tsx
@@ -527,8 +535,9 @@ Endpunkt                            Methode    Auth       Beschreibung
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 PUBLIC (Frontend-Widget, kein Login nötig):
-/resa/v1/assets/{type}/config        GET        —          Asset-Konfiguration laden
-/resa/v1/assets/{type}/calculate     POST       —          Berechnung durchführen
+/resa/v1/modules                     GET        —          Verfügbare + aktive Module
+/resa/v1/modules/{slug}/config       GET        —          Modul-Frontend-Konfiguration
+/resa/v1/modules/{slug}/calculate    POST       —          Berechnung durchführen
 /resa/v1/leads/partial               POST       Nonce      Phase 1: Partial Lead (Formular erreicht)
 /resa/v1/leads/complete              POST       Nonce      Phase 2: Lead vervollständigen (abgesendet)
 /resa/v1/tracking                    POST       —          Tracking-Event speichern
@@ -546,9 +555,9 @@ ADMIN (WP-Admin, eingeloggt + Nonce):
 /resa/v1/locations/{id}              PUT        Admin      Location aktualisieren
 /resa/v1/locations/{id}              DELETE     Admin      Location löschen
 
-/resa/v1/assets                      GET        Admin      Alle Assets + Status
-/resa/v1/assets/{type}               PUT        Admin      Asset konfigurieren
-/resa/v1/assets/{type}/factors       GET/PUT    Admin      Faktoren (Pauschal/Individuell)
+/resa/v1/admin/modules               GET        Admin      Alle Module + Status + Flags
+/resa/v1/admin/modules/{slug}        PUT        Admin      Modul aktivieren/deaktivieren
+/resa/v1/admin/modules/{slug}/settings GET/PUT  Admin      Modul-Einstellungen
 
 /resa/v1/settings                    GET/PUT    Admin      Plugin-Einstellungen
 /resa/v1/settings/email              GET/PUT    Admin      E-Mail-Konfiguration
@@ -697,7 +706,9 @@ CREATE TABLE {prefix}resa_agent_locations (
 
 ## 9. Frontend-Komponenten-Architektur
 
-### Multi-Step Wizard (Kern aller Assets)
+### Multi-Step Wizard (Kern aller Lead Tool Module)
+
+> **Hinweis:** Die modulspezifischen Steps (PropertyTypeStep, AreaStep, etc.) liegen im jeweiligen Modul-Verzeichnis (`modules/{slug}/src/steps/`). Der StepWizard, das LeadForm und die ResultCard sind Kern-Bausteine in `src/frontend/components/shared/`. Modul-Steps werden via dynamische Imports lazy-loaded. Siehe `RESA-Modulare-Architektur.md` für Details.
 
 ```
 ┌──────────────────────────────────────────────────────────┐

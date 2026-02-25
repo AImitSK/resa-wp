@@ -217,11 +217,32 @@ Smart Assets sind interaktive WordPress-Widgets (per Shortcode einbindbar), die 
 
 ---
 
-## Technischer Rahmen (Überlegungen)
+## Technischer Rahmen
 
-- **WordPress-Plugin-Architektur:** Jedes Asset als eigener Shortcode, zentrale Plugin-Verwaltung
-- **Konfigurierbarkeit:** Makler kann Farben, Texte, Region und Lead-Formularfelder anpassen
+> **Siehe `RESA-Modulare-Architektur.md`** für die vollständige Architektur-Beschreibung.
+
+Jedes Smart Asset ist ein **Lead Tool Modul** das sich beim Kernplugin registriert:
+
+- **Modulare Architektur:** Jedes Tool ist ein eigenständiges Modul unter `modules/{slug}/` mit `ModuleInterface`
+- **Flag-System:** Jedes Modul hat ein Flag: `free` (2 Tools), `pro` (6+ Tools), `paid` (Zukunft: einzeln kaufbar)
+- **Registry-Pattern:** Module registrieren sich via `add_action( 'resa_register_modules', ... )`
+- **Kern-Bausteine:** Alle Module nutzen StepWizard, LeadForm, PDF-Service, Icon Registry, Tracking vom Kernplugin
+- **Konfigurierbarkeit:** Makler kann Farben, Texte, Region und Lead-Formularfelder pro Modul anpassen
 - **Lead-Erfassung:** Einheitliches Lead-Format, Export als CSV, Webhook-Anbindung an CRMs (z.B. onOffice, Flowfact, Propstack)
 - **DSGVO:** Double-Opt-In, Einwilligungstexte, Datenverarbeitungshinweise
-- **Responsive:** Mobile-first Design für alle Assets
+- **Responsive:** Mobile-first Design für alle Module
 - **White-Label:** Makler-Branding statt Plattform-Branding
+
+### Aktuelle Zuordnung (v1)
+
+| Modul | Flag | Phase |
+|---|---|---|
+| Mietpreis-Kalkulator | 🟢 free | Vorhanden |
+| Immobilienwert-Kalkulator | 🟢 free | Vorhanden |
+| Kaufnebenkosten-Rechner | 🔵 pro | Phase 1 |
+| Budgetrechner | 🔵 pro | Phase 1 |
+| Verkäufer-Checkliste | 🔵 pro | Phase 1 |
+| Käufer-Checkliste | 🔵 pro | Phase 1 |
+| Renditerechner | 🔵 pro | Phase 2 |
+| Energieeffizienz-Check | 🔵 pro | Phase 2 |
+| Weitere Tools | ⚪ later | Phase 3+ |

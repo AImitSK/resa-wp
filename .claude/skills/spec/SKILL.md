@@ -68,11 +68,19 @@ Erstelle eine strukturierte Feature-Spezifikation für das RESA Plugin.
 ### Neue Optionen
 {wp_options Einträge falls zutreffend}
 
+## Modul-Klassifizierung
+
+| Eigenschaft | Wert |
+|---|---|
+| **Typ** | [Kern-Feature / Lead Tool Modul / Integration Add-on] |
+| **Modul-Flag** | [free / pro / paid / nicht zutreffend] |
+| **Modul-Slug** | [z.B. rent-calculator / nicht zutreffend] |
+
 ## Free vs. Premium
 
-| Feature-Aspekt | Free | Premium |
-|---|---|---|
-| ... | ... | ... |
+| Feature-Aspekt | Free | Pro | Add-on |
+|---|---|---|---|
+| ... | ... | ... | ... |
 
 ## UI/UX
 
@@ -87,11 +95,23 @@ Erstelle eine strukturierte Feature-Spezifikation für das RESA Plugin.
 
 ## Implementierungsdetails
 
+### Modul-Struktur (falls Lead Tool Modul)
+
+Verzeichnis: `modules/{slug}/`
+- `module.php` — Bootstrap, registriert sich bei ModuleRegistry
+- `{Name}Module.php` — ModuleInterface Implementierung
+- `{Name}Service.php` — Berechnungslogik (CalculatorInterface)
+- `src/steps/` — React Step-Komponenten
+- `src/result/` — Ergebnis-Komponente
+- `src/validation/schema.ts` — Zod-Schema
+- `tests/` — Modul-spezifische Tests
+
 ### PHP-Klassen
 {Klassenstruktur, Methoden-Signaturen, Verantwortlichkeiten}
 
 ### React-Komponenten
 {Komponentenbaum, Props, State-Management}
+Icons: Nur semantische Namen aus Icon Registry verwenden (`<ResaIcon name="..." />`)
 
 ### Validierung
 {Zod-Schemas, PHP-Validation-Regeln}

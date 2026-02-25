@@ -51,11 +51,13 @@ Generiere Tests für die angegebene Datei oder Komponente, orientiert an der RES
 - XSS-Versuche in Eingabefeldern
 - Unerlaubte Capability-Zugriffe
 
-### Freemius Tests
-- Verhalten im Free-Plan (Limits respektiert?)
-- Verhalten im Premium-Plan (Features verfügbar?)
+### Freemius / Modul-Gating Tests
+- Modul mit Flag `free` → immer ladbar
+- Modul mit Flag `pro` → nur im Premium-Plan ladbar
+- Modul mit Flag `pro` → REST-Endpoint gibt 403 im Free-Plan
+- FeatureGate.canUseModule() korrekt für alle Flags
 - Verhalten wenn SDK fehlt (Graceful Degradation)
-- Limit-Grenzen (50. Lead, 2. Location, 2. Asset)
+- Limit-Grenzen (50. Lead, 2. Location)
 
 ## PHP: PHPUnit + Brain Monkey
 
@@ -64,9 +66,11 @@ Generiere Tests für die angegebene Datei oder Komponente, orientiert an der RES
 ```
 tests/php/Unit/{Namespace}/{Klasse}Test.php
 tests/php/Integration/{Namespace}/{Klasse}IntegrationTest.php
+modules/{slug}/tests/{Klasse}Test.php              # Modul-spezifische Tests
 ```
 
 Beispiel: `includes/Models/LeadRepository.php` → `tests/php/Unit/Models/LeadRepositoryTest.php`
+Beispiel: `modules/rent-calculator/RentCalculatorService.php` → `modules/rent-calculator/tests/RentCalculatorServiceTest.php`
 
 ### Template
 

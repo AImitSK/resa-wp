@@ -16,22 +16,35 @@ Diese Regeln IMMER bei Premium/Free-Logik anwenden. Vollständige API-Referenz: 
 4. **Graceful Degradation** — Plugin muss im Free-Modus IMMER funktionieren
 5. **SDK-Fehler abfangen** — Wenn Freemius nicht lädt, Free-Modus annehmen
 
+## Modulares Flag-System
+
+Jedes Lead Tool Modul hat ein Flag: `free`, `pro`, oder `paid` (Zukunft).
+
+| Flag | Bedeutung | Freemius-Check |
+|---|---|---|
+| `free` | Immer verfügbar | `true` |
+| `pro` | Nur mit Premium-Plan | `resa_fs()->can_use_premium_code()` |
+| `paid` | Einzeln lizenziert (Zukunft) | `resa_fs()->is_addon_activated( $slug )` |
+
+Aktuell: 2 Free-Module (Mietpreis, Immobilienwert), 6 Pro-Module.
+
 ## RESA Free-Plan-Limits
 
-| Ressource | Free | Premium |
-|---|---|---|
-| Assets (Smart-Rechner) | 1 (nur Mietpreis) | Alle 18 |
-| Standorte | 1 | Unbegrenzt |
-| Leads (sichtbar/Monat) | 50 | Unbegrenzt |
-| PDF-Designer | Nein | Ja |
-| E-Mail-Templates | Nein | Ja |
-| SMTP/Brevo | Nein (wp_mail) | Ja |
-| Kommunikationscenter | Nein | Ja |
-| Maklerverwaltung | Nein | Ja |
-| Custom Branding | Nein | Ja |
-| Webhooks | Nein | Ja |
-| CSV-Export | Nein | Ja |
-| CRM-Integrationen | Nein | Add-ons (Premium) |
+| Ressource | Free | Pro | Add-on |
+|---|---|---|---|
+| Lead Tool Module (free-Flag) | 2 (Mietpreis + Immobilienwert) | 2 | — |
+| Lead Tool Module (pro-Flag) | ❌ | 6 weitere | — |
+| Standorte | 1 | Unbegrenzt | — |
+| Leads (sichtbar) | 50 | Unbegrenzt | — |
+| PDF-Designer | Nein | Ja | — |
+| E-Mail-Templates | Nein | Ja | — |
+| SMTP/Brevo | Nein (wp_mail) | Ja | — |
+| Kommunikationscenter | Nein | Ja | — |
+| Maklerverwaltung | Nein | Ja | — |
+| Custom Branding | Nein | Ja | — |
+| Webhooks | Basis (Free) | Erweitert | — |
+| CSV-Export | Nein | Ja | — |
+| CRM-Integrationen | Nein | Nein | Kostenpflichtig |
 
 ## PHP: Feature-Gating Pattern
 
@@ -41,20 +54,50 @@ if ( resa_fs()->can_use_premium_code() ) {
     // Premium-Feature laden/aktivieren
 }
 
-// RESA FeatureGate Klasse verwenden
-$gate = \Resa\Freemius\FeatureGate::getInstance();
+// RESA FeatureGate Klasse verwenden (Modul-aware)
+$gate = \Resa\Core\FeatureGate::getInstance();
 
-if ( $gate->canUseFeature( 'pdf_designer' ) ) {
-    // PDF-Designer aktivieren
+// Modul-Check: Prüft Flag (free/pro/paid) gegen aktuellen Plan
+if ( $gate->canUseModule( 'rent-calculator' ) ) {
+    // Modul laden — prüft: Flag == 'free' → immer true
 }
 
-if ( $gate->canActivateAsset( $asset_slug ) ) {
-    // Asset aktivieren erlaubt
+if ( $gate->canUseModule( 'roi-calculator' ) ) {
+    // Modul laden — prüft: Flag == 'pro' → nur bei Premium
+}
+
+// Feature-Check für Kern-Features
+if ( $gate->canUseFeature( 'pdf_designer' ) ) {
+    // PDF-Designer aktivieren
 }
 
 if ( $gate->canAddLocation() ) {
     // Neuen Standort hinzufügen erlaubt
 }
+```
+
+### REST API: Modul-Endpoints mit Feature-Check
+
+```php
+// Modul-Endpoints MÜSSEN Flag prüfen
+register_rest_route( 'resa/v1', '/modules/(?P<slug>[\\w-]+)/calculate', [
+    'methods'             => 'POST',
+    'callback'            => [ $this, 'handle_calculation' ],
+    'permission_callback' => function ( $request ) {
+        $slug = $request['slug'];
+        return FeatureGate::getInstance()->canUseModule( $slug );
+    },
+] );
+
+// Admin-Modul-Endpoints: + Capability
+register_rest_route( 'resa/v1', '/admin/modules/(?P<slug>[\\w-]+)/settings', [
+    'methods'             => 'PUT',
+    'callback'            => [ $this, 'update_settings' ],
+    'permission_callback' => function ( $request ) {
+        return current_user_can( 'manage_options' )
+            && FeatureGate::getInstance()->canUseModule( $request['slug'] );
+    },
+] );
 ```
 
 ## FeatureGate-Methoden
@@ -63,10 +106,12 @@ if ( $gate->canAddLocation() ) {
 |---|---|
 | `isPremium()` | `can_use_premium_code()` Wrapper |
 | `isFree()` | Auf Free-Plan? |
-| `canUseFeature( $feature )` | Feature erlaubt? |
-| `canActivateAsset( $slug )` | Asset aktivierbar? (Free: nur 'mietpreis') |
+| `canUseModule( $slug )` | Modul-Flag prüfen: free→true, pro→Premium, paid→Add-on |
+| `canActivateModule( $slug )` | Modul aktivierbar? (Flag + Plan + Limits) |
+| `canUseFeature( $feature )` | Kern-Feature erlaubt? (PDF-Designer, Kommunikation, etc.) |
 | `canAddLocation()` | Standort hinzufügbar? (Free: max 1) |
 | `getVisibleLeadLimit()` | Lead-Limit (Free: 50, Premium: PHP_INT_MAX) |
+| `getModuleFlag( $slug )` | Flag eines Moduls zurückgeben (free/pro/paid) |
 | `getUpgradeUrl( $params )` | Checkout-URL |
 | `getTrialUrl()` | Trial-Start-URL |
 | `canStartTrial()` | Trial noch nicht genutzt? |
@@ -140,9 +185,10 @@ if ( ! $gate->canUseFeature( 'lead_export' ) ) {
 
 ## Upgrade-CTA Platzierung
 
+- **Modul-Store:** Pro-Module zeigen Lock-Icon + "Pro"-Badge + Upgrade-Button
 - **Admin-Seiten:** Banner/Inline-Prompt wenn Free-User Premium-Feature aufruft
 - **Feature-Liste:** Lock-Icon + "Premium"-Badge bei gesperrten Features
-- **Limit-Erreicht:** Dialog mit Upgrade-Link wenn Asset/Location/Lead-Limit erreicht
+- **Limit-Erreicht:** Dialog mit Upgrade-Link wenn Location/Lead-Limit erreicht
 - **Sidebar:** Dezenter Upgrade-Hinweis im Dashboard
 
 ```typescript

@@ -24,7 +24,7 @@ Abrechnung über **Freemius** — Subscriptions (jährlich), Freemius übernimmt
 │    0 €       │     ab 149 €/Jahr  │     ab 49 €/Jahr   │
 │              │                    │     (je Add-on)     │
 ├─────────────┼────────────────────┼────────────────────┤
-│ 1 Smart Asset│ Alle Smart Assets  │ Maklersoftware:    │
+│ 2 Free-Tools │ Alle 8 Lead Tools  │ Maklersoftware:    │
 │ 1 Location   │ Unbegr. Locations  │ · onOffice         │
 │ Basis-Lead-  │ Volle Lead-Verwalt.│ · Propstack        │
 │ Erfassung    │ PDF-Designer       │ · FLOWFACT         │
@@ -51,9 +51,10 @@ Abrechnung über **Freemius** — Subscriptions (jährlich), Freemius übernimmt
 ```
 Feature                          Free         Limit
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Smart Assets                     ✅           1 Asset aktiv
-Verfügbare Assets                ✅           Mietpreis-Kalkulator
-                                              (weitere nur Premium)
+Lead Tool Module (free)          ✅           2 Module aktiv
+Verfügbare Free-Module           ✅           Mietpreis-Kalkulator
+                                              + Immobilienwert-Kalkulator
+Lead Tool Module (pro)           ❌           Nur Premium
 Locations                        ✅           1 Stadt
 Einrichtungs-Modus               ✅           Nur Pauschal
 Lead-Erfassung                   ✅           Basis (Name, E-Mail)
@@ -83,7 +84,7 @@ Support                          Community    WordPress.org Forum
 
 | Einschränkung | Begründung |
 |---|---|
-| 1 Asset | Makler kann den Mietpreis-Kalkulator live testen — merkt schnell, dass er auch Immobilienwert etc. will |
+| 2 Free-Tools | Makler kann Mietpreis + Immobilienwert live testen — merkt schnell, dass er auch Kaufnebenkosten etc. will |
 | 1 Location | Reicht für einen Standort — wer mehrere Städte bedient, braucht Premium |
 | Nur Pauschal-Modus | Schneller Start, aber unpräzise — für eigene Marktdaten braucht er Premium |
 | 50 Leads sichtbar | Genug um den Wert zu sehen, zu wenig für echtes Arbeiten |
@@ -118,26 +119,16 @@ Unlimited             399 €/Jahr      999 €
 ```
 Feature                          Premium
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Smart Assets                     ✅ ALLE verfügbaren Assets
-  Mietpreis-Kalkulator           ✅
-  Immobilienwert-Kalkulator      ✅
-  Kaufnebenkosten-Rechner        ✅
-  Budgetrechner                  ✅
-  Renditerechner                 ✅
-  Energieeffizienz-Check         ✅
-  Modernisierungsrechner         ✅
-  Mieterhöhungsrechner           ✅
-  Verkaufszeitpunkt-Berater      ✅
-  Mieten-vs-Kaufen               ✅
-  Erbschaftssteuer-Rechner       ✅
-  Immobilien-Stresstest          ✅
-  Suchprofil-Ersteller           ✅
-  Verkäufer-Checkliste           ✅
-  Käufer-Checkliste              ✅
-  Vermieter-Starter-Kit          ✅
-  Makler-Matching-Quiz           ✅
-  Umzugs-Checkliste              ✅
-  (neue Assets kommen mit Updates dazu)
+Lead Tool Module                 ✅ ALLE Module (free + pro)
+  [🟢 free] Mietpreis-Kalkulator  ✅ (auch im Free-Plan)
+  [🟢 free] Immobilienwert-Kalk.  ✅ (auch im Free-Plan)
+  [🔵 pro]  Kaufnebenkosten       ✅
+  [🔵 pro]  Budgetrechner         ✅
+  [🔵 pro]  Renditerechner        ✅
+  [🔵 pro]  Energieeffizienz      ✅
+  [🔵 pro]  Verkäufer-Checkliste  ✅
+  [🔵 pro]  Käufer-Checkliste     ✅
+  (neue Module kommen mit Updates dazu — Zukunft: auch paid Add-ons)
 
 Locations                        ✅ Unbegrenzt
 Einrichtungs-Modus               ✅ Pauschal + Individuell
@@ -469,10 +460,11 @@ function resa_can_add_location() {
     return $count < 1; // Free: max 1 Location
 }
 
-function resa_can_activate_asset( $asset_slug ) {
-    if ( resa_fs()->is_plan( 'premium' ) ) return true;
-    // Free: nur Mietpreis-Kalkulator
-    return $asset_slug === 'mietpreis';
+// Modul-Check via ModuleRegistry + FeatureGate
+function resa_can_use_module( $module_slug ) {
+    $gate = \Resa\Core\FeatureGate::getInstance();
+    return $gate->canUseModule( $module_slug );
+    // Prüft: Flag == 'free' → true, Flag == 'pro' → can_use_premium_code()
 }
 ```
 
