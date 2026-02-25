@@ -56,7 +56,7 @@ Dieser Plan definiert die Reihenfolge, in der die technische Infrastruktur aufge
 | 3.2 | **Admin-Shell**             | ✅     | WP-Admin Menü-Registrierung (9 Submenüs), MemoryRouter für Seiten, Modul-Store Karten-Layout, Settings-Sektionen |
 | 3.3 | **StepWizard-Framework**    | ✅     | Shared `StepWizard` Komponente, Step-Navigation, Zod-Validation pro Step, Framer Motion Übergänge, ProgressBar   |
 | 3.4 | **LeadForm & Lead-Capture** | ✅     | LeadForm mit React Hook Form + Zod, Two-Phase REST API (partial/complete), DSGVO-Consent, Lead-Model mit CRUD    |
-| 3.5 | **PDF-Service**             | ⬜     | `PdfGenerator` mit Dual-Engine (DOMPDF + Puppeteer), Auto-Erkennung, Template-System, SimpleChart PHP-Klassen    |
+| 3.5 | **PDF-Service**             | ✅     | `PdfGenerator` mit Dual-Engine (DOMPDF + Puppeteer), Auto-Erkennung, Template-System, SimpleChart PHP-Klassen    |
 | 3.6 | **Email-Service**           | ⬜     | PHPMailer (SMTP) + Brevo Transport, Template-System, Lead-Benachrichtigungen, PDF-Attachment                     |
 | 3.7 | **Tracking-Service**        | ⬜     | Funnel-Events (Impression → Start → Step → Form → Submit), `resa_tracking_daily` Tabelle, Dashboard-Daten        |
 
