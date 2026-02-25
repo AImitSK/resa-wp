@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace Resa\Core;
 
 use Resa\Admin\AdminPage;
+use Resa\Api\HealthController;
 
 /**
  * Main plugin bootstrap class.
@@ -51,6 +52,7 @@ final class Plugin {
 		// Core hooks.
 		add_action( 'init', [ $this, 'loadTextDomain' ] );
 		add_action( 'plugins_loaded', [ $this, 'boot' ] );
+		add_action( 'rest_api_init', [ $this, 'registerRestRoutes' ] );
 	}
 
 	/**
@@ -78,10 +80,26 @@ final class Plugin {
 		}
 
 		// Phase 2+: Services werden hier registriert.
-		// - REST API (Phase 2.1)
 		// - Database migration check (Phase 2.2)
 		// - ModuleRegistry (Phase 2.3)
 		// - FeatureGate (Phase 2.4)
 		// - Shortcode (Phase 3.3)
+	}
+
+	/**
+	 * Register all REST API routes.
+	 *
+	 * Called on `rest_api_init`. Each controller registers
+	 * its own routes via registerRoutes().
+	 */
+	public function registerRestRoutes(): void {
+		$controllers = [
+			new HealthController(),
+			// Phase 2+: Weitere Controller hier ergänzen.
+		];
+
+		foreach ( $controllers as $controller ) {
+			$controller->registerRoutes();
+		}
 	}
 }

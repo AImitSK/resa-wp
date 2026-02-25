@@ -11,6 +11,9 @@ declare( strict_types=1 );
 // Composer autoloader.
 require_once dirname( __DIR__, 2 ) . '/vendor/autoload.php';
 
+// WordPress class stubs (Brain Monkey mocks functions, not classes).
+require_once __DIR__ . '/stubs/wp-rest.php';
+
 // Define WordPress constants that the plugin expects.
 if ( ! defined( 'ABSPATH' ) ) {
     define( 'ABSPATH', '/tmp/wordpress/' );

@@ -32,9 +32,9 @@ class PluginTest extends TestCase {
 
 		// Expect core hooks.
 		Functions\expect( 'add_action' )
-			->times( 2 )
+			->times( 3 )
 			->andReturnUsing( function ( string $hook ): bool {
-				$this->assertContains( $hook, [ 'init', 'plugins_loaded' ] );
+				$this->assertContains( $hook, [ 'init', 'plugins_loaded', 'rest_api_init' ] );
 				return true;
 			} );
 
@@ -48,7 +48,7 @@ class PluginTest extends TestCase {
 		// First init — registers hooks.
 		Functions\expect( 'register_activation_hook' )->once();
 		Functions\expect( 'register_deactivation_hook' )->once();
-		Functions\expect( 'add_action' )->times( 2 );
+		Functions\expect( 'add_action' )->times( 3 );
 		Plugin::init();
 
 		// Second call — should not register anything again.
@@ -59,7 +59,7 @@ class PluginTest extends TestCase {
 	public function test_loadTextDomain_laedt_resa_domain(): void {
 		Functions\expect( 'register_activation_hook' )->once();
 		Functions\expect( 'register_deactivation_hook' )->once();
-		Functions\expect( 'add_action' )->times( 2 );
+		Functions\expect( 'add_action' )->times( 3 );
 		Plugin::init();
 
 		Functions\expect( 'load_plugin_textdomain' )
