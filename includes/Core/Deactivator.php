@@ -12,17 +12,17 @@ namespace Resa\Core;
  */
 final class Deactivator {
 
-    /**
-     * Run on plugin deactivation.
-     */
-    public static function deactivate(): void {
-        // Clean up transients.
-        delete_transient( 'resa_activation_redirect' );
+	/**
+	 * Run on plugin deactivation.
+	 */
+	public static function deactivate(): void {
+		// Clean up transients.
+		delete_transient( 'resa_activation_redirect' );
 
-        // Remove scheduled events.
-        wp_clear_scheduled_hook( 'resa_daily_cleanup' );
+		// Remove scheduled events.
+		wp_clear_scheduled_hook( 'resa_daily_cleanup' );
 
-        // Flush rewrite rules.
-        flush_rewrite_rules();
-    }
+		// Flush rewrite rules.
+		flush_rewrite_rules();
+	}
 }

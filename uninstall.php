@@ -12,17 +12,17 @@ defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
 // Plugin-Optionen entfernen.
 $resa_options = [
-    'resa_version',
-    'resa_db_version',
-    'resa_installed_at',
-    'resa_settings',
+	'resa_version',
+	'resa_db_version',
+	'resa_installed_at',
+	'resa_settings',
 ];
 
 foreach ( $resa_options as $option ) {
-    delete_option( $option );
+	delete_option( $option );
 }
 
-// Benutzerdefinierte Tabellen entfernen (Phase 2.2).
+// phpcs:disable Squiz.PHP.CommentedOutCode.Found -- Phase 2.2: wird aktiviert wenn DB-Schema steht.
 // global $wpdb;
 // $tables = [
 //     $wpdb->prefix . 'resa_leads',

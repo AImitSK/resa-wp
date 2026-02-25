@@ -11,14 +11,14 @@ function App() {
 	);
 }
 
-describe( 'Admin App', () => {
-	it( 'rendert die Dashboard-Überschrift', () => {
-		render( <App /> );
-		expect( screen.getByText( 'RESA Dashboard' ) ).toBeInTheDocument();
-	} );
+describe('Admin App', () => {
+	it('rendert die Dashboard-Überschrift', () => {
+		render(<App />);
+		expect(screen.getByText('RESA Dashboard')).toBeInTheDocument();
+	});
 
-	it( 'rendert den Beschreibungstext', () => {
-		render( <App /> );
-		expect( screen.getByText( /Admin Entry Point/ ) ).toBeInTheDocument();
-	} );
-} );
+	it('rendert den Beschreibungstext', () => {
+		render(<App />);
+		expect(screen.getByText(/Admin Entry Point/)).toBeInTheDocument();
+	});
+});

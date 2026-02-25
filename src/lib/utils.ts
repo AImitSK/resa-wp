@@ -1,9 +1,9 @@
 import { type ClassValue, clsx } from 'clsx';
 import { extendTailwindMerge } from 'tailwind-merge';
 
-const twMerge = extendTailwindMerge( {
+const twMerge = extendTailwindMerge({
 	prefix: 'resa-',
-} );
+});
 
 /**
  * Merge Tailwind CSS classes with conflict resolution.
@@ -13,6 +13,6 @@ const twMerge = extendTailwindMerge( {
  *
  * Shared between frontend widget and admin dashboard.
  */
-export function cn( ...inputs: ClassValue[] ): string {
-	return twMerge( clsx( inputs ) );
+export function cn(...inputs: ClassValue[]): string {
+	return twMerge(clsx(inputs));
 }

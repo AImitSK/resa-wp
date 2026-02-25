@@ -1,44 +1,64 @@
 {
-  "name": "resa",
-  "private": true,
-  "version": "0.1.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview",
-    "lint": "eslint src/",
-    "lint:fix": "eslint src/ --fix",
-    "format": "prettier --write src/",
-    "test": "vitest",
-    "test:coverage": "vitest --coverage",
-    "i18n:pot": "wp i18n make-pot . languages/resa.pot --domain=resa --exclude=node_modules,vendor,dist,tests",
-    "i18n:update": "wp i18n update-po languages/resa.pot languages/",
-    "i18n:mo": "wp i18n make-mo languages/",
-    "i18n:json": "wp i18n make-json languages/ --no-purge",
-    "i18n:build": "npm run i18n:pot && npm run i18n:update && npm run i18n:mo && npm run i18n:json",
-    "plugin:build": "npm run build && npm run i18n:build && composer install --no-dev --optimize-autoloader",
-    "plugin:zip": "npm run plugin:build && node scripts/create-zip.js"
-  },
-  "dependencies": {
-    "clsx": "^2.1.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "tailwind-merge": "^2.6.1"
-  },
-  "devDependencies": {
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
-    "@testing-library/user-event": "^14.6.1",
-    "@types/react": "^18.3.18",
-    "@types/react-dom": "^18.3.5",
-    "@vitejs/plugin-react": "^4.3.4",
-    "autoprefixer": "^10.4.24",
-    "jsdom": "^25.0.1",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.19",
-    "typescript": "~5.7.0",
-    "vite": "^6.0.0",
-    "vitest": "^4.0.18"
-  }
+	"name": "resa",
+	"private": true,
+	"version": "0.1.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc --noEmit && vite build",
+		"preview": "vite preview",
+		"lint": "eslint src/ tests/js/",
+		"lint:fix": "eslint src/ tests/js/ --fix",
+		"format": "prettier --write \"src/**/*.{ts,tsx}\" \"tests/js/**/*.{ts,tsx}\"",
+		"format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"tests/js/**/*.{ts,tsx}\"",
+		"test": "vitest",
+		"test:coverage": "vitest --coverage",
+		"i18n:pot": "wp i18n make-pot . languages/resa.pot --domain=resa --exclude=node_modules,vendor,dist,tests",
+		"i18n:update": "wp i18n update-po languages/resa.pot languages/",
+		"i18n:mo": "wp i18n make-mo languages/",
+		"i18n:json": "wp i18n make-json languages/ --no-purge",
+		"i18n:build": "npm run i18n:pot && npm run i18n:update && npm run i18n:mo && npm run i18n:json",
+		"plugin:build": "npm run build && npm run i18n:build && composer install --no-dev --optimize-autoloader",
+		"plugin:zip": "npm run plugin:build && node scripts/create-zip.js",
+		"prepare": "husky"
+	},
+	"dependencies": {
+		"clsx": "^2.1.1",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"tailwind-merge": "^2.6.1"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.39.3",
+		"@testing-library/jest-dom": "^6.9.1",
+		"@testing-library/react": "^16.3.2",
+		"@testing-library/user-event": "^14.6.1",
+		"@types/react": "^18.3.18",
+		"@types/react-dom": "^18.3.5",
+		"@vitejs/plugin-react": "^4.3.4",
+		"autoprefixer": "^10.4.24",
+		"eslint": "^9.39.3",
+		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-react": "^7.37.5",
+		"eslint-plugin-react-hooks": "^7.0.1",
+		"husky": "^9.1.7",
+		"jsdom": "^25.0.1",
+		"lint-staged": "^16.2.7",
+		"postcss": "^8.5.6",
+		"prettier": "^3.8.1",
+		"tailwindcss": "^3.4.19",
+		"typescript": "~5.7.0",
+		"typescript-eslint": "^8.56.1",
+		"vite": "^6.0.0",
+		"vitest": "^4.0.18"
+	},
+	"lint-staged": {
+		"*.{ts,tsx}": [
+			"eslint --fix",
+			"prettier --write"
+		],
+		"*.{json,css,md}": [
+			"prettier --write"
+		]
+	}
 }

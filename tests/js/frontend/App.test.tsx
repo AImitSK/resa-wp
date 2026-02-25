@@ -11,14 +11,14 @@ function App() {
 	);
 }
 
-describe( 'Frontend App', () => {
-	it( 'rendert die Widget-Überschrift', () => {
-		render( <App /> );
-		expect( screen.getByText( 'RESA Widget' ) ).toBeInTheDocument();
-	} );
+describe('Frontend App', () => {
+	it('rendert die Widget-Überschrift', () => {
+		render(<App />);
+		expect(screen.getByText('RESA Widget')).toBeInTheDocument();
+	});
 
-	it( 'rendert den Beschreibungstext', () => {
-		render( <App /> );
-		expect( screen.getByText( /Frontend Entry Point/ ) ).toBeInTheDocument();
-	} );
-} );
+	it('rendert den Beschreibungstext', () => {
+		render(<App />);
+		expect(screen.getByText(/Frontend Entry Point/)).toBeInTheDocument();
+	});
+});

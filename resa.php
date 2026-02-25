@@ -24,30 +24,36 @@ define( 'RESA_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 // PHP version check.
 if ( version_compare( PHP_VERSION, '8.1', '<' ) ) {
-    add_action( 'admin_notices', static function (): void {
-        printf(
-            '<div class="notice notice-error"><p>%s</p></div>',
-            esc_html(
-                sprintf(
-                    /* translators: %s: Required PHP version */
-                    __( 'RESA benötigt mindestens PHP %s. Bitte aktualisieren Sie Ihre PHP-Version.', 'resa' ),
-                    '8.1'
-                )
-            )
-        );
-    } );
-    return;
+	add_action(
+		'admin_notices',
+		static function (): void {
+			printf(
+				'<div class="notice notice-error"><p>%s</p></div>',
+				esc_html(
+					sprintf(
+					/* translators: %s: Required PHP version */
+						__( 'RESA benötigt mindestens PHP %s. Bitte aktualisieren Sie Ihre PHP-Version.', 'resa' ),
+						'8.1'
+					)
+				)
+			);
+		}
+	);
+	return;
 }
 
 // Composer autoloader.
 if ( ! file_exists( RESA_PLUGIN_DIR . 'vendor/autoload.php' ) ) {
-    add_action( 'admin_notices', static function (): void {
-        printf(
-            '<div class="notice notice-error"><p>%s</p></div>',
-            esc_html__( 'RESA: Composer-Abhängigkeiten fehlen. Bitte "composer install" ausführen.', 'resa' )
-        );
-    } );
-    return;
+	add_action(
+		'admin_notices',
+		static function (): void {
+			printf(
+				'<div class="notice notice-error"><p>%s</p></div>',
+				esc_html__( 'RESA: Composer-Abhängigkeiten fehlen. Bitte "composer install" ausführen.', 'resa' )
+			);
+		}
+	);
+	return;
 }
 
 require_once RESA_PLUGIN_DIR . 'vendor/autoload.php';
