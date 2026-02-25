@@ -38,3 +38,8 @@ if ( ! defined( 'RESA_PLUGIN_URL' ) ) {
 if ( ! defined( 'RESA_PLUGIN_BASENAME' ) ) {
     define( 'RESA_PLUGIN_BASENAME', 'resa/resa.php' );
 }
+
+// WordPress time constants used in Lead model.
+if ( ! defined( 'DAY_IN_SECONDS' ) ) {
+    define( 'DAY_IN_SECONDS', 86400 );
+}
