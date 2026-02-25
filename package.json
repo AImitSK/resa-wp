@@ -1,0 +1,34 @@
+{
+  "name": "resa",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --write src/",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "i18n:pot": "wp i18n make-pot . languages/resa.pot --domain=resa --exclude=node_modules,vendor,dist,tests",
+    "i18n:update": "wp i18n update-po languages/resa.pot languages/",
+    "i18n:mo": "wp i18n make-mo languages/",
+    "i18n:json": "wp i18n make-json languages/ --no-purge",
+    "i18n:build": "npm run i18n:pot && npm run i18n:update && npm run i18n:mo && npm run i18n:json",
+    "plugin:build": "npm run build && npm run i18n:build && composer install --no-dev --optimize-autoloader",
+    "plugin:zip": "npm run plugin:build && node scripts/create-zip.js"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "~5.7.0",
+    "vite": "^6.0.0"
+  }
+}

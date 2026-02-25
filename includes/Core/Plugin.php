@@ -4,6 +4,8 @@ declare( strict_types=1 );
 
 namespace Resa\Core;
 
+use Resa\Admin\AdminPage;
+
 /**
  * Main plugin bootstrap class.
  *
@@ -13,9 +15,10 @@ namespace Resa\Core;
 final class Plugin {
 
     private static ?self $instance = null;
+    private Vite $vite;
 
     private function __construct() {
-        // Use init() to create the instance.
+        $this->vite = new Vite();
     }
 
     /**
@@ -68,12 +71,17 @@ final class Plugin {
      * Module-Registry etc. werden hier Schritt für Schritt ergänzt.
      */
     public function boot(): void {
+        // Admin pages.
+        if ( is_admin() ) {
+            $adminPage = new AdminPage( $this->vite );
+            $adminPage->register();
+        }
+
         // Phase 2+: Services werden hier registriert.
         // - REST API (Phase 2.1)
         // - Database migration check (Phase 2.2)
         // - ModuleRegistry (Phase 2.3)
         // - FeatureGate (Phase 2.4)
-        // - Admin pages (Phase 3.2)
         // - Shortcode (Phase 3.3)
     }
 }
