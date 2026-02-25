@@ -53,7 +53,7 @@ Dieser Plan definiert die Reihenfolge, in der die technische Infrastruktur aufge
 | #   | Schritt                     | Status | Beschreibung                                                                                                           |
 | --- | --------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------- |
 | 3.1 | **Icon Registry**           | ✅     | `ResaIcon` Komponente, `registry.ts` mit 40 Custom SVGs, CSS-Variablen-Theming, PHP `IconRegistry` für PDF             |
-| 3.2 | **Admin-Shell**             | ⬜     | WP-Admin Menü-Registrierung, React-Router für Seiten, Modul-Store Grundgerüst (Karten-Layout), Settings-Framework      |
+| 3.2 | **Admin-Shell**             | ✅     | WP-Admin Menü-Registrierung (9 Submenüs), MemoryRouter für Seiten, Modul-Store Karten-Layout, Settings-Sektionen       |
 | 3.3 | **StepWizard-Framework**    | ⬜     | Shared `StepWizard` Komponente, Step-Navigation, Zod-Validation pro Step, Framer Motion Übergänge, Fortschrittsanzeige |
 | 3.4 | **LeadForm & Lead-Capture** | ⬜     | Shared `LeadForm` Komponente, Two-Phase Capture (Partial → Complete), DSGVO-Consent, Lead-Model + Repository           |
 | 3.5 | **PDF-Service**             | ⬜     | `PdfGenerator` mit Dual-Engine (DOMPDF + Puppeteer), Auto-Erkennung, Template-System, SimpleChart PHP-Klassen          |

@@ -8,13 +8,34 @@ use Resa\Core\Vite;
 
 /**
  * Registers RESA admin pages in the WordPress dashboard.
+ *
+ * All submenus render the same React SPA container.
+ * The current page slug is passed to JavaScript so
+ * React Router can show the correct view.
  */
 final class AdminPage {
 
 	private Vite $vite;
 
-	/** @var string The hook suffix returned by add_menu_page. */
-	private string $hookSuffix = '';
+	/** @var string[] Hook suffixes for all registered RESA pages. */
+	private array $hookSuffixes = [];
+
+	/**
+	 * Submenu definitions: slug => label.
+	 *
+	 * @var array<string, string>
+	 */
+	private const SUBMENUS = [
+		'resa'               => 'Dashboard',
+		'resa-leads'         => 'Leads',
+		'resa-modules'       => 'Smart Assets',
+		'resa-locations'     => 'Locations',
+		'resa-communication' => 'Kommunikation',
+		'resa-pdf'           => 'PDF-Vorlagen',
+		'resa-shortcode'     => 'Shortcode',
+		'resa-integrations'  => 'Integrationen',
+		'resa-settings'      => 'Einstellungen',
+	];
 
 	public function __construct( Vite $vite ) {
 		$this->vite = $vite;
@@ -29,35 +50,72 @@ final class AdminPage {
 	}
 
 	/**
-	 * Add RESA menu to WP-Admin sidebar.
+	 * Add RESA menu and submenus to WP-Admin sidebar.
 	 */
 	public function addMenuPages(): void {
-		$this->hookSuffix = (string) add_menu_page(
+		// Parent menu.
+		$hook = (string) add_menu_page(
 			__( 'RESA Dashboard', 'resa' ),
 			'RESA',
 			'manage_options',
 			'resa',
-			[ $this, 'renderDashboard' ],
+			[ $this, 'renderPage' ],
 			'dashicons-chart-area',
 			30
 		);
+
+		$this->hookSuffixes[] = $hook;
+
+		// Submenus (first entry replaces the parent duplicate).
+		foreach ( self::SUBMENUS as $slug => $label ) {
+			$pageTitle = sprintf(
+				/* translators: %s: submenu page title */
+				__( 'RESA — %s', 'resa' ),
+				$label
+			);
+
+			$subHook = (string) add_submenu_page(
+				'resa',
+				$pageTitle,
+				esc_html( $label ),
+				'manage_options',
+				$slug,
+				[ $this, 'renderPage' ]
+			);
+
+			$this->hookSuffixes[] = $subHook;
+		}
 	}
 
 	/**
 	 * Enqueue admin assets only on RESA pages.
 	 */
 	public function enqueueAssets( string $hookSuffix ): void {
-		if ( $hookSuffix !== $this->hookSuffix ) {
+		if ( ! in_array( $hookSuffix, $this->hookSuffixes, true ) ) {
 			return;
 		}
 
 		$this->vite->enqueue( 'src/admin/main.tsx', 'resa-admin' );
+
+		// Pass context to React app.
+		wp_localize_script(
+			'resa-admin',
+			'resaAdmin',
+			[
+				'restUrl'  => esc_url_raw( rest_url( 'resa/v1/' ) ),
+				'nonce'    => wp_create_nonce( 'wp_rest' ),
+					// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading WP admin page slug, no form data.
+				'page'     => isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : 'resa',
+				'adminUrl' => esc_url_raw( admin_url( 'admin.php' ) ),
+				'version'  => RESA_VERSION,
+			]
+		);
 	}
 
 	/**
-	 * Render the admin dashboard page.
+	 * Render the React SPA container (shared by all pages).
 	 */
-	public function renderDashboard(): void {
+	public function renderPage(): void {
 		echo '<div class="wrap"><div id="resa-admin-root"></div></div>';
 	}
 }
