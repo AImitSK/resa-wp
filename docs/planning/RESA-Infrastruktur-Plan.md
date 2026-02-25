@@ -23,7 +23,7 @@ Dieser Plan definiert die Reihenfolge, in der die technische Infrastruktur aufge
 |---|---|---|---|
 | 1.1 | **PHP-Bootstrap** | ✅ | `resa.php` Entry Point, Composer Autoloading (PSR-4 `Resa\`), `includes/Core/Plugin.php` Bootstrap-Klasse, Activation/Deactivation/Uninstall Hooks |
 | 1.2 | **Vite-Setup** | ✅ | `@kucrut/vite-for-wp`, zwei Entry Points (`src/frontend/main.tsx` + `src/admin/main.tsx`), `vite.config.ts`, HMR in Docker-Umgebung |
-| 1.3 | **Tailwind-Config** | 🟡 | `tailwind.config.ts` mit `resa-` Prefix, kein Preflight (Frontend Widget), `.resa-widget-root` Scope, shadcn/ui Integration |
+| 1.3 | **Tailwind-Config** | ✅ | `tailwind.config.ts` mit `resa-` Prefix, kein Preflight (Frontend Widget), `.resa-widget-root` Scope, shadcn/ui Integration |
 | 1.4 | **Test-Setup** | ⬜ | PHPUnit 10 + Brain Monkey (`phpunit.xml`), Vitest + React Testing Library (`vitest.config.ts`), erste Smoke-Tests |
 | 1.5 | **Linting & Formatting** | ⬜ | ESLint, Prettier, PHPStan (Level 6), PHP_CodeSniffer (WP-Standards), Husky + lint-staged Pre-Commit Hooks |
 
