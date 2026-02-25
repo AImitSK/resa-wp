@@ -4,6 +4,9 @@ declare( strict_types=1 );
 
 namespace Resa\Core;
 
+use Resa\Database\Schema;
+use Resa\Database\Seeder;
+
 /**
  * Handles plugin activation.
  *
@@ -34,8 +37,10 @@ final class Activator {
 			update_option( 'resa_installed_at', current_time( 'mysql' ) );
 		}
 
-		// DB-Schema erstellen (Phase 2.2).
-		// Database\Schema::createTables();
+		// Database schema.
+		$dbVersion = (string) get_option( 'resa_db_version', '' );
+		Schema::migrate( $dbVersion );
+		Seeder::run();
 
 		// Redirect to welcome page after activation.
 		set_transient( 'resa_activation_redirect', true, 30 );

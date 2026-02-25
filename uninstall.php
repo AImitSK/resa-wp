@@ -10,6 +10,12 @@
 
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
+// Autoloader laden für Schema::dropAll().
+if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
+	require_once __DIR__ . '/vendor/autoload.php';
+	Resa\Database\Schema::dropAll();
+}
+
 // Plugin-Optionen entfernen.
 $resa_options = [
 	'resa_version',
@@ -21,20 +27,6 @@ $resa_options = [
 foreach ( $resa_options as $option ) {
 	delete_option( $option );
 }
-
-// phpcs:disable Squiz.PHP.CommentedOutCode.Found -- Phase 2.2: wird aktiviert wenn DB-Schema steht.
-// global $wpdb;
-// $tables = [
-//     $wpdb->prefix . 'resa_leads',
-//     $wpdb->prefix . 'resa_tracking_daily',
-//     $wpdb->prefix . 'resa_locations',
-//     $wpdb->prefix . 'resa_email_log',
-//     $wpdb->prefix . 'resa_agents',
-//     $wpdb->prefix . 'resa_agent_locations',
-// ];
-// foreach ( $tables as $table ) {
-//     $wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table ) );
-// }
 
 // Transients aufräumen.
 delete_transient( 'resa_activation_redirect' );

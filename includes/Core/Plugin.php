@@ -6,6 +6,7 @@ namespace Resa\Core;
 
 use Resa\Admin\AdminPage;
 use Resa\Api\HealthController;
+use Resa\Database\Schema;
 
 /**
  * Main plugin bootstrap class.
@@ -73,6 +74,12 @@ final class Plugin {
 	 * Module-Registry etc. werden hier Schritt für Schritt ergänzt.
 	 */
 	public function boot(): void {
+		// Auto-migrate database if version mismatch (e.g. after plugin update).
+		if ( Schema::needsMigration() ) {
+			$dbVersion = (string) get_option( 'resa_db_version', '' );
+			Schema::migrate( $dbVersion );
+		}
+
 		// Admin pages.
 		if ( is_admin() ) {
 			$adminPage = new AdminPage( $this->vite );
@@ -80,7 +87,6 @@ final class Plugin {
 		}
 
 		// Phase 2+: Services werden hier registriert.
-		// - Database migration check (Phase 2.2)
 		// - ModuleRegistry (Phase 2.3)
 		// - FeatureGate (Phase 2.4)
 		// - Shortcode (Phase 3.3)

@@ -16,7 +16,7 @@ require_once __DIR__ . '/stubs/wp-rest.php';
 
 // Define WordPress constants that the plugin expects.
 if ( ! defined( 'ABSPATH' ) ) {
-    define( 'ABSPATH', '/tmp/wordpress/' );
+    define( 'ABSPATH', __DIR__ . '/stubs/' );
 }
 
 if ( ! defined( 'RESA_VERSION' ) ) {

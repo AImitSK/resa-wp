@@ -9,5 +9,5 @@ parameters:
         - tests/php/bootstrap.php
     ignoreErrors:
         # WordPress functions are defined at runtime.
-        - '#Function [a-z_]+ not found\.#'
+        - '#Function [a-zA-Z_]+ not found\.#'
     treatPhpDocTypesAsCertain: false
