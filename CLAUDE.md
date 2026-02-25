@@ -162,6 +162,8 @@ Ausführliche Version: `.claude/WORKFLOW.md`
 - `wp-security` — Sanitization, Escaping, Nonces, Capabilities, prepare(), permission_callback
 - `wp-i18n` — Text-Domain `'resa'`, esc_html__(), Translator-Kommentare, _n(), DACH-Format
 - `freemius` — can_use_premium_code(), FeatureGate, Module-Flags (free/pro/paid), Free-Limits (2 Free-Tools, 1 Location, 50 Leads)
+- `dompdf` — DOMPDF CSS-Limits (kein Flex/Grid), Table-Layout, Puppeteer-Fallback, SimpleCharts für SVG
+- `nivo-charts` — resaChartTheme, resaColors, Dual-Rendering (Web interaktiv / PDF statisch), DACH-Zahlenformat
 
 **Sprache:** Kommunikation immer auf Deutsch. Rückfragen statt Annahmen.
 

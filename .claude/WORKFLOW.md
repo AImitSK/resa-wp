@@ -78,6 +78,8 @@ Diese Skills sind passiv und werden **immer** beim Coden beachtet — nicht erst
 | **wp-security** | Bei jedem PHP-Code | Sanitization, Escaping, Nonces, Capabilities, $wpdb->prepare(), REST permission_callback |
 | **wp-i18n** | Bei jedem User-facing String | Text-Domain `'resa'`, esc_html__(), Translator-Kommentare, _n() für Plurale, DACH-Formatierung |
 | **freemius** | Bei Premium/Free-Logik | can_use_premium_code(), FeatureGate, Free-Limits, Upgrade-CTAs |
+| **dompdf** | Bei PDF-Templates & -Code | DOMPDF CSS-Limits (kein Flex/Grid), Table-Layout, Inline-SVG nur einfach, Puppeteer-Fallback, `animate={false}` |
+| **nivo-charts** | Bei Charts & Visualisierungen | resaChartTheme, resaColors, Dual-Rendering (Web/PDF), DACH-Formatierung (Komma-Dezimal, €/m²), Framer Motion |
 
 ### Implementierungsreihenfolge
 
@@ -235,6 +237,24 @@ Diese Skills sind passiv und werden **immer** beim Coden beachtet — nicht erst
 - [ ] Zod-Validation für Formulare?
 - [ ] `resaConfig.plan` für Feature-Gating?
 - [ ] CSS-Klassen mit `resa-` Prefix (Widget)?
+
+### Bei Charts (Nivo)
+- [ ] `resaChartTheme` als Theme gesetzt?
+- [ ] `resaColors.*` Palette semantisch gewählt?
+- [ ] DACH-Formatierung in Achsen/Tooltips (Komma-Dezimal, €, m²)?
+- [ ] Chart-Labels mit `__( '...', 'resa' )` gewrappt?
+- [ ] Container mit `resa-` Prefix und fester Höhe?
+- [ ] Framer Motion Eintritts-Animation (nur Web)?
+- [ ] PDF-Variante: `animate={false}`, `isInteractive={false}`, feste Größe?
+
+### Bei PDF-Templates
+- [ ] Layout mit `<table>` statt Flex/Grid (DOMPDF)?
+- [ ] Inline-Styles oder `<style>`-Block (keine externen CSS)?
+- [ ] Keine `var()`, `calc()`, Gradienten, box-shadow?
+- [ ] Bilder mit absolutem Pfad oder Data-URI?
+- [ ] SVGs nur einfache Elemente (rect, text, line, path)?
+- [ ] Seitenumbrüche mit `page-break-before/after`?
+- [ ] Template in BEIDEN Engines getestet (DOMPDF + Puppeteer)?
 
 ### Bei DB-Änderungen
 - [ ] Migration via `dbDelta()`?
