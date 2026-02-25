@@ -7,6 +7,7 @@ namespace Resa\Core;
 use Resa\Admin\AdminPage;
 use Resa\Api\HealthController;
 use Resa\Api\LeadsController;
+use Resa\Api\TrackingController;
 use Resa\Database\Schema;
 use Resa\Core\ModuleRegistry;
 use Resa\Freemius\FeatureGate;
@@ -124,6 +125,7 @@ final class Plugin {
 		$controllers = [
 			new HealthController(),
 			new LeadsController(),
+			new TrackingController(),
 		];
 
 		foreach ( $controllers as $controller ) {
