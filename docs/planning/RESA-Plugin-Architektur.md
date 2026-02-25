@@ -1,4 +1,4 @@
-# ISM — Immobilien Smart Assets für Makler
+# RESA — Immobilien Smart Assets für Makler
 
 ## Plugin-Architektur & Asset-Konzept
 
@@ -7,7 +7,7 @@
 ## 1. Basis-Plugin: Übersicht
 
 ```
-ISM Plugin
+RESA Plugin
 ├── Dashboard            → KPIs, Aktivität, Schnellzugriff
 ├── Leads                → Alle Leads, Detailseiten, Export, Tags
 ├── Kommunikation        → E-Mail-Vorlagen, Versandlog, SMTP, Automationen
@@ -31,7 +31,7 @@ Erste Seite nach dem Öffnen. Zeigt auf einen Blick:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  ISM Dashboard                                        Heute ▼  │
+│  RESA Dashboard                                        Heute ▼  │
 │                                                                 │
 │  ┌───────────┐  ┌───────────┐  ┌───────────┐  ┌─────────────┐  │
 │  │    12      │  │     3     │  │   38%     │  │    2        │  │
@@ -145,7 +145,7 @@ Die **sensibelste Komponente** — hier laufen E-Mail-Vorlagen, Versand, Zustell
 ### Übersicht
 
 ```
-ISM Kommunikation
+RESA Kommunikation
 ├── E-Mail-Vorlagen      → Pro Asset eine Vorlage + globale Vorlagen
 ├── Versandlog           → Jede gesendete E-Mail mit Status
 ├── Automationen         → Regeln: Wann wird was gesendet?
@@ -295,7 +295,7 @@ Einfache Regel-Engine — kein komplettes Marketing-Automation-Tool, aber die wi
 ### Warum ist Kommunikation so sensibel?
 
 ```
-Risiko                          ISM-Lösung
+Risiko                          RESA-Lösung
 ──────                          ──────────
 E-Mails landen im Spam       → SMTP-Check, SPF/DKIM-Prüfung
 DSGVO-Verstoß                → Double-Opt-In, Einwilligungslog
@@ -672,7 +672,7 @@ Der Makler macht genau **eine Einstellung** — den Regionstyp:
 
 **Vorteil:** Asset ist in 2 Minuten live. Ideal für Makler die schnell starten wollen oder keine eigenen Marktdaten haben.
 
-**Woher kommen die Defaults?** ISM liefert pro Regionstyp einen vollständigen Satz an Durchschnittswerten mit, basierend auf bundesweiten Marktdaten (z.B. IVD-Spiegel, Destatis). Diese werden mit Plugin-Updates gepflegt.
+**Woher kommen die Defaults?** RESA liefert pro Regionstyp einen vollständigen Satz an Durchschnittswerten mit, basierend auf bundesweiten Marktdaten (z.B. IVD-Spiegel, Destatis). Diese werden mit Plugin-Updates gepflegt.
 
 ### Modus 2: Individuell
 
@@ -731,7 +731,7 @@ Makler wählt                      Makler trägt eigene
 "Mittelstadt"                     Werte ein
      │                                 │
      ▼                                 ▼
-ISM befüllt alle                  Werte werden
+RESA befüllt alle                  Werte werden
 Faktoren aus                      direkt verwendet
 Default-Tabelle
      │                                 │
@@ -810,7 +810,7 @@ Smart Asset: Mietpreis-Kalkulator
 │
 └── Design
     ├── primaerfarbe    → "#2E75B6"
-    ├── branding        → true/false (zeigt "Powered by ISM")
+    ├── branding        → true/false (zeigt "Powered by RESA")
     └── custom_css      → ""
 ```
 
@@ -821,26 +821,26 @@ Smart Asset: Mietpreis-Kalkulator
 ### Syntax
 
 ```
-[ism type="<asset>" city="<location-id>" mode="pauschal|individuell|hybrid" branding="true|false" ...optionen]
+[resa type="<asset>" city="<location-id>" mode="pauschal|individuell|hybrid" branding="true|false" ...optionen]
 ```
 
 ### Beispiele
 
 ```
 // Mietpreis-Kalkulator, Bad Oeynhausen
-[ism type="mietpreis" city="bad-oeynhausen"]
+[resa type="mietpreis" city="bad-oeynhausen"]
 
 // Immobilienwert, ohne Branding
-[ism type="immobilienwert" city="bad-oeynhausen" branding="false"]
+[resa type="immobilienwert" city="bad-oeynhausen" branding="false"]
 
 // Kaufnebenkosten
-[ism type="kaufnebenkosten" city="bad-oeynhausen"]
+[resa type="kaufnebenkosten" city="bad-oeynhausen"]
 
 // Renditerechner, alle Städte des Maklers als Dropdown
-[ism type="rendite" city="all"]
+[resa type="rendite" city="all"]
 
 // Verkäufer-Checkliste, PDF-Download
-[ism type="checkliste-verkaeufer" city="bad-oeynhausen"]
+[resa type="checkliste-verkaeufer" city="bad-oeynhausen"]
 ```
 
 ### Shortcode-Parameter (alle Assets)
@@ -849,7 +849,7 @@ Smart Asset: Mietpreis-Kalkulator
 |-------------|--------------------------------|----------------|------------------------------------|
 | type        | asset-slug                     | (Pflicht)      | Welches Asset                      |
 | city        | location-id / "all"            | Standard-City  | Welche Location                    |
-| branding    | true / false                   | true           | "Powered by ISM" anzeigen          |
+| branding    | true / false                   | true           | "Powered by RESA" anzeigen          |
 | lead_form   | true / false                   | true           | Lead-Formular anzeigen             |
 | theme       | light / dark                   | light          | Farbschema                         |
 | lang        | de / en                        | de             | Sprache                            |
@@ -864,7 +864,7 @@ Smart Asset: Mietpreis-Kalkulator
 
 ### Passt perfekt (Location + Faktoren + Modi)
 
-Diese Assets nutzen die volle ISM-Mechanik: Location-Daten, Lage-/Ausstattungsfaktoren, beide Modi.
+Diese Assets nutzen die volle RESA-Mechanik: Location-Daten, Lage-/Ausstattungsfaktoren, beide Modi.
 
 | # | Asset                      | type-slug             | Nutzt Location-Daten             |
 |---|----------------------------|-----------------------|----------------------------------|
@@ -912,7 +912,7 @@ Diese Assets funktionieren auch ohne Location-Daten, profitieren aber davon.
 │  ┌──────────┐    ┌──────────────────┐    ┌──────────────────┐   │
 │  │ Location  │───▶│  Smart Asset     │───▶│  Shortcode       │   │
 │  │ anlegen   │    │  aktivieren      │    │  Generator       │   │
-│  │ + Daten   │    │  Modus wählen    │    │  [ism type=".."  │   │
+│  │ + Daten   │    │  Modus wählen    │    │  [resa type=".."  │   │
 │  └──────────┘    │  Faktoren setzen  │    │   city=".."]     │   │
 │                  └──────────────────┘    └──────────┬───────┘   │
 │  ┌──────────┐    ┌──────────────────┐               │           │
@@ -973,7 +973,7 @@ Der Shortcode-Generator ist ein visueller Builder im Admin:
 │  CTA-Text:  [Jetzt Miete berechnen         ]    │
 │                                                 │
 │  ┌─────────────────────────────────────────────┐│
-│  │ [ism type="mietpreis"                      ││
+│  │ [resa type="mietpreis"                      ││
 │  │      city="bad-oeynhausen"                 ││
 │  │      mode="hybrid"                         ││
 │  │      lead_form="true"                      ││
@@ -988,12 +988,12 @@ Der Shortcode-Generator ist ein visueller Builder im Admin:
 
 ## 10. Namenskonvention & Branding
 
-**Plugin-Name:** ISM — Immobilien Smart Assets
-**Shortcode-Prefix:** `[ism ...]`
-**CSS-Prefix:** `.ism-`
-**JS-Namespace:** `ISM`
-**DB-Prefix:** `ism_`
-**REST-API:** `/wp-json/ism/v1/`
+**Plugin-Name:** RESA — Immobilien Smart Assets
+**Shortcode-Prefix:** `[resa ...]`
+**CSS-Prefix:** `.resa-`
+**JS-Namespace:** `RESA`
+**DB-Prefix:** `resa_`
+**REST-API:** `/wp-json/resa/v1/`
 
 ---
 
@@ -1002,6 +1002,6 @@ Der Shortcode-Generator ist ein visueller Builder im Admin:
 1. **Basis-Plugin Gerüst** — Admin-Menü, Location-CRUD, Settings-API
 2. **Location-Datenmodell** — DB-Schema, Import/Export
 3. **Asset-Framework** — Abstrakte Klasse für alle Assets (Faktoren, Modi, Lead-Gate)
-4. **Asset #1 portieren** — Mietpreis-Kalkulator in die ISM-Architektur überführen
+4. **Asset #1 portieren** — Mietpreis-Kalkulator in die RESA-Architektur überführen
 5. **Asset #2 portieren** — Immobilienwert-Kalkulator
 6. **Neue Assets bauen** — Kaufnebenkosten-Rechner als erstes neues Asset

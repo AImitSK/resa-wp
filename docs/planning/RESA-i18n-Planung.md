@@ -1,4 +1,4 @@
-# ISM — Internationalisierung (i18n) & Lokalisierung (l10n)
+# RESA— Internationalisierung (i18n) & Lokalisierung (l10n)
 
 ## Sprachstrategie, technische Umsetzung & Übersetzungs-Workflow
 
@@ -6,7 +6,7 @@
 
 ## 1. Zielsprachen & Locales
 
-ISM ist für den europäischen Immobilienmarkt gedacht. Die Sprachen sind nach Marktgröße und Immobilienwirtschaft priorisiert.
+RESA ist für den europäischen Immobilienmarkt gedacht. Die Sprachen sind nach Marktgröße und Immobilienwirtschaft priorisiert.
 
 ### Phase 1: Launch
 
@@ -20,7 +20,7 @@ Englisch         en_US                  Fallback      ★★★ WordPress-Standa
                  en_GB                  UK/Irland     ★★★
 ```
 
-**Deutsch ist die Entwicklungssprache.** Alle Strings werden zuerst auf Deutsch geschrieben und dann übersetzt — das ist ungewöhnlich für WordPress-Plugins (normalerweise en_US), aber richtig für ISM, weil:
+**Deutsch ist die Entwicklungssprache.** Alle Strings werden zuerst auf Deutsch geschrieben und dann übersetzt — das ist ungewöhnlich für WordPress-Plugins (normalerweise en_US), aber richtig für RESA, weil:
 - Der Kernmarkt DACH ist
 - Immobilien-Fachbegriffe auf Deutsch gedacht werden
 - Die Qualität der deutschen Texte am wichtigsten ist
@@ -87,7 +87,7 @@ Währung                    EUR               EUR                CHF
 
 ## 2. Was muss übersetzt werden? — Die 5 Übersetzungsschichten
 
-ISM hat nicht nur eine Textschicht, sondern **fünf verschiedene**, die jeweils anders behandelt werden:
+RESA hat nicht nur eine Textschicht, sondern **fünf verschiedene**, die jeweils anders behandelt werden:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -102,9 +102,9 @@ ISM hat nicht nur eine Textschicht, sondern **fünf verschiedene**, die jeweils 
 │  Übersetzer: Entwickler + Community                             │
 │                                                                 │
 │  Beispiele:                                                     │
-│  __( 'Leads', 'ism' )                                           │
-│  __( 'No leads found.', 'ism' )                                 │
-│  __( 'Save Settings', 'ism' )                                   │
+│  __( 'Leads', 'resa' )                                           │
+│  __( 'No leads found.', 'resa' )                                 │
+│  __( 'Save Settings', 'resa' )                                   │
 │                                                                 │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
@@ -118,10 +118,10 @@ ISM hat nicht nur eine Textschicht, sondern **fünf verschiedene**, die jeweils 
 │  Qualität: HÖCHSTE Priorität — der Besucher sieht nur das       │
 │                                                                 │
 │  Beispiele:                                                     │
-│  __( 'What type of property do you own?', 'ism' )               │
-│  __( 'Living area in m²', 'ism' )                               │
-│  __( 'Show my results', 'ism' )                                 │
-│  __( 'Your estimated rent:', 'ism' )                             │
+│  __( 'What type of property do you own?', 'resa' )               │
+│  __( 'Living area in m²', 'resa' )                               │
+│  __( 'Show my results', 'resa' )                                 │
+│  __( 'Your estimated rent:', 'resa' )                             │
 │                                                                 │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
@@ -177,16 +177,16 @@ ISM hat nicht nur eine Textschicht, sondern **fünf verschiedene**, die jeweils 
 ### 3.1 Text Domain
 
 ```
-Text Domain:   ism
+Text Domain:   resa
 Domain Path:   /languages
 ```
 
 **Plugin-Header:**
 ```php
 /**
- * Plugin Name: ISM — Immobilien Smart Assets
+ * Plugin Name: RESA— Immobilien Smart Assets
  * Description: Lead magnets for real estate agents
- * Text Domain: ism
+ * Text Domain: resa
  * Domain Path: /languages
  * Requires at least: 6.0
  */
@@ -197,26 +197,26 @@ Domain Path:   /languages
 ```
 Funktion                    Verwendung                          Beispiel
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-__( $text, 'ism' )          Gibt übersetzten String zurück       $label = __( 'Leads', 'ism' );
+__( $text, 'resa' )          Gibt übersetzten String zurück       $label = __( 'Leads', 'resa' );
 
-_e( $text, 'ism' )          Echo übersetzten String              _e( 'Save', 'ism' );
+_e( $text, 'resa' )          Echo übersetzten String              _e( 'Save', 'resa' );
 
-_x( $text, $ctx, 'ism' )    Mit Kontext (disambiguierung)        _x( 'Post', 'noun', 'ism' );
-                                                                 _x( 'Post', 'verb', 'ism' );
+_x( $text, $ctx, 'resa' )    Mit Kontext (disambiguierung)        _x( 'Post', 'noun', 'resa' );
+                                                                 _x( 'Post', 'verb', 'resa' );
 
-_n( $s, $p, $n, 'ism' )     Singular/Plural                     sprintf(
+_n( $s, $p, $n, 'resa' )     Singular/Plural                     sprintf(
                                                                    _n( '%d lead', '%d leads',
-                                                                       $count, 'ism' ), $count );
+                                                                       $count, 'resa' ), $count );
 
 _nx( $s, $p, $n, $ctx,      Singular/Plural + Kontext           _nx( '%d result', '%d results',
-     'ism' )                                                        $count, 'search', 'ism' );
+     'resa' )                                                        $count, 'search', 'resa' );
 
-esc_html__()                 HTML-escaped Übersetzung             esc_html__( 'Settings', 'ism' )
-esc_html_e()                 HTML-escaped Echo                    esc_html_e( 'Delete', 'ism' )
-esc_attr__()                 Attribut-escaped                     esc_attr__( 'Search', 'ism' )
+esc_html__()                 HTML-escaped Übersetzung             esc_html__( 'Settings', 'resa' )
+esc_html_e()                 HTML-escaped Echo                    esc_html_e( 'Delete', 'resa' )
+esc_attr__()                 Attribut-escaped                     esc_attr__( 'Search', 'resa' )
 
 wp_sprintf()                 Localized sprintf                    wp_sprintf(
-                                                                   __( '%1$s to %2$s', 'ism' ),
+                                                                   __( '%1$s to %2$s', 'resa' ),
                                                                    $min, $max );
 ```
 
@@ -226,21 +226,21 @@ wp_sprintf()                 Localized sprintf                    wp_sprintf(
 
 ```php
 // ✅ Literaler Text Domain
-__( 'Settings', 'ism' )
+__( 'Settings', 'resa' )
 
 // ✅ Vollständige Sätze
-__( 'No leads found for this period.', 'ism' )
+__( 'No leads found for this period.', 'resa' )
 
 // ✅ Platzhalter statt Konkatenation
-sprintf( __( 'Your rent is %s per month.', 'ism' ), $rent )
+sprintf( __( 'Your rent is %s per month.', 'resa' ), $rent )
 
 // ✅ Kontext bei mehrdeutigen Begriffen
-_x( 'Location', 'real estate area', 'ism' )
-_x( 'Location', 'GPS coordinates', 'ism' )
+_x( 'Location', 'real estate area', 'resa' )
+_x( 'Location', 'GPS coordinates', 'resa' )
 
 // ✅ Übersetzer-Hinweis bei Platzhaltern
 /* translators: %s: city name */
-sprintf( __( 'Rent analysis for %s', 'ism' ), $city_name )
+sprintf( __( 'Rent analysis for %s', 'resa' ), $city_name )
 
 // ✅ Zahlen locale-gerecht formatieren
 number_format_i18n( $price, 2 )
@@ -249,15 +249,15 @@ number_format_i18n( $price, 2 )
 date_i18n( get_option( 'date_format' ), $timestamp )
 
 // ✅ Escaping bei Ausgabe
-esc_html_e( 'Save Settings', 'ism' );
-echo '<a href="#">' . esc_html__( 'Learn more', 'ism' ) . '</a>';
+esc_html_e( 'Save Settings', 'resa' );
+echo '<a href="#">' . esc_html__( 'Learn more', 'resa' ) . '</a>';
 ```
 
 **NIEMALS tun:**
 
 ```php
 // ❌ Variable als Text Domain
-$domain = 'ism';
+$domain = 'resa';
 __( 'Settings', $domain )   // Parser findet es nicht!
 
 // ❌ String-Konkatenation
@@ -267,36 +267,36 @@ __( 'Your rent is ' ) . $rent . __( ' per month' )
 __( '<strong>Important:</strong> Please enter...' )
 // → Stattdessen:
 sprintf( '<strong>%s</strong> %s',
-    __( 'Important:', 'ism' ),
-    __( 'Please enter your email.', 'ism' )
+    __( 'Important:', 'resa' ),
+    __( 'Please enter your email.', 'resa' )
 )
 
 // ❌ Leere Strings übersetzen
-__( '', 'ism' )
+__( '', 'resa' )
 
 // ❌ Nur ein Wort ohne Kontext
-__( 'Post', 'ism' )   // → Was? Blogbeitrag? Abschicken?
-_x( 'Post', 'submit button', 'ism' )  // ✅ So!
+__( 'Post', 'resa' )   // → Was? Blogbeitrag? Abschicken?
+_x( 'Post', 'submit button', 'resa' )  // ✅ So!
 ```
 
 ### 3.4 JavaScript i18n (Frontend-Widgets)
 
-ISM-Widgets laufen im Frontend mit JavaScript. WordPress bietet seit 5.0 eine JS-i18n-Lösung:
+RESA-Widgets laufen im Frontend mit JavaScript. WordPress bietet seit 5.0 eine JS-i18n-Lösung:
 
 **Registrierung in PHP:**
 ```php
 wp_register_script(
-    'ism-frontend',
-    ISM_PLUGIN_URL . 'assets/js/frontend.js',
+    'resa-frontend',
+    RESA_PLUGIN_URL . 'assets/js/frontend.js',
     array( 'wp-i18n' ),    // ← Abhängigkeit
-    ISM_VERSION,
+    RESA_VERSION,
     true
 );
 
 wp_set_script_translations(
-    'ism-frontend',         // Handle
-    'ism',                  // Text Domain
-    ISM_PLUGIN_DIR . 'languages'  // Pfad
+    'resa-frontend',         // Handle
+    'resa',                  // Text Domain
+    RESA_PLUGIN_DIR . 'languages'  // Pfad
 );
 ```
 
@@ -305,18 +305,18 @@ wp_set_script_translations(
 const { __, _x, _n, sprintf } = wp.i18n;
 
 // Einfache Übersetzung
-const title = __( 'Your Results', 'ism' );
+const title = __( 'Your Results', 'resa' );
 
 // Mit Platzhalter
 const msg = sprintf(
     /* translators: %s: formatted price range */
-    __( 'Estimated rent: %s per month', 'ism' ),
+    __( 'Estimated rent: %s per month', 'resa' ),
     priceRange
 );
 
 // Plural
 const leadMsg = sprintf(
-    _n( '%d new lead', '%d new leads', count, 'ism' ),
+    _n( '%d new lead', '%d new leads', count, 'resa' ),
     count
 );
 ```
@@ -327,77 +327,77 @@ const leadMsg = sprintf(
 wp i18n make-json languages/ --no-purge
 ```
 
-Ergebnis: `ism-de_DE-<hash>.json` — wird automatisch von `wp_set_script_translations()` geladen.
+Ergebnis: `resa-de_DE-<hash>.json` — wird automatisch von `wp_set_script_translations()` geladen.
 
 ### 3.5 Dateistruktur
 
 ```
-ism/
-├── ism.php                     ← Plugin-Hauptdatei mit Header
+resa/
+├── resa.php                     ← Plugin-Hauptdatei mit Header
 ├── languages/
-│   ├── ism.pot                 ← Template (Quell-Strings, en_US)
+│   ├── resa.pot                 ← Template (Quell-Strings, en_US)
 │   │
-│   ├── ism-de_DE.po            ← Deutsch (Deutschland)
-│   ├── ism-de_DE.mo            ← Kompiliert
-│   ├── ism-de_DE-<hash>.json   ← JS-Strings
+│   ├── resa-de_DE.po            ← Deutsch (Deutschland)
+│   ├── resa-de_DE.mo            ← Kompiliert
+│   ├── resa-de_DE-<hash>.json   ← JS-Strings
 │   │
-│   ├── ism-de_AT.po            ← Deutsch (Österreich)
-│   ├── ism-de_AT.mo
-│   ├── ism-de_AT-<hash>.json
+│   ├── resa-de_AT.po            ← Deutsch (Österreich)
+│   ├── resa-de_AT.mo
+│   ├── resa-de_AT-<hash>.json
 │   │
-│   ├── ism-de_CH.po            ← Deutsch (Schweiz)
-│   ├── ism-de_CH.mo
-│   ├── ism-de_CH-<hash>.json
+│   ├── resa-de_CH.po            ← Deutsch (Schweiz)
+│   ├── resa-de_CH.mo
+│   ├── resa-de_CH-<hash>.json
 │   │
-│   ├── ism-en_GB.po            ← Englisch (UK)
-│   ├── ism-en_GB.mo
-│   ├── ism-en_GB-<hash>.json
+│   ├── resa-en_GB.po            ← Englisch (UK)
+│   ├── resa-en_GB.mo
+│   ├── resa-en_GB-<hash>.json
 │   │
-│   ├── ism-fr_FR.po            ← Französisch
-│   ├── ism-fr_FR.mo
-│   ├── ism-fr_FR-<hash>.json
+│   ├── resa-fr_FR.po            ← Französisch
+│   ├── resa-fr_FR.mo
+│   ├── resa-fr_FR-<hash>.json
 │   │
-│   ├── ism-es_ES.po            ← Spanisch
-│   ├── ism-es_ES.mo
-│   ├── ism-es_ES-<hash>.json
+│   ├── resa-es_ES.po            ← Spanisch
+│   ├── resa-es_ES.mo
+│   ├── resa-es_ES-<hash>.json
 │   │
-│   ├── ism-nl_NL.po            ← Niederländisch
-│   ├── ism-nl_NL.mo
-│   ├── ism-nl_NL-<hash>.json
+│   ├── resa-nl_NL.po            ← Niederländisch
+│   ├── resa-nl_NL.mo
+│   ├── resa-nl_NL-<hash>.json
 │   │
-│   ├── ism-it_IT.po            ← Italienisch
-│   ├── ism-it_IT.mo
-│   └── ism-it_IT-<hash>.json
+│   ├── resa-it_IT.po            ← Italienisch
+│   ├── resa-it_IT.mo
+│   └── resa-it_IT-<hash>.json
 │
 ├── assets/
 │   └── js/
 │       └── frontend.js         ← Enthält wp.i18n Aufrufe
 │
 └── includes/
-    └── class-ism-i18n.php      ← Sprachladung
+    └── class-resa-i18n.php      ← Sprachladung
 ```
 
 ### 3.6 Sprachladung
 
 ```php
-// includes/class-ism-i18n.php
+// includes/class-resa-i18n.php
 
-class ISM_i18n {
+class RESA_i18n {
 
     public function load_textdomain() {
         load_plugin_textdomain(
-            'ism',
+            'resa',
             false,
             dirname( plugin_basename( __FILE__ ) ) . '/../languages'
         );
     }
 }
 
-// In ism.php (Haupt-Plugin):
-add_action( 'init', array( new ISM_i18n(), 'load_textdomain' ) );
+// In resa.php (Haupt-Plugin):
+add_action( 'init', array( new RESA_i18n(), 'load_textdomain' ) );
 ```
 
-WordPress prüft automatisch auch `/wp-content/languages/plugins/ism-{locale}.mo` — dort landen Übersetzungen von translate.wordpress.org.
+WordPress prüft automatisch auch `/wp-content/languages/plugins/resa-{locale}.mo` — dort landen Übersetzungen von translate.wordpress.org.
 
 ---
 
@@ -409,13 +409,13 @@ Bei jedem Release oder String-Änderung:
 
 ```bash
 # Mit WP-CLI
-wp i18n make-pot ./wp-content/plugins/ism \
-    ./wp-content/plugins/ism/languages/ism.pot \
-    --domain=ism \
+wp i18n make-pot ./wp-content/plugins/resa \
+    ./wp-content/plugins/resa/languages/resa.pot \
+    --domain=resa \
     --exclude=node_modules,vendor,tests
 
 # Zusätzlich: JSON für JS-Strings
-wp i18n make-json ./wp-content/plugins/ism/languages/ \
+wp i18n make-json ./wp-content/plugins/resa/languages/ \
     --no-purge
 ```
 
@@ -424,9 +424,9 @@ wp i18n make-json ./wp-content/plugins/ism/languages/ \
 **Option A: Poedit (Lokal)**
 ```
 1. Poedit öffnen → "Neue Übersetzung aus POT"
-2. ism.pot auswählen → Zielsprache wählen (z.B. fr_FR)
+2. resa.pot auswählen → Zielsprache wählen (z.B. fr_FR)
 3. Strings übersetzen
-4. Speichern → erzeugt ism-fr_FR.po + ism-fr_FR.mo
+4. Speichern → erzeugt resa-fr_FR.po + resa-fr_FR.mo
 5. Dateien in /languages/ ablegen
 ```
 
@@ -442,7 +442,7 @@ wp i18n make-json ./wp-content/plugins/ism/languages/ \
 ```
 1. POT-Datei an Übersetzungsdienstleister senden
 2. Dienstleister liefert PO-Dateien zurück
-3. MO-Dateien kompilieren: msgfmt ism-fr_FR.po -o ism-fr_FR.mo
+3. MO-Dateien kompilieren: msgfmt resa-fr_FR.po -o resa-fr_FR.mo
 4. In Plugin-Release einschließen
 ```
 
@@ -450,10 +450,10 @@ wp i18n make-json ./wp-content/plugins/ism/languages/ \
 
 ```bash
 # 1. Neues POT generieren
-wp i18n make-pot . languages/ism.pot --domain=ism
+wp i18n make-pot . languages/resa.pot --domain=resa
 
 # 2. Bestehende PO-Dateien aktualisieren (mergen)
-wp i18n update-po languages/ism.pot languages/
+wp i18n update-po languages/resa.pot languages/
 
 # → Neue Strings werden als "fuzzy" (unübersetzt) markiert
 # → Bestehende Übersetzungen bleiben erhalten
@@ -556,14 +556,14 @@ number_format_i18n( 1234.56, 2 );
 // en_US → "1,234.56"
 
 // Für Währung: eigene Hilfsfunktion
-function ism_format_currency( $amount, $currency = null ) {
+function resa_format_currency( $amount, $currency = null ) {
     if ( ! $currency ) {
-        $currency = ism_get_location_currency();
+        $currency = resa_get_location_currency();
     }
 
     $formatted = number_format_i18n( $amount, 2 );
 
-    $position = ism_get_currency_position( $currency );
+    $position = resa_get_currency_position( $currency );
     // de_DE: "1.234,56 €"  (nach Zahl)
     // en_US: "$1,234.56"   (vor Zahl)
     // nl_NL: "€ 1.234,56"  (vor Zahl mit Leer)
@@ -613,10 +613,10 @@ UK / Irland     sq ft      acres
 Der Shortcode unterstützt einen optionalen `lang`-Parameter:
 
 ```
-[ism type="mietpreis" city="bad-oeynhausen"]
+[resa type="mietpreis" city="bad-oeynhausen"]
 → Sprache = WordPress-Seitensprache (automatisch)
 
-[ism type="mietpreis" city="bad-oeynhausen" lang="en"]
+[resa type="mietpreis" city="bad-oeynhausen" lang="en"]
 → Sprache = Englisch (explizit)
 ```
 
@@ -727,8 +727,8 @@ GESAMT DB-basiert:                ~600 Vorlagen-Strings
 // package.json
 {
   "scripts": {
-    "i18n:pot": "wp i18n make-pot . languages/ism.pot --domain=ism --exclude=node_modules,vendor",
-    "i18n:update": "wp i18n update-po languages/ism.pot languages/",
+    "i18n:pot": "wp i18n make-pot . languages/resa.pot --domain=resa --exclude=node_modules,vendor",
+    "i18n:update": "wp i18n update-po languages/resa.pot languages/",
     "i18n:mo": "wp i18n make-mo languages/",
     "i18n:json": "wp i18n make-json languages/ --no-purge",
     "i18n:build": "npm run i18n:pot && npm run i18n:update && npm run i18n:mo && npm run i18n:json"
@@ -744,11 +744,11 @@ Ein einziger Befehl: `npm run i18n:build` — fertig.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  ISM i18n auf einen Blick                                       │
+│  RESA i18n auf einen Blick                                       │
 │                                                                 │
 │  Entwicklungssprache:   Deutsch                                 │
 │  Quellstrings (POT):    Englisch (WordPress-Standard)           │
-│  Text Domain:           ism                                     │
+│  Text Domain:           resa                                     │
 │  Methode:               WordPress gettext + wp.i18n (JS)        │
 │  Dateien:               .pot → .po → .mo + .json                │
 │                                                                 │

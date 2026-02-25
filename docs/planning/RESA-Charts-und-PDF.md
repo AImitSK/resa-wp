@@ -1,4 +1,4 @@
-# ISM — Datenvisualisierung & PDF-Generierung
+# RESA — Datenvisualisierung & PDF-Generierung
 
 ## Charts, Diagramme & druckfähige PDF-Dokumente
 
@@ -6,7 +6,7 @@
 
 ## 1. Das Problem
 
-ISM-Ergebnisse sind **keine simplen Zahlen** — sie werden als visuelle Analysen dargestellt. Ein Mietpreisergebnis zeigt nicht nur "714 € — 833 €", sondern auch:
+RESA-Ergebnisse sind **keine simplen Zahlen** — sie werden als visuelle Analysen dargestellt. Ein Mietpreisergebnis zeigt nicht nur "714 € — 833 €", sondern auch:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -110,7 +110,7 @@ D3-Basis                  ✅                      ✅
 TypeScript                ✅                      ✅
 ```
 
-**Entscheidung: Nivo** — weil die Charts beim Makler-Kunden einen professionellen, modernen Eindruck machen müssen. ISM-Ergebnisse sollen "Wow" erzeugen, nicht "Excel-Tabelle mit Farbe".
+**Entscheidung: Nivo** — weil die Charts beim Makler-Kunden einen professionellen, modernen Eindruck machen müssen. RESA-Ergebnisse sollen "Wow" erzeugen, nicht "Excel-Tabelle mit Farbe".
 
 ### Nivo-Pakete die wir brauchen
 
@@ -131,10 +131,10 @@ TypeScript                ✅                      ✅
 }
 ```
 
-### Chart-Typen pro ISM-Asset
+### Chart-Typen pro RESA-Asset
 
 ```
-ISM Smart Asset               Chart-Typ(en)               Nivo-Paket
+RESA Smart Asset               Chart-Typ(en)               Nivo-Paket
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Mietpreis-Kalkulator           Bullet (Spanne + Marker)    @nivo/bullet
                                Bar (Vergleich Stadt/Kreis) @nivo/bar
@@ -163,13 +163,13 @@ Mieten-vs-Kaufen               Line (Kumulierte Kosten)    @nivo/line
                                Bar (Break-Even)            @nivo/bar
 ```
 
-### Nivo-Theme: ISM Design-System
+### Nivo-Theme: RESA Design-System
 
 ```typescript
 // src/frontend/lib/chart-theme.ts
 import type { Theme } from '@nivo/core';
 
-export const ismChartTheme: Theme = {
+export const resaChartTheme: Theme = {
   // Basis
   fontFamily: 'system-ui, -apple-system, sans-serif',
   fontSize: 13,
@@ -211,7 +211,7 @@ export const ismChartTheme: Theme = {
 };
 
 // Farbpaletten
-export const ismColors = {
+export const resaColors = {
   primary: ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'],     // Blau (Kern)
   comparison: ['#3b82f6', '#94a3b8', '#cbd5e1'],              // Blau, Grau, Hell
   gradient: ['#3b82f6', '#8b5cf6', '#ec4899'],                // Blau → Lila → Rosa
@@ -227,7 +227,7 @@ export const ismColors = {
 // src/frontend/assets/rent-calculator/result/RentBulletChart.tsx
 import { ResponsiveBullet } from '@nivo/bullet';
 import { motion } from 'framer-motion';
-import { ismChartTheme, ismColors } from '@/frontend/lib/chart-theme';
+import { resaChartTheme, resaColors } from '@/frontend/lib/chart-theme';
 
 interface RentBulletChartProps {
   rentMin: number;
@@ -247,7 +247,7 @@ export function RentBulletChart({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
-      className="ism-h-24"
+      className="resa-h-24"
     >
       <ResponsiveBullet
         data={[
@@ -259,9 +259,9 @@ export function RentBulletChart({
             markers: [rentMedian],
           },
         ]}
-        theme={ismChartTheme}
+        theme={resaChartTheme}
         rangeColors={['#f1f5f9', '#dbeafe', '#bfdbfe', '#f1f5f9']}
-        measureColors={[ismColors.primary[0]]}
+        measureColors={[resaColors.primary[0]]}
         markerColors={['#1e293b']}
         margin={{ top: 10, right: 30, bottom: 30, left: 80 }}
         spacing={46}
@@ -579,7 +579,7 @@ async function generatePdf(request: PdfRequest): Promise<Buffer> {
     displayHeaderFooter: true,
     footerTemplate: `
       <div style="font-size:9px; width:100%; text-align:center; color:#94a3b8;">
-        ${request.branding.agent_name} — Erstellt mit ISM
+        ${request.branding.agent_name} — Erstellt mit RESA
         <span style="float:right; margin-right:15mm;">
           Seite <span class="pageNumber"></span> / <span class="totalPages"></span>
         </span>
@@ -604,7 +604,7 @@ generatePdf(input).then(pdf => {
 // scripts/templates/charts/RentComparisonBarSvg.tsx
 import React from 'react';
 import { Bar } from '@nivo/bar';
-import { ismChartTheme, ismColors } from '../../src/frontend/lib/chart-theme';
+import { resaChartTheme, resaColors } from '../../src/frontend/lib/chart-theme';
 
 // Server-Side: Nivo im "static" Modus (kein DOM nötig)
 export function RentComparisonBarSvg({
@@ -623,8 +623,8 @@ export function RentComparisonBarSvg({
       ]}
       keys={['value']}
       indexBy="label"
-      theme={ismChartTheme}
-      colors={ismColors.comparison}
+      theme={resaChartTheme}
+      colors={resaColors.comparison}
       margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
       padding={0.3}
       borderRadius={6}
@@ -645,7 +645,7 @@ class PuppeteerPdfEngine {
 
     public function generate( array $data ): string {
         $json_input = wp_json_encode( $data );
-        $script = ISM_PLUGIN_DIR . 'scripts/generate-pdf.js';
+        $script = RESA_PLUGIN_DIR . 'scripts/generate-pdf.js';
 
         // Node.js aufrufen und PDF-Binary von stdout lesen
         $command = sprintf(
@@ -806,8 +806,8 @@ PDF-Qualität               ★★★☆☆                     ★★★★★
 ### Hosting-Empfehlung
 
 ```
-ISM Free:        DOMPDF (reicht für Standard-Template mit ISM-Branding)
-ISM Premium:     Puppeteer empfohlen, DOMPDF als Fallback
+RESA Free:        DOMPDF (reicht für Standard-Template mit RESA-Branding)
+RESA Premium:     Puppeteer empfohlen, DOMPDF als Fallback
 
 Einstellungen → PDF-Engine:
   ○ Automatisch (erkennt ob Puppeteer verfügbar)
@@ -859,7 +859,7 @@ NEUE PHP-PAKETE (composer.json):
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  ISM Charts & PDF auf einen Blick                            │
+│  RESA Charts & PDF auf einen Blick                            │
 │                                                              │
 │  WEB-CHARTS:                                                 │
 │    Nivo (D3-basiert, 30+ Chart-Typen, Theming)               │
@@ -878,7 +878,7 @@ NEUE PHP-PAKETE (composer.json):
 │  DUAL-ENGINE: Auto-Erkennung (Puppeteer verfügbar? → ja/nein)│
 │                                                              │
 │  DESIGN-SYSTEM:                                              │
-│    ISM Chart-Theme (Farben, Fonts, Abstände)                 │
+│    RESA Chart-Theme (Farben, Fonts, Abstände)                 │
 │    Einheitlich in Web UND PDF                                │
 │    Makler-Branding (Primärfarbe) wird durchgereicht          │
 │                                                              │

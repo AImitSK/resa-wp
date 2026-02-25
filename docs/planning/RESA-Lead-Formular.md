@@ -1,4 +1,4 @@
-# ISM — Universelles Lead-Formular
+# RESA — Universelles Lead-Formular
 
 ## Konfiguration, Felder, Strategien & DSGVO
 
@@ -27,7 +27,7 @@ Verschiedene Makler verfolgen fundamental andere Strategien:
 - **Der Newsletter-Bauer:** "Leads sind erstmal Kontakte, die ich langfristig bespielen will"
 - **Der Sofort-Anrufer:** "Ich will den Lead sofort anrufen, Telefon ist Pflicht"
 
-**ISM muss alle Strategien unterstützen** — über ein einziges, konfigurierbares Formular.
+**RESA muss alle Strategien unterstützen** — über ein einziges, konfigurierbares Formular.
 
 ---
 
@@ -36,7 +36,7 @@ Verschiedene Makler verfolgen fundamental andere Strategien:
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                                                         │
-│  ✅  So macht es ISM:                                    │
+│  ✅  So macht es RESA:                                    │
 │                                                         │
 │  Fragen → Fragen → Fragen → [FORMULAR] → Ergebnis      │
 │                               ↑                         │
@@ -164,7 +164,7 @@ Aus            Wird nicht angezeigt                Feld existiert nicht
 
 ### 4.2 Voreinstellungen (Presets)
 
-Statt jeden Makler alles manuell einstellen zu lassen, bietet ISM vorgefertigte Strategien:
+Statt jeden Makler alles manuell einstellen zu lassen, bietet RESA vorgefertigte Strategien:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -257,8 +257,8 @@ Im Premium-Plan kann der Makler die globale Konfiguration **pro Asset überschre
 ```
 Slug:           first_name
 Typ:            text
-Label:          __( 'First name', 'ism' )
-Placeholder:    __( 'Your first name', 'ism' )
+Label:          __( 'First name', 'resa' )
+Placeholder:    __( 'Your first name', 'resa' )
 Validierung:    Pflicht, min 2 Zeichen, max 50 Zeichen
 Sanitizing:     sanitize_text_field(), trim, kein HTML
 ```
@@ -268,9 +268,9 @@ Sanitizing:     sanitize_text_field(), trim, kein HTML
 ```
 Slug:           last_name
 Typ:            text
-Label:          __( 'Last name', 'ism' )
-Placeholder:    __( 'Your last name', 'ism' )
-Hinweis:        __( '(optional)', 'ism' )  ← nur wenn Status = Optional
+Label:          __( 'Last name', 'resa' )
+Placeholder:    __( 'Your last name', 'resa' )
+Hinweis:        __( '(optional)', 'resa' )  ← nur wenn Status = Optional
 Validierung:    Wenn Pflicht: min 2 Zeichen. Wenn Optional: darf leer sein.
 Sanitizing:     sanitize_text_field(), trim, kein HTML
 ```
@@ -280,8 +280,8 @@ Sanitizing:     sanitize_text_field(), trim, kein HTML
 ```
 Slug:           email
 Typ:            email
-Label:          __( 'Email address', 'ism' )
-Placeholder:    __( 'your@email.com', 'ism' )
+Label:          __( 'Email address', 'resa' )
+Placeholder:    __( 'your@email.com', 'resa' )
 Validierung:    Pflicht, is_email(), RFC 5322 kompatibel
 Sanitizing:     sanitize_email(), trim, lowercase
 Besonderheit:   Wird für PDF-Versand und DOI verwendet
@@ -294,28 +294,28 @@ Besonderheit:   Wird für PDF-Versand und DOI verwendet
 ```
 Slug:           phone
 Typ:            tel
-Label:          __( 'Phone number', 'ism' )
-Placeholder:    __( '+49 123 456789', 'ism' )
-Hinweis:        __( 'For personal consultation', 'ism' ) ← Motivations-Text
+Label:          __( 'Phone number', 'resa' )
+Placeholder:    __( '+49 123 456789', 'resa' )
+Hinweis:        __( 'For personal consultation', 'resa' ) ← Motivations-Text
 Validierung:    Wenn Pflicht: min 6 Zeichen, nur Ziffern/+/-/Leerzeichen/Klammern
                 Wenn Optional: darf leer sein
 Sanitizing:     Nur erlaubte Zeichen behalten, trim
 Format-Hilfe:   Automatische Formatierung beim Tippen (optional, landesabhängig)
 ```
 
-**Besonderheit Telefon:** Viele Makler schwören auf Telefon als Pflichtfeld ("Wer keine Nummer angibt, ist kein ernsthafter Lead"). Andere sagen "Telefon als Pflicht killt 30% meiner Conversions". ISM lässt den Makler entscheiden.
+**Besonderheit Telefon:** Viele Makler schwören auf Telefon als Pflichtfeld ("Wer keine Nummer angibt, ist kein ernsthafter Lead"). Andere sagen "Telefon als Pflicht killt 30% meiner Conversions". RESA lässt den Makler entscheiden.
 
 ### 5.5 Anrede (konfigurierbar)
 
 ```
 Slug:           salutation
 Typ:            select
-Label:          __( 'Salutation', 'ism' )
+Label:          __( 'Salutation', 'resa' )
 Optionen:
   - ""                          ← Leer (Placeholder)
-  - "mr"    → __( 'Mr.', 'ism' )
-  - "mrs"   → __( 'Mrs.', 'ism' )
-  - "div"   → __( 'Mx.', 'ism' )      ← Divers/Neutral
+  - "mr"    → __( 'Mr.', 'resa' )
+  - "mrs"   → __( 'Mrs.', 'resa' )
+  - "div"   → __( 'Mx.', 'resa' )      ← Divers/Neutral
 Validierung:    Wenn Pflicht: Auswahl erforderlich
 Verwendung:     E-Mail-Anrede: "Sehr geehrter Herr Schmidt" vs. 
                 "Guten Tag Maria Schmidt"
@@ -326,8 +326,8 @@ Verwendung:     E-Mail-Anrede: "Sehr geehrter Herr Schmidt" vs.
 ```
 Slug:           company
 Typ:            text
-Label:          __( 'Company', 'ism' )
-Placeholder:    __( 'Company name', 'ism' )
+Label:          __( 'Company', 'resa' )
+Placeholder:    __( 'Company name', 'resa' )
 Validierung:    Wenn Pflicht: min 2 Zeichen
 Sanitizing:     sanitize_text_field()
 Verwendung:     CRM-Übergabe, Lead-Qualifizierung (B2B vs. B2C)
@@ -356,8 +356,8 @@ Verwendung:     Persönliche Beratung, lokale Marktdaten
 ```
 Slug:           message
 Typ:            textarea
-Label:          __( 'Your message', 'ism' )
-Placeholder:    __( 'Questions or comments (optional)', 'ism' )
+Label:          __( 'Your message', 'resa' )
+Placeholder:    __( 'Questions or comments (optional)', 'resa' )
 Max Zeichen:    500
 Zeilen:         3 (Standard)
 Validierung:    Wenn Pflicht: min 10 Zeichen
@@ -369,7 +369,7 @@ Sanitizing:     sanitize_textarea_field(), strip_tags()
 ```
 Slug:           callback
 Typ:            checkbox
-Label:          __( 'I would like a personal callback', 'ism' )
+Label:          __( 'I would like a personal callback', 'resa' )
 Abhängigkeit:   Wenn aktiv UND Telefon = Aus → Telefon wird 
                 automatisch auf Optional gesetzt (mit Admin-Hinweis)
 Wirkung:        Setzt Tag "callback-requested" am Lead
@@ -382,7 +382,7 @@ Wirkung:        Setzt Tag "callback-requested" am Lead
 Slug:           newsletter
 Typ:            checkbox
 Label:          Konfigurierbar, Standard:
-                __( 'Yes, I would like to receive market updates by email', 'ism' )
+                __( 'Yes, I would like to receive market updates by email', 'resa' )
 Vorausgewählt:  NEIN (DSGVO: Opt-In muss aktiv erfolgen)
 Wirkung:        Wenn angehakt:
                 → Lead bekommt Tag "newsletter-optin"
@@ -401,7 +401,7 @@ Slug:           consent
 Typ:            checkbox
 Label:          Konfigurierbar, Standard:
                 __( 'I agree that my data will be processed to provide 
-                     the requested analysis. [Privacy Policy]', 'ism' )
+                     the requested analysis. [Privacy Policy]', 'resa' )
 Link:           Verlinkt auf die Datenschutzseite des Maklers
                 (Einstellung: URL zur Datenschutzerklärung)
 Vorausgewählt:  NEIN (DSGVO: muss aktiv angehakt werden)
@@ -532,7 +532,7 @@ export function LeadForm({ config, onSubmit, isLoading }: {
       <FormHeader />
 
       {/* Eingabefelder */}
-      <div className="ism-grid">
+      <div className="resa-grid">
         {inputFields.map(field => (
           <FormField
             key={field.slug}
@@ -544,7 +544,7 @@ export function LeadForm({ config, onSubmit, isLoading }: {
       </div>
 
       {/* Checkboxen (Newsletter, DSGVO) */}
-      <div className="ism-checkboxes">
+      <div className="resa-checkboxes">
         {checkboxFields.map(field => (
           <CheckboxField
             key={field.slug}
@@ -583,19 +583,19 @@ export function buildSchema(fields: FieldConfig[]): ZodObject<any> {
 
     switch (field.type) {
       case 'email':
-        validator = z.string().email(__('Please enter a valid email address', 'ism'));
+        validator = z.string().email(__('Please enter a valid email address', 'resa'));
         break;
 
       case 'tel':
         validator = z.string()
-          .regex(/^[+\d\s\-()]{6,20}$/, __('Please enter a valid phone number', 'ism'));
+          .regex(/^[+\d\s\-()]{6,20}$/, __('Please enter a valid phone number', 'resa'));
         break;
 
       case 'checkbox':
         if (field.slug === 'consent') {
           // DSGVO: MUSS true sein
           validator = z.literal(true, {
-            errorMap: () => ({ message: __('Please accept the privacy policy', 'ism') }),
+            errorMap: () => ({ message: __('Please accept the privacy policy', 'resa') }),
           });
         } else {
           validator = z.boolean().default(false);
@@ -612,7 +612,7 @@ export function buildSchema(fields: FieldConfig[]): ZodObject<any> {
         break;
 
       default:
-        validator = z.string().min(2, __('Please fill in this field', 'ism'));
+        validator = z.string().min(2, __('Please fill in this field', 'resa'));
     }
 
     // Optional-Felder: leerer String erlaubt
@@ -671,7 +671,7 @@ Premium-Nutzer können Labels, Platzhalter und Hilfstexte pro Feld ändern:
 
 ### Texte sind übersetzbar (i18n)
 
-Wenn der Makler Custom-Texte eingibt, gelten diese für die **aktuelle Sprache**. Für andere Sprachen gelten die ISM-Standard-Übersetzungen — es sei denn, der Makler übersetzt auch dort.
+Wenn der Makler Custom-Texte eingibt, gelten diese für die **aktuelle Sprache**. Für andere Sprachen gelten die RESA-Standard-Übersetzungen — es sei denn, der Makler übersetzt auch dort.
 
 ```
 Sprache: [▼ Deutsch (DE)  ]  ← Sprach-Umschalter in der Konfiguration
@@ -681,7 +681,7 @@ Sprache: [▼ Deutsch (DE)  ]  ← Sprach-Umschalter in der Konfiguration
 
 ## 8. CTA-Button: Text & Gestaltung
 
-Der Button-Text ist **entscheidend** für die Conversion. ISM bietet Voreinstellungen und erlaubt Custom-Text:
+Der Button-Text ist **entscheidend** für die Conversion. RESA bietet Voreinstellungen und erlaubt Custom-Text:
 
 ```
 Voreinstellungen:
@@ -694,7 +694,7 @@ Voreinstellungen:
 Oder eigener Text:  [                              ]
 ```
 
-### Button-Design (nicht änderbar, ISM-optimiert)
+### Button-Design (nicht änderbar, RESA-optimiert)
 
 ```
 ┌───────────────────────────────────────────────┐
@@ -835,7 +835,7 @@ Newsletter-DOI:       Wird NUR gesendet wenn Checkbox angehakt
 ### Lead-Speicherung
 
 ```json
-// Gespeicherter Lead in ism_leads
+// Gespeicherter Lead in resa_leads
 {
   "id": 4523,
   "first_name": "Maria",
@@ -908,7 +908,7 @@ Honeypot + Zeitprüfung               ✅                 ✅
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  ISM Lead-Formular auf einen Blick                           │
+│  RESA Lead-Formular auf einen Blick                           │
 │                                                              │
 │  EIN Schritt:    Alle Felder auf einmal, kein Nachfordern    │
 │  EIN Formular:   Global konfiguriert, pro Asset überschreibbar│

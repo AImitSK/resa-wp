@@ -1,4 +1,4 @@
-# ISM — Technischer Gesamtstack
+# RESA — Technischer Gesamtstack
 
 ## Architektur, Toolchain & Entwicklungsumgebung
 
@@ -6,11 +6,11 @@
 
 ## 1. Architektur-Überblick
 
-ISM ist ein **WordPress-Plugin mit React-Frontend**. Das Backend läuft in PHP (WordPress-Konventionen), das Frontend als isolierte React-App die per Shortcode in beliebige Seiten eingebettet wird.
+RESA ist ein **WordPress-Plugin mit React-Frontend**. Das Backend läuft in PHP (WordPress-Konventionen), das Frontend als isolierte React-App die per Shortcode in beliebige Seiten eingebettet wird.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                     ISM Plugin — Gesamtarchitektur              │
+│                     RESA Plugin — Gesamtarchitektur              │
 │                                                                 │
 │  ┌───────────────────────┐    ┌────────────────────────────┐    │
 │  │   BACKEND (PHP)       │    │   FRONTEND (React/TS)      │    │
@@ -22,13 +22,13 @@ ISM ist ein **WordPress-Plugin mit React-Frontend**. Das Backend läuft in PHP (
 │  │                       │    │   Framer Motion            │    │
 │  │   ┌─────────────────┐ │    │   wp.i18n (Übersetzung)    │    │
 │  │   │ REST API        │ │    │                            │    │
-│  │   │ /wp-json/ism/v1 │ │    │   2 Entry Points:          │    │
+│  │   │ /wp-json/resa/v1 │ │    │   2 Entry Points:          │    │
 │  │   └─────────────────┘ │    │   ① frontend.tsx (Widget)  │    │
 │  │   ┌─────────────────┐ │    │   ② admin.tsx (Dashboard)  │    │
 │  │   │ Custom DB Tables│ │    │                            │    │
-│  │   │ ism_leads       │ │    └────────────────────────────┘    │
-│  │   │ ism_locations   │ │                                      │
-│  │   │ ism_emails      │ │    ┌────────────────────────────┐    │
+│  │   │ resa_leads       │ │    └────────────────────────────┘    │
+│  │   │ resa_locations   │ │                                      │
+│  │   │ resa_emails      │ │    ┌────────────────────────────┐    │
 │  │   └─────────────────┘ │    │   BUILD (Toolchain)        │    │
 │  │   ┌─────────────────┐ │    │                            │    │
 │  │   │ PDF Generator   │ │    │   Vite 6                   │    │
@@ -94,7 +94,7 @@ Barrierefreiheit         ✅ Radix (shadcn)  ⚠ Teilweise        ❌ Manuell
 Dunkler Modus            ✅ Eingebaut       ⚠ Manuell          ❌ Manuell
 ```
 
-**Entscheidung:** Tailwind CSS mit einem Prefix (`ism-`) um Konflikte mit dem WordPress-Theme zu vermeiden. shadcn/ui als Komponentenbibliothek — basiert auf Radix UI (barrierefrei), voll anpassbar, kein Framework-Lock-in (Komponenten werden kopiert, nicht als Dependency installiert).
+**Entscheidung:** Tailwind CSS mit einem Prefix (`resa-`) um Konflikte mit dem WordPress-Theme zu vermeiden. shadcn/ui als Komponentenbibliothek — basiert auf Radix UI (barrierefrei), voll anpassbar, kein Framework-Lock-in (Komponenten werden kopiert, nicht als Dependency installiert).
 
 ---
 
@@ -107,7 +107,7 @@ Komponente              Technologie            Version     Zweck
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Sprache                 PHP                    8.1+        Typen, Enums, Fibers
 Paketmanager            Composer               2.x         Autoloading (PSR-4)
-Autoloading             PSR-4                  —           Namespace: ISM\
+Autoloading             PSR-4                  —           Namespace: Resa\
 Monetarisierung         Freemius SDK           2.x         Lizenzierung, Checkout
 PDF-Generierung         DOMPDF                 2.x         Fallback-Engine (PHP only)
                         + Puppeteer (Node.js)  23.x        Empfohlene Engine (Nivo-Charts
@@ -177,21 +177,21 @@ Lokale Entwicklung      wp-env oder LocalWP    WordPress-Testumgebung
 ## 4. Verzeichnisstruktur
 
 ```
-ism/
-├── ism.php                          ← Plugin Entry Point
+resa/
+├── resa.php                          ← Plugin Entry Point
 ├── uninstall.php                    ← Cleanup bei Deinstallation
 ├── readme.txt                       ← WordPress.org Readme
 ├── composer.json                    ← PHP Dependencies
 ├── package.json                     ← JS Dependencies + Scripts
 ├── vite.config.ts                   ← Vite Konfiguration
-├── tailwind.config.ts               ← Tailwind mit ism- Prefix
+├── tailwind.config.ts               ← Tailwind mit resa- Prefix
 ├── tsconfig.json                    ← TypeScript Konfiguration
 ├── postcss.config.js                ← PostCSS für Tailwind
 ├── .eslintrc.js                     ← ESLint Konfiguration
 ├── .prettierrc                      ← Prettier Konfiguration
 ├── phpcs.xml                        ← PHP CodeSniffer Regeln
 │
-├── includes/                        ← PHP Backend (PSR-4: ISM\)
+├── includes/                        ← PHP Backend (PSR-4: Resa\)
 │   ├── Core/
 │   │   ├── Plugin.php               ← Haupt-Bootstrap, Hooks
 │   │   ├── Activator.php            ← DB-Tabellen erstellen
@@ -205,11 +205,11 @@ ism/
 │   │
 │   ├── Api/
 │   │   ├── RestController.php       ← Basis REST-Controller
-│   │   ├── LeadsController.php      ← /ism/v1/leads
-│   │   ├── LocationsController.php  ← /ism/v1/locations
-│   │   ├── AssetsController.php     ← /ism/v1/assets
-│   │   ├── SettingsController.php   ← /ism/v1/settings
-│   │   └── EmailController.php      ← /ism/v1/emails
+│   │   ├── LeadsController.php      ← /resa/v1/leads
+│   │   ├── LocationsController.php  ← /resa/v1/locations
+│   │   ├── AssetsController.php     ← /resa/v1/assets
+│   │   ├── SettingsController.php   ← /resa/v1/settings
+│   │   └── EmailController.php      ← /resa/v1/emails
 │   │
 │   ├── Models/
 │   │   ├── Lead.php                 ← Lead CRUD
@@ -252,7 +252,7 @@ ism/
 │   │   └── Seeder.php               ← Demo-Daten (Dev)
 │   │
 │   ├── Shortcode/
-│   │   └── IsmShortcode.php         ← [ism] Shortcode Handler
+│   │   └── ResaShortcode.php        ← [resa] Shortcode Handler
 │   │
 │   └── Freemius/
 │       ├── FreemiusInit.php         ← SDK Bootstrap
@@ -358,8 +358,8 @@ ism/
 │       └── manifest.json            ← Asset-Map für PHP
 │
 ├── languages/                       ← i18n Dateien
-│   ├── ism.pot
-│   ├── ism-de_DE.po / .mo / .json
+│   ├── resa.pot
+│   ├── resa-de_DE.po / .mo / .json
 │   └── ...
 │
 ├── vendor/                          ← Composer (PHP Dependencies)
@@ -383,7 +383,7 @@ ism/
 
 ## 5. Die zwei Entry Points
 
-ISM hat **zwei separate React-Anwendungen**, die unabhängig voneinander gebaut und geladen werden:
+RESA hat **zwei separate React-Anwendungen**, die unabhängig voneinander gebaut und geladen werden:
 
 ```
 ┌──────────────────────────────────────────────────────────┐
@@ -392,7 +392,7 @@ ISM hat **zwei separate React-Anwendungen**, die unabhängig voneinander gebaut 
 │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━                         │
 │                                                          │
 │  Datei:     src/frontend/main.tsx                        │
-│  Lädt auf:  Jeder Seite mit [ism] Shortcode              │
+│  Lädt auf:  Jeder Seite mit [resa] Shortcode              │
 │  React:     Eigenes Bundle (NICHT wp-element)            │
 │  Größe:     ~80-120 KB (gzip)                            │
 │  Styling:   Isoliert (Shadow DOM oder starkes Prefixing) │
@@ -410,7 +410,7 @@ ISM hat **zwei separate React-Anwendungen**, die unabhängig voneinander gebaut 
 │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━                          │
 │                                                          │
 │  Datei:     src/admin/main.tsx                           │
-│  Lädt auf:  WP-Admin ISM-Seiten                          │
+│  Lädt auf:  WP-Admin RESA-Seiten                          │
 │  React:     WordPress-gebundelt (wp-element)             │
 │  Größe:     ~150-250 KB (gzip, React bereits da)         │
 │  Styling:   WordPress-Admin + Tailwind (Prefixed)        │
@@ -466,15 +466,15 @@ export default defineConfig({
 
 ## 6. Frontend-Widget: CSS-Isolation
 
-Das wichtigste technische Problem: **Das ISM-Widget darf nicht vom Theme-CSS beeinflusst werden** und darf umgekehrt das Theme nicht kaputt machen.
+Das wichtigste technische Problem: **Das RESA-Widget darf nicht vom Theme-CSS beeinflusst werden** und darf umgekehrt das Theme nicht kaputt machen.
 
 ### Lösung: Tailwind Prefix + CSS Scoping
 
 ```typescript
 // tailwind.config.ts (Frontend)
 export default {
-  prefix: 'ism-',                    // Alle Klassen: ism-flex, ism-p-4
-  important: '.ism-widget-root',     // Spezifität nur innerhalb Root
+  prefix: 'resa-',                    // Alle Klassen: resa-flex, resa-p-4
+  important: '.resa-widget-root',     // Spezifität nur innerhalb Root
   content: ['./src/frontend/**/*.{ts,tsx}'],
   corePlugins: {
     preflight: false,                // KEIN CSS-Reset (würde Theme zerstören)
@@ -482,8 +482,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: 'var(--ism-color-primary)',
-        secondary: 'var(--ism-color-secondary)',
+        primary: 'var(--resa-color-primary)',
+        secondary: 'var(--resa-color-secondary)',
       },
     },
   },
@@ -492,25 +492,25 @@ export default {
 
 ```css
 /* src/frontend/styles/reset.css — Widget-eigener Mini-Reset */
-.ism-widget-root {
+.resa-widget-root {
   /* Eigene Baseline, beeinflusst nichts außerhalb */
   font-family: system-ui, -apple-system, sans-serif;
   font-size: 16px;
   line-height: 1.5;
-  color: var(--ism-color-text, #1a1a1a);
+  color: var(--resa-color-text, #1a1a1a);
   box-sizing: border-box;
 }
-.ism-widget-root *, .ism-widget-root *::before, .ism-widget-root *::after {
+.resa-widget-root *, .resa-widget-root *::before, .resa-widget-root *::after {
   box-sizing: inherit;
 }
 ```
 
 ```php
 // Shortcode-Output:
-function ism_shortcode_render( $atts ) {
+function resa_shortcode_render( $atts ) {
     $config = json_encode( $atts );
     return sprintf(
-        '<div class="ism-widget-root" data-ism-config=\'%s\'></div>',
+        '<div class="resa-widget-root" data-resa-config=\'%s\'></div>',
         esc_attr( $config )
     );
 }
@@ -527,47 +527,47 @@ Endpunkt                            Methode    Auth       Beschreibung
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 PUBLIC (Frontend-Widget, kein Login nötig):
-/ism/v1/assets/{type}/config        GET        —          Asset-Konfiguration laden
-/ism/v1/assets/{type}/calculate     POST       —          Berechnung durchführen
-/ism/v1/leads/partial               POST       Nonce      Phase 1: Partial Lead (Formular erreicht)
-/ism/v1/leads/complete              POST       Nonce      Phase 2: Lead vervollständigen (abgesendet)
-/ism/v1/tracking                    POST       —          Tracking-Event speichern
+/resa/v1/assets/{type}/config        GET        —          Asset-Konfiguration laden
+/resa/v1/assets/{type}/calculate     POST       —          Berechnung durchführen
+/resa/v1/leads/partial               POST       Nonce      Phase 1: Partial Lead (Formular erreicht)
+/resa/v1/leads/complete              POST       Nonce      Phase 2: Lead vervollständigen (abgesendet)
+/resa/v1/tracking                    POST       —          Tracking-Event speichern
 
 ADMIN (WP-Admin, eingeloggt + Nonce):
-/ism/v1/leads                       GET        Admin      Alle Leads (paginiert, Filter)
-/ism/v1/leads/{id}                  GET        Admin      Lead-Detail
-/ism/v1/leads/{id}                  PATCH      Admin      Lead aktualisieren (Status, Notiz)
-/ism/v1/leads/export                GET        Admin      CSV-Export (inkl. GCLID für Offline-Conv.)
-/ism/v1/analytics/funnel            GET        Admin      Funnel-Daten (aggregiert)
-/ism/v1/analytics/partial           GET        Admin      Partial-Lead-Statistiken
+/resa/v1/leads                       GET        Admin      Alle Leads (paginiert, Filter)
+/resa/v1/leads/{id}                  GET        Admin      Lead-Detail
+/resa/v1/leads/{id}                  PATCH      Admin      Lead aktualisieren (Status, Notiz)
+/resa/v1/leads/export                GET        Admin      CSV-Export (inkl. GCLID für Offline-Conv.)
+/resa/v1/analytics/funnel            GET        Admin      Funnel-Daten (aggregiert)
+/resa/v1/analytics/partial           GET        Admin      Partial-Lead-Statistiken
 
-/ism/v1/locations                   GET        Admin      Alle Locations
-/ism/v1/locations                   POST       Admin      Location erstellen
-/ism/v1/locations/{id}              PUT        Admin      Location aktualisieren
-/ism/v1/locations/{id}              DELETE     Admin      Location löschen
+/resa/v1/locations                   GET        Admin      Alle Locations
+/resa/v1/locations                   POST       Admin      Location erstellen
+/resa/v1/locations/{id}              PUT        Admin      Location aktualisieren
+/resa/v1/locations/{id}              DELETE     Admin      Location löschen
 
-/ism/v1/assets                      GET        Admin      Alle Assets + Status
-/ism/v1/assets/{type}               PUT        Admin      Asset konfigurieren
-/ism/v1/assets/{type}/factors       GET/PUT    Admin      Faktoren (Pauschal/Individuell)
+/resa/v1/assets                      GET        Admin      Alle Assets + Status
+/resa/v1/assets/{type}               PUT        Admin      Asset konfigurieren
+/resa/v1/assets/{type}/factors       GET/PUT    Admin      Faktoren (Pauschal/Individuell)
 
-/ism/v1/settings                    GET/PUT    Admin      Plugin-Einstellungen
-/ism/v1/settings/email              GET/PUT    Admin      E-Mail-Konfiguration
-/ism/v1/settings/email/test         POST       Admin      Test-Mail senden
+/resa/v1/settings                    GET/PUT    Admin      Plugin-Einstellungen
+/resa/v1/settings/email              GET/PUT    Admin      E-Mail-Konfiguration
+/resa/v1/settings/email/test         POST       Admin      Test-Mail senden
 
-/ism/v1/emails/templates            GET        Admin      E-Mail-Vorlagen
-/ism/v1/emails/templates/{id}       PUT        Admin      Vorlage bearbeiten
-/ism/v1/emails/log                  GET        Admin      Versandlog
+/resa/v1/emails/templates            GET        Admin      E-Mail-Vorlagen
+/resa/v1/emails/templates/{id}       PUT        Admin      Vorlage bearbeiten
+/resa/v1/emails/log                  GET        Admin      Versandlog
 
-/ism/v1/pdf/templates               GET        Admin      PDF-Vorlagen
-/ism/v1/pdf/templates/{id}          PUT        Admin      PDF-Vorlage bearbeiten
-/ism/v1/pdf/preview                 POST       Admin      Vorschau-PDF generieren
+/resa/v1/pdf/templates               GET        Admin      PDF-Vorlagen
+/resa/v1/pdf/templates/{id}          PUT        Admin      PDF-Vorlage bearbeiten
+/resa/v1/pdf/preview                 POST       Admin      Vorschau-PDF generieren
 
-/ism/v1/agents                      GET/POST   Admin      Makler verwalten
-/ism/v1/agents/{id}                 PUT/DELETE Admin      Makler bearbeiten
+/resa/v1/agents                      GET/POST   Admin      Makler verwalten
+/resa/v1/agents/{id}                 PUT/DELETE Admin      Makler bearbeiten
 
-/ism/v1/integrations                GET        Admin      Integrations-Status
-/ism/v1/integrations/{type}/test    POST       Admin      Verbindung testen
-/ism/v1/webhooks                    POST       Admin      Webhook konfigurieren
+/resa/v1/integrations                GET        Admin      Integrations-Status
+/resa/v1/integrations/{type}/test    POST       Admin      Verbindung testen
+/resa/v1/webhooks                    POST       Admin      Webhook konfigurieren
 ```
 
 ---
@@ -577,8 +577,8 @@ ADMIN (WP-Admin, eingeloggt + Nonce):
 ```sql
 -- Leads
 -- Zwei-Phasen-Speicherung: Partial (Formular erreicht) → Completed (abgesendet)
--- Siehe ISM-Tracking-und-Conversion.md für Details
-CREATE TABLE {prefix}ism_leads (
+-- Siehe RESA-Tracking-und-Conversion.md für Details
+CREATE TABLE {prefix}resa_leads (
     id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     session_id      VARCHAR(36)     NOT NULL,         -- UUID, verknüpft Phase 1 → 2
     asset_type      VARCHAR(50)     NOT NULL,
@@ -622,7 +622,7 @@ CREATE TABLE {prefix}ism_leads (
 );
 
 -- Aggregierte Funnel-Metriken (täglich, pro Asset + Location)
-CREATE TABLE {prefix}ism_tracking_daily (
+CREATE TABLE {prefix}resa_tracking_daily (
     id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     date            DATE            NOT NULL,
     asset_type      VARCHAR(50)     NOT NULL,
@@ -640,7 +640,7 @@ CREATE TABLE {prefix}ism_tracking_daily (
 );
 
 -- Locations
-CREATE TABLE {prefix}ism_locations (
+CREATE TABLE {prefix}resa_locations (
     id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     slug            VARCHAR(100)    NOT NULL UNIQUE,
     name            VARCHAR(255)    NOT NULL,
@@ -658,7 +658,7 @@ CREATE TABLE {prefix}ism_locations (
 );
 
 -- E-Mail-Log
-CREATE TABLE {prefix}ism_email_log (
+CREATE TABLE {prefix}resa_email_log (
     id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     lead_id         BIGINT UNSIGNED NOT NULL,
     template_id     VARCHAR(100)    NOT NULL,
@@ -674,7 +674,7 @@ CREATE TABLE {prefix}ism_email_log (
 );
 
 -- Makler
-CREATE TABLE {prefix}ism_agents (
+CREATE TABLE {prefix}resa_agents (
     id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     wp_user_id      BIGINT UNSIGNED DEFAULT NULL,
     name            VARCHAR(255)    NOT NULL,
@@ -686,7 +686,7 @@ CREATE TABLE {prefix}ism_agents (
 );
 
 -- Makler ↔ Location Zuordnung
-CREATE TABLE {prefix}ism_agent_locations (
+CREATE TABLE {prefix}resa_agent_locations (
     agent_id        BIGINT UNSIGNED NOT NULL,
     location_id     BIGINT UNSIGNED NOT NULL,
     PRIMARY KEY (agent_id, location_id)
@@ -790,8 +790,8 @@ const variants = {
     "test": "vitest",
     "test:coverage": "vitest --coverage",
 
-    "i18n:pot": "wp i18n make-pot . languages/ism.pot --domain=ism --exclude=node_modules,vendor,dist,tests",
-    "i18n:update": "wp i18n update-po languages/ism.pot languages/",
+    "i18n:pot": "wp i18n make-pot . languages/resa.pot --domain=resa --exclude=node_modules,vendor,dist,tests",
+    "i18n:update": "wp i18n update-po languages/resa.pot languages/",
     "i18n:mo": "wp i18n make-mo languages/",
     "i18n:json": "wp i18n make-json languages/ --no-purge",
     "i18n:build": "npm run i18n:pot && npm run i18n:update && npm run i18n:mo && npm run i18n:json",
@@ -833,16 +833,16 @@ Gesamte Widget-Ladezeit    < 1.5s           Inkl. API-Aufruf für Config
 
 ```
 ┌───────────────────────────────────────────────────────────────┐
-│  ISM — Technischer Gesamtstack                                │
+│  RESA — Technischer Gesamtstack                                │
 │                                                               │
 │  Backend:    PHP 8.1+ / WordPress / Composer (PSR-4)          │
 │  Frontend:   React 18 / TypeScript 5 / Vite 6                 │
-│  UI:         Tailwind CSS (ism- Prefix) + shadcn/ui           │
+│  UI:         Tailwind CSS (resa- Prefix) + shadcn/ui           │
 │  Charts:     Nivo (D3-basiert, 30+ Typen, SSR-fähig)       │
 │  Animation:  Framer Motion (Steps + Chart-Eintritt)        │
 │  Formulare:  React Hook Form + Zod                            │
 │  State:      Zustand (lokal) + React Query (Server)           │
-│  API:        WordPress REST API (/wp-json/ism/v1/)            │
+│  API:        WordPress REST API (/wp-json/resa/v1/)            │
 │  PDF:        DOMPDF (Fallback) + Puppeteer (empfohlen)      │
 │  E-Mail:     PHPMailer (SMTP) + Brevo API                     │
 │  i18n:       WordPress gettext + wp.i18n (JS) + JSON          │

@@ -19,7 +19,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 COPY php.ini /usr/local/etc/php/conf.d/ism-custom.ini
 
 # Mailpit MU-Plugin (automatische SMTP-Konfiguration)
-COPY mu-plugins/ism-mailpit.php /usr/src/wordpress/wp-content/mu-plugins/ism-mailpit.php
+COPY mu-plugins/resa-mailpit.php /usr/src/wordpress/wp-content/mu-plugins/resa-mailpit.php
 
 # WP-Setup-Script
 COPY wp-setup.sh /usr/local/bin/wp-setup.sh

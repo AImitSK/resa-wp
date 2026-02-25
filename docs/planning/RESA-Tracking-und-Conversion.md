@@ -1,4 +1,4 @@
-# ISM — Tracking, Conversion & Zwei-Phasen-Lead-Speicherung
+# RESA — Tracking, Conversion & Zwei-Phasen-Lead-Speicherung
 
 ## Funnel-Tracking, Google Ads Integration, dataLayer Events & Partial Leads
 
@@ -54,22 +54,22 @@ Heute tracken die meisten Formular-Plugins nur binär: **abgesendet** oder **nic
 
 ### 2.1 Tracking-Events (der komplette Funnel)
 
-ISM pusht an **jeder relevanten Stelle** Events in den dataLayer:
+RESA pusht an **jeder relevanten Stelle** Events in den dataLayer:
 
 ```
 Event-Name                      Wann                        Typ
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-ism_asset_view                  Widget wird sichtbar        Micro
-ism_asset_start                 Erste Interaktion           Micro
-ism_step_complete               Jeder Frageschritt          Micro
-ism_step_back                   Zurück-Navigation           Micro
-ism_questions_complete          Alle Fragen beantwortet     Micro
-ism_form_view                   Formular wird angezeigt     Sekundär*
-ism_form_interact               Erstes Feld fokussiert      Micro
-ism_form_submit                 Formular abgesendet         Primär*
-ism_result_view                 Ergebnis angezeigt          Micro
-ism_pdf_sent                    PDF-E-Mail versendet        Micro
-ism_pdf_opened                  PDF-E-Mail geöffnet         Micro
+resa_asset_view                  Widget wird sichtbar        Micro
+resa_asset_start                 Erste Interaktion           Micro
+resa_step_complete               Jeder Frageschritt          Micro
+resa_step_back                   Zurück-Navigation           Micro
+resa_questions_complete          Alle Fragen beantwortet     Micro
+resa_form_view                   Formular wird angezeigt     Sekundär*
+resa_form_interact               Erstes Feld fokussiert      Micro
+resa_form_submit                 Formular abgesendet         Primär*
+resa_result_view                 Ergebnis angezeigt          Micro
+resa_pdf_sent                    PDF-E-Mail versendet        Micro
+resa_pdf_opened                  PDF-E-Mail geöffnet         Micro
 
 * Primär = Google Ads Conversion (Bidding-relevant)
 * Sekundär = Google Ads Observation (nicht Bidding-relevant)
@@ -80,15 +80,15 @@ ism_pdf_opened                  PDF-E-Mail geöffnet         Micro
 ```typescript
 // src/frontend/services/tracking/TrackingService.ts
 
-interface IsmTrackingEvent {
+interface ResaTrackingEvent {
   event: string;
-  ism_asset_type: string;          // 'rent_calculator'
-  ism_location: string;            // 'bad-oeynhausen'
-  ism_step?: number;               // 1, 2, 3...
-  ism_step_total?: number;         // 5
-  ism_funnel_stage?: string;       // 'questions' | 'form' | 'result'
-  ism_session_id?: string;         // Anonyme Session-ID (UUID, kein Cookie)
-  ism_conversion_value?: number;   // Dynamischer Lead-Wert
+  resa_asset_type: string;          // 'rent_calculator'
+  resa_location: string;            // 'bad-oeynhausen'
+  resa_step?: number;               // 1, 2, 3...
+  resa_step_total?: number;         // 5
+  resa_funnel_stage?: string;       // 'questions' | 'form' | 'result'
+  resa_session_id?: string;         // Anonyme Session-ID (UUID, kein Cookie)
+  resa_conversion_value?: number;   // Dynamischer Lead-Wert
   // NIEMALS PII (keine E-Mail, Name, Telefon!)
 }
 
@@ -99,7 +99,7 @@ class TrackingService {
     this.sessionId = crypto.randomUUID(); // Pro Widget-Instanz
   }
 
-  private push(data: IsmTrackingEvent): void {
+  private push(data: ResaTrackingEvent): void {
     // Nur pushen wenn dataLayer existiert (GTM installiert)
     if (typeof window !== 'undefined' && Array.isArray(window.dataLayer)) {
       window.dataLayer.push(data);
@@ -113,84 +113,84 @@ class TrackingService {
 
   assetView(assetType: string, location: string): void {
     this.push({
-      event: 'ism_asset_view',
-      ism_asset_type: assetType,
-      ism_location: location,
-      ism_funnel_stage: 'impression',
-      ism_session_id: this.sessionId,
+      event: 'resa_asset_view',
+      resa_asset_type: assetType,
+      resa_location: location,
+      resa_funnel_stage: 'impression',
+      resa_session_id: this.sessionId,
     });
   }
 
   assetStart(assetType: string, location: string): void {
     this.push({
-      event: 'ism_asset_start',
-      ism_asset_type: assetType,
-      ism_location: location,
-      ism_funnel_stage: 'questions',
-      ism_session_id: this.sessionId,
+      event: 'resa_asset_start',
+      resa_asset_type: assetType,
+      resa_location: location,
+      resa_funnel_stage: 'questions',
+      resa_session_id: this.sessionId,
     });
   }
 
   stepComplete(assetType: string, location: string, step: number, totalSteps: number): void {
     this.push({
-      event: 'ism_step_complete',
-      ism_asset_type: assetType,
-      ism_location: location,
-      ism_step: step,
-      ism_step_total: totalSteps,
-      ism_funnel_stage: 'questions',
-      ism_session_id: this.sessionId,
+      event: 'resa_step_complete',
+      resa_asset_type: assetType,
+      resa_location: location,
+      resa_step: step,
+      resa_step_total: totalSteps,
+      resa_funnel_stage: 'questions',
+      resa_session_id: this.sessionId,
     });
   }
 
   // ★ FORMULAR ERREICHT — Sekundäre Conversion
   formView(assetType: string, location: string): void {
     this.push({
-      event: 'ism_form_view',
-      ism_asset_type: assetType,
-      ism_location: location,
-      ism_funnel_stage: 'form',
-      ism_session_id: this.sessionId,
+      event: 'resa_form_view',
+      resa_asset_type: assetType,
+      resa_location: location,
+      resa_funnel_stage: 'form',
+      resa_session_id: this.sessionId,
     });
   }
 
   formInteract(assetType: string, location: string): void {
     this.push({
-      event: 'ism_form_interact',
-      ism_asset_type: assetType,
-      ism_location: location,
-      ism_funnel_stage: 'form',
-      ism_session_id: this.sessionId,
+      event: 'resa_form_interact',
+      resa_asset_type: assetType,
+      resa_location: location,
+      resa_funnel_stage: 'form',
+      resa_session_id: this.sessionId,
     });
   }
 
   // ★★ FORMULAR ABGESENDET — Primäre Conversion
   formSubmit(assetType: string, location: string, value?: number): void {
     this.push({
-      event: 'ism_form_submit',
-      ism_asset_type: assetType,
-      ism_location: location,
-      ism_funnel_stage: 'form',
-      ism_session_id: this.sessionId,
-      ism_conversion_value: value,
+      event: 'resa_form_submit',
+      resa_asset_type: assetType,
+      resa_location: location,
+      resa_funnel_stage: 'form',
+      resa_session_id: this.sessionId,
+      resa_conversion_value: value,
     });
   }
 
   resultView(assetType: string, location: string): void {
     this.push({
-      event: 'ism_result_view',
-      ism_asset_type: assetType,
-      ism_location: location,
-      ism_funnel_stage: 'result',
-      ism_session_id: this.sessionId,
+      event: 'resa_result_view',
+      resa_asset_type: assetType,
+      resa_location: location,
+      resa_funnel_stage: 'result',
+      resa_session_id: this.sessionId,
     });
   }
 
   // ── Internes WordPress-Tracking ────────────────────
 
-  private async sendToWordPress(data: IsmTrackingEvent): void {
+  private async sendToWordPress(data: ResaTrackingEvent): void {
     try {
-      await fetch(ismConfig.restUrl + '/ism/v1/tracking', {
+      await fetch(resaConfig.restUrl + '/resa/v1/tracking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -307,7 +307,7 @@ Was Partial Leads ermöglichen:
    → A/B-Tests auf Daten-Basis statt Bauchgefühl
 
 5. GOOGLE ADS OPTIMIERUNG
-   ism_form_view als Sekundäre Conversion
+   resa_form_view als Sekundäre Conversion
    → Google sieht mehr Signale → Besseres Bidding
    → Auch bei wenigen echten Leads (< 30/Monat)
 ```
@@ -315,17 +315,17 @@ Was Partial Leads ermöglichen:
 ### 3.3 Datenbankmodell
 
 ```sql
--- Aktualisierte ism_leads Tabelle
--- (erweitert gegenüber ISM-Technischer-Stack.md)
+-- Aktualisierte resa_leads Tabelle
+-- (erweitert gegenüber RESA-Technischer-Stack.md)
 
-CREATE TABLE {prefix}ism_leads (
+CREATE TABLE {prefix}resa_leads (
     id               BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
     -- ── Identifikation ──────────────────────
     session_id       VARCHAR(36) NOT NULL,           -- UUID, verknüpft Phase 1 → 2
     asset_type       VARCHAR(50) NOT NULL,           -- 'rent_calculator'
-    location_id      BIGINT UNSIGNED,                -- FK → ism_locations
-    agent_id         BIGINT UNSIGNED,                -- FK → ism_agents (bei Zuweisung)
+    location_id      BIGINT UNSIGNED,                -- FK → resa_locations
+    agent_id         BIGINT UNSIGNED,                -- FK → resa_agents (bei Zuweisung)
 
     -- ── Status ──────────────────────────────
     status           VARCHAR(20) NOT NULL DEFAULT 'partial',
@@ -418,7 +418,7 @@ class LeadService {
 
         // Prüfen ob schon ein Partial Lead mit dieser Session existiert
         $existing = $wpdb->get_var( $wpdb->prepare(
-            "SELECT id FROM {$wpdb->prefix}ism_leads
+            "SELECT id FROM {$wpdb->prefix}resa_leads
              WHERE session_id = %s AND status = 'partial'",
             $session_id
         ) );
@@ -426,7 +426,7 @@ class LeadService {
         if ( $existing ) {
             // Update statt Insert (Nutzer hat evtl. Zurück navigiert)
             $wpdb->update(
-                "{$wpdb->prefix}ism_leads",
+                "{$wpdb->prefix}resa_leads",
                 [
                     'inputs'     => wp_json_encode( $data['inputs'] ),
                     'result'     => wp_json_encode( $data['result'] ?? null ),
@@ -441,7 +441,7 @@ class LeadService {
 
         // Neuen Partial Lead anlegen
         $wpdb->insert(
-            "{$wpdb->prefix}ism_leads",
+            "{$wpdb->prefix}resa_leads",
             [
                 'session_id'  => $session_id,
                 'asset_type'  => sanitize_text_field( $data['asset_type'] ),
@@ -473,7 +473,7 @@ class LeadService {
 
         // Partial Lead finden
         $lead_id = $wpdb->get_var( $wpdb->prepare(
-            "SELECT id FROM {$wpdb->prefix}ism_leads
+            "SELECT id FROM {$wpdb->prefix}resa_leads
              WHERE session_id = %s AND status = 'partial'
              ORDER BY created_at DESC LIMIT 1",
             $session_id
@@ -487,7 +487,7 @@ class LeadService {
 
         // Phase 2: Vervollständigen
         $wpdb->update(
-            "{$wpdb->prefix}ism_leads",
+            "{$wpdb->prefix}resa_leads",
             [
                 'status'        => 'new',
                 'first_name'    => sanitize_text_field( $contactData['first_name'] ),
@@ -508,7 +508,7 @@ class LeadService {
         );
 
         // Hooks für CRM-Sync, E-Mail, PDF etc.
-        do_action( 'ism_lead_completed', $lead_id, $contactData );
+        do_action( 'resa_lead_completed', $lead_id, $contactData );
 
         return (int) $lead_id;
     }
@@ -539,16 +539,16 @@ class LeadService {
 ```
 Methode   Endpoint                      Auth          Beschreibung
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-POST      /ism/v1/leads/partial         Public        Phase 1: Partial Lead anlegen
-POST      /ism/v1/leads/complete        Public        Phase 2: Lead vervollständigen
-POST      /ism/v1/tracking              Public        Tracking-Event speichern
+POST      /resa/v1/leads/partial         Public        Phase 1: Partial Lead anlegen
+POST      /resa/v1/leads/complete        Public        Phase 2: Lead vervollständigen
+POST      /resa/v1/tracking              Public        Tracking-Event speichern
 
-GET       /ism/v1/leads                 Admin         Leads auflisten (mit Filter)
-GET       /ism/v1/leads/{id}            Admin         Lead-Detail
-PATCH     /ism/v1/leads/{id}            Admin         Status ändern
-DELETE    /ism/v1/leads/{id}            Admin         Lead löschen (DSGVO)
-GET       /ism/v1/analytics/funnel      Admin         Funnel-Daten
-GET       /ism/v1/analytics/partial     Admin         Partial-Lead-Statistiken
+GET       /resa/v1/leads                 Admin         Leads auflisten (mit Filter)
+GET       /resa/v1/leads/{id}            Admin         Lead-Detail
+PATCH     /resa/v1/leads/{id}            Admin         Status ändern
+DELETE    /resa/v1/leads/{id}            Admin         Lead löschen (DSGVO)
+GET       /resa/v1/analytics/funnel      Admin         Funnel-Daten
+GET       /resa/v1/analytics/partial     Admin         Partial-Lead-Statistiken
 ```
 
 ### API-Ablauf im Detail
@@ -557,35 +557,35 @@ GET       /ism/v1/analytics/partial     Admin         Partial-Lead-Statistiken
 Browser                          WordPress REST API              Datenbank
   │                                    │                            │
   │  Besucher startet Rechner          │                            │
-  │  ism_asset_start ──────────────────┼── POST /tracking ─────────▶│ ism_tracking
+  │  resa_asset_start ──────────────────┼── POST /tracking ─────────▶│ resa_tracking
   │                                    │                            │
   │  Frage 1 beantwortet              │                            │
-  │  ism_step_complete ────────────────┼── POST /tracking ─────────▶│ ism_tracking
+  │  resa_step_complete ────────────────┼── POST /tracking ─────────▶│ resa_tracking
   │                                    │                            │
   │  Frage 2 beantwortet              │                            │
-  │  ism_step_complete ────────────────┼── POST /tracking ─────────▶│ ism_tracking
+  │  resa_step_complete ────────────────┼── POST /tracking ─────────▶│ resa_tracking
   │                                    │                            │
   │  ... alle Fragen ...               │                            │
   │                                    │                            │
   │  ★ FORMULAR ERREICHT               │                            │
-  │  ism_form_view ────────────────────┼── POST /leads/partial ────▶│ ism_leads
-  │  + dataLayer.push(ism_form_view)   │  {session_id, inputs,      │ status='partial'
+  │  resa_form_view ────────────────────┼── POST /leads/partial ────▶│ resa_leads
+  │  + dataLayer.push(resa_form_view)   │  {session_id, inputs,      │ status='partial'
   │                                    │   asset_type, location,     │
   │                                    │   gclid, utm_*}             │
   │                                    │                            │
   │  Formular ausgefüllt               │                            │
-  │  ism_form_interact                 │                            │
+  │  resa_form_interact                 │                            │
   │                                    │                            │
   │  ★★ FORMULAR ABGESENDET            │                            │
-  │  ism_form_submit ──────────────────┼── POST /leads/complete ───▶│ ism_leads
-  │  + dataLayer.push(ism_form_submit) │  {session_id, first_name,  │ status='new'
+  │  resa_form_submit ──────────────────┼── POST /leads/complete ───▶│ resa_leads
+  │  + dataLayer.push(resa_form_submit) │  {session_id, first_name,  │ status='new'
   │                                    │   email, consent...}        │ completed_at=NOW
   │                                    │                            │
   │  ◀────────────── Ergebnis-Daten ───┤                            │
-  │  ism_result_view                   │                            │
+  │  resa_result_view                   │                            │
   │                                    │                            │
   │                                    │── PDF generieren ─────────▶│ Queue
-  │                                    │── E-Mail senden ──────────▶│ ism_email_log
+  │                                    │── E-Mail senden ──────────▶│ resa_email_log
   │                                    │── CRM-Sync ───────────────▶│ Webhook
 ```
 
@@ -598,20 +598,20 @@ Browser                          WordPress REST API              Datenbank
 Im Google Ads Account des Maklers werden **zwei Conversion-Actions** angelegt:
 
 ```
-Conversion #1: "ISM Formular erreicht" (Sekundär)
+Conversion #1: "RESA Formular erreicht" (Sekundär)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Typ:            Sekundäre Conversion (Beobachtung)
-Event:          ism_form_view
+Event:          resa_form_view
 Zählmethode:    Einmal pro Klick
 Wert:           Keiner (oder z.B. 5 €)
 Bidding:        NEIN — beeinflusst Smart Bidding nicht
 Zweck:          Google sieht mehr Signale im Funnel
                 Hilft bei Zielgruppen-Optimierung
 
-Conversion #2: "ISM Lead generiert" (Primär)
+Conversion #2: "RESA Lead generiert" (Primär)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Typ:            Primäre Conversion (Bidding)
-Event:          ism_form_submit
+Event:          resa_form_submit
 Zählmethode:    Einmal pro Klick
 Wert:           Dynamisch (abhängig von Asset-Typ)
 Bidding:        JA — Smart Bidding optimiert darauf
@@ -622,29 +622,29 @@ Zweck:          Die echte Conversion
 
 ### 5.2 GTM Setup — Dokumentation für Makler
 
-ISM liefert eine **fertige GTM-Setup-Anleitung** mit:
+RESA liefert eine **fertige GTM-Setup-Anleitung** mit:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  ISM → Einstellungen → Tracking                                │
+│  RESA → Einstellungen → Tracking                                │
 │                                                                 │
 │  ─── Google Tag Manager ────────────────────────────────────    │
 │                                                                 │
 │  GTM Container ID:  [GTM-XXXXXXX                          ]    │
-│  (Optional: ISM pusht Events in den dataLayer,                  │
+│  (Optional: RESA pusht Events in den dataLayer,                  │
 │   GTM muss separat auf der Website installiert sein)            │
 │                                                                 │
 │  ─── Tracking Events ───────────────────────────────────────    │
 │                                                                 │
 │  Verfügbare dataLayer Events:                                   │
 │  ┌─────────────────┬────────────────────────────────────────┐   │
-│  │ ism_asset_view   │ Widget sichtbar                       │   │
-│  │ ism_asset_start  │ Erste Interaktion                     │   │
-│  │ ism_step_complete│ Frageschritt abgeschlossen             │   │
-│  │ ism_form_view    │ ★ Formular angezeigt (Sekundär)       │   │
-│  │ ism_form_interact│ Erstes Feld fokussiert                 │   │
-│  │ ism_form_submit  │ ★★ Formular abgesendet (Primär)       │   │
-│  │ ism_result_view  │ Ergebnis angezeigt                    │   │
+│  │ resa_asset_view   │ Widget sichtbar                       │   │
+│  │ resa_asset_start  │ Erste Interaktion                     │   │
+│  │ resa_step_complete│ Frageschritt abgeschlossen             │   │
+│  │ resa_form_view    │ ★ Formular angezeigt (Sekundär)       │   │
+│  │ resa_form_interact│ Erstes Feld fokussiert                 │   │
+│  │ resa_form_submit  │ ★★ Formular abgesendet (Primär)       │   │
+│  │ resa_result_view  │ Ergebnis angezeigt                    │   │
 │  └─────────────────┴────────────────────────────────────────┘   │
 │                                                                 │
 │  [📋 GTM-Setup-Anleitung kopieren]                              │
@@ -653,7 +653,7 @@ ISM liefert eine **fertige GTM-Setup-Anleitung** mit:
 │  ─── Enhanced Conversions ──────────────────────────────────    │
 │                                                                 │
 │  Enhanced Conversions:  [✓] Aktiviert                           │
-│  (Gehashte E-Mail wird bei ism_form_submit                      │
+│  (Gehashte E-Mail wird bei resa_form_submit                      │
 │   an den dataLayer übergeben)                                   │
 │                                                                 │
 │  ─── GCLID Tracking ───────────────────────────────────────     │
@@ -675,7 +675,7 @@ ISM liefert eine **fertige GTM-Setup-Anleitung** mit:
 
 ### 5.3 Enhanced Conversions (gehashte First-Party-Daten)
 
-Bei `ism_form_submit` wird die gehashte E-Mail mitgeliefert — das verbessert die Attribution um 10-30%:
+Bei `resa_form_submit` wird die gehashte E-Mail mitgeliefert — das verbessert die Attribution um 10-30%:
 
 ```typescript
 // Nur bei form_submit — NICHT bei form_view!
@@ -683,17 +683,17 @@ formSubmit(assetType: string, location: string, email: string, value?: number): 
 
   // 1. Standard-Event (ohne PII)
   this.push({
-    event: 'ism_form_submit',
-    ism_asset_type: assetType,
-    ism_location: location,
-    ism_conversion_value: value,
-    ism_session_id: this.sessionId,
+    event: 'resa_form_submit',
+    resa_asset_type: assetType,
+    resa_location: location,
+    resa_conversion_value: value,
+    resa_session_id: this.sessionId,
   });
 
   // 2. Enhanced Conversion Data (gehashte E-Mail)
   if (this.enhancedConversionsEnabled) {
     window.dataLayer.push({
-      event: 'ism_form_submit_enhanced',
+      event: 'resa_form_submit_enhanced',
       enhanced_conversion_data: {
         email: email,  // GTM hasht automatisch (SHA-256)
       },
@@ -704,7 +704,7 @@ formSubmit(assetType: string, location: string, email: string, value?: number): 
 
 ### 5.4 GCLID Erfassung
 
-Die Google Click ID kommt als URL-Parameter wenn jemand über eine Google-Anzeige kommt. ISM fängt sie ab und speichert sie mit dem Lead:
+Die Google Click ID kommt als URL-Parameter wenn jemand über eine Google-Anzeige kommt. RESA fängt sie ab und speichert sie mit dem Lead:
 
 ```typescript
 // src/frontend/services/tracking/ClickIdCapture.ts
@@ -729,7 +729,7 @@ export function captureClickIds(): { gclid?: string; fbclid?: string } {
   // In Session speichern (überlebt Seitennavigation)
   if (Object.keys(ids).length > 0) {
     try {
-      sessionStorage.setItem('ism_click_ids', JSON.stringify(ids));
+      sessionStorage.setItem('resa_click_ids', JSON.stringify(ids));
     } catch {
       // sessionStorage nicht verfügbar
     }
@@ -737,7 +737,7 @@ export function captureClickIds(): { gclid?: string; fbclid?: string } {
 
   // Vorherige IDs aus Session holen (falls nicht in aktueller URL)
   try {
-    const stored = sessionStorage.getItem('ism_click_ids');
+    const stored = sessionStorage.getItem('resa_click_ids');
     if (stored) Object.assign(ids, JSON.parse(stored));
   } catch {}
 
@@ -747,16 +747,16 @@ export function captureClickIds(): { gclid?: string; fbclid?: string } {
 
 ### 5.5 Offline-Conversion-Upload
 
-Für Makler die Google Ads nutzen: Wenn ein Lead zum Auftrag wird (`status = 'converted'`), kann ISM das über den GCLID zurück an Google melden:
+Für Makler die Google Ads nutzen: Wenn ein Lead zum Auftrag wird (`status = 'converted'`), kann RESA das über den GCLID zurück an Google melden:
 
 ```
 Lead-Journey mit GCLID:
 ━━━━━━━━━━━━━━━━━━━━━━━
 1. Nutzer klickt Google-Anzeige → URL enthält ?gclid=EAIaIQ...
-2. Nutzer durchläuft Rechner → ISM speichert GCLID mit Lead
+2. Nutzer durchläuft Rechner → RESA speichert GCLID mit Lead
 3. Makler kontaktiert Lead → Status: 'contacted'
 4. Makler gewinnt Auftrag → Status: 'converted' (Wert: z.B. 3.500 €)
-5. ISM exportiert: { gclid, conversion_time, value: 3500, currency: EUR }
+5. RESA exportiert: { gclid, conversion_time, value: 3500, currency: EUR }
 6. Makler lädt CSV in Google Ads hoch (oder automatisch über API)
 
 → Google Ads weiß jetzt: "Dieser Klick hat 3.500 € gebracht"
@@ -770,26 +770,26 @@ Lead-Journey mit GCLID:
 Neben den Leads speichern wir **aggregierte Funnel-Daten** für die Dashboard-Statistiken:
 
 ```sql
-CREATE TABLE {prefix}ism_tracking_daily (
+CREATE TABLE {prefix}resa_tracking_daily (
     id             BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     date           DATE NOT NULL,
     asset_type     VARCHAR(50) NOT NULL,
     location_id    BIGINT UNSIGNED,
 
     -- ── Funnel-Metriken ─────────────────────
-    views          INT UNSIGNED DEFAULT 0,  -- ism_asset_view
-    starts         INT UNSIGNED DEFAULT 0,  -- ism_asset_start
-    step_1         INT UNSIGNED DEFAULT 0,  -- ism_step_complete (step=1)
+    views          INT UNSIGNED DEFAULT 0,  -- resa_asset_view
+    starts         INT UNSIGNED DEFAULT 0,  -- resa_asset_start
+    step_1         INT UNSIGNED DEFAULT 0,  -- resa_step_complete (step=1)
     step_2         INT UNSIGNED DEFAULT 0,
     step_3         INT UNSIGNED DEFAULT 0,
     step_4         INT UNSIGNED DEFAULT 0,
     step_5         INT UNSIGNED DEFAULT 0,
     step_6         INT UNSIGNED DEFAULT 0,
     step_7         INT UNSIGNED DEFAULT 0,
-    form_views     INT UNSIGNED DEFAULT 0,  -- ism_form_view (= Partial Leads)
-    form_interacts INT UNSIGNED DEFAULT 0,  -- ism_form_interact
-    form_submits   INT UNSIGNED DEFAULT 0,  -- ism_form_submit (= Completed Leads)
-    result_views   INT UNSIGNED DEFAULT 0,  -- ism_result_view
+    form_views     INT UNSIGNED DEFAULT 0,  -- resa_form_view (= Partial Leads)
+    form_interacts INT UNSIGNED DEFAULT 0,  -- resa_form_interact
+    form_submits   INT UNSIGNED DEFAULT 0,  -- resa_form_submit (= Completed Leads)
+    result_views   INT UNSIGNED DEFAULT 0,  -- resa_result_view
 
     -- ── Berechnete Raten ────────────────────
     -- (werden per WP-Cron täglich aktualisiert)
@@ -893,7 +893,7 @@ Der Website-Betreiber (Makler) hat ein berechtigtes Interesse an Funnel-Optimier
 class PartialLeadCleanup {
 
     public function register(): void {
-        add_action( 'ism_daily_cleanup', [ $this, 'deleteExpiredPartials' ] );
+        add_action( 'resa_daily_cleanup', [ $this, 'deleteExpiredPartials' ] );
     }
 
     /**
@@ -904,14 +904,14 @@ class PartialLeadCleanup {
         global $wpdb;
 
         $deleted = $wpdb->query(
-            "DELETE FROM {$wpdb->prefix}ism_leads
+            "DELETE FROM {$wpdb->prefix}resa_leads
              WHERE status = 'partial'
              AND expires_at IS NOT NULL
              AND expires_at < NOW()"
         );
 
         if ( $deleted > 0 ) {
-            do_action( 'ism_partial_leads_cleaned', $deleted );
+            do_action( 'resa_partial_leads_cleaned', $deleted );
         }
     }
 }
@@ -921,7 +921,7 @@ class PartialLeadCleanup {
 
 ## 9. GTM Container-Export
 
-ISM kann einen **fertig konfigurierten GTM-Container als JSON** exportieren, den der Makler einfach importieren kann:
+RESA kann einen **fertig konfigurierten GTM-Container als JSON** exportieren, den der Makler einfach importieren kann:
 
 ```json
 {
@@ -929,71 +929,71 @@ ISM kann einen **fertig konfigurierten GTM-Container als JSON** exportieren, den
   "containerVersion": {
     "tag": [
       {
-        "name": "GA4 Event — ISM Formular erreicht",
+        "name": "GA4 Event — RESA Formular erreicht",
         "type": "gaawe",
         "parameter": [
-          { "key": "eventName", "value": "ism_form_view" },
+          { "key": "eventName", "value": "resa_form_view" },
           { "key": "measurementIdOverride", "value": "{{GA4 Measurement ID}}" }
         ],
-        "firingTriggerId": ["trigger_ism_form_view"]
+        "firingTriggerId": ["trigger_resa_form_view"]
       },
       {
-        "name": "GA4 Event — ISM Lead generiert",
+        "name": "GA4 Event — RESA Lead generiert",
         "type": "gaawe",
         "parameter": [
           { "key": "eventName", "value": "generate_lead" },
           { "key": "eventParameters", "value": [
-            { "key": "ism_asset_type", "value": "{{DLV - ism_asset_type}}" },
-            { "key": "ism_location", "value": "{{DLV - ism_location}}" },
-            { "key": "value", "value": "{{DLV - ism_conversion_value}}" },
+            { "key": "resa_asset_type", "value": "{{DLV - resa_asset_type}}" },
+            { "key": "resa_location", "value": "{{DLV - resa_location}}" },
+            { "key": "value", "value": "{{DLV - resa_conversion_value}}" },
             { "key": "currency", "value": "EUR" }
           ]}
         ],
-        "firingTriggerId": ["trigger_ism_form_submit"]
+        "firingTriggerId": ["trigger_resa_form_submit"]
       },
       {
-        "name": "Google Ads Conversion — ISM Lead",
+        "name": "Google Ads Conversion — RESA Lead",
         "type": "awct",
         "parameter": [
           { "key": "conversionId", "value": "{{Google Ads Conversion ID}}" },
           { "key": "conversionLabel", "value": "{{Google Ads Conversion Label}}" },
-          { "key": "conversionValue", "value": "{{DLV - ism_conversion_value}}" },
+          { "key": "conversionValue", "value": "{{DLV - resa_conversion_value}}" },
           { "key": "currencyCode", "value": "EUR" }
         ],
-        "firingTriggerId": ["trigger_ism_form_submit"]
+        "firingTriggerId": ["trigger_resa_form_submit"]
       }
     ],
     "trigger": [
       {
-        "name": "ISM Formular erreicht",
+        "name": "RESA Formular erreicht",
         "type": "customEvent",
         "customEventFilter": [
-          { "parameter": [{ "key": "arg0", "value": "ism_form_view" }] }
+          { "parameter": [{ "key": "arg0", "value": "resa_form_view" }] }
         ]
       },
       {
-        "name": "ISM Lead generiert",
+        "name": "RESA Lead generiert",
         "type": "customEvent",
         "customEventFilter": [
-          { "parameter": [{ "key": "arg0", "value": "ism_form_submit" }] }
+          { "parameter": [{ "key": "arg0", "value": "resa_form_submit" }] }
         ]
       }
     ],
     "variable": [
       {
-        "name": "DLV - ism_asset_type",
+        "name": "DLV - resa_asset_type",
         "type": "v",
-        "parameter": [{ "key": "name", "value": "ism_asset_type" }]
+        "parameter": [{ "key": "name", "value": "resa_asset_type" }]
       },
       {
-        "name": "DLV - ism_location",
+        "name": "DLV - resa_location",
         "type": "v",
-        "parameter": [{ "key": "name", "value": "ism_location" }]
+        "parameter": [{ "key": "name", "value": "resa_location" }]
       },
       {
-        "name": "DLV - ism_conversion_value",
+        "name": "DLV - resa_conversion_value",
         "type": "v",
-        "parameter": [{ "key": "name", "value": "ism_conversion_value" }]
+        "parameter": [{ "key": "name", "value": "resa_conversion_value" }]
       }
     ]
   }
@@ -1028,7 +1028,7 @@ Offline-Conversion-Export (CSV)            ❌                ✅
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  ISM Tracking & Conversion auf einen Blick                   │
+│  RESA Tracking & Conversion auf einen Blick                   │
 │                                                              │
 │  ZWEI-PHASEN-SPEICHERUNG:                                    │
 │    Phase 1 (Partial): Formular erreicht → Eingaben speichern │
@@ -1041,8 +1041,8 @@ Offline-Conversion-Export (CSV)            ❌                ✅
 │    form_submit → result_view → pdf_sent → pdf_opened         │
 │                                                              │
 │  GOOGLE ADS:                                                 │
-│    Sekundär: ism_form_view (Beobachtung, kein Bidding)       │
-│    Primär: ism_form_submit (Bidding-relevant)                │
+│    Sekundär: resa_form_view (Beobachtung, kein Bidding)       │
+│    Primär: resa_form_submit (Bidding-relevant)                │
 │    Enhanced Conversions: Gehashte E-Mail bei Submit           │
 │    GCLID: Automatisch erfasst + mit Lead gespeichert         │
 │    Offline: CSV-Export für Conversion-Upload                  │

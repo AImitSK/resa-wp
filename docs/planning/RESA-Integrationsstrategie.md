@@ -1,8 +1,8 @@
-# ISM — Integrationsstrategie
+# RESA— Integrationsstrategie
 
 ## Die größte Hürde: Ohne Integration kein Produkt
 
-Ein Lead-Magnet-Plugin, das Leads in einer eigenen Tabelle speichert und sonst nichts, wird nicht gekauft. Makler arbeiten in ihrem CRM, nicht in einem weiteren WordPress-Backend. ISM muss sich **nahtlos in den bestehenden Workflow einfügen** — sonst ist es ein Spielzeug, kein Werkzeug.
+Ein Lead-Magnet-Plugin, das Leads in einer eigenen Tabelle speichert und sonst nichts, wird nicht gekauft. Makler arbeiten in ihrem CRM, nicht in einem weiteren WordPress-Backend. RESA muss sich **nahtlos in den bestehenden Workflow einfügen** — sonst ist es ein Spielzeug, kein Werkzeug.
 
 ---
 
@@ -25,10 +25,10 @@ immoprofessional   —         unabhängig       begrenzt      ★   Kann
 
 ### Was muss passieren?
 
-Bei jedem neuen Lead schickt ISM die Daten an das CRM des Maklers:
+Bei jedem neuen Lead schickt RESA die Daten an das CRM des Maklers:
 
 ```
-ISM Lead erfasst
+RESA Lead erfasst
       │
       ▼
 ┌─────────────────────────────────────────────┐
@@ -36,7 +36,7 @@ ISM Lead erfasst
 │                                             │
 │  Kontakt:                                   │
 │  - Name, E-Mail, Telefon                    │
-│  - Quelle: "ISM Mietpreis-Kalkulator"       │
+│  - Quelle: "RESA Mietpreis-Kalkulator"       │
 │  - Stadt/Region                             │
 │  - Datum + Einwilligung                     │
 │                                             │
@@ -87,7 +87,7 @@ ISM Lead erfasst
 - Microsoft365-Integration (Outlook, Kalender)
 - Vollzugriffs-Rechte für API-User erforderlich
 
-### Integrations-Architektur im ISM-Admin
+### Integrations-Architektur im RESA-Admin
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -103,7 +103,7 @@ ISM Lead erfasst
 │  │  API-URL:      [api.onoffice.de/api/stable/.. ]             ││
 │  │                                                             ││
 │  │  Mapping:                                                   ││
-│  │  ISM-Feld          → onOffice-Feld                          ││
+│  │  RESA-Feld          → onOffice-Feld                          ││
 │  │  ─────────────────────────────────                          ││
 │  │  Vorname            → Vorname                               ││
 │  │  Nachname           → Nachname                              ││
@@ -111,12 +111,12 @@ ISM Lead erfasst
 │  │  Telefon            → Telefon_privat                        ││
 │  │  Asset-Typ          → Notiz / Bemerkung                     ││
 │  │  Ergebnis           → Notiz / Bemerkung                     ││
-│  │  Stadt              → Tag: "ISM-Bad-Oeynhausen"             ││
+│  │  Stadt              → Tag: "RESA-Bad-Oeynhausen"             ││
 │  │                                                             ││
 │  │  Automatisch:                                               ││
 │  │  ☑ Neue Leads sofort übertragen                             ││
 │  │  ☑ Aktivitäts-Log erstellen                                 ││
-│  │  ☑ Tag "ISM-Lead" setzen                                    ││
+│  │  ☑ Tag "RESA-Lead" setzen                                    ││
 │  │  ☐ Aufgabe für Makler erstellen                             ││
 │  │                                                             ││
 │  │  [Verbindung testen]  [Testlead senden]                     ││
@@ -136,7 +136,7 @@ ISM Lead erfasst
 
 ## 2. Newsletter-Systeme
 
-Leads die über ISM reinkommen, sollen auch ins Newsletter-Tool fließen — mit Tags, damit der Makler segmentierte Kampagnen fahren kann.
+Leads die über RESA reinkommen, sollen auch ins Newsletter-Tool fließen — mit Tags, damit der Makler segmentierte Kampagnen fahren kann.
 
 ### Marktlandschaft DACH
 
@@ -155,7 +155,7 @@ HubSpot        US          ★★        REST           ★   Kann
 ### Was muss passieren?
 
 ```
-ISM Lead erfasst (nach DOI-Bestätigung)
+RESA Lead erfasst (nach DOI-Bestätigung)
       │
       ▼
 Newsletter-System
@@ -163,7 +163,7 @@ Newsletter-System
       ├── Kontakt anlegen / aktualisieren
       ├── Liste zuweisen (z.B. "Vermieter Bad Oeynhausen")
       ├── Tags setzen:
-      │   - "ISM-Lead"
+      │   - "RESA-Lead"
       │   - "Vermieter" oder "Käufer" oder "Investor"
       │   - "Mietpreisanalyse" (welches Asset)
       │   - "Bad-Oeynhausen" (welche Stadt)
@@ -171,7 +171,7 @@ Newsletter-System
       └── Automation triggern (z.B. "Vermieter-Nurturing-Sequenz")
 ```
 
-### ISM-Admin: Newsletter-Integration
+### RESA-Admin: Newsletter-Integration
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -180,13 +180,13 @@ Newsletter-System
 │  Aktive Verbindung: ● CleverReach                               │
 │                                                                 │
 │  API-Key:     [xxxxxxxxxxxxxxxxxxxxxxxxx          ]             │
-│  Standard-Liste: [▼ Alle ISM-Leads               ]             │
+│  Standard-Liste: [▼ Alle RESA-Leads               ]             │
 │                                                                 │
 │  Tag-Regeln (automatisch bei jedem Lead):                       │
 │  ☑ Asset-Typ als Tag (z.B. "mietpreis-kalkulator")             │
 │  ☑ Stadt als Tag (z.B. "bad-oeynhausen")                       │
 │  ☑ Zielgruppe als Tag (z.B. "vermieter")                       │
-│  ☑ Globaler Tag: "ism-lead"                                    │
+│  ☑ Globaler Tag: "resa-lead"                                    │
 │                                                                 │
 │  Zeitpunkt: ● Nach DOI-Bestätigung  ○ Sofort                   │
 │                                                                 │
@@ -215,7 +215,7 @@ Diese werden über **Zapier / Make** abgedeckt (siehe Universalschicht unten).
 
 ## 4. E-Mail / Domain / Transaktions-Mails
 
-ISM verschickt E-Mails im Namen des Maklers — das muss zuverlässig funktionieren.
+RESA verschickt E-Mails im Namen des Maklers — das muss zuverlässig funktionieren.
 
 ### Drei Optionen (Priorität von oben nach unten)
 
@@ -228,25 +228,25 @@ Amazon SES        — Günstigst, aber US
 SendGrid          — Verbreitet, aber US
 Postmark          — Beste Zustellrate
 
-→ ISM sendet über die API des Dienstes
+→ RESA sendet über die API des Dienstes
 → Zustellrate > 98%, Tracking inklusive
 → Makler-Domain als Absender (SPF/DKIM)
 
 Option 2: Eigener SMTP-Server
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Der Makler hat eigenen Mailserver
-→ ISM sendet über SMTP
-→ ISM prüft SPF/DKIM/DMARC beim Einrichten
+→ RESA sendet über SMTP
+→ RESA prüft SPF/DKIM/DMARC beim Einrichten
 → Risiko: Zustellbarkeit schwankt
 
 Option 3: WordPress wp_mail (Fallback)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Nur als Notlösung
 → Häufig blockiert, landet im Spam
-→ ISM zeigt Warnung im Dashboard
+→ RESA zeigt Warnung im Dashboard
 ```
 
-### ISM-Admin: E-Mail-Versand
+### RESA-Admin: E-Mail-Versand
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -283,7 +283,7 @@ Nur als Notlösung
 Für **alles was wir nicht nativ abdecken** gibt es eine Universalschicht.
 
 ```
-ISM Lead
+RESA Lead
    │
    ├──→ Native Integration (onOffice, Propstack, CleverReach...)
    │
@@ -301,7 +301,7 @@ ISM Lead
   "event": "lead.created",
   "timestamp": "2026-02-24T14:32:00Z",
   "lead": {
-    "id": "ism_lead_4721",
+    "id": "resa_lead_4721",
     "name": "Maria Schmidt",
     "email": "m.schmidt@web.de",
     "phone": "+49 173 1234567",
@@ -347,7 +347,7 @@ Dieses Format ist **identisch** egal ob Zapier, Make oder Custom Webhook. Enthä
 
 ### Das Problem
 
-Größere Maklerbüros haben mehrere Makler die jeweils für bestimmte **Regionen oder Städte** zuständig sind. Wenn ein Lead über ISM reinkommt, muss er dem richtigen Makler zugewiesen werden.
+Größere Maklerbüros haben mehrere Makler die jeweils für bestimmte **Regionen oder Städte** zuständig sind. Wenn ein Lead über RESA reinkommt, muss er dem richtigen Makler zugewiesen werden.
 
 ### Lösung: Makler-Zuordnung über Locations
 
@@ -391,10 +391,10 @@ Größere Maklerbüros haben mehrere Makler die jeweils für bestimmte **Regione
 
 ```
 Lead kommt rein
-über [ism city="bad-oeynhausen"]
+über [resa city="bad-oeynhausen"]
          │
          ▼
-ISM prüft: Welcher Makler ist
+RESA prüft: Welcher Makler ist
 für "Bad Oeynhausen" zuständig?
          │
          ▼
@@ -447,7 +447,7 @@ Benachrichtigung     Nur der zuständige Makler wird informiert
 ☐ Makler-Zuordnung (Locations)  → Multi-Makler-Fähigkeit
 ```
 
-**Warum Webhook + Zapier zuerst?** Damit ist ISM sofort mit JEDEM System verbindbar — auch mit CRMs und Newslettern die wir noch nicht nativ unterstützen. Der Makler oder sein IT-Dienstleister richtet Zapier ein, fertig.
+**Warum Webhook + Zapier zuerst?** Damit ist RESA sofort mit JEDEM System verbindbar — auch mit CRMs und Newslettern die wir noch nicht nativ unterstützen. Der Makler oder sein IT-Dienstleister richtet Zapier ein, fertig.
 
 ### Phase 2: Kern-Integrationen
 
@@ -476,7 +476,7 @@ Benachrichtigung     Nur der zuständige Makler wird informiert
 ☐ Propstack App-Directory       → Sichtbarkeit im Ökosystem
 ☐ Slack / Teams Notifications   → Echtzeit-Benachrichtigungen
 ☐ Google Sheets Export           → Einfache Datenanalyse
-☐ REST API (ISM als Quelle)     → Andere Tools lesen ISM-Daten
+☐ REST API (RESA als Quelle)     → Andere Tools lesen RESA-Daten
 ```
 
 ---
@@ -485,7 +485,7 @@ Benachrichtigung     Nur der zuständige Makler wird informiert
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        ISM Plugin                                │
+│                        RESA Plugin                                │
 │                                                                 │
 │  Lead erfasst                                                   │
 │       │                                                         │

@@ -4,15 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-ISM (Immobilien Smart Assets) is a WordPress plugin that provides interactive, lead-generating calculators and tools for German-speaking real estate agents (DACH region). It follows a freemium model via Freemius SDK.
+RESA (Real Estate Smart Assets) is a WordPress plugin that provides interactive, lead-generating calculators and tools for German-speaking real estate agents (DACH region). It follows a freemium model via Freemius SDK.
 
 **Current state:** Planning/specification phase. Detailed architecture docs live in `docs/planning/`. Source code implementation follows these specifications.
 
 ## Tech Stack
 
-- **Backend:** PHP 8.1+ with Composer (PSR-4 namespace `ISM\`), WordPress plugin conventions
+- **Backend:** PHP 8.1+ with Composer (PSR-4 namespace `Resa\`), WordPress plugin conventions
 - **Frontend:** React 18, TypeScript 5, Vite 6 (via `@kucrut/vite-for-wp`)
-- **Styling:** Tailwind CSS 3 with `ism-` prefix (CSS isolation), shadcn/ui (Radix-based, copied components)
+- **Styling:** Tailwind CSS 3 with `resa-` prefix (CSS isolation), shadcn/ui (Radix-based, copied components)
 - **Forms:** React Hook Form 7 + Zod 3 (validation)
 - **State:** Zustand 4 (local) + React Query 5 (server state)
 - **Charts:** Nivo (D3-based)
@@ -50,13 +50,13 @@ npm run plugin:zip                # Full build + ZIP creation
 
 ## Architecture: Two Entry Points
 
-ISM builds **two separate React applications** from a single codebase:
+RESA builds **two separate React applications** from a single codebase:
 
-1. **Frontend Widget** (`src/frontend/main.tsx`) — Visitor-facing calculators embedded via `[ism]` shortcode. Bundles its own React (isolation from themes). CSS scoped via `.ism-widget-root` container + Tailwind `ism-` prefix. No Tailwind preflight (would break host theme). Target: <120 KB gzip.
+1. **Frontend Widget** (`src/frontend/main.tsx`) — Visitor-facing calculators embedded via `[resa]` shortcode. Bundles its own React (isolation from themes). CSS scoped via `.resa-widget-root` container + Tailwind `resa-` prefix. No Tailwind preflight (would break host theme). Target: <120 KB gzip.
 
 2. **Admin Dashboard** (`src/admin/main.tsx`) — WP-Admin pages for lead management, settings, configuration. Uses WordPress-bundled React (`wp-element`). Target: <250 KB gzip.
 
-Both communicate with the backend via WordPress REST API at `/wp-json/ism/v1/`.
+Both communicate with the backend via WordPress REST API at `/wp-json/resa/v1/`.
 
 ## Key Architectural Patterns
 
@@ -65,20 +65,20 @@ Both communicate with the backend via WordPress REST API at `/wp-json/ism/v1/`.
 - **Feature Gating:** `FeatureGate` class checks Freemius plan to enforce limits (free: 1 asset, 1 location, 50 leads).
 - **Service Layer:** Backend calculators implement `CalculatorInterface`. Email dispatches through SMTP or Brevo transport. PDF generates via DOMPDF or Puppeteer.
 - **REST Controller Base:** All API endpoints extend `RestController` with nonce verification, permission checks, response formatting.
-- **CSS Isolation:** Frontend widget uses Tailwind `ism-` prefix, `.ism-widget-root` importance scope, custom mini-reset, no preflight. This is critical — the widget must not break host themes.
+- **CSS Isolation:** Frontend widget uses Tailwind `resa-` prefix, `.resa-widget-root` importance scope, custom mini-reset, no preflight. This is critical — the widget must not break host themes.
 
 ## Source Layout (Planned)
 
 ```
-ism.php                    # Plugin entry point
-includes/                  # PHP backend (PSR-4: ISM\)
+resa.php                   # Plugin entry point
+includes/                  # PHP backend (PSR-4: Resa\)
   Core/                    # Plugin bootstrap, activation, i18n
   Admin/                   # WP-Admin menu, pages, settings
-  Api/                     # REST controllers (/ism/v1/*)
+  Api/                     # REST controllers (/resa/v1/*)
   Models/                  # Lead, Location, Asset, EmailTemplate CRUD
   Services/                # Calculator/, Pdf/, Email/, Integration/
   Database/                # Schema, migrations (dbDelta), seeders
-  Shortcode/               # [ism] shortcode handler
+  Shortcode/               # [resa] shortcode handler
   Freemius/                # SDK init + FeatureGate
 src/
   frontend/                # Widget React app
@@ -103,23 +103,23 @@ tests/js/                  # Vitest (components/ + hooks/)
 Public endpoints (no auth): asset config, calculations, lead submission, tracking.
 Admin endpoints (nonce + capability): leads CRUD, locations, assets, settings, email/PDF templates, integrations, analytics.
 
-All under `/wp-json/ism/v1/`. See `docs/planning/ISM-Technischer-Stack.md` section 7 for full endpoint list.
+All under `/wp-json/resa/v1/`. See `docs/planning/RESA-Technischer-Stack.md` section 7 for full endpoint list.
 
 ## Database
 
-Custom tables (created via `dbDelta()` on activation): `ism_leads`, `ism_tracking_daily`, `ism_locations`, `ism_email_log`, `ism_agents`, `ism_agent_locations`. Schema details in `docs/planning/ISM-Technischer-Stack.md` section 8.
+Custom tables (created via `dbDelta()` on activation): `resa_leads`, `resa_tracking_daily`, `resa_locations`, `resa_email_log`, `resa_agents`, `resa_agent_locations`. Schema details in `docs/planning/RESA-Technischer-Stack.md` section 8.
 
 ## Planning Documentation
 
 All specifications are in `docs/planning/`:
-- `ISM-Technischer-Stack.md` — Full tech stack, directory structure, Vite config, DB schema, API design
-- `ISM-Plugin-Architektur.md` — Admin UI structure, page components, workflows
-- `ISM-Teststrategie.md` — Test pyramid, CI/CD pipeline, coverage targets
-- `ISM-Charts-und-PDF.md` — Nivo chart types, dual rendering (web + PDF), DOMPDF limitations
-- `ISM-Lead-Formular.md` — Lead form components, validation, GDPR consent flow
-- `ISM-Freemius-Monetarisierung.md` — Pricing tiers, feature gating, add-ons
-- `ISM-Integrationsstrategie.md` — CRM integrations (onOffice, Propstack, FLOWFACT)
-- `ISM-i18n-Planung.md` — Translation workflow, DACH locale variants
-- `ISM-Tracking-und-Conversion.md` — Funnel tracking, offline conversion (GCLID/FBCLID)
-- `ISM-Karten-und-Geocoding.md` — Leaflet/Google Maps integration
+- `RESA-Technischer-Stack.md` — Full tech stack, directory structure, Vite config, DB schema, API design
+- `RESA-Plugin-Architektur.md` — Admin UI structure, page components, workflows
+- `RESA-Teststrategie.md` — Test pyramid, CI/CD pipeline, coverage targets
+- `RESA-Charts-und-PDF.md` — Nivo chart types, dual rendering (web + PDF), DOMPDF limitations
+- `RESA-Lead-Formular.md` — Lead form components, validation, GDPR consent flow
+- `RESA-Freemius-Monetarisierung.md` — Pricing tiers, feature gating, add-ons
+- `RESA-Integrationsstrategie.md` — CRM integrations (onOffice, Propstack, FLOWFACT)
+- `RESA-i18n-Planung.md` — Translation workflow, DACH locale variants
+- `RESA-Tracking-und-Conversion.md` — Funnel tracking, offline conversion (GCLID/FBCLID)
+- `RESA-Karten-und-Geocoding.md` — Leaflet/Google Maps integration
 - `Smart-Assets-Ideensammlung.md` — All 18 planned asset types and prioritization

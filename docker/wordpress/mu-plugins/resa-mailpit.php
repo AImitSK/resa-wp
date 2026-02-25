@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: ISM Mailpit SMTP
+ * Plugin Name: RESA Mailpit SMTP
  * Description: Leitet alle WordPress-E-Mails an den Mailpit-Container weiter.
  * Version: 1.0.0
  */

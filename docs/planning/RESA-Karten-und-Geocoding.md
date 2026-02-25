@@ -1,10 +1,10 @@
-# ISM — Karten & Geocoding
+# RESA— Karten & Geocoding
 
 ## Kartenanbieter, Einsatzorte, API-Kosten & Technische Umsetzung
 
 ---
 
-## 1. Wo werden Karten in ISM gebraucht?
+## 1. Wo werden Karten in RESA gebraucht?
 
 Karten tauchen an **fünf verschiedenen Stellen** im Plugin auf — jede mit unterschiedlichen Anforderungen:
 
@@ -52,7 +52,7 @@ Static Maps                  10.000 Requests             $2,00
 Maps Embed API               Unbegrenzt                  Kostenlos
 ```
 
-**Problem:** ISM läuft auf hunderten Makler-Websites. **Jede** Website braucht einen eigenen Google-API-Key. Ein Makler mit 5.000 Besuchern/Monat auf dem Rechner bleibt unter dem Free-Tier. Ein aktiver Makler mit 20.000 Besuchern zahlt bereits.
+**Problem:** RESA läuft auf hunderten Makler-Websites. **Jede** Website braucht einen eigenen Google-API-Key. Ein Makler mit 5.000 Besuchern/Monat auf dem Rechner bleibt unter dem Free-Tier. Ein aktiver Makler mit 20.000 Besuchern zahlt bereits.
 
 ### Lösung: OpenStreetMap als Standard, Google Maps als Option
 
@@ -162,7 +162,7 @@ const mapRef = useRef(null);
 const isInView = useInView(mapRef, { once: true });
 
 return (
-  <div ref={mapRef} className="ism-map-container">
+  <div ref={mapRef} className="resa-map-container">
     {isInView && <ResultMap location={location} result={result} />}
     {!isInView && <MapPlaceholder />}  {/* Skeleton/Blur */}
   </div>
@@ -322,7 +322,7 @@ Puppeteer vorhanden?
 
 ```php
 // Einfach: Statisches Kartenbild als URL
-function ism_get_static_map_url( float $lat, float $lon, int $zoom = 14 ): string {
+function resa_get_static_map_url( float $lat, float $lon, int $zoom = 14 ): string {
     // OpenRouteService Static Map (kostenlos)
     return sprintf(
         'https://staticmap.openrouteservice.org/staticmap?center=%f,%f&zoom=%d&size=600x300&markers=%f,%f,red-marker',
@@ -331,7 +331,7 @@ function ism_get_static_map_url( float $lat, float $lon, int $zoom = 14 ): strin
 }
 
 // In DOMPDF-Template:
-// <img src="<?= ism_get_static_map_url( 52.2058, 8.7974 ) ?>" width="600" height="300">
+// <img src="<?= resa_get_static_map_url( 52.2058, 8.7974 ) ?>" width="600" height="300">
 ```
 
 ---
@@ -372,7 +372,7 @@ interface MapConfig {
   height?: number;
 }
 
-export function IsmMap({ config }: { config: MapConfig }) {
+export function ResaMap({ config }: { config: MapConfig }) {
   if (config.provider === 'google' && config.googleApiKey) {
     return <GoogleMapWrapper config={config} />;
   }
@@ -391,8 +391,8 @@ import 'leaflet/dist/leaflet.css';
 export function LeafletMapWrapper({ config }: { config: MapConfig }) {
   // Custom Marker mit Makler-Branding
   const customIcon = L.divIcon({
-    className: 'ism-map-marker',
-    html: `<div style="background:var(--ism-color-primary);width:32px;height:32px;
+    className: 'resa-map-marker',
+    html: `<div style="background:var(--resa-color-primary);width:32px;height:32px;
            border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3)">
            </div>`,
     iconSize: [32, 32],
@@ -405,7 +405,7 @@ export function LeafletMapWrapper({ config }: { config: MapConfig }) {
       zoom={config.zoom}
       style={{ height: config.height ?? 300, width: '100%' }}
       scrollWheelZoom={false}  // Verhindert versehentliches Zoomen beim Scrollen
-      className="ism-leaflet-map"
+      className="resa-leaflet-map"
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org">OpenStreetMap</a>'
@@ -488,20 +488,20 @@ Leaflet bringt eigenes CSS mit, das mit dem Theme kollidieren kann:
 ```css
 /* src/frontend/styles/leaflet-override.css */
 
-/* Leaflet-CSS nur innerhalb des ISM-Widgets wirksam */
-.ism-widget-root .leaflet-container {
+/* Leaflet-CSS nur innerhalb des RESA-Widgets wirksam */
+.resa-widget-root .leaflet-container {
   font-family: inherit;
   font-size: 14px;
   z-index: 1; /* Nicht über dem Theme-Header */
 }
 
-.ism-widget-root .leaflet-popup-content-wrapper {
+.resa-widget-root .leaflet-popup-content-wrapper {
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 /* Leaflet-Controls nicht vom Theme überschrieben */
-.ism-widget-root .leaflet-control-zoom a {
+.resa-widget-root .leaflet-control-zoom a {
   width: 30px !important;
   height: 30px !important;
   line-height: 30px !important;
@@ -575,7 +575,7 @@ Google Maps           Google (USA)             ⚠ Auftragsverarbei-  Einwilligu
 │                                                                 │
 │  Wenn Google Maps:                                              │
 │  → Cookie-Consent empfohlen vor Karten-Ladung                   │
-│  → ISM bietet einen "Karte laden"-Platzhalter:                  │
+│  → RESA bietet einen "Karte laden"-Platzhalter:                  │
 │                                                                 │
 │  ┌─────────────────────────────────────────────────────────┐    │
 │  │                                                         │    │
@@ -628,7 +628,7 @@ class NominatimGeocoder implements GeocoderInterface {
         $response = wp_remote_get( self::API_URL, [
             'timeout' => 10,
             'headers' => [
-                'User-Agent' => 'ISM-Plugin/1.0 (contact@ism-plugin.com)',
+                'User-Agent' => 'RESA-Plugin/1.0 (contact@resa-plugin.com)',
                 // Nominatim verlangt User-Agent
             ],
             'body' => [
@@ -730,7 +730,7 @@ Custom Marker                        ❌                 ✅
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  ISM Karten & Geocoding auf einen Blick                      │
+│  RESA Karten & Geocoding auf einen Blick                      │
 │                                                              │
 │  STANDARD: Leaflet.js + OpenStreetMap                        │
 │    → Kostenlos, kein API-Key, DSGVO-freundlich               │

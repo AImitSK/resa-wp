@@ -1,4 +1,4 @@
-# ISM — Teststrategie
+# RESA — Teststrategie
 
 ## Qualitätssicherung, Testpyramide & CI/CD
 
@@ -6,10 +6,10 @@
 
 ## 1. Warum eine Teststrategie?
 
-ISM ist ein Plugin das **direkt auf den Websites von Maklern läuft** — bei deren Kunden, in deren Lead-Pipeline. Ein Bug in der Berechnung, ein kaputtes Lead-Formular oder eine fehlgeschlagene E-Mail ist nicht nur ärgerlich, sondern **kostet den Makler reales Geld** (verlorene Leads, falsches Ergebnis, beschädigtes Vertrauen).
+RESA ist ein Plugin das **direkt auf den Websites von Maklern läuft** — bei deren Kunden, in deren Lead-Pipeline. Ein Bug in der Berechnung, ein kaputtes Lead-Formular oder eine fehlgeschlagene E-Mail ist nicht nur ärgerlich, sondern **kostet den Makler reales Geld** (verlorene Leads, falsches Ergebnis, beschädigtes Vertrauen).
 
 Dazu kommt:
-- ISM läuft auf **tausenden verschiedenen WordPress-Installationen** mit unterschiedlichen Themes, PHP-Versionen und Plugin-Kombinationen
+- RESA läuft auf **tausenden verschiedenen WordPress-Installationen** mit unterschiedlichen Themes, PHP-Versionen und Plugin-Kombinationen
 - Berechnungen müssen **mathematisch korrekt** sein (Mietpreis, Immobilienwert, Nebenkosten)
 - **DSGVO-Einwilligung** muss zuverlässig erfasst und gespeichert werden
 - **PDF-Generierung** und **E-Mail-Versand** müssen zuverlässig funktionieren
@@ -114,10 +114,10 @@ parameters:
 
 ```xml
 <!-- phpcs.xml -->
-<ruleset name="ISM">
+<ruleset name="RESA">
     <rule ref="WordPress"/>
     <rule ref="WordPress-Extra"/>
-    <config name="text_domain" value="ism"/>
+    <config name="text_domain" value="resa"/>
     <config name="minimum_wp_version" value="6.0"/>
     <exclude-pattern>vendor/</exclude-pattern>
     <exclude-pattern>node_modules/</exclude-pattern>
@@ -142,7 +142,7 @@ Die **kritischste** Testschicht: Die Kalkulatoren müssen mathematisch korrekt r
 
 use PHPUnit\Framework\TestCase;
 use Brain\Monkey;
-use ISM\Services\Calculator\RentCalculator;
+use Resa\Services\Calculator\RentCalculator;
 
 class RentCalculatorTest extends TestCase {
 
@@ -291,12 +291,12 @@ class FeatureGateTest extends TestCase {
 
     public function test_free_plan_allows_only_mietpreis_asset(): void {
         // Mock: Freemius meldet Free-Plan
-        Functions\when( 'ism_fs' )->justReturn(
+        Functions\when( 'resa_fs' )->justReturn(
             Mockery::mock()->shouldReceive( 'is_plan' )
                 ->with( 'premium' )->andReturn( false )->getMock()
         );
 
-        $gate = new \ISM\Freemius\FeatureGate();
+        $gate = new \Resa\Freemius\FeatureGate();
 
         $this->assertTrue( $gate->can_activate_asset( 'mietpreis' ) );
         $this->assertFalse( $gate->can_activate_asset( 'immobilienwert' ) );
@@ -304,12 +304,12 @@ class FeatureGateTest extends TestCase {
     }
 
     public function test_premium_plan_allows_all_assets(): void {
-        Functions\when( 'ism_fs' )->justReturn(
+        Functions\when( 'resa_fs' )->justReturn(
             Mockery::mock()->shouldReceive( 'is_plan' )
                 ->with( 'premium' )->andReturn( true )->getMock()
         );
 
-        $gate = new \ISM\Freemius\FeatureGate();
+        $gate = new \Resa\Freemius\FeatureGate();
 
         $this->assertTrue( $gate->can_activate_asset( 'mietpreis' ) );
         $this->assertTrue( $gate->can_activate_asset( 'immobilienwert' ) );
@@ -317,12 +317,12 @@ class FeatureGateTest extends TestCase {
     }
 
     public function test_free_plan_limits_locations_to_one(): void {
-        Functions\when( 'ism_fs' )->justReturn(
+        Functions\when( 'resa_fs' )->justReturn(
             Mockery::mock()->shouldReceive( 'is_plan' )
                 ->with( 'premium' )->andReturn( false )->getMock()
         );
 
-        $gate = new \ISM\Freemius\FeatureGate();
+        $gate = new \Resa\Freemius\FeatureGate();
 
         $this->assertTrue( $gate->can_add_location( 0 ) );   // Erste: OK
         $this->assertFalse( $gate->can_add_location( 1 ) );  // Zweite: Nein
@@ -511,10 +511,10 @@ class LeadsControllerTest extends WP_UnitTestCase {
     }
 
     /**
-     * POST /ism/v1/leads — Lead erfassen
+     * POST /resa/v1/leads — Lead erfassen
      */
     public function test_create_lead_via_api(): void {
-        $request = new WP_REST_Request('POST', '/ism/v1/leads');
+        $request = new WP_REST_Request('POST', '/resa/v1/leads');
         $request->set_body_params([
             'first_name'  => 'Maria',
             'last_name'   => 'Schmidt',
@@ -542,7 +542,7 @@ class LeadsControllerTest extends WP_UnitTestCase {
      * Lead ohne DSGVO-Einwilligung → 400
      */
     public function test_create_lead_without_consent_fails(): void {
-        $request = new WP_REST_Request('POST', '/ism/v1/leads');
+        $request = new WP_REST_Request('POST', '/resa/v1/leads');
         $request->set_body_params([
             'first_name' => 'Maria',
             'email'      => 'maria@example.com',
@@ -555,17 +555,17 @@ class LeadsControllerTest extends WP_UnitTestCase {
     }
 
     /**
-     * GET /ism/v1/leads — Nur für Admins
+     * GET /resa/v1/leads — Nur für Admins
      */
     public function test_list_leads_requires_admin(): void {
         // Ohne Login
-        $request  = new WP_REST_Request('GET', '/ism/v1/leads');
+        $request  = new WP_REST_Request('GET', '/resa/v1/leads');
         $response = rest_do_request($request);
         $this->assertEquals(401, $response->get_status());
 
         // Mit Admin-Login
         wp_set_current_user($this->admin_id);
-        $request  = new WP_REST_Request('GET', '/ism/v1/leads');
+        $request  = new WP_REST_Request('GET', '/resa/v1/leads');
         $response = rest_do_request($request);
         $this->assertEquals(200, $response->get_status());
     }
@@ -575,10 +575,10 @@ class LeadsControllerTest extends WP_UnitTestCase {
      */
     public function test_lead_persists_in_database(): void {
         global $wpdb;
-        $table = $wpdb->prefix . 'ism_leads';
+        $table = $wpdb->prefix . 'resa_leads';
 
         // Lead über Service erstellen (nicht API)
-        $lead_id = (new \ISM\Models\Lead())->create([
+        $lead_id = (new \Resa\Models\Lead())->create([
             'first_name'  => 'Max',
             'email'       => 'max@example.com',
             'consent'     => true,
@@ -613,7 +613,7 @@ class LeadRouterTest extends WP_UnitTestCase {
         $location_id = $this->create_location('bad-oeynhausen');
         $this->assign_agent_to_location($agent_id, $location_id);
 
-        $router = new \ISM\Services\LeadDistribution\LeadRouter();
+        $router = new \Resa\Services\LeadDistribution\LeadRouter();
         $assigned = $router->assign($location_id);
 
         $this->assertEquals($agent_id, $assigned);
@@ -622,7 +622,7 @@ class LeadRouterTest extends WP_UnitTestCase {
     public function test_fallback_when_no_agent_assigned(): void {
         $location_id = $this->create_location('unassigned-city');
 
-        $router = new \ISM\Services\LeadDistribution\LeadRouter();
+        $router = new \Resa\Services\LeadDistribution\LeadRouter();
         $assigned = $router->assign($location_id);
 
         $this->assertNull($assigned); // Fallback: Default-E-Mail
@@ -635,7 +635,7 @@ class LeadRouterTest extends WP_UnitTestCase {
         $this->assign_agent_to_location($agent_a, $location_id);
         $this->assign_agent_to_location($agent_b, $location_id);
 
-        $router = new \ISM\Services\LeadDistribution\LeadRouter();
+        $router = new \Resa\Services\LeadDistribution\LeadRouter();
         $router->set_mode('round_robin');
 
         $results = [];
@@ -800,7 +800,7 @@ test.describe('Mietpreis-Kalkulator: Kompletter Lead-Flow', () => {
     await page.goto('/mietpreis-test/');
 
     // Widget sollte geladen sein
-    const widget = page.locator('.ism-widget-root');
+    const widget = page.locator('.resa-widget-root');
     await expect(widget).toBeVisible();
 
     // 2. STUFE 1: Fragen beantworten
@@ -837,7 +837,7 @@ test.describe('Mietpreis-Kalkulator: Kompletter Lead-Flow', () => {
   test('Widget kollidiert nicht mit Theme-Styling', async ({ page }) => {
     await page.goto('/mietpreis-test/');
 
-    const widget = page.locator('.ism-widget-root');
+    const widget = page.locator('.resa-widget-root');
 
     // Widget hat eigene Schriftgröße (nicht vom Theme überschrieben)
     const fontSize = await widget.evaluate(el =>
@@ -864,7 +864,7 @@ test.describe('Admin: Lead-Verwaltung', () => {
   });
 
   test('Neuer Lead erscheint in der Lead-Liste', async ({ page }) => {
-    await page.goto('/wp-admin/admin.php?page=ism-leads');
+    await page.goto('/wp-admin/admin.php?page=resa-leads');
 
     // Lead-Tabelle sollte sichtbar sein
     await expect(page.locator('table')).toBeVisible();
@@ -890,8 +890,8 @@ class GdprTest extends TestCase {
      * Ohne Consent KEIN Lead speichern
      */
     public function test_lead_without_consent_is_rejected(): void {
-        $model = new \ISM\Models\Lead();
-        $this->expectException(\ISM\Exceptions\ConsentRequiredException::class);
+        $model = new \Resa\Models\Lead();
+        $this->expectException(\Resa\Exceptions\ConsentRequiredException::class);
 
         $model->create([
             'email'   => 'test@example.com',
@@ -903,7 +903,7 @@ class GdprTest extends TestCase {
      * Consent-Datum wird automatisch gesetzt
      */
     public function test_consent_date_is_recorded(): void {
-        $model = new \ISM\Models\Lead();
+        $model = new \Resa\Models\Lead();
         $lead_id = $model->create([
             'email'   => 'test@example.com',
             'consent' => true,
@@ -918,7 +918,7 @@ class GdprTest extends TestCase {
      */
     public function test_delete_removes_all_lead_data(): void {
         global $wpdb;
-        $model = new \ISM\Models\Lead();
+        $model = new \Resa\Models\Lead();
         $lead_id = $model->create([
             'email'   => 'delete-me@example.com',
             'consent' => true,
@@ -929,7 +929,7 @@ class GdprTest extends TestCase {
 
         $result = $wpdb->get_row(
             $wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}ism_leads WHERE id = %d",
+                "SELECT * FROM {$wpdb->prefix}resa_leads WHERE id = %d",
                 $lead_id
             )
         );
@@ -951,7 +951,7 @@ class ApiSecurityTest extends WP_UnitTestCase {
     public function test_search_escapes_sql_injection(): void {
         wp_set_current_user($this->factory->user->create(['role' => 'administrator']));
 
-        $request = new WP_REST_Request('GET', '/ism/v1/leads');
+        $request = new WP_REST_Request('GET', '/resa/v1/leads');
         $request->set_param('search', "'; DROP TABLE wp_posts; --");
 
         $response = rest_do_request($request);
@@ -964,7 +964,7 @@ class ApiSecurityTest extends WP_UnitTestCase {
      * XSS in Lead-Daten wird sanitized
      */
     public function test_lead_input_is_sanitized(): void {
-        $request = new WP_REST_Request('POST', '/ism/v1/leads');
+        $request = new WP_REST_Request('POST', '/resa/v1/leads');
         $request->set_body_params([
             'first_name' => '<script>alert("xss")</script>Maria',
             'email'      => 'test@example.com',
@@ -986,7 +986,7 @@ class ApiSecurityTest extends WP_UnitTestCase {
         $subscriber = $this->factory->user->create(['role' => 'subscriber']);
         wp_set_current_user($subscriber);
 
-        $request  = new WP_REST_Request('GET', '/ism/v1/leads');
+        $request  = new WP_REST_Request('GET', '/resa/v1/leads');
         $response = rest_do_request($request);
 
         $this->assertEquals(403, $response->get_status());
@@ -1002,7 +1002,7 @@ class ApiSecurityTest extends WP_UnitTestCase {
 class PdfGeneratorTest extends WP_UnitTestCase {
 
     public function test_generates_valid_pdf(): void {
-        $generator = new \ISM\Services\Pdf\PdfGenerator();
+        $generator = new \Resa\Services\Pdf\PdfGenerator();
 
         $pdf_binary = $generator->generate([
             'template'  => 'rent-analysis',
@@ -1019,7 +1019,7 @@ class PdfGeneratorTest extends WP_UnitTestCase {
     }
 
     public function test_pdf_contains_lead_name(): void {
-        $generator = new \ISM\Services\Pdf\PdfGenerator();
+        $generator = new \Resa\Services\Pdf\PdfGenerator();
 
         $pdf = $generator->generate([
             'template'  => 'rent-analysis',
@@ -1043,7 +1043,7 @@ class TranslationTest extends TestCase {
 
     public function test_pot_file_exists(): void {
         $this->assertFileExists(
-            dirname(__DIR__, 3) . '/languages/ism.pot'
+            dirname(__DIR__, 3) . '/languages/resa.pot'
         );
     }
 
@@ -1053,7 +1053,7 @@ class TranslationTest extends TestCase {
 
         foreach ($required_locales as $locale) {
             $this->assertFileExists(
-                $languages_dir . "ism-{$locale}.mo",
+                $languages_dir . "resa-{$locale}.mo",
                 "MO-Datei fehlt für {$locale}"
             );
         }
@@ -1067,7 +1067,7 @@ class TranslationTest extends TestCase {
 
 ```yaml
 # .github/workflows/test.yml
-name: ISM Tests
+name: RESA Tests
 
 on:
   push:
@@ -1268,7 +1268,7 @@ npm run test                 # Vor jedem Commit: PHP + JS Unit Tests
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  ISM Teststrategie auf einen Blick                              │
+│  RESA Teststrategie auf einen Blick                              │
 │                                                                 │
 │  Statische Analyse:  TypeScript strict + ESLint + PHPStan       │
 │                      + PHPCS (WordPress Standards)              │

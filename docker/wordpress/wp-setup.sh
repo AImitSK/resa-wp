@@ -21,9 +21,9 @@ sleep 5
 cd /var/www/html
 
 # MU-Plugin kopieren falls noch nicht vorhanden
-if [ ! -f wp-content/mu-plugins/ism-mailpit.php ]; then
+if [ ! -f wp-content/mu-plugins/resa-mailpit.php ]; then
     mkdir -p wp-content/mu-plugins
-    cp /usr/src/wordpress/wp-content/mu-plugins/ism-mailpit.php wp-content/mu-plugins/
+    cp /usr/src/wordpress/wp-content/mu-plugins/resa-mailpit.php wp-content/mu-plugins/
     echo "Mailpit MU-Plugin installiert."
 fi
 
@@ -32,7 +32,7 @@ if ! wp core is-installed --allow-root 2>/dev/null; then
     echo "Installiere WordPress..."
     wp core install \
         --url="${WP_URL:-http://localhost:8080}" \
-        --title="ISM Dev" \
+        --title="RESA Dev" \
         --admin_user="${WP_ADMIN_USER:-admin}" \
         --admin_password="${WP_ADMIN_PASSWORD:-admin}" \
         --admin_email="${WP_ADMIN_EMAIL:-admin@example.com}" \
@@ -48,18 +48,18 @@ if ! wp core is-installed --allow-root 2>/dev/null; then
     wp rewrite flush --allow-root
 
     # Plugin aktivieren
-    if [ -d wp-content/plugins/immobilien-smart-assets ]; then
-        wp plugin activate immobilien-smart-assets --allow-root 2>/dev/null || echo "Plugin konnte nicht aktiviert werden (noch keine Plugin-Hauptdatei?)"
+    if [ -d wp-content/plugins/resa ]; then
+        wp plugin activate resa --allow-root 2>/dev/null || echo "Plugin konnte nicht aktiviert werden (noch keine Plugin-Hauptdatei?)"
     fi
 
     # Blogname setzen
-    wp option update blogname "ISM Dev" --allow-root
+    wp option update blogname "RESA Dev" --allow-root
 
     # Testseite mit Shortcode erstellen
     wp post create \
         --post_type=page \
         --post_title="Smart Asset Test" \
-        --post_content='<!-- wp:shortcode -->[ism]<!-- /wp:shortcode -->' \
+        --post_content='<!-- wp:shortcode -->[resa]<!-- /wp:shortcode -->' \
         --post_status=publish \
         --allow-root
 
