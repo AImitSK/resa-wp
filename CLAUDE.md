@@ -109,6 +109,27 @@ All under `/wp-json/resa/v1/`. See `docs/planning/RESA-Technischer-Stack.md` sec
 
 Custom tables (created via `dbDelta()` on activation): `resa_leads`, `resa_tracking_daily`, `resa_locations`, `resa_email_log`, `resa_agents`, `resa_agent_locations`. Schema details in `docs/planning/RESA-Technischer-Stack.md` section 8.
 
+## Development Workflow
+
+Ausführliche Version: `.claude/WORKFLOW.md`
+
+**Feature-Prozess:** Verstehen → `/spec` → Plan → Implementieren → `/test` → `/review` → Commit
+
+| Schritt | Großes Feature | Kleines Feature | Bugfix |
+|---|---|---|---|
+| `/spec` erstellen | Ja | Nein | Nein |
+| Plan-Modus | Ja | Ja | Bei Bedarf |
+| Implementieren | Ja | Ja | Ja |
+| `/test` generieren | Ja | Ja | Ja |
+| `/review` | Ja | Ja | Ja |
+
+**Passive Skills (immer automatisch anwenden):**
+- `wp-security` — Sanitization, Escaping, Nonces, Capabilities, prepare(), permission_callback
+- `wp-i18n` — Text-Domain `'resa'`, esc_html__(), Translator-Kommentare, _n(), DACH-Format
+- `freemius` — can_use_premium_code(), FeatureGate, Free-Limits (1 Asset, 1 Location, 50 Leads)
+
+**Sprache:** Kommunikation immer auf Deutsch. Rückfragen statt Annahmen.
+
 ## Planning Documentation
 
 All specifications are in `docs/planning/`:
