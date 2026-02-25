@@ -78,13 +78,11 @@ describe('Admin App', () => {
 		).toBeInTheDocument();
 	});
 
-	it('zeigt die Sidebar-Navigation mit allen 9 Links', () => {
+	it('rendert das Layout mit Content-Bereich', () => {
 		render(<App />);
-		const nav = screen.getByRole('navigation');
-		expect(nav).toBeInTheDocument();
-
-		const links = nav.querySelectorAll('a');
-		expect(links).toHaveLength(9);
+		// Navigation is now handled by WordPress admin sidebar (no in-app nav).
+		const main = screen.getByRole('main');
+		expect(main).toBeInTheDocument();
 	});
 
 	it('fällt auf Dashboard zurück bei unbekanntem page-Slug', () => {

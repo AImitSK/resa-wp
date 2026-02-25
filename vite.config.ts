@@ -9,41 +9,41 @@ import { mkdirSync, writeFileSync, existsSync, unlinkSync } from 'fs';
  * The file is deleted when the server stops.
  */
 function hotFilePlugin(): Plugin {
-	const hotFilePath = resolve( __dirname, 'dist/hot' );
+	const hotFilePath = resolve(__dirname, 'dist/hot');
 
 	return {
 		name: 'resa-hot-file',
 
-		configureServer( server ) {
+		configureServer(server) {
 			const write = () => {
-				mkdirSync( resolve( __dirname, 'dist' ), { recursive: true } );
+				mkdirSync(resolve(__dirname, 'dist'), { recursive: true });
 				const address = server.config.server.origin || 'http://localhost:5173';
-				writeFileSync( hotFilePath, address );
+				writeFileSync(hotFilePath, address);
 			};
 
 			const cleanup = () => {
-				if ( existsSync( hotFilePath ) ) {
-					unlinkSync( hotFilePath );
+				if (existsSync(hotFilePath)) {
+					unlinkSync(hotFilePath);
 				}
 			};
 
-			server.httpServer?.once( 'listening', write );
-			server.httpServer?.once( 'close', cleanup );
-			process.on( 'exit', cleanup );
-			process.on( 'SIGINT', () => {
+			server.httpServer?.once('listening', write);
+			server.httpServer?.once('close', cleanup);
+			process.on('exit', cleanup);
+			process.on('SIGINT', () => {
 				cleanup();
 				process.exit();
-			} );
-			process.on( 'SIGTERM', () => {
+			});
+			process.on('SIGTERM', () => {
 				cleanup();
 				process.exit();
-			} );
+			});
 		},
 	};
 }
 
-export default defineConfig( {
-	plugins: [ react(), hotFilePlugin() ],
+export default defineConfig({
+	plugins: [react(), hotFilePlugin()],
 
 	server: {
 		host: '0.0.0.0',
@@ -58,8 +58,8 @@ export default defineConfig( {
 		manifest: true,
 		rollupOptions: {
 			input: {
-				frontend: resolve( __dirname, 'src/frontend/main.tsx' ),
-				admin: resolve( __dirname, 'src/admin/main.tsx' ),
+				frontend: resolve(__dirname, 'src/frontend/main.tsx'),
+				admin: resolve(__dirname, 'src/admin/main.tsx'),
 			},
 			output: {
 				entryFileNames: '[name]/[name]-[hash].js',
@@ -71,9 +71,10 @@ export default defineConfig( {
 
 	resolve: {
 		alias: {
-			'@': resolve( __dirname, 'src' ),
-			'@frontend': resolve( __dirname, 'src/frontend' ),
-			'@admin': resolve( __dirname, 'src/admin' ),
+			'@': resolve(__dirname, 'src'),
+			'@frontend': resolve(__dirname, 'src/frontend'),
+			'@admin': resolve(__dirname, 'src/admin'),
+			'@modules': resolve(__dirname, 'modules'),
 		},
 	},
-} );
+});

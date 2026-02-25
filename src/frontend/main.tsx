@@ -1,19 +1,37 @@
+/**
+ * Frontend Entry Point — Module Loader.
+ *
+ * Reads data-module from each .resa-widget-root container
+ * and renders the corresponding module widget.
+ */
+
 import { createRoot } from 'react-dom/client';
-import { cn } from '@/lib/utils';
 import './styles/frontend.css';
+import './types/index'; // Window augmentation
 
-function App() {
-	return (
-		<div className={cn('resa-rounded-lg', 'resa-border', 'resa-bg-background', 'resa-p-6')}>
-			<h2 className="resa-text-xl resa-font-semibold resa-text-foreground">RESA Widget</h2>
-			<p className="resa-mt-2 resa-text-muted-foreground">
-				Frontend Entry Point funktioniert. Tailwind mit resa- Prefix aktiv.
-			</p>
-		</div>
-	);
-}
+import { RentCalculatorWidget } from '@modules/rent-calculator/src/RentCalculatorWidget';
 
-// Mount in alle [resa] Shortcode-Container auf der Seite.
+/** Map of module slug → React component. */
+const modules: Record<string, React.ComponentType<{ presetCity?: string }>> = {
+	'rent-calculator': RentCalculatorWidget,
+};
+
 document.querySelectorAll<HTMLElement>('.resa-widget-root').forEach((container) => {
-	createRoot(container).render(<App />);
+	const moduleSlug = container.dataset.module;
+	const presetCity = container.dataset.city;
+
+	if (!moduleSlug) {
+		return;
+	}
+
+	const ModuleComponent = modules[moduleSlug];
+
+	if (!ModuleComponent) {
+		if (import.meta.env.DEV) {
+			console.warn(`RESA: Unknown module "${moduleSlug}"`);
+		}
+		return;
+	}
+
+	createRoot(container).render(<ModuleComponent presetCity={presetCity} />);
 });

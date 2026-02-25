@@ -46,27 +46,50 @@ final class Seeder {
 
 	/**
 	 * Seed sample locations for DACH region.
+	 *
+	 * Uses the new Mietpreis-Kalkulator compatible data format
+	 * with region preset values.
 	 */
 	private static function seedLocations(): void {
 		global $wpdb;
 
-		$table     = $wpdb->prefix . 'resa_locations';
+		$table = $wpdb->prefix . 'resa_locations';
+
+		// Mittelstadt-Preset for default "Musterstadt".
+		$mittelstadtData = [
+			'setup_mode'            => 'pauschal',
+			'region_preset'         => 'medium_city',
+			'base_price'            => 9.50,
+			'size_degression'       => 0.20,
+			'location_ratings'      => [ '1' => 0.85, '2' => 0.95, '3' => 1.00, '4' => 1.10, '5' => 1.25 ],
+			'condition_multipliers' => [ 'new' => 1.25, 'renovated' => 1.10, 'good' => 1.00, 'needs_renovation' => 0.80 ],
+			'type_multipliers'      => [ 'apartment' => 1.00, 'house' => 1.15 ],
+			'feature_premiums'      => [ 'balcony' => 0.50, 'terrace' => 0.75, 'garden' => 1.00, 'elevator' => 0.30, 'parking' => 0.40, 'garage' => 0.60, 'cellar' => 0.20, 'fitted_kitchen' => 0.50, 'floor_heating' => 0.40, 'guest_toilet' => 0.25, 'barrier_free' => 0.30 ],
+			'age_multipliers'       => [ 'before_1946' => 1.05, '1946_1959' => 0.95, '1960_1979' => 0.90, '1980_1989' => 0.95, '1990_1999' => 1.00, '2000_2014' => 1.05, '2015_plus' => 1.10 ],
+		];
+
 		$locations = [
+			[
+				'slug'        => 'musterstadt',
+				'name'        => 'Musterstadt',
+				'bundesland'  => '',
+				'region_type' => 'city',
+				'data'        => wp_json_encode( $mittelstadtData ),
+			],
 			[
 				'slug'        => 'berlin',
 				'name'        => 'Berlin',
 				'bundesland'  => 'Berlin',
 				'region_type' => 'metro',
 				'data'        => wp_json_encode(
-					[
-						'rent_data' => [
-							'sqm_per_month' => [
-								'premium'  => 16.50,
-								'standard' => 11.80,
-								'economy'  => 7.50,
-							],
-						],
-					]
+					array_merge(
+						$mittelstadtData,
+						[
+							'region_preset' => 'large_city',
+							'base_price'    => 14.00,
+							'size_degression' => 0.22,
+						]
+					)
 				),
 			],
 			[
@@ -75,32 +98,14 @@ final class Seeder {
 				'bundesland'  => 'Bayern',
 				'region_type' => 'metro',
 				'data'        => wp_json_encode(
-					[
-						'rent_data' => [
-							'sqm_per_month' => [
-								'premium'  => 22.00,
-								'standard' => 16.50,
-								'economy'  => 11.00,
-							],
-						],
-					]
-				),
-			],
-			[
-				'slug'        => 'hamburg',
-				'name'        => 'Hamburg',
-				'bundesland'  => 'Hamburg',
-				'region_type' => 'metro',
-				'data'        => wp_json_encode(
-					[
-						'rent_data' => [
-							'sqm_per_month' => [
-								'premium'  => 17.00,
-								'standard' => 12.50,
-								'economy'  => 8.50,
-							],
-						],
-					]
+					array_merge(
+						$mittelstadtData,
+						[
+							'region_preset' => 'large_city',
+							'base_price'    => 18.50,
+							'size_degression' => 0.22,
+						]
+					)
 				),
 			],
 		];

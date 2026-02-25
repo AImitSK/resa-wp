@@ -19,6 +19,7 @@ export default {
 		'./src/frontend/**/*.{ts,tsx}',
 		'./src/admin/**/*.{ts,tsx}',
 		'./src/lib/**/*.{ts,tsx}',
+		'./modules/*/src/**/*.{ts,tsx}',
 	],
 
 	corePlugins: {
@@ -64,7 +65,7 @@ export default {
 				sm: 'calc(var(--resa-radius) - 4px)',
 			},
 			fontFamily: {
-				sans: [ 'system-ui', '-apple-system', 'sans-serif' ],
+				sans: ['system-ui', '-apple-system', 'sans-serif'],
 			},
 		},
 	},

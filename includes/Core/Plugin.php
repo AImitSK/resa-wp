@@ -7,10 +7,12 @@ namespace Resa\Core;
 use Resa\Admin\AdminPage;
 use Resa\Api\HealthController;
 use Resa\Api\LeadsController;
+use Resa\Api\LocationsController;
 use Resa\Api\TrackingController;
 use Resa\Database\Schema;
 use Resa\Core\ModuleRegistry;
 use Resa\Freemius\FeatureGate;
+use Resa\Shortcode\ResaShortcode;
 
 /**
  * Main plugin bootstrap class.
@@ -111,8 +113,9 @@ final class Plugin {
 		// Module discovery & registration.
 		$this->moduleRegistry->discover();
 
-		// Phase 3+: Services werden hier registriert.
-		// - Shortcode (Phase 3.3)
+		// [resa] shortcode for frontend widget embedding.
+		$shortcode = new ResaShortcode( $this->vite );
+		$shortcode->register();
 	}
 
 	/**
@@ -125,6 +128,7 @@ final class Plugin {
 		$controllers = [
 			new HealthController(),
 			new LeadsController(),
+			new LocationsController(),
 			new TrackingController(),
 		];
 
