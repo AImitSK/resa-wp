@@ -1,20 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /*
- * RESA Frontend Widget — Base Styles
+ * RESA Frontend Widget — CSS Isolation
  *
- * Tailwind CSS wird in Phase 1.3 hinzugefügt.
- * Hier nur ein minimaler Reset für Widget-Isolation.
+ * Alles innerhalb .resa-widget-root ist isoliert vom Host-Theme.
+ * Tailwind-Prefix: resa- (z.B. resa-flex, resa-p-4)
+ * Tailwind-Important: .resa-widget-root (gewinnt gegen Theme-CSS)
+ * Kein Preflight (Theme-Styles bleiben unberührt)
  */
 
+/* === Design Tokens (CSS Custom Properties) === */
+.resa-widget-root {
+	/* Basis-Farben (neutral, shadcn/ui kompatibel) */
+	--resa-background: 0 0% 100%;
+	--resa-foreground: 222.2 84% 4.9%;
+	--resa-card: 0 0% 100%;
+	--resa-card-foreground: 222.2 84% 4.9%;
+
+	/* Primärfarbe (Makler kann überschreiben) */
+	--resa-primary: 221.2 83.2% 53.3%;
+	--resa-primary-foreground: 210 40% 98%;
+
+	/* Sekundärfarbe */
+	--resa-secondary: 210 40% 96.1%;
+	--resa-secondary-foreground: 222.2 47.4% 11.2%;
+
+	/* UI-Farben */
+	--resa-muted: 210 40% 96.1%;
+	--resa-muted-foreground: 215.4 16.3% 46.9%;
+	--resa-accent: 210 40% 96.1%;
+	--resa-accent-foreground: 222.2 47.4% 11.2%;
+	--resa-destructive: 0 84.2% 60.2%;
+	--resa-destructive-foreground: 210 40% 98%;
+
+	/* Borders & Inputs */
+	--resa-border: 214.3 31.8% 91.4%;
+	--resa-input: 214.3 31.8% 91.4%;
+	--resa-ring: 221.2 83.2% 53.3%;
+
+	/* Radius */
+	--resa-radius: 0.5rem;
+}
+
+/* === Widget Mini-Reset === */
 .resa-widget-root {
 	font-family: system-ui, -apple-system, sans-serif;
 	font-size: 16px;
 	line-height: 1.5;
-	color: #1a1a1a;
+	color: hsl(var(--resa-foreground));
 	box-sizing: border-box;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
 .resa-widget-root *,
 .resa-widget-root *::before,
 .resa-widget-root *::after {
 	box-sizing: inherit;
+	margin: 0;
+	padding: 0;
+}
+
+/* Reset typische Theme-Overrides innerhalb des Widgets */
+.resa-widget-root h1,
+.resa-widget-root h2,
+.resa-widget-root h3,
+.resa-widget-root h4,
+.resa-widget-root h5,
+.resa-widget-root h6 {
+	font-size: inherit;
+	font-weight: inherit;
+	line-height: inherit;
+	margin: 0;
+}
+
+.resa-widget-root a {
+	color: inherit;
+	text-decoration: inherit;
+}
+
+.resa-widget-root img,
+.resa-widget-root svg {
+	display: inline-block;
+	max-width: 100%;
+}
+
+.resa-widget-root button,
+.resa-widget-root input,
+.resa-widget-root select,
+.resa-widget-root textarea {
+	font-family: inherit;
+	font-size: inherit;
+	line-height: inherit;
+	color: inherit;
 }

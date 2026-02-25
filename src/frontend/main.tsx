@@ -1,11 +1,16 @@
 import { createRoot } from 'react-dom/client';
+import { cn } from '@/lib/utils';
 import './styles/frontend.css';
 
 function App() {
 	return (
-		<div style={ { padding: '20px', border: '1px solid #e2e8f0', borderRadius: '8px' } }>
-			<h2>RESA Widget</h2>
-			<p>Frontend Entry Point funktioniert.</p>
+		<div className={ cn( 'resa-rounded-lg', 'resa-border', 'resa-bg-background', 'resa-p-6' ) }>
+			<h2 className="resa-text-xl resa-font-semibold resa-text-foreground">
+				RESA Widget
+			</h2>
+			<p className="resa-mt-2 resa-text-muted-foreground">
+				Frontend Entry Point funktioniert. Tailwind mit resa- Prefix aktiv.
+			</p>
 		</div>
 	);
 }
