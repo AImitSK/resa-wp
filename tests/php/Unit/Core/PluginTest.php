@@ -71,6 +71,20 @@ class PluginTest extends TestCase {
 		$plugin->loadTextDomain();
 	}
 
+	public function test_getModuleRegistry_gibt_registry_zurueck(): void {
+		Functions\expect( 'register_activation_hook' )->once();
+		Functions\expect( 'register_deactivation_hook' )->once();
+		Functions\expect( 'add_action' )->times( 3 );
+		Plugin::init();
+
+		$plugin = Plugin::getInstance();
+		$this->assertNotNull( $plugin );
+		$this->assertInstanceOf(
+			\Resa\Core\ModuleRegistry::class,
+			$plugin->getModuleRegistry()
+		);
+	}
+
 	/**
 	 * Reset the static singleton so each test starts fresh.
 	 */

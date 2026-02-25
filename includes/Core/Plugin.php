@@ -7,6 +7,7 @@ namespace Resa\Core;
 use Resa\Admin\AdminPage;
 use Resa\Api\HealthController;
 use Resa\Database\Schema;
+use Resa\Core\ModuleRegistry;
 
 /**
  * Main plugin bootstrap class.
@@ -18,9 +19,11 @@ final class Plugin {
 
 	private static ?self $instance = null;
 	private Vite $vite;
+	private ModuleRegistry $moduleRegistry;
 
 	private function __construct() {
-		$this->vite = new Vite();
+		$this->vite           = new Vite();
+		$this->moduleRegistry = new ModuleRegistry();
 	}
 
 	/**
@@ -40,6 +43,13 @@ final class Plugin {
 	 */
 	public static function getInstance(): ?self {
 		return self::$instance;
+	}
+
+	/**
+	 * Get the module registry.
+	 */
+	public function getModuleRegistry(): ModuleRegistry {
+		return $this->moduleRegistry;
 	}
 
 	/**
@@ -86,8 +96,10 @@ final class Plugin {
 			$adminPage->register();
 		}
 
+		// Module discovery & registration.
+		$this->moduleRegistry->discover();
+
 		// Phase 2+: Services werden hier registriert.
-		// - ModuleRegistry (Phase 2.3)
 		// - FeatureGate (Phase 2.4)
 		// - Shortcode (Phase 3.3)
 	}
@@ -107,5 +119,8 @@ final class Plugin {
 		foreach ( $controllers as $controller ) {
 			$controller->registerRoutes();
 		}
+
+		// Module routes (only active modules).
+		$this->moduleRegistry->registerModuleRoutes();
 	}
 }
