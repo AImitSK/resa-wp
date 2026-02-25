@@ -39,9 +39,7 @@ export function buildLeadSchema(fields: FieldConfig[]): z.ZodObject<Record<strin
 			case 'checkbox':
 				if (field.slug === 'consent') {
 					validator = z.literal(true, {
-						errorMap: () => ({
-							message: 'Die Datenschutz-Einwilligung ist erforderlich.',
-						}),
+						error: 'Die Datenschutz-Einwilligung ist erforderlich.',
 					});
 				} else {
 					validator = z.boolean().default(false);

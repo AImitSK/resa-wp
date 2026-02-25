@@ -26,7 +26,7 @@ export function ResaIcon({ name, size = 24, className, label }: ResaIconProps) {
 	const svg = getIcon(name);
 
 	if (!svg) {
-		if (process.env.NODE_ENV === 'development') {
+		if (import.meta.env.DEV) {
 			console.warn(`ResaIcon: Unknown icon "${name}"`);
 		}
 		return null;
