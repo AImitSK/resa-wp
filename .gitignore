@@ -27,3 +27,9 @@ Thumbs.db
 
 # Coverage
 coverage/
+
+# Freemius SDK download
+wordpress-sdk-master.zip
+
+# PHPUnit cache
+.phpunit.cache/

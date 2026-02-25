@@ -58,5 +58,20 @@ if ( ! file_exists( RESA_PLUGIN_DIR . 'vendor/autoload.php' ) ) {
 
 require_once RESA_PLUGIN_DIR . 'vendor/autoload.php';
 
+// Freemius SDK (graceful — plugin works without it in free mode).
+Resa\Freemius\FreemiusInit::init();
+
+if ( ! function_exists( 'resa_fs' ) ) {
+	/**
+	 * Global helper to access the Freemius SDK instance.
+	 *
+	 * @return \Freemius|null Null if SDK is not available.
+	 */
+	function resa_fs(): ?\Freemius {
+		global $resa_fs;
+		return $resa_fs ?? null;
+	}
+}
+
 // Bootstrap.
 Resa\Core\Plugin::init();

@@ -8,6 +8,7 @@ use Resa\Admin\AdminPage;
 use Resa\Api\HealthController;
 use Resa\Database\Schema;
 use Resa\Core\ModuleRegistry;
+use Resa\Freemius\FeatureGate;
 
 /**
  * Main plugin bootstrap class.
@@ -20,10 +21,12 @@ final class Plugin {
 	private static ?self $instance = null;
 	private Vite $vite;
 	private ModuleRegistry $moduleRegistry;
+	private FeatureGate $featureGate;
 
 	private function __construct() {
 		$this->vite           = new Vite();
 		$this->moduleRegistry = new ModuleRegistry();
+		$this->featureGate    = new FeatureGate( $this->moduleRegistry );
 	}
 
 	/**
@@ -50,6 +53,13 @@ final class Plugin {
 	 */
 	public function getModuleRegistry(): ModuleRegistry {
 		return $this->moduleRegistry;
+	}
+
+	/**
+	 * Get the feature gate.
+	 */
+	public function getFeatureGate(): FeatureGate {
+		return $this->featureGate;
 	}
 
 	/**
@@ -99,8 +109,7 @@ final class Plugin {
 		// Module discovery & registration.
 		$this->moduleRegistry->discover();
 
-		// Phase 2+: Services werden hier registriert.
-		// - FeatureGate (Phase 2.4)
+		// Phase 3+: Services werden hier registriert.
 		// - Shortcode (Phase 3.3)
 	}
 

@@ -40,7 +40,7 @@ Dieser Plan definiert die Reihenfolge, in der die technische Infrastruktur aufge
 | 2.1 | **REST API Basis**         | ✅     | `RestController` Base-Klasse (Nonces, Permissions, Response-Format, Error Handling), Route-Registrierung, erste Test-Route     |
 | 2.2 | **Datenbank-Schema**       | ✅     | Alle `resa_*` Tabellen via `dbDelta()`, Migrations-Versionierung (`resa_db_version`), Seed-Daten, Uninstall-Cleanup            |
 | 2.3 | **Modul-System**           | ✅     | `ModuleRegistry`, `ModuleInterface`, `AbstractModule`, Modul-Discovery (`modules/*/module.php`), Aktivierung/Deaktivierung     |
-| 2.4 | **Freemius + FeatureGate** | ⬜     | SDK-Initialisierung, `FeatureGate` mit Flag-Prüfung (`free`/`pro`/`paid`), Plan-Erkennung, Graceful Degradation wenn SDK fehlt |
+| 2.4 | **Freemius + FeatureGate** | ✅     | SDK-Initialisierung, `FeatureGate` mit Flag-Prüfung (`free`/`pro`/`paid`), Plan-Erkennung, Graceful Degradation wenn SDK fehlt |
 
 **Meilenstein Phase 2:** Ein Dummy-Modul kann sich registrieren, wird per FeatureGate geprüft, REST-Endpoints antworten mit korrekten Permissions, DB-Tabellen existieren.
 

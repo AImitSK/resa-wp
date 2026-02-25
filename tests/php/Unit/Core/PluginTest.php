@@ -85,6 +85,20 @@ class PluginTest extends TestCase {
 		);
 	}
 
+	public function test_getFeatureGate_gibt_gate_zurueck(): void {
+		Functions\expect( 'register_activation_hook' )->once();
+		Functions\expect( 'register_deactivation_hook' )->once();
+		Functions\expect( 'add_action' )->times( 3 );
+		Plugin::init();
+
+		$plugin = Plugin::getInstance();
+		$this->assertNotNull( $plugin );
+		$this->assertInstanceOf(
+			\Resa\Freemius\FeatureGate::class,
+			$plugin->getFeatureGate()
+		);
+	}
+
 	/**
 	 * Reset the static singleton so each test starts fresh.
 	 */

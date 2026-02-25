@@ -7,7 +7,11 @@ parameters:
         - uninstall.php
     bootstrapFiles:
         - tests/php/bootstrap.php
+    excludePaths:
+        - freemius
     ignoreErrors:
         # WordPress functions are defined at runtime.
         - '#Function [a-zA-Z_]+ not found\.#'
+        # Freemius SDK class is loaded at runtime.
+        - '#unknown class Freemius#'
     treatPhpDocTypesAsCertain: false
