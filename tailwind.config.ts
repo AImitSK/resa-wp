@@ -16,6 +16,7 @@ export default {
 	prefix: 'resa-',
 
 	content: [
+		'./src/components/**/*.{ts,tsx}',
 		'./src/frontend/**/*.{ts,tsx}',
 		'./src/admin/**/*.{ts,tsx}',
 		'./src/lib/**/*.{ts,tsx}',
