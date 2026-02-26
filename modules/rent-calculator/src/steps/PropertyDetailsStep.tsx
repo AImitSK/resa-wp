@@ -2,6 +2,7 @@
  * Step 2: Grunddaten — Wohnfläche, Zimmer, Baujahr.
  */
 
+import { __ } from '@wordpress/i18n';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
@@ -13,9 +14,11 @@ export function PropertyDetailsStep({ data, updateData, errors }: StepProps) {
 	return (
 		<div className="resa-space-y-4">
 			<div className="resa-text-center">
-				<h3 className="resa-text-lg resa-font-semibold">Grunddaten der Immobilie</h3>
+				<h3 className="resa-text-lg resa-font-semibold">
+					{__('Grunddaten der Immobilie', 'resa')}
+				</h3>
 				<p className="resa-text-sm resa-text-muted-foreground resa-mt-1">
-					Geben Sie die wichtigsten Eckdaten ein.
+					{__('Geben Sie die wichtigsten Eckdaten ein.', 'resa')}
 				</p>
 			</div>
 
@@ -23,7 +26,8 @@ export function PropertyDetailsStep({ data, updateData, errors }: StepProps) {
 				{/* Wohnfläche */}
 				<div>
 					<Label htmlFor="resa-size">
-						Wohnfläche (m²) <span className="resa-text-destructive">*</span>
+						{__('Wohnfläche (m²)', 'resa')}{' '}
+						<span className="resa-text-destructive">*</span>
 					</Label>
 					<div className="resa-relative resa-mt-1">
 						<Input
@@ -52,7 +56,7 @@ export function PropertyDetailsStep({ data, updateData, errors }: StepProps) {
 
 				{/* Zimmer */}
 				<div>
-					<Label htmlFor="resa-rooms">Zimmer</Label>
+					<Label htmlFor="resa-rooms">{__('Zimmer', 'resa')}</Label>
 					<Select
 						id="resa-rooms"
 						value={data.rooms !== undefined ? String(data.rooms) : ''}
@@ -62,7 +66,7 @@ export function PropertyDetailsStep({ data, updateData, errors }: StepProps) {
 						}}
 						className="resa-mt-1"
 					>
-						<option value="">Bitte wählen</option>
+						<option value="">{__('Bitte wählen', 'resa')}</option>
 						{roomOptions.map((r) => (
 							<option key={r} value={r === '6+' ? '6' : r}>
 								{r}
@@ -73,7 +77,7 @@ export function PropertyDetailsStep({ data, updateData, errors }: StepProps) {
 
 				{/* Baujahr */}
 				<div>
-					<Label htmlFor="resa-year">Baujahr</Label>
+					<Label htmlFor="resa-year">{__('Baujahr', 'resa')}</Label>
 					<Input
 						id="resa-year"
 						type="number"

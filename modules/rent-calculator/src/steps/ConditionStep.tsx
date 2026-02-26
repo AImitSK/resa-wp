@@ -2,26 +2,35 @@
  * Step 4: Zustand — 4 Zustandskarten.
  */
 
+import { __ } from '@wordpress/i18n';
 import { ResaIcon } from '@/components/icons/ResaIcon';
 import { cn } from '@/lib/utils';
 import type { StepProps } from '@frontend/types/wizard';
 
-const options = [
-	{ value: 'new', label: 'Neubau / Kernsaniert', icon: 'neubau' },
-	{ value: 'renovated', label: 'Kürzlich renoviert', icon: 'renoviert' },
-	{ value: 'good', label: 'Guter Zustand', icon: 'gut' },
-	{ value: 'needs_renovation', label: 'Renovierungsbedürftig', icon: 'reparaturen' },
-] as const;
+const getOptions = () =>
+	[
+		{ value: 'new', label: __('Neubau / Kernsaniert', 'resa'), icon: 'neubau' },
+		{ value: 'renovated', label: __('Kürzlich renoviert', 'resa'), icon: 'renoviert' },
+		{ value: 'good', label: __('Guter Zustand', 'resa'), icon: 'gut' },
+		{
+			value: 'needs_renovation',
+			label: __('Renovierungsbedürftig', 'resa'),
+			icon: 'reparaturen',
+		},
+	] as const;
 
 export function ConditionStep({ data, updateData, errors }: StepProps) {
 	const selected = data.condition as string | undefined;
+	const options = getOptions();
 
 	return (
 		<div className="resa-space-y-4">
 			<div className="resa-text-center">
-				<h3 className="resa-text-lg resa-font-semibold">Zustand der Immobilie</h3>
+				<h3 className="resa-text-lg resa-font-semibold">
+					{__('Zustand der Immobilie', 'resa')}
+				</h3>
 				<p className="resa-text-sm resa-text-muted-foreground resa-mt-1">
-					Wie würden Sie den aktuellen Zustand beschreiben?
+					{__('Wie würden Sie den aktuellen Zustand beschreiben?', 'resa')}
 				</p>
 			</div>
 

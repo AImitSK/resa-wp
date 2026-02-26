@@ -5,6 +5,7 @@
  * respecting required/optional/hidden states.
  */
 
+import { __ } from '@wordpress/i18n';
 import { z, type ZodTypeAny } from 'zod';
 import type { FieldConfig } from '../types/lead-form';
 
@@ -24,7 +25,9 @@ export function buildLeadSchema(fields: FieldConfig[]): z.ZodObject<Record<strin
 
 		switch (field.type) {
 			case 'email':
-				validator = z.string().email('Bitte geben Sie eine gültige E-Mail-Adresse ein.');
+				validator = z
+					.string()
+					.email(__('Bitte geben Sie eine gültige E-Mail-Adresse ein.', 'resa'));
 				break;
 
 			case 'tel':
@@ -32,14 +35,14 @@ export function buildLeadSchema(fields: FieldConfig[]): z.ZodObject<Record<strin
 					.string()
 					.regex(
 						/^[+\d\s\-()]{6,20}$/,
-						'Bitte geben Sie eine gültige Telefonnummer ein.',
+						__('Bitte geben Sie eine gültige Telefonnummer ein.', 'resa'),
 					);
 				break;
 
 			case 'checkbox':
 				if (field.slug === 'consent') {
 					validator = z.literal(true, {
-						error: 'Die Datenschutz-Einwilligung ist erforderlich.',
+						error: __('Die Datenschutz-Einwilligung ist erforderlich.', 'resa'),
 					});
 				} else {
 					validator = z.boolean().default(false);
@@ -47,7 +50,7 @@ export function buildLeadSchema(fields: FieldConfig[]): z.ZodObject<Record<strin
 				break;
 
 			case 'textarea':
-				validator = z.string().max(500, 'Maximal 500 Zeichen.');
+				validator = z.string().max(500, __('Maximal 500 Zeichen.', 'resa'));
 				break;
 
 			case 'select': {
@@ -61,7 +64,7 @@ export function buildLeadSchema(fields: FieldConfig[]): z.ZodObject<Record<strin
 			}
 
 			default:
-				validator = z.string().min(2, 'Bitte füllen Sie dieses Feld aus.');
+				validator = z.string().min(2, __('Bitte füllen Sie dieses Feld aus.', 'resa'));
 		}
 
 		// Optional non-checkbox fields accept empty strings.

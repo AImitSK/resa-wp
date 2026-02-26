@@ -6,6 +6,7 @@
  * Handles DSGVO consent and trust badge.
  */
 
+import { __ } from '@wordpress/i18n';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { buildLeadSchema } from '../../lib/validation';
@@ -51,9 +52,14 @@ export function LeadForm({
 			className="resa-space-y-4"
 		>
 			<div className="resa-text-center resa-mb-6">
-				<h3 className="resa-text-lg resa-font-semibold">Ihre Ergebnisse sind fertig!</h3>
+				<h3 className="resa-text-lg resa-font-semibold">
+					{__('Ihre Ergebnisse sind fertig!', 'resa')}
+				</h3>
 				<p className="resa-text-sm resa-text-muted-foreground resa-mt-1">
-					Geben Sie Ihre Daten ein, um Ihre persönliche Analyse zu erhalten.
+					{__(
+						'Geben Sie Ihre Daten ein, um Ihre persönliche Analyse zu erhalten.',
+						'resa',
+					)}
 				</p>
 			</div>
 
@@ -91,7 +97,7 @@ export function LeadForm({
 				{isSubmitting ? (
 					<span className="resa-inline-flex resa-items-center resa-gap-2">
 						<LoadingSpinner />
-						Wird gesendet…
+						{__('Wird gesendet…', 'resa')}
 					</span>
 				) : (
 					<span className="resa-inline-flex resa-items-center resa-gap-1">
@@ -156,7 +162,7 @@ function FormField({ field, register, error }: FormFieldProps) {
 					aria-invalid={!!error}
 					{...register(field.slug)}
 				>
-					<option value="">{field.placeholder ?? 'Bitte wählen'}</option>
+					<option value="">{field.placeholder ?? __('Bitte wählen', 'resa')}</option>
 					{field.options?.map((opt) => (
 						<option key={opt.value} value={opt.value}>
 							{opt.label}

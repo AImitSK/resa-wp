@@ -5,6 +5,7 @@
  * annual rent, and market position gauge.
  */
 
+import { __ } from '@wordpress/i18n';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MarketPositionGauge } from './MarketPositionGauge';
 import type { RentCalculationResult, RentCalculatorData } from '../types';
@@ -33,41 +34,46 @@ function formatCurrencyPrecise(value: number): string {
 	});
 }
 
-const propertyTypeLabels: Record<string, string> = {
-	apartment: 'Wohnung',
-	house: 'Haus',
-};
+const getPropertyTypeLabels = (): Record<string, string> => ({
+	apartment: __('Wohnung', 'resa'),
+	house: __('Haus', 'resa'),
+});
 
-const conditionLabels: Record<string, string> = {
-	new: 'Neubau / Kernsaniert',
-	renovated: 'Kürzlich renoviert',
-	good: 'Guter Zustand',
-	needs_renovation: 'Renovierungsbedürftig',
-};
+const getConditionLabels = (): Record<string, string> => ({
+	new: __('Neubau / Kernsaniert', 'resa'),
+	renovated: __('Kürzlich renoviert', 'resa'),
+	good: __('Guter Zustand', 'resa'),
+	needs_renovation: __('Renovierungsbedürftig', 'resa'),
+});
 
-const featureLabels: Record<string, string> = {
-	balcony: 'Balkon',
-	terrace: 'Terrasse',
-	garden: 'Garten',
-	elevator: 'Aufzug',
-	parking: 'Stellplatz',
-	garage: 'Garage',
-	cellar: 'Keller',
-	fitted_kitchen: 'Einbauküche',
-	floor_heating: 'Fußbodenheizung',
-	guest_toilet: 'Gäste-WC',
-	barrier_free: 'Barrierefrei',
-};
+const getFeatureLabels = (): Record<string, string> => ({
+	balcony: __('Balkon', 'resa'),
+	terrace: __('Terrasse', 'resa'),
+	garden: __('Garten', 'resa'),
+	elevator: __('Aufzug', 'resa'),
+	parking: __('Stellplatz', 'resa'),
+	garage: __('Garage', 'resa'),
+	cellar: __('Keller', 'resa'),
+	fitted_kitchen: __('Einbauküche', 'resa'),
+	floor_heating: __('Fußbodenheizung', 'resa'),
+	guest_toilet: __('Gäste-WC', 'resa'),
+	barrier_free: __('Barrierefrei', 'resa'),
+});
 
 export function RentResult({ result, inputs }: RentResultProps) {
 	const { monthly_rent, annual_rent, price_per_sqm, market_position } = result;
+	const propertyTypeLabels = getPropertyTypeLabels();
+	const conditionLabels = getConditionLabels();
+	const featureLabels = getFeatureLabels();
 
 	return (
 		<div className="resa-space-y-4">
 			{/* Main result */}
 			<Card>
 				<CardHeader className="resa-text-center resa-pb-2">
-					<CardTitle className="resa-text-base">Geschätzte Monatsmiete</CardTitle>
+					<CardTitle className="resa-text-base">
+						{__('Geschätzte Monatsmiete', 'resa')}
+					</CardTitle>
 				</CardHeader>
 				<CardContent className="resa-text-center">
 					<div className="resa-text-4xl resa-font-bold resa-text-primary">
@@ -83,7 +89,9 @@ export function RentResult({ result, inputs }: RentResultProps) {
 			<div className="resa-grid resa-grid-cols-2 resa-gap-3">
 				<Card>
 					<CardContent className="resa-p-4 resa-text-center">
-						<div className="resa-text-xs resa-text-muted-foreground">Preis pro m²</div>
+						<div className="resa-text-xs resa-text-muted-foreground">
+							{__('Preis pro m²', 'resa')}
+						</div>
 						<div className="resa-text-lg resa-font-semibold">
 							{formatCurrencyPrecise(price_per_sqm)}/m²
 						</div>
@@ -92,7 +100,7 @@ export function RentResult({ result, inputs }: RentResultProps) {
 				<Card>
 					<CardContent className="resa-p-4 resa-text-center">
 						<div className="resa-text-xs resa-text-muted-foreground">
-							Jährliche Mieteinnahmen
+							{__('Jährliche Mieteinnahmen', 'resa')}
 						</div>
 						<div className="resa-text-lg resa-font-semibold">
 							{formatCurrency(annual_rent)}
@@ -105,7 +113,7 @@ export function RentResult({ result, inputs }: RentResultProps) {
 			<Card>
 				<CardContent className="resa-p-4">
 					<div className="resa-text-xs resa-text-muted-foreground resa-text-center resa-mb-2">
-						Marktposition
+						{__('Marktposition', 'resa')}
 					</div>
 					<MarketPositionGauge
 						percentile={market_position.percentile}
@@ -118,7 +126,7 @@ export function RentResult({ result, inputs }: RentResultProps) {
 			<Card>
 				<CardContent className="resa-p-4">
 					<div className="resa-text-xs resa-font-medium resa-text-muted-foreground resa-mb-2">
-						Ihre Eingaben
+						{__('Ihre Eingaben', 'resa')}
 					</div>
 					<ul className="resa-space-y-1 resa-text-sm">
 						<li>
@@ -127,8 +135,8 @@ export function RentResult({ result, inputs }: RentResultProps) {
 							{inputs.city_name && `, ${inputs.city_name}`}
 						</li>
 						<li>
-							{conditionLabels[inputs.condition ?? ''] ?? inputs.condition}, Lage{' '}
-							{inputs.location_rating}/5
+							{conditionLabels[inputs.condition ?? ''] ?? inputs.condition},{' '}
+							{__('Lage', 'resa')} {inputs.location_rating}/5
 						</li>
 						{inputs.features && inputs.features.length > 0 && (
 							<li>{inputs.features.map((f) => featureLabels[f] ?? f).join(', ')}</li>
@@ -140,7 +148,10 @@ export function RentResult({ result, inputs }: RentResultProps) {
 			{/* Agent hint */}
 			<div className="resa-rounded-lg resa-bg-muted/50 resa-p-4 resa-text-center">
 				<p className="resa-text-sm resa-text-muted-foreground">
-					Ein Immobilienexperte analysiert Ihre Daten und meldet sich in Kürze bei Ihnen.
+					{__(
+						'Ein Immobilienexperte analysiert Ihre Daten und meldet sich in Kürze bei Ihnen.',
+						'resa',
+					)}
 				</p>
 			</div>
 		</div>

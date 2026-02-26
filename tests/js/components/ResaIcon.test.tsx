@@ -57,7 +57,8 @@ describe('ResaIcon', () => {
 		const { container } = render(<ResaIcon name="haus" className="resa-text-blue-600" />);
 
 		const span = container.querySelector('span');
-		expect(span?.className).toBe('resa-text-blue-600');
+		expect(span?.className).toContain('resa-icon');
+		expect(span?.className).toContain('resa-text-blue-600');
 	});
 
 	it('ist dekorativ ohne label (aria-hidden)', () => {

@@ -65,7 +65,11 @@ export default defineConfig({
 				entryFileNames: '[name]/[name]-[hash].js',
 				chunkFileNames: 'shared/[name]-[hash].js',
 				assetFileNames: '[name]/[name]-[hash].[ext]',
+				globals: {
+					'@wordpress/i18n': 'wp.i18n',
+				},
 			},
+			external: ['@wordpress/i18n'],
 		},
 	},
 

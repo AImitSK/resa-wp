@@ -2,35 +2,34 @@
  * Step 6: Ausstattung — 11 Feature-Checkboxen mit Icons.
  */
 
+import { __ } from '@wordpress/i18n';
 import { ResaIcon } from '@/components/icons/ResaIcon';
 import { cn } from '@/lib/utils';
 import type { StepProps } from '@frontend/types/wizard';
 import type { FeatureOption } from '../types';
 
 /** Default features if config hasn't loaded yet. */
-const defaultFeatures: FeatureOption[] = [
-	{ key: 'balcony', label: 'Balkon', icon: 'balkon' },
-	{ key: 'terrace', label: 'Terrasse', icon: 'terrasse' },
-	{ key: 'garden', label: 'Garten', icon: 'garten' },
-	{ key: 'elevator', label: 'Aufzug', icon: 'aufzug' },
-	{ key: 'parking', label: 'Stellplatz', icon: 'stellplatz' },
-	{ key: 'garage', label: 'Garage', icon: 'garage' },
-	{ key: 'cellar', label: 'Keller', icon: 'keller' },
-	{ key: 'fitted_kitchen', label: 'Einbauküche', icon: 'kueche' },
-	{ key: 'floor_heating', label: 'Fußbodenheizung', icon: 'fussbodenheizung' },
-	{ key: 'guest_toilet', label: 'Gäste-WC', icon: 'wc' },
-	{ key: 'barrier_free', label: 'Barrierefrei', icon: 'barrierefrei' },
+const getDefaultFeatures = (): FeatureOption[] => [
+	{ key: 'balcony', label: __('Balkon', 'resa'), icon: 'balkon' },
+	{ key: 'terrace', label: __('Terrasse', 'resa'), icon: 'terrasse' },
+	{ key: 'garden', label: __('Garten', 'resa'), icon: 'garten' },
+	{ key: 'elevator', label: __('Aufzug', 'resa'), icon: 'aufzug' },
+	{ key: 'parking', label: __('Stellplatz', 'resa'), icon: 'stellplatz' },
+	{ key: 'garage', label: __('Garage', 'resa'), icon: 'garage' },
+	{ key: 'cellar', label: __('Keller', 'resa'), icon: 'keller' },
+	{ key: 'fitted_kitchen', label: __('Einbauküche', 'resa'), icon: 'kueche' },
+	{ key: 'floor_heating', label: __('Fußbodenheizung', 'resa'), icon: 'fussbodenheizung' },
+	{ key: 'guest_toilet', label: __('Gäste-WC', 'resa'), icon: 'wc' },
+	{ key: 'barrier_free', label: __('Barrierefrei', 'resa'), icon: 'barrierefrei' },
 ];
 
 interface FeaturesStepProps extends StepProps {
 	featureOptions?: FeatureOption[];
 }
 
-export function FeaturesStep({
-	data,
-	updateData,
-	featureOptions = defaultFeatures,
-}: FeaturesStepProps) {
+export function FeaturesStep({ data, updateData, featureOptions }: FeaturesStepProps) {
+	const defaultFeatures = getDefaultFeatures();
+	const features = featureOptions ?? defaultFeatures;
 	const selected = (data.features as string[]) ?? [];
 	const additionalFeatures = (data.additional_features as string) ?? '';
 
@@ -48,14 +47,16 @@ export function FeaturesStep({
 	return (
 		<div className="resa-space-y-4">
 			<div className="resa-text-center">
-				<h3 className="resa-text-lg resa-font-semibold">Ausstattungsmerkmale</h3>
+				<h3 className="resa-text-lg resa-font-semibold">
+					{__('Ausstattungsmerkmale', 'resa')}
+				</h3>
 				<p className="resa-text-sm resa-text-muted-foreground resa-mt-1">
-					Welche Ausstattung hat die Immobilie? (optional)
+					{__('Welche Ausstattung hat die Immobilie? (optional)', 'resa')}
 				</p>
 			</div>
 
 			<div className="resa-grid resa-grid-cols-3 resa-gap-2">
-				{featureOptions.map((feature) => {
+				{features.map((feature) => {
 					const isSelected = selected.includes(feature.key);
 					return (
 						<button
@@ -84,16 +85,16 @@ export function FeaturesStep({
 					htmlFor="additional-features"
 					className="resa-block resa-text-sm resa-font-medium resa-mb-1"
 				>
-					Weitere Ausstattung
+					{__('Weitere Ausstattung', 'resa')}
 					<span className="resa-text-muted-foreground resa-font-normal resa-ml-1">
-						(optional)
+						{__('(optional)', 'resa')}
 					</span>
 				</label>
 				<textarea
 					id="additional-features"
 					value={additionalFeatures}
 					onChange={handleAdditionalChange}
-					placeholder="z.B. Smart Home, Sauna, Pool, Klimaanlage..."
+					placeholder={__('z.B. Smart Home, Sauna, Pool, Klimaanlage...', 'resa')}
 					rows={2}
 					className="resa-w-full resa-px-3 resa-py-2 resa-rounded-md resa-border resa-border-input resa-bg-background resa-text-sm placeholder:resa-text-muted-foreground focus:resa-outline-none focus:resa-ring-2 focus:resa-ring-ring"
 				/>

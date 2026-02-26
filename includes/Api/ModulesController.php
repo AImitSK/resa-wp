@@ -4,6 +4,7 @@ declare( strict_types=1 );
 
 namespace Resa\Api;
 
+use Resa\Core\ErrorMessages;
 use Resa\Core\Plugin;
 
 /**
@@ -101,10 +102,7 @@ class ModulesController extends RestController {
 		$module   = $registry->get( $slug );
 
 		if ( ! $module ) {
-			return $this->notFound(
-				/* translators: %s: Module slug */
-				sprintf( __( 'Modul "%s" nicht gefunden.', 'resa' ), $slug )
-			);
+			return $this->notFound( ErrorMessages::getWithParam( 'module_not_found', $slug ) );
 		}
 
 		// Toggle activation state.

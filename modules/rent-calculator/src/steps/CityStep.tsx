@@ -4,6 +4,7 @@
  * Skipped if city is pre-selected via shortcode attribute.
  */
 
+import { __ } from '@wordpress/i18n';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import type { StepProps } from '@frontend/types/wizard';
@@ -17,15 +18,17 @@ export function CityStep({ data, updateData, errors, cities }: CityStepProps) {
 	return (
 		<div className="resa-space-y-4">
 			<div className="resa-text-center">
-				<h3 className="resa-text-lg resa-font-semibold">In welcher Stadt?</h3>
+				<h3 className="resa-text-lg resa-font-semibold">
+					{__('In welcher Stadt?', 'resa')}
+				</h3>
 				<p className="resa-text-sm resa-text-muted-foreground resa-mt-1">
-					Wählen Sie den Standort der Immobilie.
+					{__('Wählen Sie den Standort der Immobilie.', 'resa')}
 				</p>
 			</div>
 
 			<div>
 				<Label htmlFor="resa-city">
-					Standort <span className="resa-text-destructive">*</span>
+					{__('Standort', 'resa')} <span className="resa-text-destructive">*</span>
 				</Label>
 				<Select
 					id="resa-city"
@@ -52,7 +55,7 @@ export function CityStep({ data, updateData, errors, cities }: CityStepProps) {
 					className="resa-mt-1"
 					aria-invalid={!!errors.city_id}
 				>
-					<option value="">Bitte wählen</option>
+					<option value="">{__('Bitte wählen', 'resa')}</option>
 					{cities.map((city) => (
 						<option key={city.id} value={city.id}>
 							{city.name}

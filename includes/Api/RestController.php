@@ -4,6 +4,8 @@ declare( strict_types=1 );
 
 namespace Resa\Api;
 
+use Resa\Core\ErrorMessages;
+
 /**
  * Abstract base controller for all RESA REST API endpoints.
  *
@@ -75,10 +77,10 @@ abstract class RestController {
 	 */
 	protected function notFound( string $message = '' ): \WP_Error {
 		if ( $message === '' ) {
-			$message = __( 'Ressource nicht gefunden.', 'resa' );
+			$message = ErrorMessages::get( ErrorMessages::NOT_FOUND );
 		}
 
-		return $this->error( 'resa_not_found', $message, 404 );
+		return $this->error( ErrorMessages::NOT_FOUND, $message, 404 );
 	}
 
 	/**
@@ -90,8 +92,8 @@ abstract class RestController {
 	 */
 	protected function validationError( array $errors ): \WP_Error {
 		return $this->error(
-			'resa_validation_error',
-			__( 'Validierungsfehler.', 'resa' ),
+			ErrorMessages::VALIDATION,
+			ErrorMessages::get( ErrorMessages::VALIDATION ),
 			400,
 			[ 'errors' => $errors ]
 		);
@@ -110,13 +112,7 @@ abstract class RestController {
 
 		if ( ! is_string( $value ) || trim( $value ) === '' ) {
 			return $this->validationError(
-				[
-					$key => sprintf(
-						/* translators: %s: Parameter name */
-						__( '%s ist erforderlich.', 'resa' ),
-						$key
-					),
-				]
+				[ $key => ErrorMessages::getWithParam( 'field_required', $key ) ]
 			);
 		}
 
@@ -136,13 +132,7 @@ abstract class RestController {
 
 		if ( $value === null || $value === '' ) {
 			return $this->validationError(
-				[
-					$key => sprintf(
-						/* translators: %s: Parameter name */
-						__( '%s ist erforderlich.', 'resa' ),
-						$key
-					),
-				]
+				[ $key => ErrorMessages::getWithParam( 'field_required', $key ) ]
 			);
 		}
 

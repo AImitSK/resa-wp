@@ -4,6 +4,7 @@ declare( strict_types=1 );
 
 namespace Resa\Api;
 
+use Resa\Core\ErrorMessages;
 use Resa\Models\Lead;
 
 /**
@@ -73,7 +74,11 @@ final class LeadsController extends RestController {
 		);
 
 		if ( $id === false ) {
-			return $this->error( 'resa_lead_create_failed', __( 'Lead konnte nicht erstellt werden.', 'resa' ), 500 );
+			return $this->error(
+				ErrorMessages::LEAD_CREATE_FAILED,
+				ErrorMessages::get( ErrorMessages::LEAD_CREATE_FAILED ),
+				500
+			);
 		}
 
 		return $this->success(
@@ -101,11 +106,14 @@ final class LeadsController extends RestController {
 		// Verify partial lead exists.
 		$lead = Lead::findBySession( $sessionId );
 		if ( $lead === null ) {
-			return $this->notFound( __( 'Kein passender Lead für diese Session gefunden.', 'resa' ) );
+			return $this->notFound( ErrorMessages::get( ErrorMessages::LEAD_NOT_FOUND ) );
 		}
 
 		if ( $lead->status !== 'partial' ) {
-			return $this->error( 'resa_lead_already_completed', __( 'Dieser Lead wurde bereits abgeschlossen.', 'resa' ) );
+			return $this->error(
+				ErrorMessages::LEAD_ALREADY_COMPLETED,
+				ErrorMessages::get( ErrorMessages::LEAD_ALREADY_COMPLETED )
+			);
 		}
 
 		// Validate required contact fields.
@@ -116,12 +124,12 @@ final class LeadsController extends RestController {
 
 		$email = $request->get_param( 'email' );
 		if ( ! is_email( $email ) ) {
-			return $this->validationError( [ 'email' => __( 'Bitte geben Sie eine gültige E-Mail-Adresse ein.', 'resa' ) ] );
+			return $this->validationError( [ 'email' => ErrorMessages::get( ErrorMessages::INVALID_EMAIL ) ] );
 		}
 
 		$consent = (bool) $request->get_param( 'consent' );
 		if ( ! $consent ) {
-			return $this->validationError( [ 'consent' => __( 'Die Datenschutz-Einwilligung ist erforderlich.', 'resa' ) ] );
+			return $this->validationError( [ 'consent' => ErrorMessages::get( ErrorMessages::CONSENT_REQUIRED ) ] );
 		}
 
 		$success = Lead::complete(
@@ -139,7 +147,11 @@ final class LeadsController extends RestController {
 		);
 
 		if ( ! $success ) {
-			return $this->error( 'resa_lead_complete_failed', __( 'Lead konnte nicht abgeschlossen werden.', 'resa' ), 500 );
+			return $this->error(
+				ErrorMessages::LEAD_COMPLETE_FAILED,
+				ErrorMessages::get( ErrorMessages::LEAD_COMPLETE_FAILED ),
+				500
+			);
 		}
 
 		$updatedLead = Lead::findBySession( $sessionId );

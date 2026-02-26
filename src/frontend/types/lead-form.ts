@@ -5,6 +5,8 @@
  * This config is passed from PHP → REST API → React.
  */
 
+import { __ } from '@wordpress/i18n';
+
 /**
  * Possible field display states.
  */
@@ -52,63 +54,93 @@ export interface LeadFormData {
 }
 
 /**
- * Default "Balanced" preset — used on free plan.
+ * Get default fields with translated labels.
+ *
+ * Returns "Balanced" preset — used on free plan.
  */
-export const DEFAULT_FIELDS: FieldConfig[] = [
-	{
-		slug: 'firstName',
-		type: 'text',
-		label: 'Vorname',
-		placeholder: 'Max',
-		status: 'required',
-		order: 1,
-	},
-	{
-		slug: 'lastName',
-		type: 'text',
-		label: 'Nachname',
-		placeholder: 'Mustermann',
-		hint: '(optional)',
-		status: 'optional',
-		order: 2,
-	},
-	{
-		slug: 'email',
-		type: 'email',
-		label: 'E-Mail',
-		placeholder: 'max@beispiel.de',
-		status: 'required',
-		order: 3,
-	},
-	{
-		slug: 'phone',
-		type: 'tel',
-		label: 'Telefon',
-		placeholder: '+49 123 456789',
-		hint: 'Für persönliche Beratung',
-		status: 'optional',
-		order: 4,
-	},
-	{
-		slug: 'newsletter',
-		type: 'checkbox',
-		label: 'Ja, ich möchte Markt-Updates per E-Mail erhalten.',
-		status: 'optional',
-		order: 90,
-	},
-	{
-		slug: 'consent',
-		type: 'checkbox',
-		label: 'Ich stimme der Verarbeitung meiner Daten gemäß der [Datenschutzerklärung] zu.',
-		status: 'required',
-		order: 99,
-	},
-];
+export function getDefaultFields(): FieldConfig[] {
+	return [
+		{
+			slug: 'firstName',
+			type: 'text',
+			label: __('Vorname', 'resa'),
+			placeholder: 'Max',
+			status: 'required',
+			order: 1,
+		},
+		{
+			slug: 'lastName',
+			type: 'text',
+			label: __('Nachname', 'resa'),
+			placeholder: 'Mustermann',
+			hint: __('(optional)', 'resa'),
+			status: 'optional',
+			order: 2,
+		},
+		{
+			slug: 'email',
+			type: 'email',
+			label: __('E-Mail', 'resa'),
+			placeholder: 'max@beispiel.de',
+			status: 'required',
+			order: 3,
+		},
+		{
+			slug: 'phone',
+			type: 'tel',
+			label: __('Telefon', 'resa'),
+			placeholder: '+49 123 456789',
+			hint: __('Für persönliche Beratung', 'resa'),
+			status: 'optional',
+			order: 4,
+		},
+		{
+			slug: 'newsletter',
+			type: 'checkbox',
+			label: __('Ja, ich möchte Markt-Updates per E-Mail erhalten.', 'resa'),
+			status: 'optional',
+			order: 90,
+		},
+		{
+			slug: 'consent',
+			type: 'checkbox',
+			label: __(
+				'Ich stimme der Verarbeitung meiner Daten gemäß der [Datenschutzerklärung] zu.',
+				'resa',
+			),
+			status: 'required',
+			order: 99,
+		},
+	];
+}
 
-export const DEFAULT_LEAD_FORM_CONFIG: LeadFormConfig = {
-	fields: DEFAULT_FIELDS,
-	buttonText: 'Ergebnis anzeigen',
-	privacyUrl: '/datenschutz',
-	consentLabel: 'Ich stimme der Verarbeitung meiner Daten gemäß der Datenschutzerklärung zu.',
-	trustBadgeText: 'Ihre Daten sind sicher und werden nicht an Dritte weitergegeben.',
-};
+/**
+ * Default fields array for backwards compatibility.
+ * @deprecated Use getDefaultFields() for i18n support.
+ */
+export const DEFAULT_FIELDS: FieldConfig[] = getDefaultFields();
+
+/**
+ * Get default lead form config with translated labels.
+ */
+export function getDefaultLeadFormConfig(): LeadFormConfig {
+	return {
+		fields: getDefaultFields(),
+		buttonText: __('Ergebnis anzeigen', 'resa'),
+		privacyUrl: '/datenschutz',
+		consentLabel: __(
+			'Ich stimme der Verarbeitung meiner Daten gemäß der Datenschutzerklärung zu.',
+			'resa',
+		),
+		trustBadgeText: __(
+			'Ihre Daten sind sicher und werden nicht an Dritte weitergegeben.',
+			'resa',
+		),
+	};
+}
+
+/**
+ * Default config for backwards compatibility.
+ * @deprecated Use getDefaultLeadFormConfig() for i18n support.
+ */
+export const DEFAULT_LEAD_FORM_CONFIG: LeadFormConfig = getDefaultLeadFormConfig();

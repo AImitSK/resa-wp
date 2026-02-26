@@ -6,6 +6,7 @@
  * across all steps into a single record.
  */
 
+import { __ } from '@wordpress/i18n';
 import { useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { ZodError } from 'zod';
@@ -34,10 +35,13 @@ export function StepWizard({
 	steps,
 	onComplete,
 	initialData = {},
-	backLabel = 'Zurück',
-	nextLabel = 'Weiter',
-	completeLabel = 'Ergebnis anzeigen',
+	backLabel,
+	nextLabel,
+	completeLabel,
 }: StepWizardProps) {
+	const back = backLabel ?? __('Zurück', 'resa');
+	const next = nextLabel ?? __('Weiter', 'resa');
+	const complete = completeLabel ?? __('Ergebnis anzeigen', 'resa');
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [direction, setDirection] = useState(1);
 	const [data, setData] = useState<WizardData>(initialData);
@@ -139,7 +143,7 @@ export function StepWizard({
 							: 'resa-text-foreground resa-bg-muted hover:resa-bg-muted/80'
 					}`}
 				>
-					{backLabel}
+					{back}
 				</button>
 
 				<button
@@ -147,7 +151,7 @@ export function StepWizard({
 					onClick={goNext}
 					className="resa-px-6 resa-py-2 resa-rounded-md resa-text-sm resa-font-medium resa-bg-primary resa-text-primary-foreground hover:resa-bg-primary/90 resa-transition-colors"
 				>
-					{isLast ? completeLabel : nextLabel}
+					{isLast ? complete : next}
 				</button>
 			</div>
 		</div>

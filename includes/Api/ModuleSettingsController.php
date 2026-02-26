@@ -4,6 +4,7 @@ declare( strict_types=1 );
 
 namespace Resa\Api;
 
+use Resa\Core\ErrorMessages;
 use Resa\Models\ModuleSettings;
 use Resa\Core\Plugin;
 use Resa\Core\ModuleInterface;
@@ -144,10 +145,7 @@ class ModuleSettingsController extends RestController {
 		// Verify module exists.
 		$module = $this->getModule( $slug );
 		if ( ! $module ) {
-			return $this->notFound(
-				/* translators: %s: Module slug */
-				sprintf( __( 'Modul "%s" nicht gefunden.', 'resa' ), $slug )
-			);
+			return $this->notFound( ErrorMessages::getWithParam( 'module_not_found', $slug ) );
 		}
 
 		$settings = ModuleSettings::getBySlug( $slug );
@@ -183,10 +181,7 @@ class ModuleSettingsController extends RestController {
 		// Verify module exists.
 		$module = $this->getModule( $slug );
 		if ( ! $module ) {
-			return $this->notFound(
-				/* translators: %s: Module slug */
-				sprintf( __( 'Modul "%s" nicht gefunden.', 'resa' ), $slug )
-			);
+			return $this->notFound( ErrorMessages::getWithParam( 'module_not_found', $slug ) );
 		}
 
 		$body = $request->get_json_params();
@@ -221,8 +216,8 @@ class ModuleSettingsController extends RestController {
 
 		if ( ! $success ) {
 			return $this->error(
-				'resa_save_failed',
-				__( 'Einstellungen konnten nicht gespeichert werden.', 'resa' ),
+				ErrorMessages::SETTINGS_SAVE_FAILED,
+				ErrorMessages::get( ErrorMessages::SETTINGS_SAVE_FAILED ),
 				500
 			);
 		}
@@ -247,10 +242,7 @@ class ModuleSettingsController extends RestController {
 		// Verify module exists.
 		$module = $this->getModule( $slug );
 		if ( ! $module ) {
-			return $this->notFound(
-				/* translators: %s: Module slug */
-				sprintf( __( 'Modul "%s" nicht gefunden.', 'resa' ), $slug )
-			);
+			return $this->notFound( ErrorMessages::getWithParam( 'module_not_found', $slug ) );
 		}
 
 		$presets = $this->getPresetsForModule( $slug );
@@ -273,10 +265,7 @@ class ModuleSettingsController extends RestController {
 		// Verify module exists.
 		$module = $this->getModule( $slug );
 		if ( ! $module ) {
-			return $this->notFound(
-				/* translators: %s: Module slug */
-				sprintf( __( 'Modul "%s" nicht gefunden.', 'resa' ), $slug )
-			);
+			return $this->notFound( ErrorMessages::getWithParam( 'module_not_found', $slug ) );
 		}
 
 		$body   = $request->get_json_params();

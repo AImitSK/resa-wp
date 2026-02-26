@@ -2,24 +2,29 @@
  * Step 1: Immobilienart — Wohnung oder Haus.
  */
 
+import { __ } from '@wordpress/i18n';
 import { ResaIcon } from '@/components/icons/ResaIcon';
 import { cn } from '@/lib/utils';
 import type { StepProps } from '@frontend/types/wizard';
 
-const options = [
-	{ value: 'apartment', label: 'Wohnung', icon: 'wohnung' },
-	{ value: 'house', label: 'Haus', icon: 'haus' },
-] as const;
+const getOptions = () =>
+	[
+		{ value: 'apartment', label: __('Wohnung', 'resa'), icon: 'wohnung' },
+		{ value: 'house', label: __('Haus', 'resa'), icon: 'haus' },
+	] as const;
 
 export function PropertyTypeStep({ data, updateData, errors }: StepProps) {
 	const selected = data.property_type as string | undefined;
+	const options = getOptions();
 
 	return (
 		<div className="resa-space-y-4">
 			<div className="resa-text-center">
-				<h3 className="resa-text-lg resa-font-semibold">Welche Art von Immobilie?</h3>
+				<h3 className="resa-text-lg resa-font-semibold">
+					{__('Welche Art von Immobilie?', 'resa')}
+				</h3>
 				<p className="resa-text-sm resa-text-muted-foreground resa-mt-1">
-					Wählen Sie den Immobilientyp aus.
+					{__('Wählen Sie den Immobilientyp aus.', 'resa')}
 				</p>
 			</div>
 
