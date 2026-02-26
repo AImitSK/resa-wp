@@ -32,12 +32,17 @@ export function FeaturesStep({
 	featureOptions = defaultFeatures,
 }: FeaturesStepProps) {
 	const selected = (data.features as string[]) ?? [];
+	const additionalFeatures = (data.additional_features as string) ?? '';
 
 	const toggle = (key: string) => {
 		const next = selected.includes(key)
 			? selected.filter((f) => f !== key)
 			: [...selected, key];
 		updateData({ features: next });
+	};
+
+	const handleAdditionalChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+		updateData({ additional_features: e.target.value });
 	};
 
 	return (
@@ -71,6 +76,27 @@ export function FeaturesStep({
 						</button>
 					);
 				})}
+			</div>
+
+			{/* Free text for additional features */}
+			<div className="resa-mt-4">
+				<label
+					htmlFor="additional-features"
+					className="resa-block resa-text-sm resa-font-medium resa-mb-1"
+				>
+					Weitere Ausstattung
+					<span className="resa-text-muted-foreground resa-font-normal resa-ml-1">
+						(optional)
+					</span>
+				</label>
+				<textarea
+					id="additional-features"
+					value={additionalFeatures}
+					onChange={handleAdditionalChange}
+					placeholder="z.B. Smart Home, Sauna, Pool, Klimaanlage..."
+					rows={2}
+					className="resa-w-full resa-px-3 resa-py-2 resa-rounded-md resa-border resa-border-input resa-bg-background resa-text-sm placeholder:resa-text-muted-foreground focus:resa-outline-none focus:resa-ring-2 focus:resa-ring-ring"
+				/>
 			</div>
 		</div>
 	);

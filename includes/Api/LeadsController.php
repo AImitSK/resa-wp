@@ -227,9 +227,10 @@ final class LeadsController extends RestController {
 				'type'     => 'boolean',
 			],
 			'consentText' => [
-				'required'          => true,
+				'required'          => false,
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_textarea_field',
+				'default'           => '',
 			],
 			'lastName'    => [
 				'required'          => false,

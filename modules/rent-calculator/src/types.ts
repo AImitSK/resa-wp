@@ -13,6 +13,8 @@ export interface RentCalculatorData {
 	condition?: 'new' | 'renovated' | 'good' | 'needs_renovation';
 	location_rating?: number;
 	features?: string[];
+	/** Free-text for additional features (non-calculation, info for agent). */
+	additional_features?: string;
 }
 
 export interface RentCalculationResult {
