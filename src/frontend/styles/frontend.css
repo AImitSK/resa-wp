@@ -90,6 +90,12 @@
 	max-width: 100%;
 }
 
+/* Icon scaling - SVGs inside ResaIcon containers */
+.resa-widget-root .resa-icon svg {
+	width: 100%;
+	height: 100%;
+}
+
 .resa-widget-root button {
 	font-family: inherit;
 	font-size: inherit;

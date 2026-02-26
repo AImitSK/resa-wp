@@ -56,7 +56,7 @@ export interface LeadFormData {
  */
 export const DEFAULT_FIELDS: FieldConfig[] = [
 	{
-		slug: 'first_name',
+		slug: 'firstName',
 		type: 'text',
 		label: 'Vorname',
 		placeholder: 'Max',
@@ -64,7 +64,7 @@ export const DEFAULT_FIELDS: FieldConfig[] = [
 		order: 1,
 	},
 	{
-		slug: 'last_name',
+		slug: 'lastName',
 		type: 'text',
 		label: 'Nachname',
 		placeholder: 'Mustermann',

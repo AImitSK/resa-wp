@@ -166,9 +166,9 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 			// Create partial lead.
 			const sessionId = getSessionId();
 			await api.post('leads/partial', {
-				session_id: sessionId,
-				asset_type: 'rent-calculator',
-				location_id: inputs.city_id ?? 0,
+				sessionId,
+				assetType: 'rent-calculator',
+				locationId: inputs.city_id ?? 0,
 				inputs,
 				result: calcResult,
 			});
@@ -192,7 +192,7 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 			try {
 				const sessionId = getSessionId();
 				await api.post('leads/complete', {
-					session_id: sessionId,
+					sessionId,
 					...formData,
 				});
 

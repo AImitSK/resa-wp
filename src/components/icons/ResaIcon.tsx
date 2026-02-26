@@ -34,8 +34,12 @@ export function ResaIcon({ name, size = 24, className, label }: ResaIconProps) {
 
 	return (
 		<span
-			className={className}
-			style={{ display: 'inline-flex', width: size, height: size }}
+			className={`resa-icon ${className ?? ''}`}
+			style={{
+				display: 'inline-flex',
+				width: size,
+				height: size,
+			}}
 			role={label ? 'img' : 'presentation'}
 			aria-label={label}
 			aria-hidden={label ? undefined : true}

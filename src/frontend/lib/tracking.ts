@@ -19,9 +19,9 @@ export type TrackingEvent =
 
 interface TrackingPayload {
 	event: TrackingEvent;
-	asset_type: string;
-	session_id: string;
-	location_id?: number;
+	assetType: string;
+	sessionId: string;
+	locationId?: number;
 	data?: Record<string, unknown>;
 }
 
@@ -32,9 +32,10 @@ export function trackEvent(
 ): void {
 	const payload: TrackingPayload = {
 		event,
-		asset_type: assetType,
-		session_id: getSessionId(),
-		...extra,
+		assetType,
+		sessionId: getSessionId(),
+		locationId: extra?.location_id,
+		...extra?.data,
 	};
 
 	api.post('tracking', payload).catch(() => {
