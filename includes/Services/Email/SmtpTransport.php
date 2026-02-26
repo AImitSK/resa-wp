@@ -44,7 +44,7 @@ final class SmtpTransport implements TransportInterface {
 	 */
 	public function send( string $to, string $subject, string $html, array $options = [] ): bool {
 		if ( ! $this->isAvailable() ) {
-			throw new \RuntimeException( 'SMTP ist nicht konfiguriert.' );
+			throw new \RuntimeException( __( 'SMTP ist nicht konfiguriert.', 'resa' ) );
 		}
 
 		$config = $this->config;
@@ -83,7 +83,7 @@ final class SmtpTransport implements TransportInterface {
 			$result = wp_mail( $to, $subject, $html, $headers, $attachments );
 
 			if ( ! $result ) {
-				throw new \RuntimeException( 'SMTP-Versand fehlgeschlagen.' );
+				throw new \RuntimeException( __( 'SMTP-Versand fehlgeschlagen.', 'resa' ) );
 			}
 
 			return true;

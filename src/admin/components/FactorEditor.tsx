@@ -5,6 +5,27 @@
  * premiums, and other calculation parameters.
  */
 
+/**
+ * Type guard to safely cast factor groups to number records.
+ */
+function toNumberRecord(value: unknown): Record<string, number> {
+	if (typeof value === 'object' && value !== null) {
+		const result: Record<string, number> = {};
+		for (const [k, v] of Object.entries(value)) {
+			result[k] = typeof v === 'number' ? v : 0;
+		}
+		return result;
+	}
+	return {};
+}
+
+/**
+ * Safely convert a value to number with fallback.
+ */
+function toNumber(value: unknown, fallback = 0): number {
+	return typeof value === 'number' ? value : fallback;
+}
+
 interface FactorGroupItem {
 	key: string;
 	label: string;
@@ -22,7 +43,7 @@ interface FactorGroupProps {
  * Render a group of factor inputs (e.g., location ratings, condition multipliers).
  */
 export function FactorGroup({ title, items, group, factors, onChange }: FactorGroupProps) {
-	const groupValues = (factors[group] as Record<string, number>) ?? {};
+	const groupValues = toNumberRecord(factors[group]);
 
 	return (
 		<div>
@@ -64,22 +85,22 @@ export function FactorEditor({ factors, onFactorChange, onNestedFactorChange }: 
 			{/* Base values */}
 			<div className="resa-grid resa-grid-cols-2 resa-gap-4">
 				<div>
-					<label className={labelClass}>Basismietpreis/m2 (EUR)</label>
+					<label className={labelClass}>Basismietpreis/m² (EUR)</label>
 					<input
 						type="number"
 						step="0.01"
 						className={inputClass}
-						value={(factors.base_price as number) ?? 0}
+						value={toNumber(factors.base_price)}
 						onChange={(e) => onFactorChange('base_price', Number(e.target.value))}
 					/>
 				</div>
 				<div>
-					<label className={labelClass}>Grossendegression</label>
+					<label className={labelClass}>Größendegression</label>
 					<input
 						type="number"
 						step="0.01"
 						className={inputClass}
-						value={(factors.size_degression as number) ?? 0}
+						value={toNumber(factors.size_degression)}
 						onChange={(e) => onFactorChange('size_degression', Number(e.target.value))}
 					/>
 				</div>

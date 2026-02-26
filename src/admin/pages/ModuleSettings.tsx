@@ -7,6 +7,7 @@
 
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { __ } from '@wordpress/i18n';
 import {
 	useModuleSettings,
 	useModulePresets,
@@ -21,10 +22,10 @@ import { LocationValuesTab } from '../components/module-settings/LocationValuesT
 
 type TabId = 'overview' | 'setup' | 'locations';
 
-const TABS: { id: TabId; label: string }[] = [
-	{ id: 'overview', label: 'Ubersicht' },
-	{ id: 'setup', label: 'Einrichtung' },
-	{ id: 'locations', label: 'Standort-Werte' },
+const getTabs = (): { id: TabId; label: string }[] => [
+	{ id: 'overview', label: __('Übersicht', 'resa') },
+	{ id: 'setup', label: __('Einrichtung', 'resa') },
+	{ id: 'locations', label: __('Standort-Werte', 'resa') },
 ];
 
 export function ModuleSettings() {
@@ -41,7 +42,9 @@ export function ModuleSettings() {
 	if (isLoading) {
 		return (
 			<div className="resa-flex resa-items-center resa-justify-center resa-py-12">
-				<div className="resa-text-muted-foreground">Einstellungen werden geladen...</div>
+				<div className="resa-text-muted-foreground">
+					{__('Einstellungen werden geladen...', 'resa')}
+				</div>
 			</div>
 		);
 	}
@@ -50,17 +53,20 @@ export function ModuleSettings() {
 		return (
 			<div className="resa-rounded-lg resa-border resa-border-destructive/50 resa-bg-destructive/10 resa-p-6">
 				<h2 className="resa-text-lg resa-font-semibold resa-text-destructive">
-					Fehler beim Laden
+					{__('Fehler beim Laden', 'resa')}
 				</h2>
 				<p className="resa-text-sm resa-text-muted-foreground resa-mt-2">
-					Das Modul konnte nicht gefunden werden oder es ist ein Fehler aufgetreten.
+					{__(
+						'Das Modul konnte nicht gefunden werden oder es ist ein Fehler aufgetreten.',
+						'resa',
+					)}
 				</p>
 				<button
 					type="button"
 					onClick={() => navigate('/modules')}
 					className="resa-mt-4 resa-text-sm resa-text-primary hover:resa-underline"
 				>
-					Zuruck zu Smart Assets
+					{__('Zurück zu Smart Assets', 'resa')}
 				</button>
 			</div>
 		);
@@ -94,7 +100,7 @@ export function ModuleSettings() {
 					onClick={() => navigate('/modules')}
 					className="hover:resa-text-foreground"
 				>
-					Smart Assets
+					{__('Smart Assets', 'resa')}
 				</button>
 				<span className="resa-mx-2">/</span>
 				<span className="resa-text-foreground">{module?.name ?? slug}</span>
@@ -103,21 +109,21 @@ export function ModuleSettings() {
 			{/* Header */}
 			<div className="resa-flex resa-items-center resa-justify-between resa-mb-6">
 				<h1 className="resa-text-2xl resa-font-bold">
-					{module?.name ?? 'Modul-Einstellungen'}
+					{module?.name ?? __('Modul-Einstellungen', 'resa')}
 				</h1>
 				<button
 					type="button"
 					onClick={() => navigate('/modules')}
 					className="resa-text-sm resa-text-muted-foreground hover:resa-text-foreground"
 				>
-					Zuruck
+					{__('Zurück', 'resa')}
 				</button>
 			</div>
 
 			{/* Tabs */}
 			<div className="resa-border-b resa-mb-6">
 				<div className="resa-flex resa-gap-6">
-					{TABS.map((tab) => (
+					{getTabs().map((tab) => (
 						<button
 							key={tab.id}
 							type="button"

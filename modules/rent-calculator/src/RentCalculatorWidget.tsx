@@ -37,6 +37,14 @@ import {
 
 import type { ModuleConfig, RentCalculationResult, RentCalculatorData } from './types';
 
+/**
+ * Type guard to validate wizard data conforms to RentCalculatorData.
+ * Since all fields are optional, we just verify it's a valid object.
+ */
+function isRentCalculatorData(data: unknown): data is RentCalculatorData {
+	return typeof data === 'object' && data !== null;
+}
+
 type Phase = 'loading' | 'wizard' | 'calculating' | 'lead-form' | 'result' | 'error';
 
 interface RentCalculatorWidgetProps {
@@ -138,12 +146,16 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 
 	// Handle wizard completion → calculate + create partial lead.
 	const handleWizardComplete = useCallback(async (data: WizardData) => {
-		const inputs = data as unknown as RentCalculatorData;
-		setWizardData(inputs);
+		if (!isRentCalculatorData(data)) {
+			setErrorMessage('Ungültige Formulardaten');
+			setPhase('error');
+			return;
+		}
+		setWizardData(data);
 		setPhase('calculating');
 
 		trackEvent('asset_start', 'rent-calculator', {
-			location_id: inputs.city_id,
+			location_id: data.city_id,
 		});
 
 		try {
@@ -151,14 +163,14 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 			const calcResult = await api.post<RentCalculationResult>(
 				'modules/rent-calculator/calculate',
 				{
-					city_id: inputs.city_id,
-					size: inputs.size,
-					property_type: inputs.property_type,
-					condition: inputs.condition,
-					location_rating: inputs.location_rating,
-					features: inputs.features ?? [],
-					year_built: inputs.year_built,
-					rooms: inputs.rooms,
+					city_id: data.city_id,
+					size: data.size,
+					property_type: data.property_type,
+					condition: data.condition,
+					location_rating: data.location_rating,
+					features: data.features ?? [],
+					year_built: data.year_built,
+					rooms: data.rooms,
 				},
 			);
 			setResult(calcResult);
@@ -168,13 +180,13 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 			await api.post('leads/partial', {
 				sessionId,
 				assetType: 'rent-calculator',
-				locationId: inputs.city_id ?? 0,
-				inputs,
+				locationId: data.city_id ?? 0,
+				inputs: data,
 				result: calcResult,
 			});
 
 			trackEvent('form_view', 'rent-calculator', {
-				location_id: inputs.city_id,
+				location_id: data.city_id,
 			});
 
 			setPhase('lead-form');

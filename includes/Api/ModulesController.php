@@ -6,6 +6,7 @@ namespace Resa\Api;
 
 use Resa\Core\ErrorMessages;
 use Resa\Core\Plugin;
+use Resa\Freemius\FeatureGate;
 
 /**
  * REST API controller for module management.
@@ -107,6 +108,31 @@ class ModulesController extends RestController {
 
 		// Toggle activation state.
 		$newState = ! $module->isActive();
+
+		// Check feature gate before activation.
+		if ( $newState ) {
+			$featureGate = new FeatureGate( $registry );
+
+			if ( ! $featureGate->canActivateModule( $slug ) ) {
+				$module_obj = $registry->get( $slug );
+				$flag       = $module_obj ? $module_obj->getFlag() : 'unknown';
+
+				if ( $flag === 'pro' ) {
+					return $this->error(
+						'resa_upgrade_required',
+						__( 'Dieses Modul erfordert ein Premium-Upgrade.', 'resa' ),
+						403
+					);
+				}
+
+				return $this->error(
+					'resa_module_limit_reached',
+					__( 'Modul-Limit erreicht. Deaktiviere ein anderes Modul oder upgrade auf Premium.', 'resa' ),
+					403
+				);
+			}
+		}
+
 		$module->setActive( $newState );
 
 		return $this->success( [

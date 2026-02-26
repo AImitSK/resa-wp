@@ -21,21 +21,23 @@ final class AdminPage {
 	private array $hookSuffixes = [];
 
 	/**
-	 * Submenu definitions: slug => label.
+	 * Get submenu definitions with translated labels.
 	 *
-	 * @var array<string, string>
+	 * @return array<string, string> slug => label
 	 */
-	private const SUBMENUS = [
-		'resa'               => 'Dashboard',
-		'resa-leads'         => 'Leads',
-		'resa-modules'       => 'Smart Assets',
-		'resa-locations'     => 'Locations',
-		'resa-communication' => 'Kommunikation',
-		'resa-pdf'           => 'PDF-Vorlagen',
-		'resa-shortcode'     => 'Shortcode',
-		'resa-integrations'  => 'Integrationen',
-		'resa-settings'      => 'Einstellungen',
-	];
+	private function getSubmenus(): array {
+		return [
+			'resa'               => __( 'Dashboard', 'resa' ),
+			'resa-leads'         => __( 'Leads', 'resa' ),
+			'resa-modules'       => __( 'Smart Assets', 'resa' ),
+			'resa-locations'     => __( 'Standorte', 'resa' ),
+			'resa-communication' => __( 'Kommunikation', 'resa' ),
+			'resa-pdf'           => __( 'PDF-Vorlagen', 'resa' ),
+			'resa-shortcode'     => __( 'Shortcode', 'resa' ),
+			'resa-integrations'  => __( 'Integrationen', 'resa' ),
+			'resa-settings'      => __( 'Einstellungen', 'resa' ),
+		];
+	}
 
 	public function __construct( Vite $vite ) {
 		$this->vite = $vite;
@@ -67,7 +69,7 @@ final class AdminPage {
 		$this->hookSuffixes[] = $hook;
 
 		// Submenus (first entry replaces the parent duplicate).
-		foreach ( self::SUBMENUS as $slug => $label ) {
+		foreach ( $this->getSubmenus() as $slug => $label ) {
 			$pageTitle = sprintf(
 				/* translators: %s: submenu page title */
 				__( 'RESA — %s', 'resa' ),

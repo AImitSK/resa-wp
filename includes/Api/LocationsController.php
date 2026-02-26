@@ -4,6 +4,8 @@ declare( strict_types=1 );
 
 namespace Resa\Api;
 
+use Resa\Core\Plugin;
+use Resa\Freemius\FeatureGate;
 use Resa\Models\Location;
 
 /**
@@ -152,6 +154,21 @@ class LocationsController extends RestController {
 	 * POST /admin/locations — Create a location.
 	 */
 	public function create( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		// Check feature gate for location limit.
+		$plugin = Plugin::getInstance();
+		if ( $plugin ) {
+			$featureGate  = new FeatureGate( $plugin->getModuleRegistry() );
+			$currentCount = Location::count();
+
+			if ( ! $featureGate->canAddLocation( $currentCount ) ) {
+				return $this->error(
+					'resa_location_limit_reached',
+					__( 'Standort-Limit erreicht. Upgrade auf Premium für unbegrenzte Standorte.', 'resa' ),
+					403
+				);
+			}
+		}
+
 		$name = $this->requiredString( $request, 'name' );
 		if ( is_wp_error( $name ) ) {
 			return $name;
@@ -213,7 +230,7 @@ class LocationsController extends RestController {
 		$stringFields = [ 'name', 'slug', 'country', 'bundesland', 'region_type' ];
 		foreach ( $stringFields as $field ) {
 			if ( array_key_exists( $field, $params ) ) {
-				$updateData[ $field ] = $params[ $field ];
+				$updateData[ $field ] = sanitize_text_field( (string) $params[ $field ] );
 			}
 		}
 

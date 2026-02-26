@@ -70,7 +70,7 @@ export function LeadForm({
 						key={field.slug}
 						field={field}
 						register={register}
-						error={errors[field.slug]?.message as string | undefined}
+						error={errors[field.slug]?.message}
 					/>
 				))}
 			</div>
@@ -83,7 +83,7 @@ export function LeadForm({
 						field={field}
 						privacyUrl={config.privacyUrl}
 						register={register}
-						error={errors[field.slug]?.message as string | undefined}
+						error={errors[field.slug]?.message}
 					/>
 				))}
 			</div>

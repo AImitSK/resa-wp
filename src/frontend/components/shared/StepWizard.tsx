@@ -9,7 +9,7 @@
 import { __ } from '@wordpress/i18n';
 import { useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import type { ZodError } from 'zod';
+import { ZodError } from 'zod';
 import { ProgressBar } from './ProgressBar';
 import type { StepWizardProps, WizardData } from '../../types/wizard';
 
@@ -72,9 +72,11 @@ export function StepWizard({
 			setErrors({});
 			return true;
 		} catch (err) {
-			const zodError = err as ZodError;
+			if (!(err instanceof ZodError)) {
+				throw err;
+			}
 			const fieldErrors: Record<string, string> = {};
-			for (const issue of zodError.issues) {
+			for (const issue of err.issues) {
 				const key = issue.path.join('.');
 				if (!fieldErrors[key]) {
 					fieldErrors[key] = issue.message;

@@ -6,6 +6,7 @@
  */
 
 import { useState, useCallback } from 'react';
+import { __, sprintf } from '@wordpress/i18n';
 import {
 	useLocations,
 	useCreateLocation,
@@ -61,7 +62,8 @@ export function Locations() {
 
 	const handleDelete = useCallback(
 		async (id: number, name: string) => {
-			if (!window.confirm(`Location "${name}" wirklich loschen?`)) return;
+			if (!window.confirm(sprintf(__('Standort "%s" wirklich löschen?', 'resa'), name)))
+				return;
 			await deleteMutation.mutateAsync(id);
 		},
 		[deleteMutation],
@@ -91,7 +93,9 @@ export function Locations() {
 	if (view === 'create') {
 		return (
 			<div>
-				<h1 className="resa-text-2xl resa-font-bold resa-mb-4">Neue Location</h1>
+				<h1 className="resa-text-2xl resa-font-bold resa-mb-4">
+					{__('Neuer Standort', 'resa')}
+				</h1>
 				<div className="resa-rounded-lg resa-border resa-bg-card resa-p-6">
 					<LocationEditor
 						onSave={handleCreate}
@@ -107,7 +111,7 @@ export function Locations() {
 		return (
 			<div>
 				<h1 className="resa-text-2xl resa-font-bold resa-mb-4">
-					Location bearbeiten: {editInitialData.name}
+					{sprintf(__('Standort bearbeiten: %s', 'resa'), editInitialData.name)}
 				</h1>
 				<div className="resa-rounded-lg resa-border resa-bg-card resa-p-6">
 					<LocationEditor
@@ -128,29 +132,31 @@ export function Locations() {
 		<div>
 			<div className="resa-flex resa-items-center resa-justify-between resa-mb-4">
 				<div>
-					<h1 className="resa-text-2xl resa-font-bold">Standorte</h1>
+					<h1 className="resa-text-2xl resa-font-bold">{__('Standorte', 'resa')}</h1>
 					<p className="resa-text-muted-foreground resa-text-sm">
-						Verwalte Stadte und Regionen mit regionalen Kostensatzen.
+						{__('Verwalte Städte und Regionen mit regionalen Kostensätzen.', 'resa')}
 					</p>
 				</div>
 				<button
 					onClick={() => setView('create')}
 					className="resa-px-4 resa-py-2 resa-text-sm resa-font-medium resa-rounded-md resa-bg-primary resa-text-primary-foreground hover:resa-bg-primary/90"
 				>
-					+ Neuer Standort
+					{__('+ Neuer Standort', 'resa')}
 				</button>
 			</div>
 
 			{isLoading && (
 				<div className="resa-rounded-lg resa-border resa-bg-card resa-p-6 resa-text-center">
-					<p className="resa-text-sm resa-text-muted-foreground">Lade Standorte...</p>
+					<p className="resa-text-sm resa-text-muted-foreground">
+						{__('Lade Standorte...', 'resa')}
+					</p>
 				</div>
 			)}
 
 			{error && (
 				<div className="resa-rounded-lg resa-border resa-border-destructive/50 resa-bg-destructive/5 resa-p-6">
 					<p className="resa-text-sm resa-text-destructive">
-						Fehler beim Laden der Standorte.
+						{__('Fehler beim Laden der Standorte.', 'resa')}
 					</p>
 				</div>
 			)}
@@ -158,13 +164,13 @@ export function Locations() {
 			{locations && locations.length === 0 && (
 				<div className="resa-rounded-lg resa-border resa-bg-card resa-p-8 resa-text-center">
 					<p className="resa-text-muted-foreground resa-mb-3">
-						Noch keine Standorte angelegt.
+						{__('Noch keine Standorte angelegt.', 'resa')}
 					</p>
 					<button
 						onClick={() => setView('create')}
 						className="resa-text-sm resa-text-primary resa-underline"
 					>
-						Ersten Standort anlegen
+						{__('Ersten Standort anlegen', 'resa')}
 					</button>
 				</div>
 			)}
@@ -174,27 +180,33 @@ export function Locations() {
 					<table className="resa-w-full resa-text-sm">
 						<thead>
 							<tr className="resa-border-b">
-								<th className="resa-text-left resa-p-3 resa-font-medium">Name</th>
 								<th className="resa-text-left resa-p-3 resa-font-medium">
-									Bundesland
+									{__('Name', 'resa')}
 								</th>
 								<th className="resa-text-left resa-p-3 resa-font-medium">
-									Regionstyp
+									{__('Bundesland', 'resa')}
 								</th>
-								<th className="resa-text-left resa-p-3 resa-font-medium">GrESt</th>
-								<th className="resa-text-left resa-p-3 resa-font-medium">Status</th>
+								<th className="resa-text-left resa-p-3 resa-font-medium">
+									{__('Regionstyp', 'resa')}
+								</th>
+								<th className="resa-text-left resa-p-3 resa-font-medium">
+									{__('GrESt', 'resa')}
+								</th>
+								<th className="resa-text-left resa-p-3 resa-font-medium">
+									{__('Status', 'resa')}
+								</th>
 								<th className="resa-text-right resa-p-3 resa-font-medium">
-									Aktionen
+									{__('Aktionen', 'resa')}
 								</th>
 							</tr>
 						</thead>
 						<tbody>
 							{locations.map((location) => {
 								const regionTypeLabels: Record<string, string> = {
-									rural: 'Landlich',
-									small_town: 'Kleinstadt',
-									medium_city: 'Mittelstadt',
-									large_city: 'Grossstadt',
+									rural: __('Ländlich', 'resa'),
+									small_town: __('Kleinstadt', 'resa'),
+									medium_city: __('Mittelstadt', 'resa'),
+									large_city: __('Großstadt', 'resa'),
 								};
 								const grunderwerbsteuer = (location.data as Record<string, unknown>)
 									?.grunderwerbsteuer;
@@ -235,7 +247,7 @@ export function Locations() {
 												onClick={() => startEdit(location)}
 												className="resa-text-xs resa-text-primary hover:resa-underline resa-mr-3"
 											>
-												Bearbeiten
+												{__('Bearbeiten', 'resa')}
 											</button>
 											<button
 												onClick={() =>
@@ -244,7 +256,7 @@ export function Locations() {
 												className="resa-text-xs resa-text-destructive hover:resa-underline"
 												disabled={deleteMutation.isPending}
 											>
-												Loschen
+												{__('Löschen', 'resa')}
 											</button>
 										</td>
 									</tr>

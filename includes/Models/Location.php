@@ -110,12 +110,22 @@ final class Location {
 		global $wpdb;
 
 		$table = self::table();
-		$where = $activeOnly ? 'WHERE is_active = 1' : '';
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$results = $wpdb->get_results(
-			"SELECT * FROM {$table} {$where} ORDER BY name ASC"
-		);
+		if ( $activeOnly ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			$results = $wpdb->get_results(
+				$wpdb->prepare(
+					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					"SELECT * FROM {$table} WHERE is_active = %d ORDER BY name ASC",
+					1
+				)
+			);
+		} else {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$results = $wpdb->get_results(
+				"SELECT * FROM {$table} ORDER BY name ASC"
+			);
+		}
 
 		return $results ?: [];
 	}
@@ -209,12 +219,24 @@ final class Location {
 		global $wpdb;
 
 		$table = self::table();
-		$where = $activeOnly ? 'WHERE is_active = 1' : '';
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		return (int) $wpdb->get_var(
-			"SELECT COUNT(*) FROM {$table} {$where}"
-		);
+		if ( $activeOnly ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			$count = $wpdb->get_var(
+				$wpdb->prepare(
+					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					"SELECT COUNT(*) FROM {$table} WHERE is_active = %d",
+					1
+				)
+			);
+		} else {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$count = $wpdb->get_var(
+				"SELECT COUNT(*) FROM {$table}"
+			);
+		}
+
+		return (int) $count;
 	}
 
 	/**

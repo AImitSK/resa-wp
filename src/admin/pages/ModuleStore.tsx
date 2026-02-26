@@ -7,6 +7,7 @@
 
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { __, sprintf } from '@wordpress/i18n';
 import { useModules, useToggleModule } from '../hooks/useModules';
 import type { ModuleSummary } from '../types';
 
@@ -64,7 +65,9 @@ export function ModuleStore() {
 	if (isLoading) {
 		return (
 			<div className="resa-flex resa-items-center resa-justify-center resa-py-12">
-				<div className="resa-text-muted-foreground">Module werden geladen...</div>
+				<div className="resa-text-muted-foreground">
+					{__('Module werden geladen...', 'resa')}
+				</div>
 			</div>
 		);
 	}
@@ -73,10 +76,10 @@ export function ModuleStore() {
 		return (
 			<div className="resa-rounded-lg resa-border resa-border-destructive/50 resa-bg-destructive/10 resa-p-6">
 				<h2 className="resa-text-lg resa-font-semibold resa-text-destructive">
-					Fehler beim Laden
+					{__('Fehler beim Laden', 'resa')}
 				</h2>
 				<p className="resa-text-sm resa-text-muted-foreground resa-mt-2">
-					Die Module konnten nicht geladen werden.
+					{__('Die Module konnten nicht geladen werden.', 'resa')}
 				</p>
 			</div>
 		);
@@ -84,9 +87,9 @@ export function ModuleStore() {
 
 	return (
 		<div>
-			<h1 className="resa-text-2xl resa-font-bold resa-mb-4">Smart Assets</h1>
+			<h1 className="resa-text-2xl resa-font-bold resa-mb-4">{__('Smart Assets', 'resa')}</h1>
 			<p className="resa-text-muted-foreground resa-mb-6">
-				Aktiviere und konfiguriere deine Lead-Tools.
+				{__('Aktiviere und konfiguriere deine Lead-Tools.', 'resa')}
 			</p>
 
 			{/* Filter bar */}
@@ -96,17 +99,17 @@ export function ModuleStore() {
 					<FilterButton
 						active={filter === 'all'}
 						onClick={() => setFilter('all')}
-						label={`Alle (${totalCount})`}
+						label={sprintf(__('Alle (%d)', 'resa'), totalCount)}
 					/>
 					<FilterButton
 						active={filter === 'active'}
 						onClick={() => setFilter('active')}
-						label={`Aktiv (${activeCount})`}
+						label={sprintf(__('Aktiv (%d)', 'resa'), activeCount)}
 					/>
 					<FilterButton
 						active={filter === 'inactive'}
 						onClick={() => setFilter('inactive')}
-						label={`Inaktiv (${inactiveCount})`}
+						label={sprintf(__('Inaktiv (%d)', 'resa'), inactiveCount)}
 					/>
 				</div>
 
@@ -114,7 +117,7 @@ export function ModuleStore() {
 				<div className="resa-flex-1 resa-max-w-xs">
 					<input
 						type="search"
-						placeholder="Suchen..."
+						placeholder={__('Suchen...', 'resa')}
 						value={searchQuery}
 						onChange={(e) => setSearchQuery(e.target.value)}
 						className="resa-w-full resa-px-3 resa-py-1.5 resa-text-sm resa-rounded-md resa-border resa-border-input resa-bg-background focus:resa-outline-none focus:resa-ring-2 focus:resa-ring-ring"
@@ -125,7 +128,9 @@ export function ModuleStore() {
 			{/* Module grid */}
 			{filteredModules.length === 0 ? (
 				<div className="resa-text-center resa-py-12 resa-text-muted-foreground">
-					{modules?.length === 0 ? 'Keine Module registriert.' : 'Keine Module gefunden.'}
+					{modules?.length === 0
+						? __('Keine Module registriert.', 'resa')
+						: __('Keine Module gefunden.', 'resa')}
 				</div>
 			) : (
 				<div className="resa-grid resa-grid-cols-1 md:resa-grid-cols-2 lg:resa-grid-cols-3 resa-gap-4">
@@ -201,7 +206,7 @@ function ModuleCard({
 							type="button"
 							onClick={handleSettingsClick}
 							className="resa-p-1 resa-rounded resa-text-muted-foreground hover:resa-text-foreground hover:resa-bg-muted"
-							title="Einstellungen"
+							title={__('Einstellungen', 'resa')}
 						>
 							<SettingsIcon />
 						</button>
@@ -222,12 +227,12 @@ function ModuleCard({
 							: 'resa-text-muted-foreground'
 					}`}
 				>
-					{module.active ? 'Aktiv' : 'Inaktiv'}
+					{module.active ? __('Aktiv', 'resa') : __('Inaktiv', 'resa')}
 				</span>
 
 				{module.flag === 'pro' && !module.active ? (
 					<span className="resa-text-xs resa-font-medium resa-text-muted-foreground">
-						Premium erforderlich
+						{__('Premium erforderlich', 'resa')}
 					</span>
 				) : canAccess ? (
 					<div className="resa-flex resa-gap-2">
@@ -237,7 +242,7 @@ function ModuleCard({
 								onClick={handleSettingsClick}
 								className="resa-text-sm resa-font-medium resa-text-primary hover:resa-underline"
 							>
-								Einstellungen
+								{__('Einstellungen', 'resa')}
 							</button>
 						)}
 						<button
@@ -248,7 +253,7 @@ function ModuleCard({
 								module.active ? 'resa-text-muted-foreground' : 'resa-text-primary'
 							}`}
 						>
-							{module.active ? 'Deaktivieren' : 'Aktivieren'}
+							{module.active ? __('Deaktivieren', 'resa') : __('Aktivieren', 'resa')}
 						</button>
 					</div>
 				) : null}
@@ -268,7 +273,11 @@ function FlagBadge({ flag }: { flag: string }) {
 		<span
 			className={`resa-text-xs resa-font-medium resa-px-2 resa-py-0.5 resa-rounded-full ${styles[flag] ?? ''}`}
 		>
-			{flag === 'free' ? 'Free' : flag === 'pro' ? 'Pro' : 'Add-on'}
+			{flag === 'free'
+				? __('Free', 'resa')
+				: flag === 'pro'
+					? __('Pro', 'resa')
+					: __('Add-on', 'resa')}
 		</span>
 	);
 }
