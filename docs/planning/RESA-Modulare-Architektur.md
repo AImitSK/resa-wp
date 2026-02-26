@@ -57,13 +57,13 @@ RESA folgt einem **Three-Tier-Modell** — vergleichbar mit dem Chrome Extension
 
 ### Warum diese Trennung?
 
-| Grund | Erklärung |
-|---|---|
-| **Skalierbarkeit** | Neue Lead Tools hinzufügen = neues Modul registrieren. Kernplugin bleibt stabil. |
-| **Monetarisierung** | Lead Tools: Free/Pro-Flag. Integrationen: Freemius Add-ons mit eigener Lizenz. |
-| **Wartbarkeit** | Jedes Modul ist in sich geschlossen. Bug in Modul X bricht nicht Modul Y. |
-| **Erweiterbarkeit** | Perspektivisch: Entwickler-API für Drittanbieter-Module. |
-| **Testbarkeit** | Module isoliert testbar. Core-Services separat testbar. |
+| Grund               | Erklärung                                                                        |
+| ------------------- | -------------------------------------------------------------------------------- |
+| **Skalierbarkeit**  | Neue Lead Tools hinzufügen = neues Modul registrieren. Kernplugin bleibt stabil. |
+| **Monetarisierung** | Lead Tools: Free/Pro-Flag. Integrationen: Freemius Add-ons mit eigener Lizenz.   |
+| **Wartbarkeit**     | Jedes Modul ist in sich geschlossen. Bug in Modul X bricht nicht Modul Y.        |
+| **Erweiterbarkeit** | Perspektivisch: Entwickler-API für Drittanbieter-Module.                         |
+| **Testbarkeit**     | Module isoliert testbar. Core-Services separat testbar.                          |
 
 ---
 
@@ -73,66 +73,66 @@ RESA folgt einem **Three-Tier-Modell** — vergleichbar mit dem Chrome Extension
 
 Das Kernplugin liefert die **Plattform**. Alles was Lead Tools und Integrationen gemeinsam brauchen:
 
-| Bereich | Was | Beschreibung |
-|---|---|---|
-| **Dashboard** | Admin-Startseite | Übersicht: Leads, Conversion, aktive Tools |
-| **Lead-Verwaltung** | CRUD + Export | Leads anzeigen, filtern, Status ändern, CSV-Export (Pro) |
-| **Standortverwaltung** | Locations CRUD | Städte/Regionen anlegen, Makler zuordnen |
-| **Makler-Verwaltung** | Agents CRUD | Makler-Profile, Zuordnung zu Standorten (Pro) |
-| **StepWizard** | Framework-Komponente | `<StepWizard>` — animierter Multi-Step mit Framer Motion |
-| **Lead-Formular** | Universelle Komponente | `<LeadForm>` — konfigurierbare Felder, DSGVO, Presets |
-| **Ergebnis-Karte** | Shared Component | `<ResultCard>` — wiederverwendbares Ergebnis-Layout |
-| **ProgressBar** | Shared Component | `<ProgressBar>` — Fortschrittsanzeige im Wizard |
-| **PDF-Service** | Backend-Service | DOMPDF/Puppeteer — Modul liefert Daten, Kern macht PDF |
-| **E-Mail-Service** | Backend-Service | wp_mail (Free) / SMTP / Brevo (Pro) |
-| **Tracking** | Backend-Service | Funnel-Tracking, dataLayer Events, GCLID/FBCLID |
-| **Icon Registry** | Frontend-System | Zentrale Icons mit semantischen Namen, austauschbare Sets |
-| **Modul-Registry** | PHP-System | Module registrieren sich, Kern orchestriert |
-| **REST API Basis** | Infrastruktur | Base-Controller, Auth, Nonces, Response-Format |
-| **Freemius SDK** | Monetarisierung | Lizenzprüfung, Feature-Gating, Upgrade-Flows |
-| **Feature Gate** | Zugriffskontrolle | `FeatureGate` — prüft Plan + Modul-Flags |
-| **Shortcode** | `[resa]` | Rendert das Widget, lädt das richtige Modul |
-| **Maps/Geocoding** | Optional Service | Leaflet/Google Maps Abstraktion |
-| **i18n** | Übersetzungen | gettext-System, DACH-Varianten |
+| Bereich                | Was                    | Beschreibung                                              |
+| ---------------------- | ---------------------- | --------------------------------------------------------- |
+| **Dashboard**          | Admin-Startseite       | Übersicht: Leads, Conversion, aktive Tools                |
+| **Lead-Verwaltung**    | CRUD + Export          | Leads anzeigen, filtern, Status ändern, CSV-Export (Pro)  |
+| **Standortverwaltung** | Locations CRUD         | Städte/Regionen anlegen, Makler zuordnen                  |
+| **Makler-Verwaltung**  | Agents CRUD            | Makler-Profile, Zuordnung zu Standorten (Pro)             |
+| **StepWizard**         | Framework-Komponente   | `<StepWizard>` — animierter Multi-Step mit Framer Motion  |
+| **Lead-Formular**      | Universelle Komponente | `<LeadForm>` — konfigurierbare Felder, DSGVO, Presets     |
+| **Ergebnis-Karte**     | Shared Component       | `<ResultCard>` — wiederverwendbares Ergebnis-Layout       |
+| **ProgressBar**        | Shared Component       | `<ProgressBar>` — Fortschrittsanzeige im Wizard           |
+| **PDF-Service**        | Backend-Service        | DOMPDF/Puppeteer — Modul liefert Daten, Kern macht PDF    |
+| **E-Mail-Service**     | Backend-Service        | wp_mail (Free) / SMTP / Brevo (Pro)                       |
+| **Tracking**           | Backend-Service        | Funnel-Tracking, dataLayer Events, GCLID/FBCLID           |
+| **Icon Registry**      | Frontend-System        | Zentrale Icons mit semantischen Namen, austauschbare Sets |
+| **Modul-Registry**     | PHP-System             | Module registrieren sich, Kern orchestriert               |
+| **REST API Basis**     | Infrastruktur          | Base-Controller, Auth, Nonces, Response-Format            |
+| **Freemius SDK**       | Monetarisierung        | Lizenzprüfung, Feature-Gating, Upgrade-Flows              |
+| **Feature Gate**       | Zugriffskontrolle      | `FeatureGate` — prüft Plan + Modul-Flags                  |
+| **Shortcode**          | `[resa]`               | Rendert das Widget, lädt das richtige Modul               |
+| **Maps/Geocoding**     | Optional Service       | Leaflet/Google Maps Abstraktion                           |
+| **i18n**               | Übersetzungen          | gettext-System, DACH-Varianten                            |
 
 ### Tier 2: Lead Tool Module — Registrierbar, aktivierbar
 
 Jedes Lead Tool ist ein **eigenständiges Modul** das sich beim Kernplugin registriert:
 
-| Was ein Modul MITBRINGT | Beispiel (Mietpreis-Kalkulator) |
-|---|---|
-| **Frontend-Steps** | `PropertyTypeStep`, `AreaStep`, `ConditionStep`, `LocationStep`, `ExtrasStep` |
-| **Berechnungslogik** (PHP) | `RentCalculatorService` — Basismietpreis × Faktoren |
-| **Einstellungs-Felder** | Basismietpreise, Lagefaktoren, Ausstattungsfaktoren, Extras |
-| **Ergebnis-Template** | `RentResult` — Darstellung der Mietpreis-Spanne |
-| **PDF-Bausteine** | `RentAnalysisPdf` — modulspezifisches PDF-Layout |
-| **Validierung** (Zod) | `rentCalculatorSchema` — Input-Validierung |
-| **Modul-Manifest** | Name, Slug, Flag (Free/Pro), Icon, Beschreibung |
+| Was ein Modul MITBRINGT    | Beispiel (Mietpreis-Kalkulator)                                               |
+| -------------------------- | ----------------------------------------------------------------------------- |
+| **Frontend-Steps**         | `PropertyTypeStep`, `AreaStep`, `ConditionStep`, `LocationStep`, `ExtrasStep` |
+| **Berechnungslogik** (PHP) | `RentCalculatorService` — Basismietpreis × Faktoren                           |
+| **Einstellungs-Felder**    | Basismietpreise, Lagefaktoren, Ausstattungsfaktoren, Extras                   |
+| **Ergebnis-Template**      | `RentResult` — Darstellung der Mietpreis-Spanne                               |
+| **PDF-Bausteine**          | `RentAnalysisPdf` — modulspezifisches PDF-Layout                              |
+| **Validierung** (Zod)      | `rentCalculatorSchema` — Input-Validierung                                    |
+| **Modul-Manifest**         | Name, Slug, Flag (Free/Pro), Icon, Beschreibung                               |
 
-| Was ein Modul vom KERN KONSUMIERT |
-|---|
-| `<StepWizard>` — der Wizard-Rahmen |
-| `<LeadForm>` — das universelle Kontaktformular |
-| `<ProgressBar>`, `<ResultCard>` — UI-Bausteine |
-| `<ResaIcon>` — Icons aus der zentralen Registry |
-| PDF-Service — Modul übergibt Daten, Kern generiert PDF |
-| E-Mail-Service — Modul triggert, Kern versendet |
-| Standortverwaltung — Modul nutzt Locations |
-| Tracking — Modul feuert Events, Kern trackt |
+| Was ein Modul vom KERN KONSUMIERT                                  |
+| ------------------------------------------------------------------ |
+| `<StepWizard>` — der Wizard-Rahmen                                 |
+| `<LeadForm>` — das universelle Kontaktformular                     |
+| `<ProgressBar>`, `<ResultCard>` — UI-Bausteine                     |
+| `<ResaIcon>` — Icons aus der zentralen Registry                    |
+| PDF-Service — Modul übergibt Daten, Kern generiert PDF             |
+| E-Mail-Service — Modul triggert, Kern versendet                    |
+| Standortverwaltung — Modul nutzt Locations                         |
+| Tracking — Modul feuert Events, Kern trackt                        |
 | REST API — Modul registriert Endpoints, Kern liefert Infrastruktur |
 
 ### Tier 3: Integrationen — Basis (Free) + Add-ons (Paid)
 
-| Typ | Beispiel | Beschreibung |
-|---|---|---|
-| **Basis (Free)** | Webhooks | Custom POST an beliebige URL bei neuem Lead |
-| **Basis (Free)** | E-Mail-Benachrichtigung | wp_mail an Makler bei neuem Lead |
-| **Add-on (Paid)** | onOffice | Leads direkt in onOffice synchronisieren |
-| **Add-on (Paid)** | Propstack | Leads direkt in Propstack synchronisieren |
-| **Add-on (Paid)** | FLOWFACT | Leads direkt in FLOWFACT synchronisieren |
-| **Add-on (Paid)** | Brevo Newsletter | Leads in Brevo-Newsletter-Listen eintragen |
-| **Add-on (Paid)** | HubSpot CRM | Leads in HubSpot synchronisieren |
-| **Add-on (Paid)** | Slack/Teams | Echtzeit-Benachrichtigungen bei neuen Leads |
+| Typ               | Beispiel                | Beschreibung                                |
+| ----------------- | ----------------------- | ------------------------------------------- |
+| **Basis (Free)**  | Webhooks                | Custom POST an beliebige URL bei neuem Lead |
+| **Basis (Free)**  | E-Mail-Benachrichtigung | wp_mail an Makler bei neuem Lead            |
+| **Add-on (Paid)** | onOffice                | Leads direkt in onOffice synchronisieren    |
+| **Add-on (Paid)** | Propstack               | Leads direkt in Propstack synchronisieren   |
+| **Add-on (Paid)** | FLOWFACT                | Leads direkt in FLOWFACT synchronisieren    |
+| **Add-on (Paid)** | Brevo Newsletter        | Leads in Brevo-Newsletter-Listen eintragen  |
+| **Add-on (Paid)** | HubSpot CRM             | Leads in HubSpot synchronisieren            |
+| **Add-on (Paid)** | Slack/Teams             | Echtzeit-Benachrichtigungen bei neuen Leads |
 
 **Technisch:** Add-on-Integrationen sind **eigenständige WordPress-Plugins** die RESA Premium voraussetzen und über Freemius separat lizenziert werden.
 
@@ -156,16 +156,16 @@ Jedes Lead Tool hat ein **Flag** das bestimmt, wer es nutzen kann:
 
 ### Aktuelle Tool-Zuordnung (v1)
 
-| Lead Tool | Flag | Phase | Schwierigkeit |
-|---|---|---|---|
-| **Mietpreis-Kalkulator** | 🟢 free | Bereits vorhanden | — |
-| **Immobilienwert-Kalkulator** | 🟢 free | Bereits vorhanden | — |
-| **Kaufnebenkosten-Rechner** | 🔵 pro | Phase 1 | ⭐ Niedrig |
-| **Budgetrechner** | 🔵 pro | Phase 1 | ⭐⭐ Mittel |
-| **Renditerechner** | 🔵 pro | Phase 2 | ⭐⭐ Mittel |
-| **Energieeffizienz-Check** | 🔵 pro | Phase 2 | ⭐⭐ Mittel |
-| **Verkäufer-Checkliste** | 🔵 pro | Phase 1 | ⭐ Niedrig |
-| **Käufer-Checkliste** | 🔵 pro | Phase 1 | ⭐ Niedrig |
+| Lead Tool                     | Flag    | Phase             | Schwierigkeit |
+| ----------------------------- | ------- | ----------------- | ------------- |
+| **Mietpreis-Kalkulator**      | 🟢 free | Bereits vorhanden | —             |
+| **Immobilienwert-Kalkulator** | 🟢 free | Bereits vorhanden | —             |
+| **Kaufnebenkosten-Rechner**   | 🔵 pro  | Phase 1           | ⭐ Niedrig    |
+| **Budgetrechner**             | 🔵 pro  | Phase 1           | ⭐⭐ Mittel   |
+| **Renditerechner**            | 🔵 pro  | Phase 2           | ⭐⭐ Mittel   |
+| **Energieeffizienz-Check**    | 🔵 pro  | Phase 2           | ⭐⭐ Mittel   |
+| **Verkäufer-Checkliste**      | 🔵 pro  | Phase 1           | ⭐ Niedrig    |
+| **Käufer-Checkliste**         | 🔵 pro  | Phase 1           | ⭐ Niedrig    |
 
 **Weitere Tools aus der Ideensammlung** (Modernisierungsrechner, Mieterhöhungsrechner, Suchprofil-Ersteller, etc.) werden bei Bedarf als pro oder paid eingestuft.
 
@@ -689,21 +689,21 @@ Module referenzieren Icons **nie direkt** (kein `import { House } from 'lucide-r
 import { iconSets } from './registry';
 
 interface ResaIconProps {
-  name: string;
-  size?: number;
-  className?: string;
+	name: string;
+	size?: number;
+	className?: string;
 }
 
 export function ResaIcon({ name, size = 24, className }: ResaIconProps) {
-  const currentSet = 'default'; // Später konfigurierbar
-  const IconComponent = iconSets[currentSet]?.[name];
+	const currentSet = 'default'; // Später konfigurierbar
+	const IconComponent = iconSets[currentSet]?.[name];
 
-  if ( ! IconComponent ) {
-    console.warn( `ResaIcon: Unknown icon "${name}"` );
-    return null;
-  }
+	if (!IconComponent) {
+		console.warn(`ResaIcon: Unknown icon "${name}"`);
+		return null;
+	}
 
-  return <IconComponent size={size} className={className} />;
+	return <IconComponent size={size} className={className} />;
 }
 ```
 
@@ -717,14 +717,14 @@ import type { LucideIcon } from 'lucide-react';
 export type IconSet = Record<string, LucideIcon>;
 
 export const iconSets: Record<string, IconSet> = {
-  default: {} as IconSet, // Wird in sets/default.ts befüllt
+	default: {} as IconSet, // Wird in sets/default.ts befüllt
 };
 
 /**
  * Icon-Set registrieren (für zukünftige Erweiterung).
  */
-export function registerIconSet( name: string, set: IconSet ): void {
-  iconSets[name] = set;
+export function registerIconSet(name: string, set: IconSet): void {
+	iconSets[name] = set;
 }
 ```
 
@@ -734,78 +734,113 @@ export function registerIconSet( name: string, set: IconSet ): void {
 // src/frontend/components/icons/sets/default.ts
 
 import {
-  Home, Building2, Ruler, Thermometer, MapPin, Euro, Calculator,
-  TrendingUp, FileCheck, ClipboardList, Search, BarChart3,
-  BedDouble, Bath, Car, Trees, Sparkles, ArrowUpDown,
-  Shield, Zap, Palette, Mountain, Train, ShoppingBag,
-  GraduationCap, Heart, Volume2, Sun, Droplets, Wrench,
-  CheckCircle2, AlertTriangle, Info, ChevronRight, ChevronLeft,
-  Download, Mail, Phone, User, Calendar, Star, Lock,
+	Home,
+	Building2,
+	Ruler,
+	Thermometer,
+	MapPin,
+	Euro,
+	Calculator,
+	TrendingUp,
+	FileCheck,
+	ClipboardList,
+	Search,
+	BarChart3,
+	BedDouble,
+	Bath,
+	Car,
+	Trees,
+	Sparkles,
+	ArrowUpDown,
+	Shield,
+	Zap,
+	Palette,
+	Mountain,
+	Train,
+	ShoppingBag,
+	GraduationCap,
+	Heart,
+	Volume2,
+	Sun,
+	Droplets,
+	Wrench,
+	CheckCircle2,
+	AlertTriangle,
+	Info,
+	ChevronRight,
+	ChevronLeft,
+	Download,
+	Mail,
+	Phone,
+	User,
+	Calendar,
+	Star,
+	Lock,
 } from 'lucide-react';
 
 import { iconSets } from '../registry';
 
 // Semantische Namen → Lucide Komponenten
 iconSets['default'] = {
-  // --- Immobilien ---
-  'house':              Home,
-  'apartment':          Building2,
-  'square-meters':      Ruler,
-  'rooms':              BedDouble,
-  'bathroom':           Bath,
-  'garage':             Car,
-  'garden':             Trees,
-  'balcony':            Sun,
+	// --- Immobilien ---
+	house: Home,
+	apartment: Building2,
+	'square-meters': Ruler,
+	rooms: BedDouble,
+	bathroom: Bath,
+	garage: Car,
+	garden: Trees,
+	balcony: Sun,
 
-  // --- Lage & Standort ---
-  'location':           MapPin,
-  'mountain':           Mountain,
-  'transport':          Train,
-  'shopping':           ShoppingBag,
-  'school':             GraduationCap,
-  'medical':            Heart,
-  'noise':              Volume2,
+	// --- Lage & Standort ---
+	location: MapPin,
+	mountain: Mountain,
+	transport: Train,
+	shopping: ShoppingBag,
+	school: GraduationCap,
+	medical: Heart,
+	noise: Volume2,
 
-  // --- Zustand & Ausstattung ---
-  'condition':          Sparkles,
-  'energy':             Zap,
-  'heating':            Thermometer,
-  'water':              Droplets,
-  'renovation':         Wrench,
-  'design':             Palette,
-  'security':           Shield,
+	// --- Zustand & Ausstattung ---
+	condition: Sparkles,
+	energy: Zap,
+	heating: Thermometer,
+	water: Droplets,
+	renovation: Wrench,
+	design: Palette,
+	security: Shield,
 
-  // --- Finanzen ---
-  'euro':               Euro,
-  'calculator':         Calculator,
-  'trending-up':        TrendingUp,
-  'price-range':        ArrowUpDown,
-  'chart':              BarChart3,
+	// --- Finanzen ---
+	euro: Euro,
+	calculator: Calculator,
+	'trending-up': TrendingUp,
+	'price-range': ArrowUpDown,
+	chart: BarChart3,
 
-  // --- Lead Tools (Modul-Icons) ---
-  'calculator-rent':    Calculator,        // Mietpreis-Kalkulator
-  'calculator-value':   TrendingUp,        // Immobilienwert-Kalkulator
-  'calculator-costs':   Euro,              // Kaufnebenkosten-Rechner
-  'calculator-budget':  BarChart3,         // Budgetrechner
-  'calculator-roi':     TrendingUp,        // Renditerechner
-  'check-energy':       Zap,              // Energieeffizienz-Check
-  'checklist-seller':   ClipboardList,     // Verkäufer-Checkliste
-  'checklist-buyer':    FileCheck,         // Käufer-Checkliste
-  'search-profile':     Search,            // Suchprofil-Ersteller
+	// --- Lead Tools (Modul-Icons) ---
+	'calculator-rent': Calculator, // Mietpreis-Kalkulator
+	'calculator-value': TrendingUp, // Immobilienwert-Kalkulator
+	'calculator-costs': Euro, // Kaufnebenkosten-Rechner
+	'calculator-budget': BarChart3, // Budgetrechner
+	'calculator-roi': TrendingUp, // Renditerechner
+	'check-energy': Zap, // Energieeffizienz-Check
+	'checklist-seller': ClipboardList, // Verkäufer-Checkliste
+	'checklist-buyer': FileCheck, // Käufer-Checkliste
+	'search-profile': Search, // Suchprofil-Ersteller
 
-  // --- UI / Allgemein ---
-  'success':            CheckCircle2,
-  'warning':            AlertTriangle,
-  'info':               Info,
-  'next':               ChevronRight,
-  'back':               ChevronLeft,
-  'download':           Download,
-  'email':              Mail,
-  'phone':              Phone,
-  'user':               User,
-  'calendar':           Calendar,
-  'star':               Star,
-  'lock':               Lock,
+	// --- UI / Allgemein ---
+	success: CheckCircle2,
+	warning: AlertTriangle,
+	info: Info,
+	next: ChevronRight,
+	back: ChevronLeft,
+	download: Download,
+	email: Mail,
+	phone: Phone,
+	user: User,
+	calendar: Calendar,
+	star: Star,
+	lock: Lock,
 };
 ```
 
@@ -822,82 +857,175 @@ public function getIcon(): string {
 
 ---
 
-## 7. Admin-Seite: Modul-Store
+## 7. Admin-Seite: Smart Assets
 
-Im Admin gibt es eine **Modul-Übersicht** — die "Store"-Seite:
+### Übersicht (Store-Ansicht)
+
+Die Smart Assets Seite zeigt alle verfügbaren Lead Tools mit Filter und Suche:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  RESA → Smart Assets                                            │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  Verfügbare Lead Tools                                          │
+│  Filter: [Aktive ▼]  Suche: [_________________________]        │
+│                                                                 │
+│  ══ AKTIVE SMART ASSETS ══════════════════════════════════════ │
+│                                                                 │
+│  ┌─────────────────┐  ┌─────────────────┐                      │
+│  │ 🏠 Mietpreis-   │  │ 📈 Immobilien-  │                      │
+│  │    Kalkulator    │  │    wert-Kalk.   │                      │
+│  │                  │  │                  │                      │
+│  │  [🟢 Free]      │  │  [🟢 Free]      │                      │
+│  │                  │  │                  │                      │
+│  │  Berechnet die   │  │  Ermittelt den   │                      │
+│  │  marktübliche    │  │  Marktwert einer │                      │
+│  │  Miete.          │  │  Immobilie.      │                      │
+│  │                  │  │                  │                      │
+│  │  [✅ Aktiv] [⚙] │  │  [✅ Aktiv] [⚙] │  ← Zahnrad → Settings│
+│  └─────────────────┘  └─────────────────┘                      │
+│                                                                 │
+│  ══ VERFÜGBARE SMART ASSETS ══════════════════════════════════ │
 │                                                                 │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │ 🏠 Mietpreis-   │  │ 📈 Immobilien-  │  │ 💰 Kaufneben-  │ │
-│  │    Kalkulator    │  │    wert-Kalk.   │  │    kosten       │ │
-│  │                  │  │                  │  │                 │ │
-│  │  [🟢 Free]      │  │  [🟢 Free]      │  │  [🔵 Pro]      │ │
-│  │                  │  │                  │  │                 │ │
-│  │  Berechnet die   │  │  Ermittelt den   │  │  Berechnet alle │ │
-│  │  marktübliche    │  │  Marktwert einer │  │  Nebenkosten    │ │
-│  │  Miete.          │  │  Immobilie.      │  │  beim Kauf.     │ │
-│  │                  │  │                  │  │                 │ │
-│  │  [✅ Aktiv    ]  │  │  [✅ Aktiv    ]  │  │  [🔒 Pro     ] │ │
-│  │  [⚙ Einstell.]  │  │  [⚙ Einstell.]  │  │  [Upgrade ➜  ] │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
-│                                                                 │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │ 📊 Budget-      │  │ 📈 Rendite-     │  │ ⚡ Energie-     │ │
-│  │    rechner       │  │    rechner      │  │    effizienz    │ │
-│  │                  │  │                 │  │                 │ │
-│  │  [🔵 Pro]       │  │  [🔵 Pro]      │  │  [🔵 Pro]      │ │
-│  │  ...             │  │  ...            │  │  ...            │ │
-│  │  [🔒 Pro     ]  │  │  [🔒 Pro     ] │  │  [🔒 Pro     ] │ │
-│  │  [Upgrade ➜  ]  │  │  [Upgrade ➜  ] │  │  [Upgrade ➜  ] │ │
+│  │ 💰 Kaufneben-   │  │ 📊 Budget-      │  │ 📈 Rendite-     │ │
+│  │    kosten        │  │    rechner       │  │    rechner      │ │
+│  │  [🔵 Pro]       │  │  [🔵 Pro]       │  │  [🔵 Pro]      │ │
+│  │  ...             │  │  ...             │  │  ...            │ │
+│  │  [🔒 Pro]       │  │  [🔒 Pro]       │  │  [🔒 Pro]      │ │
+│  │  [Upgrade ➜]    │  │  [Upgrade ➜]    │  │  [Upgrade ➜]   │ │
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Aktiviertes Modul → Einstellungs-Tab
+**UX-Prinzipien:**
 
-Wenn ein Modul aktiviert ist, bekommt es einen **eigenen Einstellungs-Tab**:
+- Aktive Assets werden oben angezeigt (Sortierung)
+- Zahnrad-Icon [⚙] führt zu den Modul-Einstellungen
+- Filter: Aktive / Inaktive / Alle
+- Freitext-Suche für schnellen Zugriff
+
+---
+
+### Modul-Einstellungen (separate Seite)
+
+Klick auf [⚙] öffnet die Einstellungsseite des Moduls:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  RESA → Smart Assets → Mietpreis-Kalkulator                    │
+│  Smart Assets › Mietpreis-Kalkulator                  [← Zurück]│
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  [Allgemein] [Faktoren] [Standorte] [Lead-Formular] [Design]   │
+│  [Übersicht] [Einrichtung] [Standort-Werte]                    │
 │  ─────────────────────────────────────────────────────────────  │
+```
+
+#### Tab 1: Übersicht
+
+```
+│  Status                                                         │
+│  ──────                                                         │
+│  ● Aktiv   ○ Inaktiv                                           │
 │                                                                 │
+│  Verfügbare Standorte                                           │
+│  ────────────────────                                           │
+│  Für welche Locations soll dieses Smart Asset verfügbar sein?  │
+│  [✓] Bad Oeynhausen                                            │
+│  [✓] Löhne                                                     │
+│  [ ] Vlotho                                                     │
+│                                                                 │
+│  Shortcode-Beispiel                                             │
+│  ──────────────────                                             │
+│  [resa type="mietpreis" city="bad-oeynhausen"]                 │
+│                                                      [Kopieren] │
+```
+
+#### Tab 2: Einrichtung
+
+```
 │  Einrichtungsmodus                                              │
+│  ─────────────────                                              │
 │  ● Pauschal (Region auswählen → Standardwerte)                 │
 │  ○ Individuell (alle Felder manuell konfigurieren)              │
 │                                                                 │
-│  ┌─ Basisdaten ──────────────────────────────────────────────┐  │
+│  Regionstyp (nur bei Pauschal):                                │
+│  ○ Ländlich   ○ Kleinstadt   ● Mittelstadt   ○ Großstadt       │
+│                                                                 │
+│  ┌─ Lage-Faktoren ───────────────────────────────────────────┐  │
+│  │  Ländlich:           [  0,85  ]                           │  │
+│  │  Stadtrand:          [  0,95  ]                           │  │
+│  │  Stadt:              [  1,00  ]                           │  │
+│  │  Zentrum:            [  1,15  ]                           │  │
+│  │  (Bei Pauschal: read-only / Bei Individuell: editierbar)  │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                                                                 │
+│  ┌─ Zustands-Faktoren ───────────────────────────────────────┐  │
+│  │  Renovierungsbedürftig:  [  0,80  ]                       │  │
+│  │  Gepflegt:               [  1,00  ]                       │  │
+│  │  Modernisiert:           [  1,10  ]                       │  │
+│  │  Neuwertig:              [  1,20  ]                       │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                                                                 │
+│  ┌─ Ausstattungs-Faktoren ───────────────────────────────────┐  │
+│  │  Einfach:       [  0,85  ]                                │  │
+│  │  Normal:        [  1,00  ]                                │  │
+│  │  Gehoben:       [  1,15  ]                                │  │
+│  │  Luxus:         [  1,30  ]                                │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                                                                 │
+│  ┌─ Extras-Aufschläge ───────────────────────────────────────┐  │
+│  │  Balkon:        [  3,0  ] %                               │  │
+│  │  Garten:        [  5,0  ] %                               │  │
+│  │  Stellplatz:    [  4,0  ] %                               │  │
+│  │  Aufzug:        [  2,0  ] %                               │  │
+│  │  Einbauküche:   [  3,0  ] %                               │  │
+│  └───────────────────────────────────────────────────────────┘  │
+```
+
+#### Tab 3: Standort-Werte
+
+Pro aktivierter Location können spezifische Werte gesetzt werden:
+
+```
+│  Standort-spezifische Werte                                     │
+│  ──────────────────────────                                     │
+│  Diese Werte überschreiben die Standardwerte für die jeweilige │
+│  Location. Leer lassen = Standardwert aus Tab "Einrichtung".   │
+│                                                                 │
+│  ┌─ Bad Oeynhausen ──────────────────────────────────────────┐  │
 │  │  Basismietpreis (€/m²):     [  8,50  ]                   │  │
-│  │  Minimaler Mietpreis:        [  5,00  ]                   │  │
-│  │  Maximaler Mietpreis:        [ 18,00  ]                   │  │
+│  │  Spanne min (€/m²):         [  5,80  ]                   │  │
+│  │  Spanne max (€/m²):         [ 12,50  ]                   │  │
+│  │  Steigerung p.a. (%):       [  3,2   ]                   │  │
+│  │  Datenquelle:               [IVD Marktbericht 2026    ]  │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                                                                 │
-│  ┌─ Standorte ───────────────────────────────────────────────┐  │
-│  │  ← Kernplugin-Baustein: Standortverwaltung eingebettet   │  │
-│  │  [✓] Bad Oeynhausen   [✓] Löhne   [ ] Vlotho            │  │
-│  └───────────────────────────────────────────────────────────┘  │
-│                                                                 │
-│  ┌─ Lead-Formular ───────────────────────────────────────────┐  │
-│  │  ← Kernplugin-Baustein: LeadForm-Konfigurator eingebettet│  │
-│  │  Preset: [Balanced ▾]                                     │  │
-│  │  [✓] Vorname  [✓] E-Mail  [ ] Telefon  [ ] Nachricht     │  │
+│  ┌─ Löhne ───────────────────────────────────────────────────┐  │
+│  │  Basismietpreis (€/m²):     [  7,80  ]                   │  │
+│  │  Spanne min (€/m²):         [  5,20  ]                   │  │
+│  │  Spanne max (€/m²):         [ 10,80  ]                   │  │
+│  │  Steigerung p.a. (%):       [  2,8   ]                   │  │
+│  │  Datenquelle:               [Eigene Marktanalyse      ]  │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                                                                 │
 │                                              [ Speichern ]      │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Wichtig:** Die Tabs "Standorte" und "Lead-Formular" sind **Kern-Bausteine** die in das Modul-Settings eingebettet werden. Das Modul bringt nur seine spezifischen Einstellungen mit (Basisdaten, Faktoren).
+---
+
+### Klare Trennung: Modul-Settings vs. Core-Settings
+
+| Einstellung                        | Wo konfiguriert?                      | Gilt für                   |
+| ---------------------------------- | ------------------------------------- | -------------------------- |
+| **Faktoren, Einrichtungsmodus**    | Modul-Settings → Tab "Einrichtung"    | Dieses Modul               |
+| **Standort-Preise**                | Modul-Settings → Tab "Standort-Werte" | Dieses Modul pro Location  |
+| **Lead-Formular (Felder, DSGVO)**  | Core-Settings → Einstellungen         | ALLE Module                |
+| **Design/Branding (Farben, Logo)** | Core-Settings → Einstellungen         | ALLE Module                |
+| **Locations (Städte anlegen)**     | Core → Locations                      | Globale Standortverwaltung |
+
+**Wichtig:** Lead-Formular und Design sind **globale Core-Einstellungen** und erscheinen NICHT in den Modul-Settings. Sie werden einmal zentral konfiguriert und gelten für alle Smart Assets.
 
 ---
 
@@ -1021,6 +1149,7 @@ class WebhookIntegration implements IntegrationInterface {
 ### Add-on-Integrationen (separate WordPress-Plugins)
 
 Add-ons sind **eigenständige WordPress-Plugins** die:
+
 1. RESA Premium voraussetzen
 2. Über Freemius separat lizenziert werden
 3. Sich via Hook beim Kernplugin registrieren
@@ -1055,18 +1184,18 @@ Module-Steps werden **lazy loaded** über dynamische Imports. Das Kernplugin ken
 // src/frontend/lib/module-loader.ts
 
 const moduleComponents: Record<string, () => Promise<any>> = {
-  'rent-calculator': () => import('../../../modules/rent-calculator/src/steps'),
-  'value-calculator': () => import('../../../modules/value-calculator/src/steps'),
-  'purchase-costs': () => import('../../../modules/purchase-costs/src/steps'),
-  // ... weitere Module
+	'rent-calculator': () => import('../../../modules/rent-calculator/src/steps'),
+	'value-calculator': () => import('../../../modules/value-calculator/src/steps'),
+	'purchase-costs': () => import('../../../modules/purchase-costs/src/steps'),
+	// ... weitere Module
 };
 
-export async function loadModuleSteps( slug: string ) {
-  const loader = moduleComponents[slug];
-  if ( ! loader ) {
-    throw new Error( `Unknown module: ${slug}` );
-  }
-  return loader();
+export async function loadModuleSteps(slug: string) {
+	const loader = moduleComponents[slug];
+	if (!loader) {
+		throw new Error(`Unknown module: ${slug}`);
+	}
+	return loader();
 }
 ```
 
@@ -1076,14 +1205,14 @@ export async function loadModuleSteps( slug: string ) {
 // vite.config.ts — Auszug
 
 export default defineConfig({
-  build: {
-    rollupOptions: {
-      input: {
-        frontend: 'src/frontend/main.tsx',
-        admin: 'src/admin/main.tsx',
-      },
-    },
-  },
+	build: {
+		rollupOptions: {
+			input: {
+				frontend: 'src/frontend/main.tsx',
+				admin: 'src/admin/main.tsx',
+			},
+		},
+	},
 });
 ```
 
@@ -1101,11 +1230,13 @@ Phase 2 (Zukunft):   free + pro + paid → Zusätzliche Premium-Tools als Freemi
 ```
 
 Das System ist dafür vorbereitet:
+
 - `ModuleInterface::getFlag()` unterstützt bereits `'paid'`
 - `FeatureGate::canUseModule()` hat bereits die `'paid'`-Logik
 - Paid-Module wären technisch wie Add-on-Integrationen: separate Freemius-Lizenz
 
 Dieser Schritt erfordert dann:
+
 - Modul als separates WordPress-Plugin (wie Integrationen)
 - Freemius Add-on Registrierung
 - Eigene POT-Datei für Übersetzungen
@@ -1154,15 +1285,15 @@ apply_filters( 'resa_icon_set', array $icons, string $set_name );
 
 ## Zusammenfassung
 
-| Konzept | Implementierung |
-|---|---|
-| Kernplugin | `includes/` + `src/` — Plattform mit allen Services |
-| Lead Tool Module | `modules/{slug}/` — registrierbar via `ModuleInterface` |
-| Integrationen (Free) | `includes/Services/Integration/` — Webhooks, E-Mail |
-| Integrationen (Paid) | Separate WordPress-Plugins via Freemius Add-ons |
-| Icon Registry | `src/frontend/components/icons/` — semantische Namen |
-| Feature Gating | `FeatureGate` prüft Flag (free/pro/paid) + Freemius Plan |
-| Modul Store | Admin-Seite `ModuleStore.tsx` — Aktivierung/Deaktivierung |
-| Modul Settings | Admin-Seite `ModuleSettings.tsx` — Tab pro Modul |
-| REST API | `/resa/v1/modules/{slug}/*` — dynamisch pro Modul |
-| Vite Build | Dynamische Imports → separate Chunks pro Modul |
+| Konzept              | Implementierung                                           |
+| -------------------- | --------------------------------------------------------- |
+| Kernplugin           | `includes/` + `src/` — Plattform mit allen Services       |
+| Lead Tool Module     | `modules/{slug}/` — registrierbar via `ModuleInterface`   |
+| Integrationen (Free) | `includes/Services/Integration/` — Webhooks, E-Mail       |
+| Integrationen (Paid) | Separate WordPress-Plugins via Freemius Add-ons           |
+| Icon Registry        | `src/frontend/components/icons/` — semantische Namen      |
+| Feature Gating       | `FeatureGate` prüft Flag (free/pro/paid) + Freemius Plan  |
+| Modul Store          | Admin-Seite `ModuleStore.tsx` — Aktivierung/Deaktivierung |
+| Modul Settings       | Admin-Seite `ModuleSettings.tsx` — Tab pro Modul          |
+| REST API             | `/resa/v1/modules/{slug}/*` — dynamisch pro Modul         |
+| Vite Build           | Dynamische Imports → separate Chunks pro Modul            |

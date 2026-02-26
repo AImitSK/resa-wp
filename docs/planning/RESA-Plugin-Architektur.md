@@ -467,51 +467,54 @@ Basis-Layout (global)
 
 ---
 
-## 2. Locations — Städte & Regionen
+## 2. Locations — Städte & Regionen (Core-Plugin)
 
-Jede Location ist ein Datensatz mit einer ID und regionsspezifischen Parametern.
+Locations sind **globale Stammdaten** des Core-Plugins. Sie definieren die Standorte, an denen Smart Assets eingesetzt werden können.
 
 ### Location-Datenmodell
 
+**Wichtig:** Locations enthalten nur **globale, standortbezogene Daten**. Berechnungsfaktoren und Mietpreise werden in den **Smart Asset-Einstellungen** pro Modul und Location konfiguriert.
+
 ```
-Location
+Location (Core-Plugin)
 ├── id                  → z.B. "bad-oeynhausen" oder numerisch
 ├── name                → "Bad Oeynhausen"
 ├── bundesland          → "NRW" (für Grunderwerbsteuer etc.)
-├── region_typ          → laendlich | stadt | grossstadt
+├── region_typ          → laendlich | kleinstadt | mittelstadt | grossstadt
 ├── plz_bereiche[]      → ["32547", "32549"]
+├── koordinaten         → { lat: 52.20, lng: 8.80 }
 │
-├── mietdaten
-│   ├── durchschnitt_qm → 7.80
-│   ├── spanne_min      → 5.50
-│   ├── spanne_max      → 11.20
-│   ├── steigerung_yoy  → 3.2%
-│   └── quelle          → "IVD / eigene Marktdaten"
-│
-├── kaufdaten
-│   ├── durchschnitt_qm → 2.150
-│   ├── spanne_min      → 1.400
-│   ├── spanne_max      → 3.200
-│   ├── steigerung_yoy  → 1.8%
-│   └── bodenrichtwert  → 120
-│
-├── regionale_faktoren
+├── regionale_faktoren (gesetzlich/regional festgelegt)
 │   ├── grunderwerbsteuer → 6.5%
 │   ├── maklerprovision   → 3.57%
 │   ├── mietpreisbremse   → false
-│   ├── kappungsgrenze    → 20%
-│   └── mietspiegel_url   → null
+│   └── kappungsgrenze    → 20%
 │
 └── meta
     ├── letzte_aktualisierung → "2026-01-15"
     └── ansprechpartner       → "Herr Brand"
 ```
 
+### Was gehört NICHT in Locations?
+
+Die folgenden Daten werden **pro Smart Asset** in den **Modul-Einstellungen** konfiguriert:
+
+```
+❌ NICHT in Location (gehört in Smart Asset Settings):
+├── Basismietpreis €/m²       → Smart Asset → Tab "Standort-Werte"
+├── Mietpreisspanne           → Smart Asset → Tab "Standort-Werte"
+├── Kaufpreise                → Smart Asset → Tab "Standort-Werte"
+├── Lage-Faktoren             → Smart Asset → Tab "Einrichtung"
+├── Zustands-Faktoren         → Smart Asset → Tab "Einrichtung"
+├── Ausstattungs-Faktoren     → Smart Asset → Tab "Einrichtung"
+└── Extras-Aufschläge         → Smart Asset → Tab "Einrichtung"
+```
+
 ### Location-Verwaltung im Admin
 
 - Städte anlegen, duplizieren, archivieren
 - Bulk-Import via CSV (für Makler mit vielen Standorten)
-- Daten können jährlich aktualisiert werden (Versionierung)
+- Regionale Faktoren (Grunderwerbsteuer etc.) pflegen
 - Eine Location kann als "Standard" markiert werden (Fallback)
 
 ## 3. Universeller Asset-Flow
@@ -752,43 +755,71 @@ Default-Tabelle
 
 ## 5. Smart Asset-Einstellungen (Admin)
 
-Jedes aktivierte Smart Asset hat im Admin einen eigenen Einstellungsbereich:
+### Navigation: Smart Assets Seite
+
+Die Smart Assets Seite zeigt alle verfügbaren Lead Tools. Aktive Assets erscheinen oben und haben ein Zahnrad-Icon für die Einstellungen:
 
 ```
-Smart Asset: Mietpreis-Kalkulator
-├── Status                → Aktiv / Inaktiv
+Smart Assets
+├── Filter: [Aktive ▼] Suche: [____________]
+├── AKTIVE ASSETS (oben, mit [⚙] Zahnrad)
+│   ├── Mietpreis-Kalkulator [⚙]
+│   └── Immobilienwert [⚙]
+└── VERFÜGBARE ASSETS
+    ├── Kaufnebenkosten [🔒 Pro]
+    └── ...
+```
+
+### Modul-Einstellungen (eigene Seite)
+
+Klick auf [⚙] öffnet: `Smart Assets › Mietpreis-Kalkulator`
+
+Jedes aktivierte Smart Asset hat eine **eigene Einstellungsseite** mit drei Tabs:
+
+```
+Smart Assets › Mietpreis-Kalkulator
+
+[Übersicht] [Einrichtung] [Standort-Werte]
+══════════════════════════════════════════
+```
+
+#### Tab 1: Übersicht
+
+```
+├── Status                → ● Aktiv / ○ Inaktiv
 ├── Verfügbare Locations  → [✓] Bad Oeynhausen [✓] Löhne [ ] Vlotho
-│
+└── Shortcode-Beispiel    → [resa type="mietpreis" city="bad-oeynhausen"]
+```
+
+#### Tab 2: Einrichtung
+
+Hier werden die Berechnungsparameter des Moduls konfiguriert:
+
+```
 ├── Einrichtungsmodus     → ● Pauschal / ○ Individuell
 │   │
 │   ├── [Pauschal]        → Regionstyp: ○ Ländlich ○ Kleinstadt ● Mittelstadt ○ Großstadt
-│   │                       (alle Faktoren werden automatisch befüllt)
+│   │                       (alle Faktoren werden automatisch aus Presets befüllt)
 │   │
-│   └── [Individuell]     → Alle Felder unten werden editierbar:
+│   └── [Individuell]     → Alle Felder unten werden editierbar
 │
-├── Basisdaten (bei Pauschal: read-only / bei Individuell: editierbar)
-│   ├── basismietpreis_qm → 8.20 €
-│   ├── spanne_min        → 5.80 €
-│   ├── spanne_max        → 12.50 €
-│   └── steigerung_pa     → 3.2%
-│
-├── Lage-Faktoren
+├── Lage-Faktoren (bei Pauschal: read-only)
 │   ├── laendlich         → 0.85
 │   ├── stadtrand         → 0.95
 │   ├── stadt             → 1.00
 │   └── zentrum           → 1.15
-│
-├── Ausstattungs-Faktoren
-│   ├── einfach           → 0.85
-│   ├── normal            → 1.00
-│   ├── gehoben           → 1.15
-│   └── luxus             → 1.30
 │
 ├── Zustands-Faktoren
 │   ├── renovierungsbed   → 0.80
 │   ├── gepflegt          → 1.00
 │   ├── modernisiert      → 1.10
 │   └── neuwertig         → 1.20
+│
+├── Ausstattungs-Faktoren
+│   ├── einfach           → 0.85
+│   ├── normal            → 1.00
+│   ├── gehoben           → 1.15
+│   └── luxus             → 1.30
 │
 ├── Extras-Aufschläge
 │   ├── balkon            → +3%
@@ -797,22 +828,48 @@ Smart Asset: Mietpreis-Kalkulator
 │   ├── aufzug            → +2%
 │   └── einbaukueche      → +3%
 │
-├── Globale Parameter
-│   ├── min_flaeche     → 20
-│   ├── max_flaeche     → 500
-│   ├── waehrung        → "EUR"
-│   └── dezimalstellen  → 2
-│
-├── Lead-Formular
-│   ├── felder[]        → [name, email, telefon, nachricht]
-│   ├── pflichtfelder[] → [name, email]
-│   └── einwilligung    → "Ich stimme der Datenverarbeitung zu..."
-│
-└── Design
-    ├── primaerfarbe    → "#2E75B6"
-    ├── branding        → true/false (zeigt "Powered by RESA")
-    └── custom_css      → ""
+└── Globale Parameter
+    ├── min_flaeche       → 20
+    ├── max_flaeche       → 500
+    └── dezimalstellen    → 2
 ```
+
+#### Tab 3: Standort-Werte
+
+Pro aktivierter Location können spezifische Werte gesetzt werden, die die Standardwerte überschreiben:
+
+```
+├── Bad Oeynhausen
+│   ├── basismietpreis_qm → 8.50 €
+│   ├── spanne_min        → 5.80 €
+│   ├── spanne_max        → 12.50 €
+│   ├── steigerung_pa     → 3.2%
+│   └── datenquelle       → "IVD Marktbericht 2026"
+│
+└── Löhne
+    ├── basismietpreis_qm → 7.80 €
+    ├── spanne_min        → 5.20 €
+    ├── spanne_max        → 10.80 €
+    ├── steigerung_pa     → 2.8%
+    └── datenquelle       → "Eigene Marktanalyse"
+```
+
+### Klare Trennung: Modul vs. Core
+
+**MODUL-SETTINGS** (in der Modul-Einstellungsseite):
+
+- Einrichtungsmodus (Pauschal/Individuell)
+- Berechnungsfaktoren (Lage, Zustand, Ausstattung, Extras)
+- Standort-Werte (Basispreise pro Location)
+
+**CORE-SETTINGS** (unter RESA → Einstellungen, gilt für ALLE Module):
+
+- Lead-Formular (Felder, Pflichtfelder, DSGVO-Text)
+- Design/Branding (Primärfarbe, Logo, "Powered by RESA")
+- E-Mail-Vorlagen
+- SMTP-Konfiguration
+
+**Hinweis:** Lead-Formular und Design sind **keine** Modul-Einstellungen. Sie werden einmal zentral konfiguriert und gelten für alle Smart Assets einheitlich.
 
 ---
 
@@ -845,18 +902,18 @@ Smart Asset: Mietpreis-Kalkulator
 
 ### Shortcode-Parameter (alle Assets)
 
-| Parameter   | Werte                          | Standard       | Beschreibung                       |
-|-------------|--------------------------------|----------------|------------------------------------|
-| type        | asset-slug                     | (Pflicht)      | Welches Asset                      |
-| city        | location-id / "all"            | Standard-City  | Welche Location                    |
-| branding    | true / false                   | true           | "Powered by RESA" anzeigen          |
-| lead_form   | true / false                   | true           | Lead-Formular anzeigen             |
-| theme       | light / dark                   | light          | Farbschema                         |
-| lang        | de / en                        | de             | Sprache                            |
-| cta_text    | "Beliebiger Text"              | (Asset-Default)| Call-to-Action Text                |
-| redirect    | URL                            | null           | Weiterleitung nach Lead-Abgabe     |
+| Parameter | Werte               | Standard        | Beschreibung                   |
+| --------- | ------------------- | --------------- | ------------------------------ |
+| type      | asset-slug          | (Pflicht)       | Welches Asset                  |
+| city      | location-id / "all" | Standard-City   | Welche Location                |
+| branding  | true / false        | true            | "Powered by RESA" anzeigen     |
+| lead_form | true / false        | true            | Lead-Formular anzeigen         |
+| theme     | light / dark        | light           | Farbschema                     |
+| lang      | de / en             | de              | Sprache                        |
+| cta_text  | "Beliebiger Text"   | (Asset-Default) | Call-to-Action Text            |
+| redirect  | URL                 | null            | Weiterleitung nach Lead-Abgabe |
 
-**Hinweis:** Der Einrichtungsmodus (Pauschal/Individuell) und alle Faktoren werden im Admin pro Asset konfiguriert — nicht per Shortcode. Der Shortcode steuert nur *welches* Asset *wo* und *wie* angezeigt wird.
+**Hinweis:** Der Einrichtungsmodus (Pauschal/Individuell), alle Faktoren und die Standort-Werte werden im Admin **pro Smart Asset** konfiguriert — nicht per Shortcode. Der Shortcode steuert nur _welches_ Asset _wo_ angezeigt wird. Design und Lead-Formular werden zentral unter Einstellungen konfiguriert und gelten für alle Assets.
 
 ---
 
@@ -866,40 +923,40 @@ Smart Asset: Mietpreis-Kalkulator
 
 Diese Assets nutzen die volle RESA-Mechanik: Location-Daten, Lage-/Ausstattungsfaktoren, beide Modi.
 
-| # | Asset                      | type-slug             | Nutzt Location-Daten             |
-|---|----------------------------|-----------------------|----------------------------------|
-| 1 | Mietpreis-Kalkulator       | `mietpreis`           | Mietdaten, Lage, Ausstattung    |
-| 2 | Immobilienwert-Kalkulator  | `immobilienwert`      | Kaufdaten, Bodenrichtwert, Lage  |
-| 3 | Renditerechner             | `rendite`             | Miet+Kaufdaten, Nebenkosten     |
-| 4 | Modernisierungsrechner     | `modernisierung`      | Kaufdaten (Wertsteigerung)       |
-| 5 | Mieterhöhungsrechner       | `mieterhoehung`       | Mietdaten, Kappungsgrenze        |
-| 6 | Verkaufszeitpunkt-Berater  | `verkaufszeitpunkt`   | Markttrend, Preisentwicklung     |
-| 7 | Energieeffizienz-Check     | `energiecheck`        | Regionale Sanierungspflichten    |
+| #   | Asset                     | type-slug           | Nutzt Location-Daten            |
+| --- | ------------------------- | ------------------- | ------------------------------- |
+| 1   | Mietpreis-Kalkulator      | `mietpreis`         | Mietdaten, Lage, Ausstattung    |
+| 2   | Immobilienwert-Kalkulator | `immobilienwert`    | Kaufdaten, Bodenrichtwert, Lage |
+| 3   | Renditerechner            | `rendite`           | Miet+Kaufdaten, Nebenkosten     |
+| 4   | Modernisierungsrechner    | `modernisierung`    | Kaufdaten (Wertsteigerung)      |
+| 5   | Mieterhöhungsrechner      | `mieterhoehung`     | Mietdaten, Kappungsgrenze       |
+| 6   | Verkaufszeitpunkt-Berater | `verkaufszeitpunkt` | Markttrend, Preisentwicklung    |
+| 7   | Energieeffizienz-Check    | `energiecheck`      | Regionale Sanierungspflichten   |
 
 ### Passt gut (Location teilweise, eigene Parameter)
 
 Diese Assets brauchen die Location hauptsächlich für regionale Steuersätze oder als Kontext, haben aber eigene Schwerpunkte.
 
-| # | Asset                      | type-slug             | Nutzt von Location               |
-|---|----------------------------|-----------------------|----------------------------------|
-| 8 | Kaufnebenkosten-Rechner    | `kaufnebenkosten`     | Grunderwerbsteuer, Provision     |
-| 9 | Budgetrechner              | `budget`              | Durchschnittspreise als Referenz |
-|10 | Mieten-vs-Kaufen           | `mieten-vs-kaufen`    | Miet+Kaufdaten als Vergleich     |
-|11 | Erbschaftssteuer-Rechner   | `erbschaftssteuer`    | Immobilienwert-Referenz          |
-|12 | Immobilien-Stresstest      | `stresstest`          | Marktdaten als Basis             |
+| #   | Asset                    | type-slug          | Nutzt von Location               |
+| --- | ------------------------ | ------------------ | -------------------------------- |
+| 8   | Kaufnebenkosten-Rechner  | `kaufnebenkosten`  | Grunderwerbsteuer, Provision     |
+| 9   | Budgetrechner            | `budget`           | Durchschnittspreise als Referenz |
+| 10  | Mieten-vs-Kaufen         | `mieten-vs-kaufen` | Miet+Kaufdaten als Vergleich     |
+| 11  | Erbschaftssteuer-Rechner | `erbschaftssteuer` | Immobilienwert-Referenz          |
+| 12  | Immobilien-Stresstest    | `stresstest`       | Marktdaten als Basis             |
 
 ### Passt als Ergänzung (Location optional, eigene Logik)
 
 Diese Assets funktionieren auch ohne Location-Daten, profitieren aber davon.
 
-| # | Asset                      | type-slug             | Location-Bezug                   |
-|---|----------------------------|-----------------------|----------------------------------|
-|13 | Suchprofil-Ersteller       | `suchprofil`          | Verfügbare Regionen als Auswahl  |
-|14 | Verkäufer-Checkliste       | `checkliste-vk`       | Regionale Dokumente/Hinweise     |
-|15 | Käufer-Checkliste          | `checkliste-kaeufer`  | Regionale Besonderheiten         |
-|16 | Vermieter-Starter-Kit      | `vermieter-kit`       | Regionale Rechtshinweise         |
-|17 | Makler-Matching-Quiz       | `makler-quiz`         | Kontextinfo                      |
-|18 | Umzugs-Checkliste          | `umzug`               | Lokale Ämter/Ansprechpartner     |
+| #   | Asset                 | type-slug            | Location-Bezug                  |
+| --- | --------------------- | -------------------- | ------------------------------- |
+| 13  | Suchprofil-Ersteller  | `suchprofil`         | Verfügbare Regionen als Auswahl |
+| 14  | Verkäufer-Checkliste  | `checkliste-vk`      | Regionale Dokumente/Hinweise    |
+| 15  | Käufer-Checkliste     | `checkliste-kaeufer` | Regionale Besonderheiten        |
+| 16  | Vermieter-Starter-Kit | `vermieter-kit`      | Regionale Rechtshinweise        |
+| 17  | Makler-Matching-Quiz  | `makler-quiz`        | Kontextinfo                     |
+| 18  | Umzugs-Checkliste     | `umzug`              | Lokale Ämter/Ansprechpartner    |
 
 ---
 
