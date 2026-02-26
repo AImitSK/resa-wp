@@ -8,6 +8,7 @@ use Resa\Admin\AdminPage;
 use Resa\Api\HealthController;
 use Resa\Api\LeadsController;
 use Resa\Api\LocationsController;
+use Resa\Api\ModulesController;
 use Resa\Api\ModuleSettingsController;
 use Resa\Api\TrackingController;
 use Resa\Database\Schema;
@@ -130,6 +131,7 @@ final class Plugin {
 			new HealthController(),
 			new LeadsController(),
 			new LocationsController(),
+			new ModulesController(),
 			new ModuleSettingsController(),
 			new TrackingController(),
 		];

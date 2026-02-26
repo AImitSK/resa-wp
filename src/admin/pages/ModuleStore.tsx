@@ -7,72 +7,35 @@
 
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useModules, useToggleModule } from '../hooks/useModules';
 import type { ModuleSummary } from '../types';
 
 type FilterOption = 'all' | 'active' | 'inactive';
-
-/**
- * Placeholder modules until REST API delivers real data.
- */
-const PLACEHOLDER_MODULES: ModuleSummary[] = [
-	{
-		slug: 'rent-calculator',
-		name: 'Mietpreis-Kalkulator',
-		description:
-			'Berechnet die marktubliche Miete basierend auf Lage, Ausstattung und Zustand.',
-		icon: 'haus',
-		category: 'calculator',
-		flag: 'free',
-		active: true,
-	},
-	{
-		slug: 'value-calculator',
-		name: 'Immobilienwert-Kalkulator',
-		description: 'Ermittelt den geschatzten Marktwert einer Immobilie.',
-		icon: 'wohnung',
-		category: 'calculator',
-		flag: 'free',
-		active: false,
-	},
-	{
-		slug: 'cost-calculator',
-		name: 'Kaufnebenkosten-Rechner',
-		description: 'Berechnet Grunderwerbsteuer, Notar- und Maklerkosten.',
-		icon: 'kaufen',
-		category: 'calculator',
-		flag: 'pro',
-		active: false,
-	},
-	{
-		slug: 'budget-calculator',
-		name: 'Budgetrechner',
-		description: 'Ermittelt das maximale Kaufbudget basierend auf Einkommen und Eigenkapital.',
-		icon: 'gewerbe',
-		category: 'calculator',
-		flag: 'pro',
-		active: false,
-	},
-];
 
 export function ModuleStore() {
 	const [filter, setFilter] = useState<FilterOption>('all');
 	const [searchQuery, setSearchQuery] = useState('');
 
+	const { data: modules, isLoading, error } = useModules();
+	const toggleMutation = useToggleModule();
+
 	// Sort: active modules first, then by name
 	const filteredModules = useMemo(() => {
-		let modules = [...PLACEHOLDER_MODULES];
+		if (!modules) return [];
+
+		let result = [...modules];
 
 		// Apply filter
 		if (filter === 'active') {
-			modules = modules.filter((m) => m.active);
+			result = result.filter((m) => m.active);
 		} else if (filter === 'inactive') {
-			modules = modules.filter((m) => !m.active);
+			result = result.filter((m) => !m.active);
 		}
 
 		// Apply search
 		if (searchQuery.trim()) {
 			const query = searchQuery.toLowerCase();
-			modules = modules.filter(
+			result = result.filter(
 				(m) =>
 					m.name.toLowerCase().includes(query) ||
 					m.description.toLowerCase().includes(query),
@@ -80,18 +43,44 @@ export function ModuleStore() {
 		}
 
 		// Sort: active first, then alphabetically
-		modules.sort((a, b) => {
+		result.sort((a, b) => {
 			if (a.active !== b.active) {
 				return a.active ? -1 : 1;
 			}
 			return a.name.localeCompare(b.name, 'de');
 		});
 
-		return modules;
-	}, [filter, searchQuery]);
+		return result;
+	}, [modules, filter, searchQuery]);
 
-	const activeCount = PLACEHOLDER_MODULES.filter((m) => m.active).length;
-	const inactiveCount = PLACEHOLDER_MODULES.filter((m) => !m.active).length;
+	const activeCount = modules?.filter((m) => m.active).length ?? 0;
+	const inactiveCount = modules?.filter((m) => !m.active).length ?? 0;
+	const totalCount = modules?.length ?? 0;
+
+	const handleToggle = (slug: string) => {
+		toggleMutation.mutate(slug);
+	};
+
+	if (isLoading) {
+		return (
+			<div className="resa-flex resa-items-center resa-justify-center resa-py-12">
+				<div className="resa-text-muted-foreground">Module werden geladen...</div>
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className="resa-rounded-lg resa-border resa-border-destructive/50 resa-bg-destructive/10 resa-p-6">
+				<h2 className="resa-text-lg resa-font-semibold resa-text-destructive">
+					Fehler beim Laden
+				</h2>
+				<p className="resa-text-sm resa-text-muted-foreground resa-mt-2">
+					Die Module konnten nicht geladen werden.
+				</p>
+			</div>
+		);
+	}
 
 	return (
 		<div>
@@ -107,7 +96,7 @@ export function ModuleStore() {
 					<FilterButton
 						active={filter === 'all'}
 						onClick={() => setFilter('all')}
-						label={`Alle (${PLACEHOLDER_MODULES.length})`}
+						label={`Alle (${totalCount})`}
 					/>
 					<FilterButton
 						active={filter === 'active'}
@@ -136,12 +125,17 @@ export function ModuleStore() {
 			{/* Module grid */}
 			{filteredModules.length === 0 ? (
 				<div className="resa-text-center resa-py-12 resa-text-muted-foreground">
-					Keine Module gefunden.
+					{modules?.length === 0 ? 'Keine Module registriert.' : 'Keine Module gefunden.'}
 				</div>
 			) : (
 				<div className="resa-grid resa-grid-cols-1 md:resa-grid-cols-2 lg:resa-grid-cols-3 resa-gap-4">
 					{filteredModules.map((module) => (
-						<ModuleCard key={module.slug} module={module} />
+						<ModuleCard
+							key={module.slug}
+							module={module}
+							onToggle={handleToggle}
+							isToggling={toggleMutation.isPending}
+						/>
 					))}
 				</div>
 			)}
@@ -173,12 +167,24 @@ function FilterButton({
 	);
 }
 
-function ModuleCard({ module }: { module: ModuleSummary }) {
+function ModuleCard({
+	module,
+	onToggle,
+	isToggling,
+}: {
+	module: ModuleSummary;
+	onToggle: (slug: string) => void;
+	isToggling: boolean;
+}) {
 	const navigate = useNavigate();
 	const canAccess = module.flag === 'free' || module.active;
 
 	const handleSettingsClick = () => {
 		navigate(`/modules/${module.slug}/settings`);
+	};
+
+	const handleToggleClick = () => {
+		onToggle(module.slug);
 	};
 
 	return (
@@ -236,7 +242,9 @@ function ModuleCard({ module }: { module: ModuleSummary }) {
 						)}
 						<button
 							type="button"
-							className={`resa-text-sm resa-font-medium hover:resa-underline ${
+							onClick={handleToggleClick}
+							disabled={isToggling}
+							className={`resa-text-sm resa-font-medium hover:resa-underline disabled:resa-opacity-50 ${
 								module.active ? 'resa-text-muted-foreground' : 'resa-text-primary'
 							}`}
 						>
