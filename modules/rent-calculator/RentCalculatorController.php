@@ -6,6 +6,7 @@ namespace Resa\Modules\RentCalculator;
 
 use Resa\Api\RestController;
 use Resa\Models\Location;
+use Resa\Models\ModuleSettings;
 
 /**
  * REST API controller for the Mietpreis-Kalkulator module.
@@ -123,7 +124,8 @@ class RentCalculatorController extends RestController {
 			return $this->notFound( __( 'Location nicht gefunden oder nicht aktiv.', 'resa' ) );
 		}
 
-		$locationData = Location::getCalculationData( $location );
+		// Load calculation data from module settings (with location-specific overrides).
+		$locationData = $this->getCalculationData( $cityId );
 
 		$inputs = [
 			'size'            => $size,
@@ -183,5 +185,54 @@ class RentCalculatorController extends RestController {
 				[ 'key' => 'barrier_free', 'label' => __( 'Barrierefrei', 'resa' ), 'icon' => 'barrierefrei' ],
 			],
 		] );
+	}
+
+	/**
+	 * Get calculation data for a location.
+	 *
+	 * Loads module settings with location-specific overrides.
+	 * Falls back to region preset if no custom settings.
+	 *
+	 * @param int $locationId Location ID.
+	 * @return array<string,mixed> Calculation parameters.
+	 */
+	private function getCalculationData( int $locationId ): array {
+		$moduleSlug = 'rent-calculator';
+
+		// First, try to get from module settings.
+		$moduleSettings = ModuleSettings::getBySlug( $moduleSlug );
+
+		if ( $moduleSettings ) {
+			// Start with global factors.
+			$calculationData = $moduleSettings['factors'] ?? [];
+
+			// Apply location-specific overrides if available.
+			$locationValues = $moduleSettings['location_values'][ (string) $locationId ] ?? null;
+			if ( $locationValues ) {
+				// Override base_price if location has custom value.
+				if ( isset( $locationValues['base_price'] ) && $locationValues['base_price'] > 0 ) {
+					$calculationData['base_price'] = $locationValues['base_price'];
+				}
+			}
+
+			if ( ! empty( $calculationData ) ) {
+				return $calculationData;
+			}
+		}
+
+		// Fallback: Use default preset based on location's region_type.
+		$location = Location::findById( $locationId );
+		if ( $location ) {
+			$regionType = $location->region_type ?? 'medium_city';
+			$presets    = RentCalculatorService::getRegionPresets();
+
+			if ( isset( $presets[ $regionType ] ) ) {
+				return $presets[ $regionType ];
+			}
+		}
+
+		// Ultimate fallback: medium_city preset.
+		$presets = RentCalculatorService::getRegionPresets();
+		return $presets['medium_city'] ?? [];
 	}
 }

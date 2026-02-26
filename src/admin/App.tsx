@@ -12,6 +12,7 @@ import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { Leads } from './pages/Leads';
 import { ModuleStore } from './pages/ModuleStore';
+import { ModuleSettings } from './pages/ModuleSettings';
 import { Locations } from './pages/Locations';
 import { Communication } from './pages/Communication';
 import { PdfTemplates } from './pages/PdfTemplates';
@@ -57,6 +58,7 @@ export function App() {
 						<Route index element={<Dashboard />} />
 						<Route path="leads" element={<Leads />} />
 						<Route path="modules" element={<ModuleStore />} />
+						<Route path="modules/:slug/settings" element={<ModuleSettings />} />
 						<Route path="locations" element={<Locations />} />
 						<Route path="communication" element={<Communication />} />
 						<Route path="pdf" element={<PdfTemplates />} />

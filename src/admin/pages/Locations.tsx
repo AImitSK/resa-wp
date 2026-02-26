@@ -2,7 +2,7 @@
  * Locations page — manage cities/regions with market data.
  *
  * List view with create/edit/delete actions.
- * Editor supports Pauschal (preset) and Individuell (custom) modes.
+ * Calculation factors are now managed in module settings.
  */
 
 import { useState, useCallback } from 'react';
@@ -32,8 +32,8 @@ export function Locations() {
 				name: formData.name,
 				slug: formData.slug,
 				bundesland: formData.bundesland,
+				region_type: formData.region_type,
 				data: formData.data,
-				factors: formData.factors,
 			});
 			setView('list');
 		},
@@ -49,8 +49,8 @@ export function Locations() {
 					name: formData.name,
 					slug: formData.slug,
 					bundesland: formData.bundesland,
+					region_type: formData.region_type,
 					data: formData.data,
-					factors: formData.factors,
 				},
 			});
 			setView('list');
@@ -61,7 +61,7 @@ export function Locations() {
 
 	const handleDelete = useCallback(
 		async (id: number, name: string) => {
-			if (!window.confirm(`Location "${name}" wirklich löschen?`)) return;
+			if (!window.confirm(`Location "${name}" wirklich loschen?`)) return;
 			await deleteMutation.mutateAsync(id);
 		},
 		[deleteMutation],
@@ -80,11 +80,11 @@ export function Locations() {
 				name: editingLocation.name,
 				slug: editingLocation.slug,
 				bundesland: editingLocation.bundesland ?? '',
-				setup_mode:
-					(editingLocation.data?.setup_mode as 'pauschal' | 'individuell') ?? 'pauschal',
-				region_preset: (editingLocation.data?.region_preset as string) ?? 'medium_city',
-				data: editingLocation.data ?? {},
-				factors: editingLocation.factors,
+				region_type: editingLocation.region_type ?? 'medium_city',
+				data: (editingLocation.data as LocationFormData['data']) ?? {
+					grunderwerbsteuer: 5.0,
+					maklerprovision: 3.57,
+				},
 			}
 		: undefined;
 
@@ -128,29 +128,29 @@ export function Locations() {
 		<div>
 			<div className="resa-flex resa-items-center resa-justify-between resa-mb-4">
 				<div>
-					<h1 className="resa-text-2xl resa-font-bold">Locations</h1>
+					<h1 className="resa-text-2xl resa-font-bold">Standorte</h1>
 					<p className="resa-text-muted-foreground resa-text-sm">
-						Verwalte Städte und Regionen mit regionalen Marktdaten.
+						Verwalte Stadte und Regionen mit regionalen Kostensatzen.
 					</p>
 				</div>
 				<button
 					onClick={() => setView('create')}
 					className="resa-px-4 resa-py-2 resa-text-sm resa-font-medium resa-rounded-md resa-bg-primary resa-text-primary-foreground hover:resa-bg-primary/90"
 				>
-					+ Neue Location
+					+ Neuer Standort
 				</button>
 			</div>
 
 			{isLoading && (
 				<div className="resa-rounded-lg resa-border resa-bg-card resa-p-6 resa-text-center">
-					<p className="resa-text-sm resa-text-muted-foreground">Lade Locations...</p>
+					<p className="resa-text-sm resa-text-muted-foreground">Lade Standorte...</p>
 				</div>
 			)}
 
 			{error && (
 				<div className="resa-rounded-lg resa-border resa-border-destructive/50 resa-bg-destructive/5 resa-p-6">
 					<p className="resa-text-sm resa-text-destructive">
-						Fehler beim Laden der Locations.
+						Fehler beim Laden der Standorte.
 					</p>
 				</div>
 			)}
@@ -158,13 +158,13 @@ export function Locations() {
 			{locations && locations.length === 0 && (
 				<div className="resa-rounded-lg resa-border resa-bg-card resa-p-8 resa-text-center">
 					<p className="resa-text-muted-foreground resa-mb-3">
-						Noch keine Locations angelegt.
+						Noch keine Standorte angelegt.
 					</p>
 					<button
 						onClick={() => setView('create')}
 						className="resa-text-sm resa-text-primary resa-underline"
 					>
-						Erste Location anlegen
+						Ersten Standort anlegen
 					</button>
 				</div>
 			)}
@@ -175,11 +175,13 @@ export function Locations() {
 						<thead>
 							<tr className="resa-border-b">
 								<th className="resa-text-left resa-p-3 resa-font-medium">Name</th>
-								<th className="resa-text-left resa-p-3 resa-font-medium">Slug</th>
-								<th className="resa-text-left resa-p-3 resa-font-medium">Modus</th>
 								<th className="resa-text-left resa-p-3 resa-font-medium">
-									Basispreis
+									Bundesland
 								</th>
+								<th className="resa-text-left resa-p-3 resa-font-medium">
+									Regionstyp
+								</th>
+								<th className="resa-text-left resa-p-3 resa-font-medium">GrESt</th>
 								<th className="resa-text-left resa-p-3 resa-font-medium">Status</th>
 								<th className="resa-text-right resa-p-3 resa-font-medium">
 									Aktionen
@@ -188,11 +190,14 @@ export function Locations() {
 						</thead>
 						<tbody>
 							{locations.map((location) => {
-								const setupMode =
-									(location.data?.setup_mode as string) ?? 'pauschal';
-								const effectiveData = location.factors ?? location.data ?? {};
-								const basePrice = (effectiveData as Record<string, unknown>)
-									.base_price as number | undefined;
+								const regionTypeLabels: Record<string, string> = {
+									rural: 'Landlich',
+									small_town: 'Kleinstadt',
+									medium_city: 'Mittelstadt',
+									large_city: 'Grossstadt',
+								};
+								const grunderwerbsteuer = (location.data as Record<string, unknown>)
+									?.grunderwerbsteuer;
 
 								return (
 									<tr
@@ -203,22 +208,17 @@ export function Locations() {
 											{location.name}
 										</td>
 										<td className="resa-p-3 resa-text-muted-foreground">
-											{location.slug}
+											{location.bundesland || '—'}
 										</td>
 										<td className="resa-p-3">
-											<span
-												className={`resa-inline-flex resa-items-center resa-rounded-full resa-px-2 resa-py-0.5 resa-text-xs resa-font-medium ${
-													setupMode === 'individuell'
-														? 'resa-bg-blue-100 resa-text-blue-700'
-														: 'resa-bg-green-100 resa-text-green-700'
-												}`}
-											>
-												{setupMode}
+											<span className="resa-inline-flex resa-items-center resa-rounded-full resa-px-2 resa-py-0.5 resa-text-xs resa-font-medium resa-bg-gray-100 resa-text-gray-700">
+												{regionTypeLabels[location.region_type] ||
+													location.region_type}
 											</span>
 										</td>
 										<td className="resa-p-3">
-											{basePrice
-												? `${Number(basePrice).toFixed(2)} EUR/m²`
+											{grunderwerbsteuer
+												? `${Number(grunderwerbsteuer).toFixed(1)}%`
 												: '—'}
 										</td>
 										<td className="resa-p-3">
@@ -244,7 +244,7 @@ export function Locations() {
 												className="resa-text-xs resa-text-destructive hover:resa-underline"
 												disabled={deleteMutation.isPending}
 											>
-												Löschen
+												Loschen
 											</button>
 										</td>
 									</tr>

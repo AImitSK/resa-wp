@@ -15,7 +15,7 @@ final class Schema {
 	/**
 	 * Current schema version.
 	 */
-	public const VERSION = '0.1.0';
+	public const VERSION = '0.2.0';
 
 	/**
 	 * Run migrations from the given version to current.
@@ -27,6 +27,10 @@ final class Schema {
 
 		if ( version_compare( $fromVersion, '0.1.0', '<' ) ) {
 			self::migrateToV010();
+		}
+
+		if ( version_compare( $fromVersion, '0.2.0', '<' ) ) {
+			self::migrateToV020();
 		}
 
 		update_option( 'resa_db_version', self::VERSION );
@@ -66,6 +70,7 @@ final class Schema {
 			$wpdb->prefix . 'resa_email_log',
 			$wpdb->prefix . 'resa_agents',
 			$wpdb->prefix . 'resa_agent_locations',
+			$wpdb->prefix . 'resa_module_settings',
 		];
 	}
 
@@ -203,6 +208,34 @@ CREATE TABLE {$prefix}resa_agent_locations (
   location_id bigint(20) unsigned NOT NULL,
   PRIMARY KEY  (agent_id,location_id),
   KEY idx_location (location_id)
+) {$charset};";
+
+		dbDelta( $sql );
+	}
+
+	/**
+	 * v0.2.0 — Add module settings table.
+	 *
+	 * Stores per-module configuration (factors, location values)
+	 * separate from locations.
+	 */
+	private static function migrateToV020(): void {
+		global $wpdb;
+
+		$charset = $wpdb->get_charset_collate();
+		$prefix  = $wpdb->prefix;
+
+		$sql = "CREATE TABLE {$prefix}resa_module_settings (
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  module_slug varchar(50) NOT NULL,
+  setup_mode varchar(20) NOT NULL DEFAULT 'pauschal',
+  region_preset varchar(30) DEFAULT 'medium_city',
+  factors longtext DEFAULT NULL,
+  location_values longtext DEFAULT NULL,
+  created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY  (id),
+  UNIQUE KEY idx_module_slug (module_slug)
 ) {$charset};";
 
 		dbDelta( $sql );
