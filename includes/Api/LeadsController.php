@@ -6,6 +6,8 @@ namespace Resa\Api;
 
 use Resa\Core\ErrorMessages;
 use Resa\Models\Lead;
+use Resa\Services\Email\EmailService;
+use Resa\Services\Notifications\LeadNotificationService;
 
 /**
  * REST controller for lead capture endpoints.
@@ -155,6 +157,18 @@ final class LeadsController extends RestController {
 		}
 
 		$updatedLead = Lead::findBySession( $sessionId );
+
+		// Notify agent of new lead (non-blocking — errors are logged, not propagated).
+		if ( $updatedLead !== null ) {
+			try {
+				$notificationService = new LeadNotificationService( new EmailService() );
+				$notificationService->notifyAgent( (int) $updatedLead->id );
+			} catch ( \Throwable $e ) {
+				// Log error but don't fail the lead completion.
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( 'RESA: Lead notification failed: ' . $e->getMessage() );
+			}
+		}
 
 		return $this->success(
 			[
