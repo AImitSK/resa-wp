@@ -5,7 +5,8 @@ declare( strict_types=1 );
 namespace Resa\Api;
 
 use Resa\Models\ModuleSettings;
-use Resa\Core\ModuleRegistry;
+use Resa\Core\Plugin;
+use Resa\Core\ModuleInterface;
 use Resa\Modules\RentCalculator\RentCalculatorService;
 
 /**
@@ -20,6 +21,20 @@ use Resa\Modules\RentCalculator\RentCalculatorService;
  *   GET  /admin/modules/{slug}/presets   — Get available presets
  */
 class ModuleSettingsController extends RestController {
+
+	/**
+	 * Get a module by slug from the registry.
+	 *
+	 * @param string $slug Module slug.
+	 * @return ModuleInterface|null
+	 */
+	private function getModule( string $slug ): ?ModuleInterface {
+		$plugin = Plugin::getInstance();
+		if ( ! $plugin ) {
+			return null;
+		}
+		return $plugin->getModuleRegistry()->get( $slug );
+	}
 
 	/**
 	 * Register REST routes.
@@ -127,7 +142,7 @@ class ModuleSettingsController extends RestController {
 		$slug = $request->get_param( 'slug' );
 
 		// Verify module exists.
-		$module = ModuleRegistry::get( $slug );
+		$module = $this->getModule( $slug );
 		if ( ! $module ) {
 			return $this->notFound(
 				/* translators: %s: Module slug */
@@ -166,7 +181,7 @@ class ModuleSettingsController extends RestController {
 		$slug = $request->get_param( 'slug' );
 
 		// Verify module exists.
-		$module = ModuleRegistry::get( $slug );
+		$module = $this->getModule( $slug );
 		if ( ! $module ) {
 			return $this->notFound(
 				/* translators: %s: Module slug */
@@ -230,7 +245,7 @@ class ModuleSettingsController extends RestController {
 		$slug = $request->get_param( 'slug' );
 
 		// Verify module exists.
-		$module = ModuleRegistry::get( $slug );
+		$module = $this->getModule( $slug );
 		if ( ! $module ) {
 			return $this->notFound(
 				/* translators: %s: Module slug */
@@ -256,7 +271,7 @@ class ModuleSettingsController extends RestController {
 		$locationId = (int) $request->get_param( 'location_id' );
 
 		// Verify module exists.
-		$module = ModuleRegistry::get( $slug );
+		$module = $this->getModule( $slug );
 		if ( ! $module ) {
 			return $this->notFound(
 				/* translators: %s: Module slug */
