@@ -11,11 +11,12 @@
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { StepWizard } from '@frontend/components/shared/StepWizard';
 import { LeadForm } from '@frontend/components/shared/LeadForm';
 import type { StepConfig, WizardData } from '@frontend/types/wizard';
 import { api } from '@frontend/lib/api-client';
-import { getSessionId } from '@frontend/lib/session';
+import { getSessionId, resetSession } from '@frontend/lib/session';
 import { trackEvent } from '@frontend/lib/tracking';
 
 import { PropertyTypeStep } from './steps/PropertyTypeStep';
@@ -151,11 +152,13 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 			setPhase('error');
 			return;
 		}
-		setWizardData(data);
+		// Cast to RentCalculatorData after validation (Zod schemas validate the actual values).
+		const formData = data as RentCalculatorData;
+		setWizardData(formData);
 		setPhase('calculating');
 
 		trackEvent('asset_start', 'rent-calculator', {
-			location_id: data.city_id,
+			location_id: formData.city_id,
 		});
 
 		try {
@@ -163,14 +166,14 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 			const calcResult = await api.post<RentCalculationResult>(
 				'modules/rent-calculator/calculate',
 				{
-					city_id: data.city_id,
-					size: data.size,
-					property_type: data.property_type,
-					condition: data.condition,
-					location_rating: data.location_rating,
-					features: data.features ?? [],
-					year_built: data.year_built,
-					rooms: data.rooms,
+					city_id: formData.city_id,
+					size: formData.size,
+					property_type: formData.property_type,
+					condition: formData.condition,
+					location_rating: formData.location_rating,
+					features: formData.features ?? [],
+					year_built: formData.year_built,
+					rooms: formData.rooms,
 				},
 			);
 			setResult(calcResult);
@@ -180,13 +183,13 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 			await api.post('leads/partial', {
 				sessionId,
 				assetType: 'rent-calculator',
-				locationId: data.city_id ?? 0,
-				inputs: data,
+				locationId: formData.city_id ?? 0,
+				inputs: formData,
 				result: calcResult,
 			});
 
 			trackEvent('form_view', 'rent-calculator', {
-				location_id: data.city_id,
+				location_id: formData.city_id,
 			});
 
 			setPhase('lead-form');
@@ -216,6 +219,9 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 					location_id: wizardData.city_id,
 				});
 
+				// Reset session so next wizard run gets a fresh session ID.
+				resetSession();
+
 				setPhase('result');
 			} catch {
 				setErrorMessage('Formular konnte nicht gesendet werden.');
@@ -227,58 +233,66 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 		[wizardData.city_id],
 	);
 
-	// Render based on phase.
-	if (phase === 'loading') {
-		return (
-			<div className="resa-flex resa-items-center resa-justify-center resa-p-8">
-				<div className="resa-animate-spin resa-h-8 resa-w-8 resa-rounded-full resa-border-4 resa-border-primary resa-border-t-transparent" />
-			</div>
-		);
-	}
+	// Render content based on phase.
+	const renderContent = () => {
+		if (phase === 'loading') {
+			return (
+				<div className="resa-flex resa-items-center resa-justify-center resa-py-12">
+					<div className="resa-animate-spin resa-h-8 resa-w-8 resa-rounded-full resa-border-4 resa-border-primary resa-border-t-transparent" />
+				</div>
+			);
+		}
 
-	if (phase === 'error') {
-		return (
-			<div className="resa-rounded-lg resa-border resa-border-destructive/50 resa-bg-destructive/5 resa-p-6 resa-text-center">
-				<p className="resa-text-sm resa-text-destructive">{errorMessage}</p>
-				<button
-					type="button"
-					onClick={() => setPhase('wizard')}
-					className="resa-mt-3 resa-text-sm resa-text-primary resa-underline"
-				>
-					Erneut versuchen
-				</button>
-			</div>
-		);
-	}
+		if (phase === 'error') {
+			return (
+				<div className="resa-text-center">
+					<p className="resa-text-sm resa-text-destructive">{errorMessage}</p>
+					<button
+						type="button"
+						onClick={() => setPhase('wizard')}
+						className="resa-mt-3 resa-text-sm resa-text-primary resa-underline resa-border-0 resa-bg-transparent"
+					>
+						Erneut versuchen
+					</button>
+				</div>
+			);
+		}
 
-	if (phase === 'wizard') {
-		return (
-			<StepWizard
-				steps={steps}
-				onComplete={handleWizardComplete}
-				initialData={wizardData as WizardData}
-			/>
-		);
-	}
+		if (phase === 'wizard') {
+			return (
+				<StepWizard
+					steps={steps}
+					onComplete={handleWizardComplete}
+					initialData={wizardData as WizardData}
+				/>
+			);
+		}
 
-	if (phase === 'calculating') {
-		return (
-			<div className="resa-flex resa-flex-col resa-items-center resa-justify-center resa-p-8 resa-space-y-3">
-				<div className="resa-animate-spin resa-h-8 resa-w-8 resa-rounded-full resa-border-4 resa-border-primary resa-border-t-transparent" />
-				<p className="resa-text-sm resa-text-muted-foreground">
-					Mietpreis wird berechnet...
-				</p>
-			</div>
-		);
-	}
+		if (phase === 'calculating') {
+			return (
+				<div className="resa-flex resa-flex-col resa-items-center resa-justify-center resa-py-12 resa-space-y-3">
+					<div className="resa-animate-spin resa-h-8 resa-w-8 resa-rounded-full resa-border-4 resa-border-primary resa-border-t-transparent" />
+					<p className="resa-text-sm resa-text-muted-foreground">
+						Mietpreis wird berechnet...
+					</p>
+				</div>
+			);
+		}
 
-	if (phase === 'lead-form') {
-		return <LeadForm onSubmit={handleLeadSubmit} isSubmitting={isSubmitting} />;
-	}
+		if (phase === 'lead-form') {
+			return <LeadForm onSubmit={handleLeadSubmit} isSubmitting={isSubmitting} />;
+		}
 
-	if (phase === 'result' && result) {
-		return <RentResult result={result} inputs={wizardData} />;
-	}
+		if (phase === 'result' && result) {
+			return <RentResult result={result} inputs={wizardData} />;
+		}
 
-	return null;
+		return null;
+	};
+
+	return (
+		<Card>
+			<CardContent className="resa-pt-6">{renderContent()}</CardContent>
+		</Card>
+	);
 }

@@ -7,44 +7,61 @@
  *
  * Alles innerhalb .resa-widget-root ist isoliert vom Host-Theme.
  * Tailwind-Prefix: resa- (z.B. resa-flex, resa-p-4)
- * Tailwind-Important: .resa-widget-root (gewinnt gegen Theme-CSS)
  * Kein Preflight (Theme-Styles bleiben unberührt)
  */
 
 /* === Design Tokens (CSS Custom Properties) === */
+/* Basiert auf shadcn/ui "neutral" Farbschema */
 .resa-widget-root {
-	/* Basis-Farben (neutral, shadcn/ui kompatibel) */
+	/* Hintergrund & Text */
 	--resa-background: 0 0% 100%;
-	--resa-foreground: 222.2 84% 4.9%;
-	--resa-card: 0 0% 100%;
-	--resa-card-foreground: 222.2 84% 4.9%;
+	--resa-foreground: 0 0% 3.9%;
 
-	/* Primärfarbe (Makler kann überschreiben) */
+	/* Card */
+	--resa-card: 0 0% 100%;
+	--resa-card-foreground: 0 0% 3.9%;
+
+	/* Popover */
+	--resa-popover: 0 0% 100%;
+	--resa-popover-foreground: 0 0% 3.9%;
+
+	/* Primärfarbe (Blau - kann vom Makler überschrieben werden) */
 	--resa-primary: 221.2 83.2% 53.3%;
 	--resa-primary-foreground: 210 40% 98%;
 
 	/* Sekundärfarbe */
-	--resa-secondary: 210 40% 96.1%;
-	--resa-secondary-foreground: 222.2 47.4% 11.2%;
+	--resa-secondary: 0 0% 96.1%;
+	--resa-secondary-foreground: 0 0% 9%;
 
-	/* UI-Farben */
-	--resa-muted: 210 40% 96.1%;
-	--resa-muted-foreground: 215.4 16.3% 46.9%;
-	--resa-accent: 210 40% 96.1%;
-	--resa-accent-foreground: 222.2 47.4% 11.2%;
+	/* Muted */
+	--resa-muted: 0 0% 96.1%;
+	--resa-muted-foreground: 0 0% 45.1%;
+
+	/* Accent */
+	--resa-accent: 0 0% 96.1%;
+	--resa-accent-foreground: 0 0% 9%;
+
+	/* Destructive */
 	--resa-destructive: 0 84.2% 60.2%;
-	--resa-destructive-foreground: 210 40% 98%;
+	--resa-destructive-foreground: 0 0% 98%;
 
-	/* Borders & Inputs */
-	--resa-border: 214.3 31.8% 91.4%;
-	--resa-input: 214.3 31.8% 91.4%;
+	/* Border & Input — Gut sichtbare Grautöne */
+	--resa-border: 0 0% 80%;
+	--resa-input: 0 0% 80%;
 	--resa-ring: 221.2 83.2% 53.3%;
 
 	/* Radius */
 	--resa-radius: 0.5rem;
+
+	/* Chart-Farben */
+	--resa-chart-1: 12 76% 61%;
+	--resa-chart-2: 173 58% 39%;
+	--resa-chart-3: 197 37% 24%;
+	--resa-chart-4: 43 74% 66%;
+	--resa-chart-5: 27 87% 67%;
 }
 
-/* === Widget Mini-Reset === */
+/* === Widget Container Basis === */
 .resa-widget-root {
 	font-family:
 		system-ui,
@@ -53,6 +70,7 @@
 	font-size: 16px;
 	line-height: 1.5;
 	color: hsl(var(--resa-foreground));
+	background-color: hsl(var(--resa-background));
 	box-sizing: border-box;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
@@ -62,11 +80,9 @@
 .resa-widget-root *::before,
 .resa-widget-root *::after {
 	box-sizing: inherit;
-	margin: 0;
-	padding: 0;
 }
 
-/* Reset typische Theme-Overrides innerhalb des Widgets */
+/* === Typography Reset === */
 .resa-widget-root h1,
 .resa-widget-root h2,
 .resa-widget-root h3,
@@ -79,50 +95,66 @@
 	margin: 0;
 }
 
+.resa-widget-root p {
+	margin: 0;
+}
+
 .resa-widget-root a {
 	color: inherit;
 	text-decoration: inherit;
 }
 
+/* === Media Reset === */
 .resa-widget-root img,
 .resa-widget-root svg {
 	display: inline-block;
 	max-width: 100%;
 }
 
-/* Icon scaling - SVGs inside ResaIcon containers */
 .resa-widget-root .resa-icon svg {
 	width: 100%;
 	height: 100%;
 }
 
-.resa-widget-root button {
-	font-family: inherit;
-	font-size: inherit;
-	line-height: inherit;
-	color: inherit;
-	background: transparent;
-	border: none;
-	padding: 0;
-	margin: 0;
-	cursor: pointer;
-	-webkit-appearance: none;
-	-moz-appearance: none;
-	appearance: none;
-}
-
+/* === Form Element Base Styles === */
+/* Nur Font-Vererbung - KEINE border/background/padding Resets! */
+/* Tailwind-Klassen definieren das vollständige Styling */
+.resa-widget-root button,
 .resa-widget-root input,
 .resa-widget-root select,
 .resa-widget-root textarea {
 	font-family: inherit;
 	font-size: inherit;
 	line-height: inherit;
-	color: inherit;
-	background: transparent;
-	border: none;
-	padding: 0;
-	margin: 0;
+}
+
+/* Native Select Dropdown-Pfeil */
+.resa-widget-root select {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 12px center;
+	padding-right: 36px !important;
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
+}
+
+/* === Zusätzliche Utility-Klassen === */
+@layer utilities {
+	/* Shadow für Cards und Buttons */
+	.resa-shadow {
+		box-shadow:
+			0 1px 3px 0 rgb(0 0 0 / 0.1),
+			0 1px 2px -1px rgb(0 0 0 / 0.1);
+	}
+
+	.resa-shadow-sm {
+		box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+	}
+
+	.resa-shadow-md {
+		box-shadow:
+			0 4px 6px -1px rgb(0 0 0 / 0.1),
+			0 2px 4px -2px rgb(0 0 0 / 0.1);
+	}
 }

@@ -64,10 +64,10 @@ export function FeaturesStep({ data, updateData, featureOptions }: FeaturesStepP
 							type="button"
 							onClick={() => toggle(feature.key)}
 							className={cn(
-								'resa-flex resa-flex-col resa-items-center resa-gap-1.5 resa-rounded-lg resa-border-2 resa-p-3 resa-transition-colors resa-cursor-pointer',
+								'resa-flex resa-flex-col resa-items-center resa-gap-1.5 resa-rounded-xl resa-border-2 resa-bg-card resa-p-3 resa-shadow-sm resa-transition-all resa-cursor-pointer focus:resa-outline-none',
 								isSelected
-									? 'resa-border-primary resa-bg-primary/5'
-									: 'resa-border-input hover:resa-border-primary/50',
+									? 'resa-border-primary'
+									: 'resa-border-input hover:resa-border-primary/50 hover:resa-shadow',
 							)}
 						>
 							<ResaIcon name={feature.icon} size={28} />

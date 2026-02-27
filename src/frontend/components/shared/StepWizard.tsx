@@ -10,6 +10,7 @@ import { __ } from '@wordpress/i18n';
 import { useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ZodError } from 'zod';
+import { Button } from '@/components/ui/button';
 import { ProgressBar } from './ProgressBar';
 import type { StepWizardProps, WizardData } from '../../types/wizard';
 
@@ -135,26 +136,13 @@ export function StepWizard({
 			</div>
 
 			<div className="resa-flex resa-justify-between resa-mt-6">
-				<button
-					type="button"
-					onClick={goBack}
-					disabled={isFirst}
-					className={`resa-px-4 resa-py-2 resa-rounded-md resa-text-sm resa-font-medium resa-transition-colors ${
-						isFirst
-							? 'resa-text-muted-foreground resa-cursor-not-allowed resa-opacity-50'
-							: 'resa-text-foreground resa-bg-muted hover:resa-bg-muted/80'
-					}`}
-				>
+				<Button type="button" variant="ghost" onClick={goBack} disabled={isFirst}>
 					{back}
-				</button>
+				</Button>
 
-				<button
-					type="button"
-					onClick={goNext}
-					className="resa-px-6 resa-py-2 resa-rounded-md resa-text-sm resa-font-medium resa-bg-primary resa-text-primary-foreground hover:resa-bg-primary/90 resa-transition-colors"
-				>
+				<Button type="button" onClick={goNext}>
 					{isLast ? complete : next}
-				</button>
+				</Button>
 			</div>
 		</div>
 	);

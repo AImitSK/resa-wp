@@ -8,6 +8,8 @@ use Resa\Core\ErrorMessages;
 use Resa\Models\Lead;
 use Resa\Services\Email\EmailService;
 use Resa\Services\Notifications\LeadNotificationService;
+use Resa\Services\Pdf\LeadPdfService;
+use Resa\Services\Pdf\PdfGenerator;
 
 /**
  * REST controller for lead capture endpoints.
@@ -100,18 +102,29 @@ final class LeadsController extends RestController {
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public function completeLead( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		// DEBUG: Log all received parameters.
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( 'RESA DEBUG leads/complete: ' . wp_json_encode( $request->get_params() ) );
+
 		$sessionId = $this->requiredString( $request, 'sessionId' );
 		if ( is_wp_error( $sessionId ) ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'RESA DEBUG: sessionId error: ' . $sessionId->get_error_message() );
 			return $sessionId;
 		}
 
 		// Verify partial lead exists.
 		$lead = Lead::findBySession( $sessionId );
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( 'RESA DEBUG: findBySession result: ' . ( $lead ? 'found (id=' . $lead->id . ', status=' . $lead->status . ')' : 'null' ) );
+
 		if ( $lead === null ) {
 			return $this->notFound( ErrorMessages::get( ErrorMessages::LEAD_NOT_FOUND ) );
 		}
 
 		if ( $lead->status !== 'partial' ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'RESA DEBUG: Lead already completed, status=' . $lead->status );
 			return $this->error(
 				ErrorMessages::LEAD_ALREADY_COMPLETED,
 				ErrorMessages::get( ErrorMessages::LEAD_ALREADY_COMPLETED )
@@ -121,16 +134,26 @@ final class LeadsController extends RestController {
 		// Validate required contact fields.
 		$firstName = $this->requiredString( $request, 'firstName' );
 		if ( is_wp_error( $firstName ) ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'RESA DEBUG: firstName validation failed: ' . $firstName->get_error_message() );
 			return $firstName;
 		}
 
 		$email = $request->get_param( 'email' );
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( 'RESA DEBUG: email=' . ( is_string( $email ) ? $email : gettype( $email ) ) );
 		if ( ! is_email( $email ) ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'RESA DEBUG: email validation failed' );
 			return $this->validationError( [ 'email' => ErrorMessages::get( ErrorMessages::INVALID_EMAIL ) ] );
 		}
 
 		$consent = (bool) $request->get_param( 'consent' );
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( 'RESA DEBUG: consent=' . ( $consent ? 'true' : 'false' ) . ', raw=' . wp_json_encode( $request->get_param( 'consent' ) ) );
 		if ( ! $consent ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'RESA DEBUG: consent validation failed' );
 			return $this->validationError( [ 'consent' => ErrorMessages::get( ErrorMessages::CONSENT_REQUIRED ) ] );
 		}
 
@@ -160,13 +183,25 @@ final class LeadsController extends RestController {
 
 		// Notify agent of new lead (non-blocking — errors are logged, not propagated).
 		if ( $updatedLead !== null ) {
+			$emailService = new EmailService();
+
 			try {
-				$notificationService = new LeadNotificationService( new EmailService() );
+				$notificationService = new LeadNotificationService( $emailService );
 				$notificationService->notifyAgent( (int) $updatedLead->id );
 			} catch ( \Throwable $e ) {
 				// Log error but don't fail the lead completion.
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 				error_log( 'RESA: Lead notification failed: ' . $e->getMessage() );
+			}
+
+			// Send PDF analysis to lead (non-blocking — errors are logged, not propagated).
+			try {
+				$pdfService = new LeadPdfService( new PdfGenerator(), $emailService );
+				$pdfService->generateAndSend( (int) $updatedLead->id );
+			} catch ( \Throwable $e ) {
+				// Log error but don't fail the lead completion.
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( 'RESA: Lead PDF sending failed: ' . $e->getMessage() );
 			}
 		}
 
@@ -249,8 +284,9 @@ final class LeadsController extends RestController {
 				'sanitize_callback' => 'sanitize_email',
 			],
 			'consent'     => [
-				'required' => true,
-				'type'     => 'boolean',
+				'required'          => true,
+				'type'              => 'boolean',
+				'sanitize_callback' => 'rest_sanitize_boolean',
 			],
 			'consentText' => [
 				'required'          => false,

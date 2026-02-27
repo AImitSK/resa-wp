@@ -76,7 +76,8 @@ final class ResaShortcode {
 			return;
 		}
 
-		$this->vite->enqueue( 'src/frontend/main.tsx', 'resa-frontend' );
+		// wp-i18n must be loaded before the frontend bundle (provides window.wp.i18n).
+		$this->vite->enqueue( 'src/frontend/main.tsx', 'resa-frontend', [ 'wp-i18n' ] );
 
 		$frontendData = [
 			'restUrl' => esc_url_raw( rest_url( 'resa/v1/' ) ),
