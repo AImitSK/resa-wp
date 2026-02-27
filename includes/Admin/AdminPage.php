@@ -104,12 +104,13 @@ final class AdminPage {
 			'resa-admin',
 			'resaAdmin',
 			[
-				'restUrl'  => esc_url_raw( rest_url( 'resa/v1/' ) ),
-				'nonce'    => wp_create_nonce( 'wp_rest' ),
+				'restUrl'   => esc_url_raw( rest_url( 'resa/v1/' ) ),
+				'nonce'     => wp_create_nonce( 'wp_rest' ),
 					// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading WP admin page slug, no form data.
-				'page'     => isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : 'resa',
-				'adminUrl' => esc_url_raw( admin_url( 'admin.php' ) ),
-				'version'  => RESA_VERSION,
+				'page'      => isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : 'resa',
+				'adminUrl'  => esc_url_raw( admin_url( 'admin.php' ) ),
+				'pluginUrl' => esc_url_raw( RESA_PLUGIN_URL ),
+				'version'   => RESA_VERSION,
 			]
 		);
 	}

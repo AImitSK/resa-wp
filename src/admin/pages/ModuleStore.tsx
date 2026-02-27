@@ -1,21 +1,70 @@
 /**
- * Smart Assets page — module store with card grid.
+ * Smart Assets page — module store with card grid and settings sheet.
  *
  * Shows all available modules with their flag (free/pro/paid),
- * activation toggle, and link to settings.
+ * activation toggle, and inline settings panel.
  */
 
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { __, sprintf } from '@wordpress/i18n';
+import { __ } from '@wordpress/i18n';
+import {
+	Settings,
+	Search,
+	Zap,
+	Lock,
+	ChevronRight,
+	BarChart3,
+	Home,
+	Calculator,
+	CheckCircle2,
+	XCircle,
+} from 'lucide-react';
 import { useModules, useToggleModule } from '../hooks/useModules';
 import type { ModuleSummary } from '../types';
 
-type FilterOption = 'all' | 'active' | 'inactive';
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import {
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle,
+} from '@/components/ui/sheet';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
+type FilterOption = 'all' | 'free' | 'premium';
+
+/** Module icons by slug */
+const MODULE_ICONS: Record<string, React.ElementType> = {
+	'rent-calculator': Calculator,
+	'value-calculator': Home,
+	'purchase-costs': BarChart3,
+	'budget-calculator': Calculator,
+	'roi-calculator': BarChart3,
+	'energy-check': Zap,
+	'seller-checklist': CheckCircle2,
+	'buyer-checklist': CheckCircle2,
+};
 
 export function ModuleStore() {
 	const [filter, setFilter] = useState<FilterOption>('all');
 	const [searchQuery, setSearchQuery] = useState('');
+	const [selectedModule, setSelectedModule] = useState<ModuleSummary | null>(null);
+	const [sheetOpen, setSheetOpen] = useState(false);
 
 	const { data: modules, isLoading, error } = useModules();
 	const toggleMutation = useToggleModule();
@@ -27,10 +76,10 @@ export function ModuleStore() {
 		let result = [...modules];
 
 		// Apply filter
-		if (filter === 'active') {
-			result = result.filter((m) => m.active);
-		} else if (filter === 'inactive') {
-			result = result.filter((m) => !m.active);
+		if (filter === 'free') {
+			result = result.filter((m) => m.flag === 'free');
+		} else if (filter === 'premium') {
+			result = result.filter((m) => m.flag === 'pro' || m.flag === 'paid');
 		}
 
 		// Apply search
@@ -54,125 +103,401 @@ export function ModuleStore() {
 		return result;
 	}, [modules, filter, searchQuery]);
 
-	const activeCount = modules?.filter((m) => m.active).length ?? 0;
-	const inactiveCount = modules?.filter((m) => !m.active).length ?? 0;
+	const freeCount = modules?.filter((m) => m.flag === 'free').length ?? 0;
+	const premiumCount = modules?.filter((m) => m.flag === 'pro' || m.flag === 'paid').length ?? 0;
 	const totalCount = modules?.length ?? 0;
 
 	const handleToggle = (slug: string) => {
 		toggleMutation.mutate(slug);
 	};
 
+	const openModuleSheet = (module: ModuleSummary) => {
+		setSelectedModule(module);
+		setSheetOpen(true);
+	};
+
 	if (isLoading) {
 		return (
-			<div className="resa-flex resa-items-center resa-justify-center resa-py-12">
-				<div className="resa-text-muted-foreground">
+			<div className="resa-flex resa-items-center resa-justify-center resa-py-12 resa-gap-2">
+				<Spinner className="resa-size-5" />
+				<span className="resa-text-muted-foreground">
 					{__('Module werden geladen...', 'resa')}
-				</div>
+				</span>
 			</div>
 		);
 	}
 
 	if (error) {
 		return (
-			<div className="resa-rounded-lg resa-border resa-border-destructive/50 resa-bg-destructive/10 resa-p-6">
-				<h2 className="resa-text-lg resa-font-semibold resa-text-destructive">
-					{__('Fehler beim Laden', 'resa')}
-				</h2>
-				<p className="resa-text-sm resa-text-muted-foreground resa-mt-2">
+			<Alert variant="destructive">
+				<AlertTitle>{__('Fehler beim Laden', 'resa')}</AlertTitle>
+				<AlertDescription>
 					{__('Die Module konnten nicht geladen werden.', 'resa')}
-				</p>
-			</div>
+				</AlertDescription>
+			</Alert>
 		);
 	}
 
+	// Inline styles as fallback for WordPress admin CSS conflicts
+	const tabListStyle: React.CSSProperties = {
+		display: 'inline-flex',
+		height: '36px',
+		alignItems: 'center',
+		justifyContent: 'center',
+		borderRadius: '8px',
+		backgroundColor: 'hsl(210 40% 96.1%)',
+		padding: '4px',
+		gap: '4px',
+	};
+
+	const tabStyle = (isActive: boolean): React.CSSProperties => ({
+		display: 'inline-flex',
+		alignItems: 'center',
+		justifyContent: 'center',
+		whiteSpace: 'nowrap',
+		borderRadius: '6px',
+		padding: '6px 12px',
+		fontSize: '14px',
+		fontWeight: 500,
+		cursor: 'pointer',
+		border: 'none',
+		backgroundColor: isActive ? 'white' : 'transparent',
+		boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+		color: isActive ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
+	});
+
+	const gridStyle: React.CSSProperties = {
+		display: 'grid',
+		gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+		gap: '16px',
+	};
+
+	const counterStyle: React.CSSProperties = {
+		display: 'inline-flex',
+		alignItems: 'center',
+		justifyContent: 'center',
+		height: '20px',
+		minWidth: '20px',
+		padding: '0 6px',
+		marginLeft: '6px',
+		borderRadius: '9999px',
+		backgroundColor: '#94a3b8',
+		color: 'white',
+		fontSize: '11px',
+		fontFamily: 'monospace',
+		fontWeight: 500,
+	};
+
+	const pluginUrl = window.resaAdmin?.pluginUrl ?? '';
+	const logoUrl = `${pluginUrl}assets/images/resa-smart-assets.png`;
+
 	return (
-		<div>
-			<h1 className="resa-text-2xl resa-font-bold resa-mb-4">{__('Smart Assets', 'resa')}</h1>
-			<p className="resa-text-muted-foreground resa-mb-6">
-				{__('Aktiviere und konfiguriere deine Lead-Tools.', 'resa')}
-			</p>
-
-			{/* Filter bar */}
-			<div className="resa-flex resa-items-center resa-gap-4 resa-mb-6">
-				{/* Filter tabs */}
-				<div className="resa-flex resa-gap-1 resa-bg-muted resa-rounded-lg resa-p-1">
-					<FilterButton
-						active={filter === 'all'}
-						onClick={() => setFilter('all')}
-						label={sprintf(__('Alle (%d)', 'resa'), totalCount)}
-					/>
-					<FilterButton
-						active={filter === 'active'}
-						onClick={() => setFilter('active')}
-						label={sprintf(__('Aktiv (%d)', 'resa'), activeCount)}
-					/>
-					<FilterButton
-						active={filter === 'inactive'}
-						onClick={() => setFilter('inactive')}
-						label={sprintf(__('Inaktiv (%d)', 'resa'), inactiveCount)}
+		<>
+			<Card>
+				{/* Header with logo */}
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'flex-start',
+						justifyContent: 'space-between',
+						padding: '24px',
+						paddingBottom: '30px',
+					}}
+				>
+					<div>
+						<h2
+							style={{
+								fontSize: '24px',
+								fontWeight: 600,
+								lineHeight: 1.2,
+								margin: 0,
+							}}
+						>
+							{__('Smart Assets', 'resa')}
+						</h2>
+						<p
+							style={{
+								fontSize: '14px',
+								color: 'hsl(215.4 16.3% 46.9%)',
+								marginTop: '4px',
+								marginBottom: 0,
+							}}
+						>
+							{__('Aktiviere und konfiguriere deine Lead-Tools.', 'resa')}
+						</p>
+					</div>
+					<img
+						src={logoUrl}
+						alt="RESA Smart Assets"
+						style={{ height: '64px', width: 'auto' }}
 					/>
 				</div>
 
-				{/* Search */}
-				<div className="resa-flex-1 resa-max-w-xs">
-					<input
-						type="search"
-						placeholder={__('Suchen...', 'resa')}
-						value={searchQuery}
-						onChange={(e) => setSearchQuery(e.target.value)}
-						className="resa-w-full resa-px-3 resa-py-1.5 resa-text-sm resa-rounded-md resa-border resa-border-input resa-bg-background focus:resa-outline-none focus:resa-ring-2 focus:resa-ring-ring"
-					/>
-				</div>
-			</div>
+				<CardContent className="resa-space-y-6">
+					{/* Filter bar */}
+					<div
+						style={{
+							display: 'flex',
+							flexWrap: 'wrap',
+							alignItems: 'center',
+							gap: '16px',
+						}}
+					>
+						{/* Filter tabs */}
+						<div style={tabListStyle}>
+							<button
+								style={tabStyle(filter === 'all')}
+								onClick={() => setFilter('all')}
+							>
+								{__('alle', 'resa')}
+								<span style={counterStyle}>{totalCount}</span>
+							</button>
+							<button
+								style={tabStyle(filter === 'free')}
+								onClick={() => setFilter('free')}
+							>
+								{__('free', 'resa')}
+								<span style={counterStyle}>{freeCount}</span>
+							</button>
+							<button
+								style={tabStyle(filter === 'premium')}
+								onClick={() => setFilter('premium')}
+							>
+								{__('premium', 'resa')}
+								<span style={counterStyle}>{premiumCount}</span>
+							</button>
+						</div>
 
-			{/* Module grid */}
-			{filteredModules.length === 0 ? (
-				<div className="resa-text-center resa-py-12 resa-text-muted-foreground">
-					{modules?.length === 0
-						? __('Keine Module registriert.', 'resa')
-						: __('Keine Module gefunden.', 'resa')}
+						{/* Search */}
+						<div style={{ position: 'relative', width: '512px' }}>
+							<Search
+								style={{
+									position: 'absolute',
+									left: '12px',
+									top: '50%',
+									transform: 'translateY(-50%)',
+									width: '16px',
+									height: '16px',
+									color: 'hsl(215.4 16.3% 46.9%)',
+								}}
+							/>
+							<Input
+								type="search"
+								placeholder={__('Suchen...', 'resa')}
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
+								style={{ paddingLeft: '40px' }}
+							/>
+						</div>
+					</div>
+
+					{/* Module grid */}
+					{filteredModules.length === 0 ? (
+						<div className="resa-py-12 resa-text-center resa-text-muted-foreground">
+							{modules?.length === 0
+								? __('Keine Module registriert.', 'resa')
+								: __('Keine Module gefunden.', 'resa')}
+						</div>
+					) : (
+						<div style={gridStyle}>
+							{filteredModules.map((module) => (
+								<ModuleCard
+									key={module.slug}
+									module={module}
+									onToggle={handleToggle}
+									onOpenSettings={() => openModuleSheet(module)}
+									isToggling={toggleMutation.isPending}
+								/>
+							))}
+						</div>
+					)}
+				</CardContent>
+
+				{/* Footer */}
+				<div
+					style={{
+						backgroundColor: '#1e303a',
+						color: 'white',
+						padding: '16px 24px',
+						borderRadius: '0 0 12px 12px',
+						display: 'flex',
+						justifyContent: 'space-between',
+						alignItems: 'center',
+						fontSize: '13px',
+					}}
+				>
+					<div>© {new Date().getFullYear()} RESA - smart assets</div>
+					<div style={{ display: 'flex', gap: '24px' }}>
+						<a
+							href="https://www.resa-wp.com"
+							target="_blank"
+							rel="noopener noreferrer"
+							style={{ color: 'white', textDecoration: 'none' }}
+						>
+							www.resa-wp.com
+						</a>
+						<a
+							href="https://www.resa-wp.com/support"
+							target="_blank"
+							rel="noopener noreferrer"
+							style={{ color: 'white', textDecoration: 'none' }}
+						>
+							Support
+						</a>
+					</div>
 				</div>
-			) : (
-				<div className="resa-grid resa-grid-cols-1 md:resa-grid-cols-2 lg:resa-grid-cols-3 resa-gap-4">
-					{filteredModules.map((module) => (
-						<ModuleCard
-							key={module.slug}
-							module={module}
+			</Card>
+
+			{/* Module Settings Sheet */}
+			<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+				<SheetContent className="sm:resa-max-w-lg">
+					{selectedModule && (
+						<ModuleSettingsSheet
+							module={selectedModule}
 							onToggle={handleToggle}
 							isToggling={toggleMutation.isPending}
 						/>
-					))}
-				</div>
-			)}
-		</div>
-	);
-}
-
-function FilterButton({
-	active,
-	onClick,
-	label,
-}: {
-	active: boolean;
-	onClick: () => void;
-	label: string;
-}) {
-	return (
-		<button
-			type="button"
-			onClick={onClick}
-			className={`resa-px-3 resa-py-1 resa-text-sm resa-rounded-md resa-transition-colors ${
-				active
-					? 'resa-bg-background resa-shadow-sm resa-font-medium'
-					: 'resa-text-muted-foreground hover:resa-text-foreground'
-			}`}
-		>
-			{label}
-		</button>
+					)}
+				</SheetContent>
+			</Sheet>
+		</>
 	);
 }
 
 function ModuleCard({
+	module,
+	onToggle,
+	onOpenSettings,
+	isToggling,
+}: {
+	module: ModuleSummary;
+	onToggle: (slug: string) => void;
+	onOpenSettings: () => void;
+	isToggling: boolean;
+}) {
+	const isPro = module.flag === 'pro' && !module.active;
+	const IconComponent = MODULE_ICONS[module.slug] ?? Zap;
+
+	return (
+		<Card
+			onClick={onOpenSettings}
+			style={{
+				cursor: 'pointer',
+				backgroundColor: module.active ? 'hsl(210 40% 96.1%)' : 'white',
+				borderColor: module.active ? '#a9e43f' : undefined,
+			}}
+		>
+			<CardHeader className="resa-pb-3">
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'flex-start',
+						justifyContent: 'space-between',
+					}}
+				>
+					<div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+						<div
+							style={{
+								display: 'flex',
+								width: '40px',
+								height: '40px',
+								alignItems: 'center',
+								justifyContent: 'center',
+								borderRadius: '8px',
+								backgroundColor: module.active ? '#a9e43f' : 'hsl(210 40% 96.1%)',
+								color: module.active ? '#1e303a' : 'inherit',
+							}}
+						>
+							<IconComponent style={{ width: '20px', height: '20px' }} />
+						</div>
+						<div>
+							<CardTitle
+								className="resa-text-base"
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									gap: '8px',
+									margin: 0,
+									lineHeight: 1,
+								}}
+							>
+								{module.name}
+							</CardTitle>
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									gap: '6px',
+									marginTop: '5px',
+								}}
+							>
+								<Badge
+									style={{
+										fontSize: '10px',
+										padding: '0 8px 2px 8px',
+										backgroundColor: '#1e303a',
+										color: module.flag === 'free' ? '#ffffff' : '#a9e43f',
+									}}
+								>
+									{module.flag === 'free'
+										? __('free', 'resa')
+										: module.flag === 'pro'
+											? __('Premium', 'resa')
+											: __('Add-on', 'resa')}
+								</Badge>
+							</div>
+						</div>
+					</div>
+					<ChevronRight
+						style={{ width: '16px', height: '16px', color: 'hsl(215.4 16.3% 46.9%)' }}
+					/>
+				</div>
+			</CardHeader>
+
+			<CardContent className="resa-pb-3">
+				<CardDescription className="resa-line-clamp-2">
+					{module.description}
+				</CardDescription>
+			</CardContent>
+
+			<CardFooter style={{ paddingTop: 0, display: 'flex', justifyContent: 'space-between' }}>
+				{isPro ? (
+					<Button variant="outline" size="sm" disabled style={{ gap: '4px' }}>
+						<Lock style={{ width: '12px', height: '12px' }} />
+						{__('Premium erforderlich', 'resa')}
+					</Button>
+				) : (
+					<div
+						style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+						onClick={(e) => e.stopPropagation()}
+					>
+						<Switch
+							checked={module.active}
+							onCheckedChange={() => onToggle(module.slug)}
+							disabled={isToggling}
+						/>
+						<span style={{ fontSize: '14px', color: 'hsl(215.4 16.3% 46.9%)' }}>
+							{module.active ? __('Aktiv', 'resa') : __('Inaktiv', 'resa')}
+						</span>
+					</div>
+				)}
+				<Button
+					variant="ghost"
+					size="sm"
+					style={{
+						gap: '4px',
+						visibility: module.active ? 'visible' : 'hidden',
+					}}
+				>
+					<Settings style={{ width: '12px', height: '12px' }} />
+					{__('Einstellungen', 'resa')}
+				</Button>
+			</CardFooter>
+		</Card>
+	);
+}
+
+function ModuleSettingsSheet({
 	module,
 	onToggle,
 	isToggling,
@@ -181,120 +506,187 @@ function ModuleCard({
 	onToggle: (slug: string) => void;
 	isToggling: boolean;
 }) {
-	const navigate = useNavigate();
-	const canAccess = module.flag === 'free' || module.active;
-
-	const handleSettingsClick = () => {
-		navigate(`/modules/${module.slug}/settings`);
-	};
-
-	const handleToggleClick = () => {
-		onToggle(module.slug);
-	};
+	const IconComponent = MODULE_ICONS[module.slug] ?? Zap;
+	const isPro = module.flag === 'pro' && !module.active;
 
 	return (
-		<div
-			className={`resa-rounded-lg resa-border resa-bg-card resa-p-5 ${
-				module.active ? 'resa-border-primary/30' : ''
-			}`}
-		>
-			<div className="resa-flex resa-items-start resa-justify-between resa-mb-3">
-				<div className="resa-flex resa-items-center resa-gap-2">
-					<h3 className="resa-font-semibold">{module.name}</h3>
-					{module.active && (
-						<button
-							type="button"
-							onClick={handleSettingsClick}
-							className="resa-p-1 resa-rounded resa-text-muted-foreground hover:resa-text-foreground hover:resa-bg-muted"
-							title={__('Einstellungen', 'resa')}
-						>
-							<SettingsIcon />
-						</button>
+		<ScrollArea className="resa-h-full">
+			<SheetHeader className="resa-pb-4">
+				<div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+					<div
+						style={{
+							display: 'flex',
+							width: '48px',
+							height: '48px',
+							alignItems: 'center',
+							justifyContent: 'center',
+							borderRadius: '8px',
+							backgroundColor: module.active ? '#a9e43f' : 'hsl(210 40% 96.1%)',
+							color: module.active ? '#1e303a' : 'inherit',
+						}}
+					>
+						<IconComponent style={{ width: '24px', height: '24px' }} />
+					</div>
+					<div>
+						<SheetTitle style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+							{module.name}
+							<Badge
+								style={{
+									backgroundColor: '#1e303a',
+									color: module.flag === 'free' ? '#ffffff' : '#a9e43f',
+								}}
+							>
+								{module.flag === 'free'
+									? __('free', 'resa')
+									: module.flag === 'pro'
+										? __('Premium', 'resa')
+										: __('Add-on', 'resa')}
+							</Badge>
+						</SheetTitle>
+						<SheetDescription>{module.description}</SheetDescription>
+					</div>
+				</div>
+			</SheetHeader>
+
+			<Separator className="resa-my-4" />
+
+			{/* Status Section */}
+			<div className="resa-space-y-4">
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'space-between',
+						padding: '16px',
+						borderRadius: '8px',
+						border: '1px solid hsl(214.3 31.8% 91.4%)',
+						backgroundColor: 'hsl(210 40% 96.1% / 0.3)',
+					}}
+				>
+					<div>
+						<p style={{ fontWeight: 500 }}>{__('Status', 'resa')}</p>
+						<p style={{ fontSize: '14px', color: 'hsl(215.4 16.3% 46.9%)' }}>
+							{module.active
+								? __('Das Modul ist aktiv und kann verwendet werden.', 'resa')
+								: __('Das Modul ist deaktiviert.', 'resa')}
+						</p>
+					</div>
+					{isPro ? (
+						<Button variant="outline" size="sm" disabled>
+							<Lock className="resa-mr-1 resa-size-3" />
+							{__('Pro', 'resa')}
+						</Button>
+					) : (
+						<Switch
+							checked={module.active}
+							onCheckedChange={() => onToggle(module.slug)}
+							disabled={isToggling}
+						/>
 					)}
 				</div>
-				<FlagBadge flag={module.flag} />
-			</div>
 
-			<p className="resa-text-sm resa-text-muted-foreground resa-mb-4">
-				{module.description}
-			</p>
-
-			<div className="resa-flex resa-items-center resa-justify-between">
-				<span
-					className={`resa-text-xs ${
-						module.active
-							? 'resa-text-emerald-600 resa-font-medium'
-							: 'resa-text-muted-foreground'
-					}`}
+				{/* Status indicator */}
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: '8px',
+						padding: '12px',
+						borderRadius: '8px',
+						border: '1px solid hsl(214.3 31.8% 91.4%)',
+					}}
 				>
-					{module.active ? __('Aktiv', 'resa') : __('Inaktiv', 'resa')}
-				</span>
+					{module.active ? (
+						<>
+							<CheckCircle2
+								style={{ width: '20px', height: '20px', color: '#a9e43f' }}
+							/>
+							<div>
+								<p style={{ fontWeight: 500, color: '#7ab32a' }}>
+									{__('Modul aktiv', 'resa')}
+								</p>
+								<p style={{ fontSize: '14px', color: 'hsl(215.4 16.3% 46.9%)' }}>
+									{__('Shortcode verfügbar: ', 'resa')}
+									<code
+										style={{
+											backgroundColor: 'hsl(210 40% 96.1%)',
+											padding: '0 4px',
+											borderRadius: '4px',
+											fontSize: '12px',
+										}}
+									>
+										{`[resa module="${module.slug}"]`}
+									</code>
+								</p>
+							</div>
+						</>
+					) : (
+						<>
+							<XCircle
+								style={{
+									width: '20px',
+									height: '20px',
+									color: 'hsl(215.4 16.3% 46.9%)',
+								}}
+							/>
+							<div>
+								<p style={{ fontWeight: 500 }}>{__('Modul inaktiv', 'resa')}</p>
+								<p style={{ fontSize: '14px', color: 'hsl(215.4 16.3% 46.9%)' }}>
+									{__('Aktiviere das Modul, um es zu verwenden.', 'resa')}
+								</p>
+							</div>
+						</>
+					)}
+				</div>
 
-				{module.flag === 'pro' && !module.active ? (
-					<span className="resa-text-xs resa-font-medium resa-text-muted-foreground">
-						{__('Premium erforderlich', 'resa')}
-					</span>
-				) : canAccess ? (
-					<div className="resa-flex resa-gap-2">
-						{module.active && (
-							<button
-								type="button"
-								onClick={handleSettingsClick}
-								className="resa-text-sm resa-font-medium resa-text-primary hover:resa-underline"
+				{/* Quick Actions */}
+				{module.active && (
+					<>
+						<Separator className="resa-my-4" />
+						<div className="resa-space-y-2">
+							<p
+								style={{
+									fontSize: '14px',
+									fontWeight: 500,
+									color: 'hsl(215.4 16.3% 46.9%)',
+								}}
 							>
-								{__('Einstellungen', 'resa')}
-							</button>
-						)}
-						<button
-							type="button"
-							onClick={handleToggleClick}
-							disabled={isToggling}
-							className={`resa-text-sm resa-font-medium hover:resa-underline disabled:resa-opacity-50 ${
-								module.active ? 'resa-text-muted-foreground' : 'resa-text-primary'
-							}`}
-						>
-							{module.active ? __('Deaktivieren', 'resa') : __('Aktivieren', 'resa')}
-						</button>
-					</div>
-				) : null}
+								{__('Schnellaktionen', 'resa')}
+							</p>
+							<div style={{ display: 'grid', gap: '8px' }}>
+								<Button
+									variant="outline"
+									style={{ justifyContent: 'flex-start', gap: '8px' }}
+								>
+									<Settings style={{ width: '16px', height: '16px' }} />
+									{__('Erweiterte Einstellungen', 'resa')}
+								</Button>
+								<Button
+									variant="outline"
+									style={{ justifyContent: 'flex-start', gap: '8px' }}
+								>
+									<BarChart3 style={{ width: '16px', height: '16px' }} />
+									{__('Statistiken anzeigen', 'resa')}
+								</Button>
+							</div>
+						</div>
+					</>
+				)}
+
+				{/* Pro Upgrade Hint */}
+				{isPro && (
+					<Alert className="resa-mt-4">
+						<Lock className="resa-size-4" />
+						<AlertTitle>{__('Pro-Feature', 'resa')}</AlertTitle>
+						<AlertDescription>
+							{__(
+								'Dieses Modul ist Teil des Pro-Plans. Upgrade jetzt für Zugriff auf alle Features.',
+								'resa',
+							)}
+						</AlertDescription>
+					</Alert>
+				)}
 			</div>
-		</div>
-	);
-}
-
-function FlagBadge({ flag }: { flag: string }) {
-	const styles: Record<string, string> = {
-		free: 'resa-bg-green-100 resa-text-green-800',
-		pro: 'resa-bg-blue-100 resa-text-blue-800',
-		paid: 'resa-bg-purple-100 resa-text-purple-800',
-	};
-
-	return (
-		<span
-			className={`resa-text-xs resa-font-medium resa-px-2 resa-py-0.5 resa-rounded-full ${styles[flag] ?? ''}`}
-		>
-			{flag === 'free'
-				? __('Free', 'resa')
-				: flag === 'pro'
-					? __('Pro', 'resa')
-					: __('Add-on', 'resa')}
-		</span>
-	);
-}
-
-function SettingsIcon() {
-	return (
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			viewBox="0 0 20 20"
-			fill="currentColor"
-			className="resa-w-4 resa-h-4"
-		>
-			<path
-				fillRule="evenodd"
-				d="M7.84 1.804A1 1 0 018.82 1h2.36a1 1 0 01.98.804l.331 1.652a6.993 6.993 0 011.929 1.115l1.598-.54a1 1 0 011.186.447l1.18 2.044a1 1 0 01-.205 1.251l-1.267 1.113a7.047 7.047 0 010 2.228l1.267 1.113a1 1 0 01.206 1.25l-1.18 2.045a1 1 0 01-1.187.447l-1.598-.54a6.993 6.993 0 01-1.929 1.115l-.33 1.652a1 1 0 01-.98.804H8.82a1 1 0 01-.98-.804l-.331-1.652a6.993 6.993 0 01-1.929-1.115l-1.598.54a1 1 0 01-1.186-.447l-1.18-2.044a1 1 0 01.205-1.251l1.267-1.114a7.05 7.05 0 010-2.227L1.821 7.773a1 1 0 01-.206-1.25l1.18-2.045a1 1 0 011.187-.447l1.598.54A6.993 6.993 0 017.51 3.456l.33-1.652zM10 13a3 3 0 100-6 3 3 0 000 6z"
-				clipRule="evenodd"
-			/>
-		</svg>
+		</ScrollArea>
 	);
 }

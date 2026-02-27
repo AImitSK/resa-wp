@@ -6,6 +6,7 @@ export interface ResaAdminContext {
 	nonce: string;
 	page: string;
 	adminUrl: string;
+	pluginUrl: string;
 	version: string;
 }
 

@@ -5,6 +5,7 @@ export const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDi
 	({ className, ...props }, ref) => (
 		<div
 			ref={ref}
+			data-slot="card"
 			className={cn(
 				'resa-rounded-xl resa-border resa-border-input resa-bg-card resa-text-card-foreground resa-shadow',
 				className,
@@ -19,7 +20,12 @@ export const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<
 	({ className, ...props }, ref) => (
 		<div
 			ref={ref}
-			className={cn('resa-flex resa-flex-col resa-space-y-1.5 resa-p-6', className)}
+			data-slot="card-header"
+			className={cn(
+				'resa-flex resa-flex-col resa-space-y-1.5 resa-p-6 @container/card-header',
+				'resa-has-data-[slot=card-action]:resa-flex-row resa-has-data-[slot=card-action]:resa-items-start resa-has-data-[slot=card-action]:resa-justify-between',
+				className,
+			)}
 			{...props}
 		/>
 	),
@@ -32,6 +38,7 @@ export const CardTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<h3
 		ref={ref}
+		data-slot="card-title"
 		className={cn(
 			'resa-text-2xl resa-font-semibold resa-leading-none resa-tracking-tight',
 			className,
@@ -45,13 +52,35 @@ export const CardDescription = React.forwardRef<
 	HTMLParagraphElement,
 	React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-	<p ref={ref} className={cn('resa-text-sm resa-text-muted-foreground', className)} {...props} />
+	<p
+		ref={ref}
+		data-slot="card-description"
+		className={cn('resa-text-sm resa-text-muted-foreground', className)}
+		{...props}
+	/>
 ));
 CardDescription.displayName = 'CardDescription';
 
+export const CardAction = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+	({ className, ...props }, ref) => (
+		<div
+			ref={ref}
+			data-slot="card-action"
+			className={cn('resa-flex resa-items-center resa-gap-2', className)}
+			{...props}
+		/>
+	),
+);
+CardAction.displayName = 'CardAction';
+
 export const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
 	({ className, ...props }, ref) => (
-		<div ref={ref} className={cn('resa-p-6 resa-pt-0', className)} {...props} />
+		<div
+			ref={ref}
+			data-slot="card-content"
+			className={cn('resa-p-6 resa-pt-0', className)}
+			{...props}
+		/>
 	),
 );
 CardContent.displayName = 'CardContent';
@@ -60,6 +89,7 @@ export const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<
 	({ className, ...props }, ref) => (
 		<div
 			ref={ref}
+			data-slot="card-footer"
 			className={cn('resa-flex resa-items-center resa-p-6 resa-pt-0', className)}
 			{...props}
 		/>

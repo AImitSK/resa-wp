@@ -21,7 +21,7 @@
 		sans-serif;
 	font-size: 14px;
 	line-height: 1.5;
-	color: hsl(222.2 84% 4.9%);
+	color: #1e303a;
 }
 
 #resa-admin-root *,
@@ -70,13 +70,28 @@
 	text-decoration: none;
 }
 
+/* === Fix für WordPress Admin Style-Konflikte === */
+#resa-admin-root [role='tablist'] {
+	display: inline-flex !important;
+	background-color: hsl(var(--resa-muted)) !important;
+}
+
+#resa-admin-root [data-state='active'] {
+	background-color: hsl(var(--resa-background)) !important;
+}
+
+/* Grid fix für WordPress Admin */
+#resa-admin-root .resa-grid {
+	display: grid !important;
+}
+
 /* === Design Tokens (gleiche Variablen wie Frontend) === */
 #resa-admin-root {
 	/* Basis-Farben */
 	--resa-background: 0 0% 100%;
-	--resa-foreground: 222.2 84% 4.9%;
+	--resa-foreground: 203 35% 17%; /* #1e303a */
 	--resa-card: 0 0% 100%;
-	--resa-card-foreground: 222.2 84% 4.9%;
+	--resa-card-foreground: 203 35% 17%; /* #1e303a */
 
 	/* Primärfarbe */
 	--resa-primary: 221.2 83.2% 53.3%;
