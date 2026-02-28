@@ -1,42 +1,46 @@
 /**
  * Settings page — agent data, branding, license, GDPR.
+ *
+ * Tab-based navigation with Maklerdaten form as first active tab.
  */
 
+import { useState } from 'react';
 import { __ } from '@wordpress/i18n';
-import { User, Palette, Key, Shield, ChevronRight } from 'lucide-react';
+import { User, Palette, Key, Shield, Building2, Mail, Phone, Globe, FileText } from 'lucide-react';
 import { AdminPageLayout } from '../components/AdminPageLayout';
+import { useAgentData, useSaveAgentData, type AgentData } from '../hooks/useAgentData';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+
+type SettingsTab = 'agent' | 'branding' | 'license' | 'gdpr';
 
 export function Settings() {
-	const settingsSections = [
-		{
-			icon: User,
-			title: __('Maklerdaten', 'resa'),
-			description: __('Name, Kontaktdaten und Firmeninfos für PDF und E-Mails.', 'resa'),
-			status: 'pending',
-		},
-		{
-			icon: Palette,
-			title: __('Branding & Design', 'resa'),
-			description: __('Logo, Farben und Schriftarten für deine Smart Assets.', 'resa'),
-			status: 'pending',
-		},
-		{
-			icon: Key,
-			title: __('Lizenz', 'resa'),
-			description: __('Plan-Details, Lizenzschlüssel und Account-Verwaltung.', 'resa'),
-			status: 'active',
-		},
-		{
-			icon: Shield,
-			title: __('Datenschutz (DSGVO)', 'resa'),
-			description: __('Einwilligungstexte, Aufbewahrungsfristen und Datenlöschung.', 'resa'),
-			status: 'pending',
-		},
-	];
+	const [activeTab, setActiveTab] = useState<SettingsTab>('agent');
+
+	const tabStyle = (isActive: boolean): React.CSSProperties => ({
+		display: 'inline-flex',
+		alignItems: 'center',
+		justifyContent: 'center',
+		whiteSpace: 'nowrap',
+		borderRadius: '6px',
+		padding: '6px 12px',
+		fontSize: '14px',
+		fontWeight: 500,
+		gap: '6px',
+		transition: 'all 150ms',
+		backgroundColor: isActive ? 'white' : 'transparent',
+		color: isActive ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
+		boxShadow: isActive ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none',
+		cursor: 'pointer',
+	});
 
 	return (
 		<AdminPageLayout
@@ -44,89 +48,481 @@ export function Settings() {
 			title={__('Einstellungen', 'resa')}
 			description={__('Maklerdaten, Branding, Lizenz und Datenschutz-Einstellungen.', 'resa')}
 		>
-			{/* Settings grid */}
-			<div className="resa-grid resa-gap-4">
-				{settingsSections.map((section, index) => {
-					const IconComponent = section.icon;
-					return (
-						<Card
-							key={index}
-							className="resa-cursor-pointer hover:resa-shadow-md resa-transition-shadow"
-						>
-							<CardHeader className="resa-pb-2">
-								<div className="resa-flex resa-items-center resa-justify-between">
-									<div className="resa-flex resa-items-center resa-gap-3">
-										<div className="resa-flex resa-size-10 resa-items-center resa-justify-center resa-rounded-lg resa-bg-muted">
-											<IconComponent className="resa-size-5 resa-text-muted-foreground" />
-										</div>
-										<div>
-											<CardTitle className="resa-text-base">
-												{section.title}
-											</CardTitle>
-											<CardDescription className="resa-mt-0.5">
-												{section.description}
-											</CardDescription>
-										</div>
-									</div>
-									<div className="resa-flex resa-items-center resa-gap-2">
-										{section.status === 'pending' && (
-											<Badge variant="secondary">
-												{__('Kommt bald', 'resa')}
-											</Badge>
-										)}
-										<ChevronRight className="resa-size-4 resa-text-muted-foreground" />
-									</div>
-								</div>
-							</CardHeader>
-						</Card>
-					);
-				})}
-			</div>
+			{/* Tab Navigation */}
+			<Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as SettingsTab)}>
+				<TabsList
+					style={{
+						display: 'inline-flex',
+						height: '40px',
+						alignItems: 'center',
+						justifyContent: 'center',
+						borderRadius: '8px',
+						backgroundColor: 'hsl(210 40% 96.1%)',
+						padding: '4px',
+					}}
+				>
+					<TabsTrigger value="agent" style={tabStyle(activeTab === 'agent')}>
+						<User style={{ width: '16px', height: '16px' }} />
+						{__('Maklerdaten', 'resa')}
+					</TabsTrigger>
+					<TabsTrigger value="branding" style={tabStyle(activeTab === 'branding')}>
+						<Palette style={{ width: '16px', height: '16px' }} />
+						{__('Branding', 'resa')}
+					</TabsTrigger>
+					<TabsTrigger value="license" style={tabStyle(activeTab === 'license')}>
+						<Key style={{ width: '16px', height: '16px' }} />
+						{__('Lizenz', 'resa')}
+					</TabsTrigger>
+					<TabsTrigger value="gdpr" style={tabStyle(activeTab === 'gdpr')}>
+						<Shield style={{ width: '16px', height: '16px' }} />
+						{__('Datenschutz', 'resa')}
+					</TabsTrigger>
+				</TabsList>
+			</Tabs>
 
-			<Separator />
+			{/* Tab Content */}
+			{activeTab === 'agent' && <AgentDataTab />}
+			{activeTab === 'branding' && <BrandingTab />}
+			{activeTab === 'license' && <LicenseTab />}
+			{activeTab === 'gdpr' && <GdprTab />}
+		</AdminPageLayout>
+	);
+}
 
-			{/* License info */}
+/**
+ * Agent Data Tab — form for broker/agent information.
+ */
+function AgentDataTab() {
+	const { data: agentData, isLoading, error } = useAgentData();
+
+	if (isLoading) {
+		return (
 			<Card>
-				<CardHeader>
-					<CardTitle className="resa-text-lg">
-						{__('Lizenzinformationen', 'resa')}
-					</CardTitle>
-					<CardDescription>
-						{__('Details zu deinem aktuellen Plan und deiner Installation.', 'resa')}
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<div className="resa-grid resa-grid-cols-2 md:resa-grid-cols-4 resa-gap-4">
-						<div className="resa-space-y-1">
-							<p className="resa-text-sm resa-text-muted-foreground">
-								{__('Version', 'resa')}
-							</p>
-							<p className="resa-font-medium">{window.resaAdmin?.version ?? '—'}</p>
-						</div>
-						<div className="resa-space-y-1">
-							<p className="resa-text-sm resa-text-muted-foreground">
-								{__('Plan', 'resa')}
-							</p>
-							<div className="resa-flex resa-items-center resa-gap-2">
-								<p className="resa-font-medium">{__('Free', 'resa')}</p>
-								<Badge variant="secondary">{__('Aktiv', 'resa')}</Badge>
-							</div>
-						</div>
-						<div className="resa-space-y-1">
-							<p className="resa-text-sm resa-text-muted-foreground">
-								{__('Aktive Module', 'resa')}
-							</p>
-							<p className="resa-font-medium">2 / 2</p>
-						</div>
-						<div className="resa-space-y-1">
-							<p className="resa-text-sm resa-text-muted-foreground">
-								{__('Leads diesen Monat', 'resa')}
-							</p>
-							<p className="resa-font-medium">24 / 50</p>
-						</div>
+				<CardContent className="resa-py-12">
+					<div className="resa-flex resa-items-center resa-justify-center resa-gap-2">
+						<Spinner className="resa-size-5" />
+						<span className="resa-text-muted-foreground">
+							{__('Lade Maklerdaten...', 'resa')}
+						</span>
 					</div>
 				</CardContent>
 			</Card>
-		</AdminPageLayout>
+		);
+	}
+
+	if (error) {
+		return (
+			<Alert variant="destructive">
+				<AlertTitle>{__('Fehler beim Laden', 'resa')}</AlertTitle>
+				<AlertDescription>
+					{__('Die Maklerdaten konnten nicht geladen werden.', 'resa')}
+				</AlertDescription>
+			</Alert>
+		);
+	}
+
+	return <AgentDataForm initialData={agentData} />;
+}
+
+function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) {
+	const saveMutation = useSaveAgentData();
+
+	const [form, setForm] = useState<AgentData>(
+		initialData ?? {
+			id: null,
+			name: '',
+			company: '',
+			email: '',
+			phone: '',
+			address: '',
+			website: '',
+			imprintUrl: '',
+			photoUrl: null,
+		},
+	);
+	const [isDirty, setIsDirty] = useState(false);
+
+	const updateField = <K extends keyof AgentData>(key: K, value: AgentData[K]) => {
+		setForm((prev) => ({ ...prev, [key]: value }));
+		setIsDirty(true);
+	};
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+
+		await saveMutation.mutateAsync({
+			name: form.name,
+			email: form.email,
+			phone: form.phone,
+			company: form.company,
+			address: form.address,
+			website: form.website,
+			imprint_url: form.imprintUrl,
+		});
+
+		setIsDirty(false);
+	};
+
+	const isValid = form.name.trim() !== '' && form.email.trim() !== '';
+
+	return (
+		<Card>
+			<div style={{ padding: '24px', paddingBottom: '16px' }}>
+				<h3 className="resa-text-lg resa-font-semibold" style={{ margin: 0 }}>
+					{__('Maklerdaten', 'resa')}
+				</h3>
+				<p
+					className="resa-text-sm resa-text-muted-foreground"
+					style={{ margin: 0, marginTop: '2px' }}
+				>
+					{__(
+						'Diese Daten werden in PDF-Dokumenten, E-Mails und auf der Ergebnisseite angezeigt.',
+						'resa',
+					)}
+				</p>
+			</div>
+			<CardContent>
+				<form onSubmit={handleSubmit} className="resa-space-y-6">
+					{/* Personal Info */}
+					<div className="resa-space-y-4" style={{ marginTop: 0 }}>
+						<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+							{__('Persönliche Daten', 'resa')}
+						</h3>
+						<div className="resa-grid resa-grid-cols-2 resa-gap-4">
+							<div className="resa-space-y-2">
+								<Label htmlFor="agent-name">
+									<span className="resa-flex resa-items-center resa-gap-1.5">
+										<User
+											style={{
+												width: '14px',
+												height: '14px',
+												color: 'hsl(215.4 16.3% 46.9%)',
+											}}
+										/>
+										{__('Name', 'resa')} *
+									</span>
+								</Label>
+								<Input
+									id="agent-name"
+									value={form.name}
+									onChange={(e) => updateField('name', e.target.value)}
+									placeholder={__('Max Mustermann', 'resa')}
+									required
+								/>
+							</div>
+							<div className="resa-space-y-2">
+								<Label htmlFor="agent-company">
+									<span className="resa-flex resa-items-center resa-gap-1.5">
+										<Building2
+											style={{
+												width: '14px',
+												height: '14px',
+												color: 'hsl(215.4 16.3% 46.9%)',
+											}}
+										/>
+										{__('Firma', 'resa')}
+									</span>
+								</Label>
+								<Input
+									id="agent-company"
+									value={form.company}
+									onChange={(e) => updateField('company', e.target.value)}
+									placeholder={__('Mustermann Immobilien GmbH', 'resa')}
+								/>
+							</div>
+						</div>
+					</div>
+
+					{/* Contact Info */}
+					<div className="resa-space-y-4">
+						<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+							{__('Kontaktdaten', 'resa')}
+						</h3>
+						<div className="resa-grid resa-grid-cols-2 resa-gap-4">
+							<div className="resa-space-y-2">
+								<Label htmlFor="agent-email">
+									<span className="resa-flex resa-items-center resa-gap-1.5">
+										<Mail
+											style={{
+												width: '14px',
+												height: '14px',
+												color: 'hsl(215.4 16.3% 46.9%)',
+											}}
+										/>
+										{__('E-Mail', 'resa')} *
+									</span>
+								</Label>
+								<Input
+									id="agent-email"
+									type="email"
+									value={form.email}
+									onChange={(e) => updateField('email', e.target.value)}
+									placeholder={__('max@mustermann-immo.de', 'resa')}
+									required
+								/>
+							</div>
+							<div className="resa-space-y-2">
+								<Label htmlFor="agent-phone">
+									<span className="resa-flex resa-items-center resa-gap-1.5">
+										<Phone
+											style={{
+												width: '14px',
+												height: '14px',
+												color: 'hsl(215.4 16.3% 46.9%)',
+											}}
+										/>
+										{__('Telefon', 'resa')}
+									</span>
+								</Label>
+								<Input
+									id="agent-phone"
+									type="tel"
+									value={form.phone}
+									onChange={(e) => updateField('phone', e.target.value)}
+									placeholder={__('+49 123 456789', 'resa')}
+								/>
+							</div>
+						</div>
+						<div className="resa-space-y-2">
+							<Label htmlFor="agent-address">{__('Adresse', 'resa')}</Label>
+							<Textarea
+								id="agent-address"
+								value={form.address}
+								onChange={(e) => updateField('address', e.target.value)}
+								placeholder={__('Musterstraße 1\n12345 Musterstadt', 'resa')}
+								rows={3}
+							/>
+						</div>
+					</div>
+
+					{/* Online Presence */}
+					<div className="resa-space-y-4">
+						<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+							{__('Online-Präsenz', 'resa')}
+						</h3>
+						<div className="resa-grid resa-grid-cols-2 resa-gap-4">
+							<div className="resa-space-y-2">
+								<Label htmlFor="agent-website">
+									<span className="resa-flex resa-items-center resa-gap-1.5">
+										<Globe
+											style={{
+												width: '14px',
+												height: '14px',
+												color: 'hsl(215.4 16.3% 46.9%)',
+											}}
+										/>
+										{__('Website', 'resa')}
+									</span>
+								</Label>
+								<Input
+									id="agent-website"
+									type="url"
+									value={form.website}
+									onChange={(e) => updateField('website', e.target.value)}
+									placeholder={__('https://mustermann-immo.de', 'resa')}
+								/>
+							</div>
+							<div className="resa-space-y-2">
+								<Label htmlFor="agent-imprint">
+									<span className="resa-flex resa-items-center resa-gap-1.5">
+										<FileText
+											style={{
+												width: '14px',
+												height: '14px',
+												color: 'hsl(215.4 16.3% 46.9%)',
+											}}
+										/>
+										{__('Impressum-URL', 'resa')}
+									</span>
+								</Label>
+								<Input
+									id="agent-imprint"
+									type="url"
+									value={form.imprintUrl}
+									onChange={(e) => updateField('imprintUrl', e.target.value)}
+									placeholder={__('https://mustermann-immo.de/impressum', 'resa')}
+								/>
+							</div>
+						</div>
+					</div>
+
+					{/* Save Button */}
+					<div className="resa-flex resa-justify-end resa-pt-4">
+						<Button
+							type="submit"
+							disabled={!isDirty || !isValid || saveMutation.isPending}
+							style={{
+								backgroundColor:
+									isDirty && isValid ? '#a9e43f' : 'hsl(210 40% 96.1%)',
+								color: '#1e303a',
+								border: 'none',
+							}}
+						>
+							{__('Speichern', 'resa')}
+						</Button>
+					</div>
+				</form>
+			</CardContent>
+		</Card>
+	);
+}
+
+/**
+ * Branding Tab — placeholder for future implementation.
+ */
+function BrandingTab() {
+	return (
+		<Card>
+			<div style={{ padding: '24px', paddingBottom: '16px' }}>
+				<h3 className="resa-text-lg resa-font-semibold" style={{ margin: 0 }}>
+					{__('Branding & Design', 'resa')}
+				</h3>
+				<p
+					className="resa-text-sm resa-text-muted-foreground"
+					style={{ margin: 0, marginTop: '2px' }}
+				>
+					{__('Logo, Farben und Schriftarten für deine Smart Assets.', 'resa')}
+				</p>
+			</div>
+			<CardContent>
+				<div className="resa-py-12 resa-text-center">
+					<div
+						style={{
+							width: '48px',
+							height: '48px',
+							margin: '0 auto 16px',
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							borderRadius: '50%',
+							backgroundColor: 'hsl(210 40% 96.1%)',
+						}}
+					>
+						<Palette
+							style={{
+								width: '24px',
+								height: '24px',
+								color: 'hsl(215.4 16.3% 46.9%)',
+							}}
+						/>
+					</div>
+					<h3 style={{ fontWeight: 600, marginBottom: '8px', color: '#1e303a' }}>
+						{__('Kommt bald', 'resa')}
+					</h3>
+					<p style={{ color: 'hsl(215.4 16.3% 46.9%)' }}>
+						{__(
+							'Branding-Einstellungen werden in einer zukünftigen Version verfügbar sein.',
+							'resa',
+						)}
+					</p>
+				</div>
+			</CardContent>
+		</Card>
+	);
+}
+
+/**
+ * License Tab — shows current plan info with placeholder for account management.
+ */
+function LicenseTab() {
+	return (
+		<Card>
+			<div style={{ padding: '24px', paddingBottom: '16px' }}>
+				<h3 className="resa-text-lg resa-font-semibold" style={{ margin: 0 }}>
+					{__('Lizenzinformationen', 'resa')}
+				</h3>
+				<p
+					className="resa-text-sm resa-text-muted-foreground"
+					style={{ margin: 0, marginTop: '2px' }}
+				>
+					{__('Details zu deinem aktuellen Plan und deiner Installation.', 'resa')}
+				</p>
+			</div>
+			<CardContent>
+				<div className="resa-grid resa-grid-cols-2 md:resa-grid-cols-4 resa-gap-4">
+					<div className="resa-space-y-1">
+						<p className="resa-text-sm resa-text-muted-foreground">
+							{__('Version', 'resa')}
+						</p>
+						<p className="resa-font-medium">{window.resaAdmin?.version ?? '—'}</p>
+					</div>
+					<div className="resa-space-y-1">
+						<p className="resa-text-sm resa-text-muted-foreground">
+							{__('Plan', 'resa')}
+						</p>
+						<div className="resa-flex resa-items-center resa-gap-2">
+							<p className="resa-font-medium">{__('Free', 'resa')}</p>
+							<Badge variant="secondary">{__('Aktiv', 'resa')}</Badge>
+						</div>
+					</div>
+					<div className="resa-space-y-1">
+						<p className="resa-text-sm resa-text-muted-foreground">
+							{__('Aktive Module', 'resa')}
+						</p>
+						<p className="resa-font-medium">2 / 2</p>
+					</div>
+					<div className="resa-space-y-1">
+						<p className="resa-text-sm resa-text-muted-foreground">
+							{__('Leads diesen Monat', 'resa')}
+						</p>
+						<p className="resa-font-medium">24 / 50</p>
+					</div>
+				</div>
+			</CardContent>
+		</Card>
+	);
+}
+
+/**
+ * GDPR Tab — placeholder for privacy settings.
+ */
+function GdprTab() {
+	return (
+		<Card>
+			<div style={{ padding: '24px', paddingBottom: '16px' }}>
+				<h3 className="resa-text-lg resa-font-semibold" style={{ margin: 0 }}>
+					{__('Datenschutz (DSGVO)', 'resa')}
+				</h3>
+				<p
+					className="resa-text-sm resa-text-muted-foreground"
+					style={{ margin: 0, marginTop: '2px' }}
+				>
+					{__('Einwilligungstexte, Aufbewahrungsfristen und Datenlöschung.', 'resa')}
+				</p>
+			</div>
+			<CardContent>
+				<div className="resa-py-12 resa-text-center">
+					<div
+						style={{
+							width: '48px',
+							height: '48px',
+							margin: '0 auto 16px',
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							borderRadius: '50%',
+							backgroundColor: 'hsl(210 40% 96.1%)',
+						}}
+					>
+						<Shield
+							style={{
+								width: '24px',
+								height: '24px',
+								color: 'hsl(215.4 16.3% 46.9%)',
+							}}
+						/>
+					</div>
+					<h3 style={{ fontWeight: 600, marginBottom: '8px', color: '#1e303a' }}>
+						{__('Kommt bald', 'resa')}
+					</h3>
+					<p style={{ color: 'hsl(215.4 16.3% 46.9%)' }}>
+						{__(
+							'Datenschutz-Einstellungen werden in einer zukünftigen Version verfügbar sein.',
+							'resa',
+						)}
+					</p>
+				</div>
+			</CardContent>
+		</Card>
 	);
 }

@@ -15,7 +15,7 @@ final class Schema {
 	/**
 	 * Current schema version.
 	 */
-	public const VERSION = '0.2.0';
+	public const VERSION = '0.3.0';
 
 	/**
 	 * Run migrations from the given version to current.
@@ -31,6 +31,10 @@ final class Schema {
 
 		if ( version_compare( $fromVersion, '0.2.0', '<' ) ) {
 			self::migrateToV020();
+		}
+
+		if ( version_compare( $fromVersion, '0.3.0', '<' ) ) {
+			self::migrateToV030();
 		}
 
 		update_option( 'resa_db_version', self::VERSION );
@@ -239,5 +243,56 @@ CREATE TABLE {$prefix}resa_agent_locations (
 ) {$charset};";
 
 		dbDelta( $sql );
+	}
+
+	/**
+	 * v0.3.0 — Extend agents table with company info.
+	 *
+	 * Adds columns for company name, address, website, and imprint URL.
+	 */
+	private static function migrateToV030(): void {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'resa_agents';
+
+		// Add company column if not exists.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$company_exists = $wpdb->get_var(
+			"SHOW COLUMNS FROM {$table} LIKE 'company'"
+		);
+		if ( ! $company_exists ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN company VARCHAR(255) DEFAULT NULL AFTER photo_url" );
+		}
+
+		// Add address column if not exists.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$address_exists = $wpdb->get_var(
+			"SHOW COLUMNS FROM {$table} LIKE 'address'"
+		);
+		if ( ! $address_exists ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN address TEXT DEFAULT NULL AFTER company" );
+		}
+
+		// Add website column if not exists.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$website_exists = $wpdb->get_var(
+			"SHOW COLUMNS FROM {$table} LIKE 'website'"
+		);
+		if ( ! $website_exists ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN website VARCHAR(500) DEFAULT NULL AFTER address" );
+		}
+
+		// Add imprint_url column if not exists.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$imprint_exists = $wpdb->get_var(
+			"SHOW COLUMNS FROM {$table} LIKE 'imprint_url'"
+		);
+		if ( ! $imprint_exists ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN imprint_url VARCHAR(500) DEFAULT NULL AFTER website" );
+		}
 	}
 }
