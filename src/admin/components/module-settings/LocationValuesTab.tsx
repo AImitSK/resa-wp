@@ -416,21 +416,20 @@ export function LocationValuesTab({
 
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-			{/* Info box */}
-			<div
+			{/* Info text */}
+			<p
 				style={{
-					backgroundColor: 'hsl(210 40% 96.1%)',
-					borderRadius: '8px',
-					padding: '16px 20px',
+					fontSize: '14px',
+					color: 'hsl(215.4 16.3% 46.9%)',
+					margin: 0,
+					lineHeight: 1.6,
 				}}
 			>
-				<p style={{ fontSize: '14px', color: '#1e303a', margin: 0, lineHeight: 1.6 }}>
-					{__(
-						'Hier kannst du für jeden Standort individuelle Basiswerte festlegen. Diese überschreiben die globalen Einstellungen für den jeweiligen Standort.',
-						'resa',
-					)}
-				</p>
-			</div>
+				{__(
+					'Hier kannst du für jeden Standort individuelle Basiswerte festlegen. Diese überschreiben die globalen Einstellungen für den jeweiligen Standort.',
+					'resa',
+				)}
+			</p>
 
 			{/* Edit form (shown when editing) */}
 			{editingLocationId !== null && (
