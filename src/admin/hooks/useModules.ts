@@ -27,8 +27,11 @@ export function useToggleModule() {
 	return useMutation({
 		mutationFn: (slug: string) =>
 			apiClient.post<{ slug: string; active: boolean }>(`admin/modules/${slug}/toggle`, {}),
-		onSuccess: () => {
+		onSuccess: (_data, slug) => {
+			// Invalidate modules list
 			queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+			// Invalidate module settings for this specific module
+			queryClient.invalidateQueries({ queryKey: ['module-settings', slug] });
 		},
 	});
 }
