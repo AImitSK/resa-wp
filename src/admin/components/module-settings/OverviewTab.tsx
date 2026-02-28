@@ -132,8 +132,9 @@ export function OverviewTab({ module }: OverviewTabProps) {
 			{/* Shortcode info */}
 			<div
 				style={{
-					backgroundColor: 'hsl(210 40% 96.1%)',
+					backgroundColor: 'white',
 					borderRadius: '8px',
+					border: '1px solid hsl(214.3 31.8% 91.4%)',
 					padding: '20px',
 				}}
 			>
@@ -173,8 +174,9 @@ export function OverviewTab({ module }: OverviewTabProps) {
 				{/* Module description */}
 				<div
 					style={{
-						backgroundColor: 'hsl(210 40% 96.1%)',
+						backgroundColor: 'white',
 						borderRadius: '8px',
+						border: '1px solid hsl(214.3 31.8% 91.4%)',
 						padding: '20px',
 					}}
 				>
@@ -197,8 +199,9 @@ export function OverviewTab({ module }: OverviewTabProps) {
 				{/* Documentation link */}
 				<div
 					style={{
-						backgroundColor: 'hsl(210 40% 96.1%)',
+						backgroundColor: 'white',
 						borderRadius: '8px',
+						border: '1px solid hsl(214.3 31.8% 91.4%)',
 						padding: '20px',
 						display: 'flex',
 						flexDirection: 'column',
