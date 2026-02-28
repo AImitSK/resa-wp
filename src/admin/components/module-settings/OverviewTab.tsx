@@ -2,7 +2,9 @@
  * Overview tab — Module info and status display.
  */
 
+import { useState } from 'react';
 import { __ } from '@wordpress/i18n';
+import { Copy, Check } from 'lucide-react';
 import type { ModuleInfo } from '../../hooks/useModuleSettings';
 
 interface OverviewTabProps {
@@ -10,6 +12,15 @@ interface OverviewTabProps {
 }
 
 export function OverviewTab({ module }: OverviewTabProps) {
+	const [copied, setCopied] = useState(false);
+	const shortcode = `[resa module="${module.slug}"]`;
+
+	const copyToClipboard = () => {
+		navigator.clipboard.writeText(shortcode);
+		setCopied(true);
+		setTimeout(() => setCopied(false), 2000);
+	};
+
 	// Inline styles for WordPress admin compatibility
 	const tableRowStyle: React.CSSProperties = {
 		display: 'grid',
@@ -154,19 +165,44 @@ export function OverviewTab({ module }: OverviewTabProps) {
 						'resa',
 					)}
 				</p>
-				<code
-					style={{
-						display: 'inline-block',
-						backgroundColor: '#1e303a',
-						color: '#a9e43f',
-						padding: '8px 16px',
-						borderRadius: '6px',
-						fontSize: '13px',
-						fontFamily: 'ui-monospace, monospace',
-					}}
-				>
-					{`[resa module="${module.slug}"]`}
-				</code>
+				<div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+					<code
+						style={{
+							display: 'inline-block',
+							backgroundColor: '#1e303a',
+							color: '#a9e43f',
+							padding: '8px 16px',
+							borderRadius: '6px',
+							fontSize: '13px',
+							fontFamily: 'ui-monospace, monospace',
+						}}
+					>
+						{shortcode}
+					</code>
+					<button
+						onClick={copyToClipboard}
+						style={{
+							display: 'inline-flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							width: '32px',
+							height: '32px',
+							borderRadius: '6px',
+							border: '1px solid hsl(214.3 31.8% 91.4%)',
+							backgroundColor: 'white',
+							cursor: 'pointer',
+							color: copied ? '#a9e43f' : '#1e303a',
+							transition: 'all 150ms',
+						}}
+						title={copied ? __('Kopiert!', 'resa') : __('Kopieren', 'resa')}
+					>
+						{copied ? (
+							<Check style={{ width: '16px', height: '16px' }} />
+						) : (
+							<Copy style={{ width: '16px', height: '16px' }} />
+						)}
+					</button>
+				</div>
 			</div>
 
 			{/* Description (2/3) + Documentation (1/3) side by side */}
