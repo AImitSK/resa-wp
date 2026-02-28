@@ -4,6 +4,7 @@
 
 import { __ } from '@wordpress/i18n';
 import { TrendingUp, TrendingDown, Users, Target, BarChart3, Zap } from 'lucide-react';
+import { AdminPageLayout } from '../components/AdminPageLayout';
 import {
 	Card,
 	CardAction,
@@ -18,15 +19,11 @@ import { Button } from '@/components/ui/button';
 
 export function Dashboard() {
 	return (
-		<div className="resa-space-y-6">
-			{/* Header */}
-			<div>
-				<h1 className="resa-text-2xl resa-font-bold">{__('Dashboard', 'resa')}</h1>
-				<p className="resa-text-muted-foreground resa-mt-1">
-					{__('Übersicht über Leads, Conversions und aktive Assets.', 'resa')}
-				</p>
-			</div>
-
+		<AdminPageLayout
+			variant="overview"
+			title={__('Dashboard', 'resa')}
+			description={__('Übersicht über Leads, Conversions und aktive Assets.', 'resa')}
+		>
 			{/* KPI Cards */}
 			<div className="resa-grid resa-grid-cols-1 md:resa-grid-cols-2 lg:resa-grid-cols-4 resa-gap-4">
 				<Card>
@@ -185,6 +182,6 @@ export function Dashboard() {
 					</CardFooter>
 				</Card>
 			</div>
-		</div>
+		</AdminPageLayout>
 	);
 }

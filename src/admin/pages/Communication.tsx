@@ -4,6 +4,7 @@
 
 import { __ } from '@wordpress/i18n';
 import { Mail, FileText, Server, Send, Clock } from 'lucide-react';
+import { AdminPageLayout } from '../components/AdminPageLayout';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,17 +12,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export function Communication() {
 	return (
-		<div className="resa-space-y-6">
-			{/* Header */}
-			<div>
-				<h1 className="resa-text-2xl resa-font-bold resa-tracking-tight">
-					{__('Kommunikation', 'resa')}
-				</h1>
-				<p className="resa-text-muted-foreground resa-mt-1">
-					{__('E-Mail-Vorlagen, Versandlog und SMTP-Einstellungen.', 'resa')}
-				</p>
-			</div>
-
+		<AdminPageLayout
+			variant="overview"
+			title={__('Kommunikation', 'resa')}
+			description={__('E-Mail-Vorlagen, Versandlog und SMTP-Einstellungen.', 'resa')}
+		>
 			{/* Tabs */}
 			<Tabs defaultValue="templates">
 				<TabsList>
@@ -171,6 +166,6 @@ export function Communication() {
 					</Card>
 				</TabsContent>
 			</Tabs>
-		</div>
+		</AdminPageLayout>
 	);
 }

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useModules, useToggleModule } from '../hooks/useModules';
 import type { ModuleSummary } from '../types';
+import { AdminPageLayout } from '../components/AdminPageLayout';
 
 import {
 	Card,
@@ -106,28 +107,6 @@ export function ModuleStore() {
 		navigate(`/modules/${slug}/settings`);
 	};
 
-	if (isLoading) {
-		return (
-			<div className="resa-flex resa-items-center resa-justify-center resa-py-12 resa-gap-2">
-				<Spinner className="resa-size-5" />
-				<span className="resa-text-muted-foreground">
-					{__('Module werden geladen...', 'resa')}
-				</span>
-			</div>
-		);
-	}
-
-	if (error) {
-		return (
-			<Alert variant="destructive">
-				<AlertTitle>{__('Fehler beim Laden', 'resa')}</AlertTitle>
-				<AlertDescription>
-					{__('Die Module konnten nicht geladen werden.', 'resa')}
-				</AlertDescription>
-			</Alert>
-		);
-	}
-
 	const gridStyle: React.CSSProperties = {
 		display: 'grid',
 		gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
@@ -150,235 +129,180 @@ export function ModuleStore() {
 		fontWeight: 500,
 	};
 
-	const pluginUrl = window.resaAdmin?.pluginUrl ?? '';
-	const logoUrl = `${pluginUrl}assets/images/resa-smart-assets.png`;
+	// Loading state
+	if (isLoading) {
+		return (
+			<AdminPageLayout
+				variant="overview"
+				title={__('Smart Assets', 'resa')}
+				description={__('Aktiviere und konfiguriere deine Lead-Tools.', 'resa')}
+			>
+				<div className="resa-flex resa-items-center resa-justify-center resa-py-12 resa-gap-2">
+					<Spinner className="resa-size-5" />
+					<span className="resa-text-muted-foreground">
+						{__('Module werden geladen...', 'resa')}
+					</span>
+				</div>
+			</AdminPageLayout>
+		);
+	}
+
+	// Error state
+	if (error) {
+		return (
+			<AdminPageLayout
+				variant="overview"
+				title={__('Smart Assets', 'resa')}
+				description={__('Aktiviere und konfiguriere deine Lead-Tools.', 'resa')}
+			>
+				<Alert variant="destructive">
+					<AlertTitle>{__('Fehler beim Laden', 'resa')}</AlertTitle>
+					<AlertDescription>
+						{__('Die Module konnten nicht geladen werden.', 'resa')}
+					</AlertDescription>
+				</Alert>
+			</AdminPageLayout>
+		);
+	}
 
 	return (
-		<>
-			<Card>
-				{/* Header with logo */}
-				<div
-					style={{
-						display: 'flex',
-						alignItems: 'flex-start',
-						justifyContent: 'space-between',
-						padding: '24px',
-						paddingBottom: '30px',
-					}}
-				>
-					<div>
-						<h2
-							style={{
-								fontSize: '24px',
-								fontWeight: 600,
-								lineHeight: 1.2,
-								margin: 0,
-							}}
-						>
-							{__('Smart Assets', 'resa')}
-						</h2>
-						<p
-							style={{
-								fontSize: '14px',
-								color: 'hsl(215.4 16.3% 46.9%)',
-								marginTop: '4px',
-								marginBottom: 0,
-							}}
-						>
-							{__('Aktiviere und konfiguriere deine Lead-Tools.', 'resa')}
-						</p>
-					</div>
-					<img
-						src={logoUrl}
-						alt="RESA Smart Assets"
-						style={{ height: '64px', width: 'auto' }}
-					/>
-				</div>
-
-				<CardContent className="resa-space-y-6">
-					{/* Filter bar */}
-					<div
+		<AdminPageLayout
+			variant="overview"
+			title={__('Smart Assets', 'resa')}
+			description={__('Aktiviere und konfiguriere deine Lead-Tools.', 'resa')}
+		>
+			{/* Filter bar */}
+			<div
+				style={{
+					display: 'flex',
+					flexWrap: 'wrap',
+					alignItems: 'center',
+					gap: '16px',
+				}}
+			>
+				{/* Filter tabs */}
+				<Tabs value={filter} onValueChange={(v) => setFilter(v as FilterOption)}>
+					<TabsList
 						style={{
-							display: 'flex',
-							flexWrap: 'wrap',
+							display: 'inline-flex',
+							height: '36px',
 							alignItems: 'center',
-							gap: '16px',
+							justifyContent: 'center',
+							borderRadius: '8px',
+							backgroundColor: 'hsl(210 40% 96.1%)',
+							padding: '4px',
 						}}
 					>
-						{/* Filter tabs */}
-						<Tabs value={filter} onValueChange={(v) => setFilter(v as FilterOption)}>
-							<TabsList
-								style={{
-									display: 'inline-flex',
-									height: '36px',
-									alignItems: 'center',
-									justifyContent: 'center',
-									borderRadius: '8px',
-									backgroundColor: 'hsl(210 40% 96.1%)',
-									padding: '4px',
-								}}
-							>
-								<TabsTrigger
-									value="all"
-									style={{
-										display: 'inline-flex',
-										alignItems: 'center',
-										justifyContent: 'center',
-										whiteSpace: 'nowrap',
-										borderRadius: '6px',
-										padding: '6px 12px',
-										fontSize: '14px',
-										fontWeight: 500,
-										transition: 'all 150ms',
-										backgroundColor: filter === 'all' ? 'white' : 'transparent',
-										color:
-											filter === 'all' ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
-										boxShadow:
-											filter === 'all'
-												? '0 1px 2px 0 rgb(0 0 0 / 0.05)'
-												: 'none',
-									}}
-								>
-									{__('alle', 'resa')}
-									<span style={counterBadgeStyle}>{totalCount}</span>
-								</TabsTrigger>
-								<TabsTrigger
-									value="free"
-									style={{
-										display: 'inline-flex',
-										alignItems: 'center',
-										justifyContent: 'center',
-										whiteSpace: 'nowrap',
-										borderRadius: '6px',
-										padding: '6px 12px',
-										fontSize: '14px',
-										fontWeight: 500,
-										transition: 'all 150ms',
-										backgroundColor:
-											filter === 'free' ? 'white' : 'transparent',
-										color:
-											filter === 'free'
-												? '#1e303a'
-												: 'hsl(215.4 16.3% 46.9%)',
-										boxShadow:
-											filter === 'free'
-												? '0 1px 2px 0 rgb(0 0 0 / 0.05)'
-												: 'none',
-									}}
-								>
-									{__('free', 'resa')}
-									<span style={counterBadgeStyle}>{freeCount}</span>
-								</TabsTrigger>
-								<TabsTrigger
-									value="premium"
-									style={{
-										display: 'inline-flex',
-										alignItems: 'center',
-										justifyContent: 'center',
-										whiteSpace: 'nowrap',
-										borderRadius: '6px',
-										padding: '6px 12px',
-										fontSize: '14px',
-										fontWeight: 500,
-										transition: 'all 150ms',
-										backgroundColor:
-											filter === 'premium' ? 'white' : 'transparent',
-										color:
-											filter === 'premium'
-												? '#1e303a'
-												: 'hsl(215.4 16.3% 46.9%)',
-										boxShadow:
-											filter === 'premium'
-												? '0 1px 2px 0 rgb(0 0 0 / 0.05)'
-												: 'none',
-									}}
-								>
-									{__('premium', 'resa')}
-									<span style={counterBadgeStyle}>{premiumCount}</span>
-								</TabsTrigger>
-							</TabsList>
-						</Tabs>
-
-						{/* Search */}
-						<div style={{ position: 'relative', width: '512px' }}>
-							<Search
-								style={{
-									position: 'absolute',
-									left: '12px',
-									top: '50%',
-									transform: 'translateY(-50%)',
-									width: '16px',
-									height: '16px',
-									color: 'hsl(215.4 16.3% 46.9%)',
-								}}
-							/>
-							<Input
-								type="search"
-								placeholder={__('Suchen...', 'resa')}
-								value={searchQuery}
-								onChange={(e) => setSearchQuery(e.target.value)}
-								style={{ paddingLeft: '40px' }}
-							/>
-						</div>
-					</div>
-
-					{/* Module grid */}
-					{filteredModules.length === 0 ? (
-						<div className="resa-py-12 resa-text-center resa-text-muted-foreground">
-							{modules?.length === 0
-								? __('Keine Module registriert.', 'resa')
-								: __('Keine Module gefunden.', 'resa')}
-						</div>
-					) : (
-						<div style={gridStyle}>
-							{filteredModules.map((module) => (
-								<ModuleCard
-									key={module.slug}
-									module={module}
-									onToggle={handleToggle}
-									onOpenSettings={() => openModuleSettings(module.slug)}
-									isToggling={toggleMutation.isPending}
-								/>
-							))}
-						</div>
-					)}
-				</CardContent>
-
-				{/* Footer */}
-				<div
-					style={{
-						backgroundColor: '#1e303a',
-						color: 'white',
-						padding: '16px 24px',
-						borderRadius: '0 0 12px 12px',
-						display: 'flex',
-						justifyContent: 'space-between',
-						alignItems: 'center',
-						fontSize: '13px',
-					}}
-				>
-					<div>© {new Date().getFullYear()} RESA - smart assets</div>
-					<div style={{ display: 'flex', gap: '24px' }}>
-						<a
-							href="https://www.resa-wp.com"
-							target="_blank"
-							rel="noopener noreferrer"
-							style={{ color: 'white', textDecoration: 'none' }}
+						<TabsTrigger
+							value="all"
+							style={{
+								display: 'inline-flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								whiteSpace: 'nowrap',
+								borderRadius: '6px',
+								padding: '6px 12px',
+								fontSize: '14px',
+								fontWeight: 500,
+								transition: 'all 150ms',
+								backgroundColor: filter === 'all' ? 'white' : 'transparent',
+								color: filter === 'all' ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
+								boxShadow:
+									filter === 'all' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none',
+							}}
 						>
-							www.resa-wp.com
-						</a>
-						<a
-							href="https://www.resa-wp.com/support"
-							target="_blank"
-							rel="noopener noreferrer"
-							style={{ color: 'white', textDecoration: 'none' }}
+							{__('alle', 'resa')}
+							<span style={counterBadgeStyle}>{totalCount}</span>
+						</TabsTrigger>
+						<TabsTrigger
+							value="free"
+							style={{
+								display: 'inline-flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								whiteSpace: 'nowrap',
+								borderRadius: '6px',
+								padding: '6px 12px',
+								fontSize: '14px',
+								fontWeight: 500,
+								transition: 'all 150ms',
+								backgroundColor: filter === 'free' ? 'white' : 'transparent',
+								color: filter === 'free' ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
+								boxShadow:
+									filter === 'free' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none',
+							}}
 						>
-							Support
-						</a>
-					</div>
+							{__('free', 'resa')}
+							<span style={counterBadgeStyle}>{freeCount}</span>
+						</TabsTrigger>
+						<TabsTrigger
+							value="premium"
+							style={{
+								display: 'inline-flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								whiteSpace: 'nowrap',
+								borderRadius: '6px',
+								padding: '6px 12px',
+								fontSize: '14px',
+								fontWeight: 500,
+								transition: 'all 150ms',
+								backgroundColor: filter === 'premium' ? 'white' : 'transparent',
+								color: filter === 'premium' ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
+								boxShadow:
+									filter === 'premium' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none',
+							}}
+						>
+							{__('premium', 'resa')}
+							<span style={counterBadgeStyle}>{premiumCount}</span>
+						</TabsTrigger>
+					</TabsList>
+				</Tabs>
+
+				{/* Search */}
+				<div style={{ position: 'relative', width: '512px' }}>
+					<Search
+						style={{
+							position: 'absolute',
+							left: '12px',
+							top: '50%',
+							transform: 'translateY(-50%)',
+							width: '16px',
+							height: '16px',
+							color: 'hsl(215.4 16.3% 46.9%)',
+						}}
+					/>
+					<Input
+						type="search"
+						placeholder={__('Suchen...', 'resa')}
+						value={searchQuery}
+						onChange={(e) => setSearchQuery(e.target.value)}
+						style={{ paddingLeft: '40px' }}
+					/>
 				</div>
-			</Card>
-		</>
+			</div>
+
+			{/* Module grid */}
+			{filteredModules.length === 0 ? (
+				<div className="resa-py-12 resa-text-center resa-text-muted-foreground">
+					{modules?.length === 0
+						? __('Keine Module registriert.', 'resa')
+						: __('Keine Module gefunden.', 'resa')}
+				</div>
+			) : (
+				<div style={gridStyle}>
+					{filteredModules.map((module) => (
+						<ModuleCard
+							key={module.slug}
+							module={module}
+							onToggle={handleToggle}
+							onOpenSettings={() => openModuleSettings(module.slug)}
+							isToggling={toggleMutation.isPending}
+						/>
+					))}
+				</div>
+			)}
+		</AdminPageLayout>
 	);
 }
 
