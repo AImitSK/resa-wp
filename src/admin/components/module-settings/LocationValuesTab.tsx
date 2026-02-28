@@ -86,10 +86,12 @@ export function LocationValuesTab({
 	// Get default values from global factors
 	const defaultValues = useMemo(() => {
 		const factors = settings.factors as Record<string, number> | null;
+		const basePrice = factors?.base_price ?? 0;
+		// Calculate price range from base_price (±15%) if not explicitly set
 		return {
-			base_price: factors?.base_price ?? 0,
-			price_min: factors?.price_min ?? 0,
-			price_max: factors?.price_max ?? 0,
+			base_price: basePrice,
+			price_min: factors?.price_min ?? basePrice * 0.85,
+			price_max: factors?.price_max ?? basePrice * 1.15,
 		};
 	}, [settings.factors]);
 
@@ -98,6 +100,9 @@ export function LocationValuesTab({
 		return activeLocations.map((location) => {
 			const values = settings.location_values?.[String(location.id)];
 			const hasCustomValues = !!values;
+			const basePrice = hasCustomValues
+				? (values?.base_price ?? defaultValues.base_price)
+				: defaultValues.base_price;
 			return {
 				id: location.id,
 				name: location.name,
@@ -105,11 +110,13 @@ export function LocationValuesTab({
 				region_type: location.region_type,
 				hasCustomValues,
 				// Show custom values if set, otherwise show default values
-				base_price: hasCustomValues
-					? (values?.base_price ?? null)
-					: defaultValues.base_price,
-				price_min: hasCustomValues ? (values?.price_min ?? null) : defaultValues.price_min,
-				price_max: hasCustomValues ? (values?.price_max ?? null) : defaultValues.price_max,
+				base_price: basePrice,
+				price_min: hasCustomValues
+					? (values?.price_min ?? basePrice * 0.85)
+					: defaultValues.price_min,
+				price_max: hasCustomValues
+					? (values?.price_max ?? basePrice * 1.15)
+					: defaultValues.price_max,
 			};
 		});
 	}, [activeLocations, settings.location_values, defaultValues]);
