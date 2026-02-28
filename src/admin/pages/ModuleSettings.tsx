@@ -228,7 +228,7 @@ export function ModuleSettings() {
 									display: 'flex',
 									alignItems: 'center',
 									gap: '8px',
-									marginTop: '6px',
+									marginTop: '1px',
 								}}
 							>
 								<Badge
