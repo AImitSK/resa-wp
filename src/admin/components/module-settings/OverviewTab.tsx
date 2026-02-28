@@ -11,28 +11,35 @@ interface OverviewTabProps {
 
 export function OverviewTab({ module }: OverviewTabProps) {
 	// Inline styles for WordPress admin compatibility
-	const cardStyle: React.CSSProperties = {
-		display: 'flex',
-		flexDirection: 'column',
-		justifyContent: 'space-between',
-		padding: '16px 20px',
+	const tableRowStyle: React.CSSProperties = {
+		display: 'grid',
+		gridTemplateColumns: 'repeat(3, 1fr)',
 		backgroundColor: 'white',
 		borderRadius: '8px',
 		border: '1px solid hsl(214.3 31.8% 91.4%)',
-		minHeight: '80px',
+	};
+
+	const cellStyle: React.CSSProperties = {
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		padding: '14px 20px',
+	};
+
+	const cellWithBorderStyle: React.CSSProperties = {
+		...cellStyle,
+		borderRight: '1px solid hsl(214.3 31.8% 91.4%)',
 	};
 
 	const labelStyle: React.CSSProperties = {
 		fontSize: '14px',
 		fontWeight: 500,
 		color: '#1e303a',
-		marginBottom: '12px',
 	};
 
 	const darkBadgeStyle: React.CSSProperties = {
 		display: 'inline-flex',
 		alignItems: 'center',
-		alignSelf: 'flex-start',
 		padding: '3px 10px 5px 10px',
 		borderRadius: '4px',
 		fontSize: '11px',
@@ -89,10 +96,10 @@ export function OverviewTab({ module }: OverviewTabProps) {
 
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-			{/* Quick stats as 3 columns */}
-			<div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+			{/* Quick stats as table row */}
+			<div style={tableRowStyle}>
 				{/* Kategorie */}
-				<div style={cardStyle}>
+				<div style={cellWithBorderStyle}>
 					<span style={labelStyle}>{__('Kategorie', 'resa')}</span>
 					<span style={darkBadgeStyle}>
 						{module.category === 'calculator'
@@ -102,7 +109,7 @@ export function OverviewTab({ module }: OverviewTabProps) {
 				</div>
 
 				{/* Status */}
-				<div style={cardStyle}>
+				<div style={cellWithBorderStyle}>
 					<span style={labelStyle}>{__('Status', 'resa')}</span>
 					<span style={module.active ? greenBadgeStyle : darkBadgeStyle}>
 						{module.active ? __('Aktiv', 'resa') : __('Inaktiv', 'resa')}
@@ -110,7 +117,7 @@ export function OverviewTab({ module }: OverviewTabProps) {
 				</div>
 
 				{/* Plan */}
-				<div style={cardStyle}>
+				<div style={cellStyle}>
 					<span style={labelStyle}>{__('Plan', 'resa')}</span>
 					<span style={darkBadgeStyle}>
 						{module.flag === 'free'
