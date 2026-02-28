@@ -225,12 +225,12 @@ export function ModuleSettings() {
 					>
 						<IconComponent style={{ width: '24px', height: '24px' }} />
 					</div>
-					<div>
+					<div style={{ paddingTop: '2px' }}>
 						<h1
 							style={{
 								fontSize: '24px',
 								fontWeight: 600,
-								lineHeight: 1.2,
+								lineHeight: 1,
 								margin: 0,
 								color: '#1e303a',
 							}}
