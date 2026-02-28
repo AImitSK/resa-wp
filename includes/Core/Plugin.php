@@ -6,6 +6,7 @@ namespace Resa\Core;
 
 use Resa\Admin\AdminPage;
 use Resa\Api\AgentsController;
+use Resa\Api\BrandingController;
 use Resa\Api\HealthController;
 use Resa\Api\LeadsController;
 use Resa\Api\LocationsController;
@@ -130,6 +131,7 @@ final class Plugin {
 	public function registerRestRoutes(): void {
 		$controllers = [
 			new AgentsController(),
+			new BrandingController(),
 			new HealthController(),
 			new LeadsController(),
 			new LocationsController(),

@@ -6,9 +6,22 @@
 
 import { useState } from 'react';
 import { __ } from '@wordpress/i18n';
-import { User, Palette, Key, Shield, Building2, Mail, Phone, Globe, FileText } from 'lucide-react';
+import {
+	User,
+	Palette,
+	Key,
+	Shield,
+	Building2,
+	Mail,
+	Phone,
+	Globe,
+	FileText,
+	X,
+	Image,
+} from 'lucide-react';
 import { AdminPageLayout } from '../components/AdminPageLayout';
 import { useAgentData, useSaveAgentData, type AgentData } from '../hooks/useAgentData';
+import { useBranding, useSaveBranding, type BrandingSettings } from '../hooks/useBranding';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +32,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 
 type SettingsTab = 'agent' | 'branding' | 'license' | 'gdpr';
 
@@ -361,12 +375,145 @@ function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) 
 }
 
 /**
- * Branding Tab — placeholder for future implementation.
+ * Branding Tab — logo, colors, and powered-by toggle.
  */
 function BrandingTab() {
+	const { data: branding, isLoading, error } = useBranding();
+
+	if (isLoading) {
+		return (
+			<div className="resa-flex resa-items-center resa-justify-center resa-gap-2 resa-py-12">
+				<Spinner className="resa-size-5" />
+				<span className="resa-text-muted-foreground">
+					{__('Lade Branding-Einstellungen...', 'resa')}
+				</span>
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<Alert variant="destructive">
+				<AlertTitle>{__('Fehler beim Laden', 'resa')}</AlertTitle>
+				<AlertDescription>
+					{__('Die Branding-Einstellungen konnten nicht geladen werden.', 'resa')}
+				</AlertDescription>
+			</Alert>
+		);
+	}
+
+	return <BrandingForm initialData={branding} />;
+}
+
+/**
+ * WordPress Media Library frame type.
+ */
+interface WpMediaFrame {
+	open: () => void;
+	on: (event: string, callback: () => void) => void;
+	state: () => {
+		get: (key: string) => {
+			first: () => {
+				toJSON: () => { id: number; url: string };
+			};
+		};
+	};
+}
+
+/**
+ * Open WordPress Media Library and return selected image.
+ */
+function openMediaLibrary(
+	title: string,
+	buttonText: string,
+): Promise<{ id: number; url: string } | null> {
+	return new Promise((resolve) => {
+		let resolved = false;
+
+		// @ts-expect-error wp.media is available via wp_enqueue_media()
+		const frame: WpMediaFrame = wp.media({
+			title,
+			button: { text: buttonText },
+			multiple: false,
+			library: { type: 'image' },
+		});
+
+		frame.on('select', () => {
+			if (resolved) return;
+			resolved = true;
+			const attachment = frame.state().get('selection').first().toJSON();
+			resolve({ id: attachment.id, url: attachment.url });
+		});
+
+		// close fires BEFORE select in WP Media, so we need a small delay
+		frame.on('close', () => {
+			setTimeout(() => {
+				if (resolved) return;
+				resolved = true;
+				resolve(null);
+			}, 100);
+		});
+
+		frame.open();
+	});
+}
+
+function BrandingForm({ initialData }: { initialData: BrandingSettings | undefined }) {
+	const saveMutation = useSaveBranding();
+
+	const [form, setForm] = useState<BrandingSettings>(
+		initialData ?? {
+			logoUrl: '',
+			logoId: 0,
+			primaryColor: '#a9e43f',
+			secondaryColor: '#1e303a',
+			showPoweredBy: true,
+		},
+	);
+	const [isDirty, setIsDirty] = useState(false);
+
+	// Free plan cannot disable "Powered by RESA".
+	const isPremium = window.resaAdmin?.features?.plan !== 'free';
+
+	const updateField = <K extends keyof BrandingSettings>(key: K, value: BrandingSettings[K]) => {
+		setForm((prev) => ({ ...prev, [key]: value }));
+		setIsDirty(true);
+	};
+
+	const handleSelectLogo = async () => {
+		const result = await openMediaLibrary(
+			__('Logo auswählen', 'resa'),
+			__('Als Logo verwenden', 'resa'),
+		);
+		if (result) {
+			setForm((prev) => ({ ...prev, logoUrl: result.url, logoId: result.id }));
+			setIsDirty(true);
+		}
+	};
+
+	const handleRemoveLogo = () => {
+		setForm((prev) => ({ ...prev, logoUrl: '', logoId: 0 }));
+		setIsDirty(true);
+	};
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+
+		await saveMutation.mutateAsync({
+			logoUrl: form.logoUrl,
+			logoId: form.logoId,
+			primaryColor: form.primaryColor,
+			secondaryColor: form.secondaryColor,
+			showPoweredBy: form.showPoweredBy,
+		});
+
+		setIsDirty(false);
+	};
+
 	return (
-		<Card>
-			<div style={{ padding: '24px', paddingBottom: '16px' }}>
+		<form onSubmit={handleSubmit} className="resa-space-y-6">
+			{/* Header */}
+			<div style={{ marginBottom: '24px' }}>
 				<h3 className="resa-text-lg resa-font-semibold" style={{ margin: 0 }}>
 					{__('Branding & Design', 'resa')}
 				</h3>
@@ -374,43 +521,273 @@ function BrandingTab() {
 					className="resa-text-sm resa-text-muted-foreground"
 					style={{ margin: 0, marginTop: '2px' }}
 				>
-					{__('Logo, Farben und Schriftarten für deine Smart Assets.', 'resa')}
+					{__('Logo und Farben für deine Smart Assets.', 'resa')}
 				</p>
 			</div>
-			<CardContent>
-				<div className="resa-py-12 resa-text-center">
-					<div
-						style={{
-							width: '48px',
-							height: '48px',
-							margin: '0 auto 16px',
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-							borderRadius: '50%',
-							backgroundColor: 'hsl(210 40% 96.1%)',
-						}}
-					>
-						<Palette
+
+			{/* Logo Section */}
+			<div className="resa-space-y-4" style={{ marginTop: 0 }}>
+				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+					{__('Logo', 'resa')}
+				</h3>
+
+				{form.logoUrl ? (
+					<div className="resa-flex resa-items-start resa-gap-4">
+						<div
 							style={{
-								width: '24px',
-								height: '24px',
-								color: 'hsl(215.4 16.3% 46.9%)',
+								width: '120px',
+								height: '80px',
+								borderRadius: '8px',
+								border: '1px solid hsl(214.3 31.8% 91.4%)',
+								backgroundColor: '#fff',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								overflow: 'hidden',
 							}}
+						>
+							<img
+								src={form.logoUrl}
+								alt={__('Logo', 'resa')}
+								style={{
+									maxWidth: '100%',
+									maxHeight: '100%',
+									objectFit: 'contain',
+								}}
+							/>
+						</div>
+						<div className="resa-flex resa-gap-2">
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={handleSelectLogo}
+							>
+								{__('Ändern', 'resa')}
+							</Button>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={handleRemoveLogo}
+								style={{ color: 'hsl(0 84.2% 60.2%)' }}
+							>
+								<X style={{ width: '14px', height: '14px', marginRight: '4px' }} />
+								{__('Entfernen', 'resa')}
+							</Button>
+						</div>
+					</div>
+				) : (
+					<button
+						type="button"
+						onClick={handleSelectLogo}
+						style={{
+							width: '100%',
+							maxWidth: '400px',
+							padding: '24px',
+							border: '2px dashed hsl(214.3 31.8% 91.4%)',
+							borderRadius: '8px',
+							backgroundColor: 'hsl(210 40% 98%)',
+							cursor: 'pointer',
+							display: 'flex',
+							flexDirection: 'column',
+							alignItems: 'center',
+							gap: '8px',
+							transition: 'border-color 150ms',
+						}}
+						onMouseEnter={(e) =>
+							(e.currentTarget.style.borderColor = 'hsl(215.4 16.3% 46.9%)')
+						}
+						onMouseLeave={(e) =>
+							(e.currentTarget.style.borderColor = 'hsl(214.3 31.8% 91.4%)')
+						}
+					>
+						<div
+							style={{
+								width: '40px',
+								height: '40px',
+								borderRadius: '50%',
+								backgroundColor: 'hsl(210 40% 96.1%)',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+							}}
+						>
+							<Image
+								style={{
+									width: '20px',
+									height: '20px',
+									color: 'hsl(215.4 16.3% 46.9%)',
+								}}
+							/>
+						</div>
+						<span style={{ fontWeight: 500, color: '#1e303a' }}>
+							{__('Logo auswählen', 'resa')}
+						</span>
+						<span style={{ fontSize: '12px', color: 'hsl(215.4 16.3% 46.9%)' }}>
+							{__('PNG, JPG oder SVG empfohlen', 'resa')}
+						</span>
+					</button>
+				)}
+			</div>
+
+			{/* Colors Section */}
+			<div className="resa-space-y-4">
+				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+					{__('Farben', 'resa')}
+				</h3>
+				<div
+					className="resa-grid resa-grid-cols-2 resa-gap-4"
+					style={{ maxWidth: '400px' }}
+				>
+					<div className="resa-space-y-2">
+						<Label htmlFor="primary-color">
+							<span className="resa-flex resa-items-center resa-gap-1.5">
+								<Palette
+									style={{
+										width: '14px',
+										height: '14px',
+										color: 'hsl(215.4 16.3% 46.9%)',
+									}}
+								/>
+								{__('Primärfarbe', 'resa')}
+							</span>
+						</Label>
+						<div className="resa-flex resa-items-center resa-gap-2">
+							<input
+								id="primary-color"
+								type="color"
+								value={form.primaryColor}
+								onChange={(e) => updateField('primaryColor', e.target.value)}
+								style={{
+									width: '40px',
+									height: '40px',
+									padding: 0,
+									border: '1px solid hsl(214.3 31.8% 91.4%)',
+									borderRadius: '6px',
+									cursor: 'pointer',
+									backgroundColor: 'transparent',
+								}}
+							/>
+							<Input
+								type="text"
+								value={form.primaryColor}
+								onChange={(e) => updateField('primaryColor', e.target.value)}
+								style={{ width: '100px', fontFamily: 'monospace' }}
+								maxLength={7}
+							/>
+						</div>
+						<p
+							className="resa-text-xs resa-text-muted-foreground"
+							style={{ margin: 0 }}
+						>
+							{__('Buttons, Akzente, Progress-Bar', 'resa')}
+						</p>
+					</div>
+					<div className="resa-space-y-2">
+						<Label htmlFor="secondary-color">
+							<span className="resa-flex resa-items-center resa-gap-1.5">
+								<Palette
+									style={{
+										width: '14px',
+										height: '14px',
+										color: 'hsl(215.4 16.3% 46.9%)',
+									}}
+								/>
+								{__('Sekundärfarbe', 'resa')}
+							</span>
+						</Label>
+						<div className="resa-flex resa-items-center resa-gap-2">
+							<input
+								id="secondary-color"
+								type="color"
+								value={form.secondaryColor}
+								onChange={(e) => updateField('secondaryColor', e.target.value)}
+								style={{
+									width: '40px',
+									height: '40px',
+									padding: 0,
+									border: '1px solid hsl(214.3 31.8% 91.4%)',
+									borderRadius: '6px',
+									cursor: 'pointer',
+									backgroundColor: 'transparent',
+								}}
+							/>
+							<Input
+								type="text"
+								value={form.secondaryColor}
+								onChange={(e) => updateField('secondaryColor', e.target.value)}
+								style={{ width: '100px', fontFamily: 'monospace' }}
+								maxLength={7}
+							/>
+						</div>
+						<p
+							className="resa-text-xs resa-text-muted-foreground"
+							style={{ margin: 0 }}
+						>
+							{__('Texte, Hover-States', 'resa')}
+						</p>
+					</div>
+				</div>
+			</div>
+
+			{/* Powered by RESA Section */}
+			<div className="resa-space-y-4">
+				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+					{__('Branding-Hinweis', 'resa')}
+				</h3>
+				<div
+					className="resa-flex resa-items-center resa-justify-between"
+					style={{
+						padding: '16px',
+						backgroundColor: 'hsl(210 40% 98%)',
+						borderRadius: '8px',
+						maxWidth: '400px',
+					}}
+				>
+					<div>
+						<p style={{ margin: 0, fontWeight: 500, color: '#1e303a' }}>
+							{__('"Powered by RESA" anzeigen', 'resa')}
+						</p>
+						<p
+							className="resa-text-sm resa-text-muted-foreground"
+							style={{ margin: 0, marginTop: '2px' }}
+						>
+							{isPremium
+								? __('Zeigt den RESA-Hinweis in deinen Smart Assets.', 'resa')
+								: __('Im Free-Plan ist der Hinweis immer sichtbar.', 'resa')}
+						</p>
+					</div>
+					<div className="resa-flex resa-items-center resa-gap-2">
+						{!isPremium && (
+							<Badge variant="secondary" style={{ fontSize: '10px' }}>
+								PRO
+							</Badge>
+						)}
+						<Switch
+							checked={form.showPoweredBy}
+							onCheckedChange={(checked) => updateField('showPoweredBy', checked)}
+							disabled={!isPremium}
 						/>
 					</div>
-					<h3 style={{ fontWeight: 600, marginBottom: '8px', color: '#1e303a' }}>
-						{__('Kommt bald', 'resa')}
-					</h3>
-					<p style={{ color: 'hsl(215.4 16.3% 46.9%)' }}>
-						{__(
-							'Branding-Einstellungen werden in einer zukünftigen Version verfügbar sein.',
-							'resa',
-						)}
-					</p>
 				</div>
-			</CardContent>
-		</Card>
+			</div>
+
+			{/* Save Button */}
+			<div className="resa-flex resa-justify-end resa-pt-4">
+				<Button
+					type="submit"
+					disabled={!isDirty || saveMutation.isPending}
+					style={{
+						backgroundColor: isDirty ? '#a9e43f' : 'hsl(210 40% 96.1%)',
+						color: '#1e303a',
+						border: 'none',
+					}}
+				>
+					{__('Speichern', 'resa')}
+				</Button>
+			</div>
+		</form>
 	);
 }
 

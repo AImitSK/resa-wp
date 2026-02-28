@@ -102,6 +102,9 @@ final class AdminPage {
 
 		$this->vite->enqueue( 'src/admin/main.tsx', 'resa-admin' );
 
+		// WordPress Media Library for logo upload.
+		wp_enqueue_media();
+
 		// Build feature gate data for frontend.
 		$featureData = $this->getFeatureGateData();
 
