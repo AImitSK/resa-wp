@@ -136,78 +136,79 @@ export function ModuleSettings() {
 
 	return (
 		<Card>
-			{/* Header with breadcrumb and module info */}
+			{/* Top bar: Breadcrumb + Back button */}
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'space-between',
+					backgroundColor: 'hsl(210 40% 96.1%)',
+					padding: '16px 24px',
+					borderRadius: '12px 12px 0 0',
+				}}
+			>
+				<nav aria-label="breadcrumb">
+					<ol
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: '8px',
+							fontSize: '14px',
+							margin: 0,
+							padding: 0,
+							listStyle: 'none',
+						}}
+					>
+						<li>
+							<span
+								onClick={() => navigate('/modules')}
+								style={{
+									cursor: 'pointer',
+									color: 'hsl(215.4 16.3% 46.9%)',
+									transition: 'color 150ms',
+								}}
+								onMouseEnter={(e) => (e.currentTarget.style.color = '#1e303a')}
+								onMouseLeave={(e) =>
+									(e.currentTarget.style.color = 'hsl(215.4 16.3% 46.9%)')
+								}
+							>
+								{__('Smart Assets', 'resa')}
+							</span>
+						</li>
+						<li style={{ color: 'hsl(215.4 16.3% 46.9%)' }}>
+							<ChevronRight style={{ width: '14px', height: '14px' }} />
+						</li>
+						<li>
+							<span style={{ color: '#1e303a', fontWeight: 500 }}>
+								{module?.name ?? slug}
+							</span>
+						</li>
+					</ol>
+				</nav>
+
+				<Button
+					variant="ghost"
+					size="sm"
+					onClick={() => navigate('/modules')}
+					style={{ color: 'hsl(215.4 16.3% 46.9%)' }}
+				>
+					<ArrowLeft style={{ width: '16px', height: '16px', marginRight: '4px' }} />
+					{__('Zurück', 'resa')}
+				</Button>
+			</div>
+
+			{/* Module info */}
 			<div
 				style={{
 					padding: '24px',
 					paddingBottom: '20px',
 				}}
 			>
-				{/* Top row: Breadcrumb + Back button */}
-				<div
-					style={{
-						display: 'flex',
-						alignItems: 'center',
-						justifyContent: 'space-between',
-					}}
-				>
-					<nav aria-label="breadcrumb">
-						<ol
-							style={{
-								display: 'flex',
-								alignItems: 'center',
-								gap: '8px',
-								fontSize: '14px',
-								margin: 0,
-								padding: 0,
-								listStyle: 'none',
-							}}
-						>
-							<li>
-								<span
-									onClick={() => navigate('/modules')}
-									style={{
-										cursor: 'pointer',
-										color: 'hsl(215.4 16.3% 46.9%)',
-										transition: 'color 150ms',
-									}}
-									onMouseEnter={(e) => (e.currentTarget.style.color = '#1e303a')}
-									onMouseLeave={(e) =>
-										(e.currentTarget.style.color = 'hsl(215.4 16.3% 46.9%)')
-									}
-								>
-									{__('Smart Assets', 'resa')}
-								</span>
-							</li>
-							<li style={{ color: 'hsl(215.4 16.3% 46.9%)' }}>
-								<ChevronRight style={{ width: '14px', height: '14px' }} />
-							</li>
-							<li>
-								<span style={{ color: '#1e303a', fontWeight: 500 }}>
-									{module?.name ?? slug}
-								</span>
-							</li>
-						</ol>
-					</nav>
-
-					<Button
-						variant="ghost"
-						size="sm"
-						onClick={() => navigate('/modules')}
-						style={{ color: 'hsl(215.4 16.3% 46.9%)' }}
-					>
-						<ArrowLeft style={{ width: '16px', height: '16px', marginRight: '4px' }} />
-						{__('Zurück', 'resa')}
-					</Button>
-				</div>
-
-				{/* Module info */}
 				<div
 					style={{
 						display: 'flex',
 						alignItems: 'flex-start',
 						gap: '12px',
-						marginTop: '16px',
 					}}
 				>
 					<div
