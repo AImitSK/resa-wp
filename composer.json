@@ -20,7 +20,8 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"Resa\\": "includes/"
+			"Resa\\": "includes/",
+			"Resa\\Modules\\RentCalculator\\": "modules/rent-calculator/"
 		}
 	},
 	"autoload-dev": {
