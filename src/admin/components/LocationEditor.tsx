@@ -7,14 +7,11 @@
 
 import { useState } from 'react';
 import { __ } from '@wordpress/i18n';
-import { Info } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
 
 interface LocationEditorProps {
 	initialData?: LocationFormData;
@@ -26,6 +23,7 @@ interface LocationEditorProps {
 export interface LocationFormData {
 	name: string;
 	slug: string;
+	country: string;
 	bundesland: string;
 	region_type: string;
 	data: {
@@ -43,46 +41,6 @@ const REGION_TYPES = [
 	{ value: 'large_city', label: 'Großstadt / Zentrum' },
 ];
 
-/** German federal states. */
-const BUNDESLAENDER = [
-	'Baden-Württemberg',
-	'Bayern',
-	'Berlin',
-	'Brandenburg',
-	'Bremen',
-	'Hamburg',
-	'Hessen',
-	'Mecklenburg-Vorpommern',
-	'Niedersachsen',
-	'Nordrhein-Westfalen',
-	'Rheinland-Pfalz',
-	'Saarland',
-	'Sachsen',
-	'Sachsen-Anhalt',
-	'Schleswig-Holstein',
-	'Thüringen',
-];
-
-/** Default Grunderwerbsteuer by Bundesland. */
-const GRUNDERWERBSTEUER: Record<string, number> = {
-	'Baden-Württemberg': 5.0,
-	Bayern: 3.5,
-	Berlin: 6.0,
-	Brandenburg: 6.5,
-	Bremen: 5.0,
-	Hamburg: 5.5,
-	Hessen: 6.0,
-	'Mecklenburg-Vorpommern': 6.0,
-	Niedersachsen: 5.0,
-	'Nordrhein-Westfalen': 6.5,
-	'Rheinland-Pfalz': 5.0,
-	Saarland: 6.5,
-	Sachsen: 5.5,
-	'Sachsen-Anhalt': 5.0,
-	'Schleswig-Holstein': 6.5,
-	Thüringen: 5.0,
-};
-
 function slugify(text: string): string {
 	return text
 		.toLowerCase()
@@ -97,6 +55,7 @@ function slugify(text: string): string {
 const emptyForm: LocationFormData = {
 	name: '',
 	slug: '',
+	country: '',
 	bundesland: '',
 	region_type: 'medium_city',
 	data: {
@@ -114,18 +73,6 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 			...prev,
 			name,
 			slug: autoSlug ? slugify(name) : prev.slug,
-		}));
-	};
-
-	const handleBundeslandChange = (bundesland: string) => {
-		const grunderwerbsteuer = GRUNDERWERBSTEUER[bundesland] ?? 5.0;
-		setForm((prev) => ({
-			...prev,
-			bundesland,
-			data: {
-				...prev.data,
-				grunderwerbsteuer,
-			},
 		}));
 	};
 
@@ -167,8 +114,6 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 				</div>
 			</div>
 
-			<Separator />
-
 			{/* Location details */}
 			<div className="resa-space-y-4">
 				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
@@ -176,21 +121,32 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 				</h3>
 				<div className="resa-grid resa-grid-cols-2 resa-gap-4">
 					<div className="resa-space-y-2">
-						<Label htmlFor="location-bundesland">{__('Bundesland', 'resa')}</Label>
-						<select
-							id="location-bundesland"
-							className="resa-flex resa-h-9 resa-w-full resa-rounded-md resa-border resa-border-input resa-bg-transparent resa-px-3 resa-py-1 resa-text-sm resa-shadow-sm resa-transition-colors focus:resa-outline-none focus:resa-ring-1 focus:resa-ring-ring"
-							value={form.bundesland}
-							onChange={(e) => handleBundeslandChange(e.target.value)}
-						>
-							<option value="">{__('Bitte wählen...', 'resa')}</option>
-							{BUNDESLAENDER.map((bl) => (
-								<option key={bl} value={bl}>
-									{bl}
-								</option>
-							))}
-						</select>
+						<Label htmlFor="location-country">{__('Land', 'resa')} *</Label>
+						<Input
+							id="location-country"
+							value={form.country}
+							onChange={(e) =>
+								setForm((prev) => ({ ...prev, country: e.target.value }))
+							}
+							placeholder={__('z.B. Deutschland, Österreich, Rumänien...', 'resa')}
+							required
+						/>
 					</div>
+					<div className="resa-space-y-2">
+						<Label htmlFor="location-bundesland">
+							{__('Region / Bundesland', 'resa')}
+						</Label>
+						<Input
+							id="location-bundesland"
+							value={form.bundesland}
+							onChange={(e) =>
+								setForm((prev) => ({ ...prev, bundesland: e.target.value }))
+							}
+							placeholder={__('z.B. Bayern, Wien, București...', 'resa')}
+						/>
+					</div>
+				</div>
+				<div className="resa-grid resa-grid-cols-2 resa-gap-4">
 					<div className="resa-space-y-2">
 						<Label htmlFor="location-region-type">{__('Regionstyp', 'resa')}</Label>
 						<select
@@ -210,8 +166,6 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 					</div>
 				</div>
 			</div>
-
-			<Separator />
 
 			{/* Tax and commission rates */}
 			<div className="resa-space-y-4">
@@ -240,9 +194,6 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 								}))
 							}
 						/>
-						<p className="resa-text-xs resa-text-muted-foreground">
-							{__('Wird automatisch bei Bundesland-Auswahl gesetzt', 'resa')}
-						</p>
 					</div>
 					<div className="resa-space-y-2">
 						<Label htmlFor="location-makler">{__('Maklerprovision (%)', 'resa')}</Label>
@@ -269,19 +220,6 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 					</div>
 				</div>
 			</div>
-
-			{/* Info box about module settings */}
-			<Alert>
-				<Info className="resa-size-4" />
-				<AlertDescription>
-					{__(
-						'Berechnungsfaktoren (Mietpreise, Multiplikatoren) werden jetzt unter ',
-						'resa',
-					)}
-					<span className="resa-font-medium">{__('Smart Assets', 'resa')}</span>
-					{__(' → Modul-Einstellungen konfiguriert.', 'resa')}
-				</AlertDescription>
-			</Alert>
 
 			{/* Actions */}
 			<div className="resa-flex resa-gap-3 resa-justify-end resa-pt-4">
