@@ -139,16 +139,19 @@ export function ModuleSettings() {
 			{/* Header with breadcrumb and module info */}
 			<div
 				style={{
-					display: 'flex',
-					alignItems: 'flex-start',
-					justifyContent: 'space-between',
 					padding: '24px',
 					paddingBottom: '20px',
 					borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
 				}}
 			>
-				<div>
-					{/* Breadcrumb */}
+				{/* Top row: Breadcrumb + Back button */}
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'space-between',
+					}}
+				>
 					<nav aria-label="breadcrumb">
 						<ol
 							style={{
@@ -188,88 +191,86 @@ export function ModuleSettings() {
 						</ol>
 					</nav>
 
-					{/* Module info */}
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={() => navigate('/modules')}
+						style={{ color: 'hsl(215.4 16.3% 46.9%)' }}
+					>
+						<ArrowLeft style={{ width: '16px', height: '16px', marginRight: '4px' }} />
+						{__('Zurück', 'resa')}
+					</Button>
+				</div>
+
+				{/* Module info */}
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'flex-start',
+						gap: '12px',
+						marginTop: '16px',
+					}}
+				>
 					<div
 						style={{
 							display: 'flex',
-							alignItems: 'flex-start',
-							gap: '12px',
-							marginTop: '16px',
+							width: '48px',
+							height: '48px',
+							alignItems: 'center',
+							justifyContent: 'center',
+							borderRadius: '8px',
+							backgroundColor: module?.active ? '#a9e43f' : 'hsl(210 40% 96.1%)',
+							color: module?.active ? '#1e303a' : 'inherit',
 						}}
 					>
+						<IconComponent style={{ width: '24px', height: '24px' }} />
+					</div>
+					<div>
+						<h1
+							style={{
+								fontSize: '24px',
+								fontWeight: 600,
+								lineHeight: 1.2,
+								margin: 0,
+								color: '#1e303a',
+							}}
+						>
+							{module?.name ?? __('Modul-Einstellungen', 'resa')}
+						</h1>
 						<div
 							style={{
 								display: 'flex',
-								width: '48px',
-								height: '48px',
 								alignItems: 'center',
-								justifyContent: 'center',
-								borderRadius: '8px',
-								backgroundColor: module?.active ? '#a9e43f' : 'hsl(210 40% 96.1%)',
-								color: module?.active ? '#1e303a' : 'inherit',
+								gap: '8px',
+								marginTop: '1px',
 							}}
 						>
-							<IconComponent style={{ width: '24px', height: '24px' }} />
-						</div>
-						<div>
-							<h1
+							<Badge
 								style={{
-									fontSize: '24px',
-									fontWeight: 600,
-									lineHeight: 1.2,
-									margin: 0,
-									color: '#1e303a',
+									fontSize: '10px',
+									padding: '0 8px 2px 8px',
+									backgroundColor: '#1e303a',
+									color: module?.flag === 'free' ? '#ffffff' : '#a9e43f',
 								}}
 							>
-								{module?.name ?? __('Modul-Einstellungen', 'resa')}
-							</h1>
-							<div
+								{module?.flag === 'free'
+									? __('free', 'resa')
+									: module?.flag === 'pro'
+										? __('Premium', 'resa')
+										: __('Add-on', 'resa')}
+							</Badge>
+							<span
 								style={{
-									display: 'flex',
-									alignItems: 'center',
-									gap: '8px',
-									marginTop: '1px',
+									fontSize: '13px',
+									color: module?.active ? '#a9e43f' : 'hsl(215.4 16.3% 46.9%)',
+									fontWeight: 500,
 								}}
 							>
-								<Badge
-									style={{
-										fontSize: '10px',
-										padding: '0 8px 2px 8px',
-										backgroundColor: '#1e303a',
-										color: module?.flag === 'free' ? '#ffffff' : '#a9e43f',
-									}}
-								>
-									{module?.flag === 'free'
-										? __('free', 'resa')
-										: module?.flag === 'pro'
-											? __('Premium', 'resa')
-											: __('Add-on', 'resa')}
-								</Badge>
-								<span
-									style={{
-										fontSize: '13px',
-										color: module?.active
-											? '#a9e43f'
-											: 'hsl(215.4 16.3% 46.9%)',
-										fontWeight: 500,
-									}}
-								>
-									{module?.active ? __('Aktiv', 'resa') : __('Inaktiv', 'resa')}
-								</span>
-							</div>
+								{module?.active ? __('Aktiv', 'resa') : __('Inaktiv', 'resa')}
+							</span>
 						</div>
 					</div>
 				</div>
-
-				<Button
-					variant="ghost"
-					size="sm"
-					onClick={() => navigate('/modules')}
-					style={{ color: 'hsl(215.4 16.3% 46.9%)' }}
-				>
-					<ArrowLeft style={{ width: '16px', height: '16px', marginRight: '4px' }} />
-					{__('Zurück', 'resa')}
-				</Button>
 			</div>
 
 			{/* Tabs */}
