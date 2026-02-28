@@ -243,7 +243,7 @@ export function ModuleSettings() {
 								display: 'flex',
 								alignItems: 'center',
 								gap: '8px',
-								marginTop: '1px',
+								marginTop: '5px',
 							}}
 						>
 							<Badge
