@@ -97,16 +97,12 @@ function AgentDataTab() {
 
 	if (isLoading) {
 		return (
-			<Card>
-				<CardContent className="resa-py-12">
-					<div className="resa-flex resa-items-center resa-justify-center resa-gap-2">
-						<Spinner className="resa-size-5" />
-						<span className="resa-text-muted-foreground">
-							{__('Lade Maklerdaten...', 'resa')}
-						</span>
-					</div>
-				</CardContent>
-			</Card>
+			<div className="resa-flex resa-items-center resa-justify-center resa-gap-2 resa-py-12">
+				<Spinner className="resa-size-5" />
+				<span className="resa-text-muted-foreground">
+					{__('Lade Maklerdaten...', 'resa')}
+				</span>
+			</div>
 		);
 	}
 
@@ -166,8 +162,9 @@ function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) 
 	const isValid = form.name.trim() !== '' && form.email.trim() !== '';
 
 	return (
-		<Card>
-			<div style={{ padding: '24px', paddingBottom: '16px' }}>
+		<form onSubmit={handleSubmit} className="resa-space-y-6">
+			{/* Header */}
+			<div style={{ marginBottom: '24px' }}>
 				<h3 className="resa-text-lg resa-font-semibold" style={{ margin: 0 }}>
 					{__('Maklerdaten', 'resa')}
 				</h3>
@@ -181,189 +178,185 @@ function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) 
 					)}
 				</p>
 			</div>
-			<CardContent>
-				<form onSubmit={handleSubmit} className="resa-space-y-6">
-					{/* Personal Info */}
-					<div className="resa-space-y-4" style={{ marginTop: 0 }}>
-						<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-							{__('Persönliche Daten', 'resa')}
-						</h3>
-						<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-							<div className="resa-space-y-2">
-								<Label htmlFor="agent-name">
-									<span className="resa-flex resa-items-center resa-gap-1.5">
-										<User
-											style={{
-												width: '14px',
-												height: '14px',
-												color: 'hsl(215.4 16.3% 46.9%)',
-											}}
-										/>
-										{__('Name', 'resa')} *
-									</span>
-								</Label>
-								<Input
-									id="agent-name"
-									value={form.name}
-									onChange={(e) => updateField('name', e.target.value)}
-									placeholder={__('Max Mustermann', 'resa')}
-									required
-								/>
-							</div>
-							<div className="resa-space-y-2">
-								<Label htmlFor="agent-company">
-									<span className="resa-flex resa-items-center resa-gap-1.5">
-										<Building2
-											style={{
-												width: '14px',
-												height: '14px',
-												color: 'hsl(215.4 16.3% 46.9%)',
-											}}
-										/>
-										{__('Firma', 'resa')}
-									</span>
-								</Label>
-								<Input
-									id="agent-company"
-									value={form.company}
-									onChange={(e) => updateField('company', e.target.value)}
-									placeholder={__('Mustermann Immobilien GmbH', 'resa')}
-								/>
-							</div>
-						</div>
-					</div>
 
-					{/* Contact Info */}
-					<div className="resa-space-y-4">
-						<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-							{__('Kontaktdaten', 'resa')}
-						</h3>
-						<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-							<div className="resa-space-y-2">
-								<Label htmlFor="agent-email">
-									<span className="resa-flex resa-items-center resa-gap-1.5">
-										<Mail
-											style={{
-												width: '14px',
-												height: '14px',
-												color: 'hsl(215.4 16.3% 46.9%)',
-											}}
-										/>
-										{__('E-Mail', 'resa')} *
-									</span>
-								</Label>
-								<Input
-									id="agent-email"
-									type="email"
-									value={form.email}
-									onChange={(e) => updateField('email', e.target.value)}
-									placeholder={__('max@mustermann-immo.de', 'resa')}
-									required
+			{/* Personal Info */}
+			<div className="resa-space-y-4" style={{ marginTop: 0 }}>
+				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+					{__('Persönliche Daten', 'resa')}
+				</h3>
+				<div className="resa-grid resa-grid-cols-2 resa-gap-4">
+					<div className="resa-space-y-2">
+						<Label htmlFor="agent-name">
+							<span className="resa-flex resa-items-center resa-gap-1.5">
+								<User
+									style={{
+										width: '14px',
+										height: '14px',
+										color: 'hsl(215.4 16.3% 46.9%)',
+									}}
 								/>
-							</div>
-							<div className="resa-space-y-2">
-								<Label htmlFor="agent-phone">
-									<span className="resa-flex resa-items-center resa-gap-1.5">
-										<Phone
-											style={{
-												width: '14px',
-												height: '14px',
-												color: 'hsl(215.4 16.3% 46.9%)',
-											}}
-										/>
-										{__('Telefon', 'resa')}
-									</span>
-								</Label>
-								<Input
-									id="agent-phone"
-									type="tel"
-									value={form.phone}
-									onChange={(e) => updateField('phone', e.target.value)}
-									placeholder={__('+49 123 456789', 'resa')}
-								/>
-							</div>
-						</div>
-						<div className="resa-space-y-2">
-							<Label htmlFor="agent-address">{__('Adresse', 'resa')}</Label>
-							<Textarea
-								id="agent-address"
-								value={form.address}
-								onChange={(e) => updateField('address', e.target.value)}
-								placeholder={__('Musterstraße 1\n12345 Musterstadt', 'resa')}
-								rows={3}
-							/>
-						</div>
+								{__('Name', 'resa')} *
+							</span>
+						</Label>
+						<Input
+							id="agent-name"
+							value={form.name}
+							onChange={(e) => updateField('name', e.target.value)}
+							placeholder={__('Max Mustermann', 'resa')}
+							required
+						/>
 					</div>
+					<div className="resa-space-y-2">
+						<Label htmlFor="agent-company">
+							<span className="resa-flex resa-items-center resa-gap-1.5">
+								<Building2
+									style={{
+										width: '14px',
+										height: '14px',
+										color: 'hsl(215.4 16.3% 46.9%)',
+									}}
+								/>
+								{__('Firma', 'resa')}
+							</span>
+						</Label>
+						<Input
+							id="agent-company"
+							value={form.company}
+							onChange={(e) => updateField('company', e.target.value)}
+							placeholder={__('Mustermann Immobilien GmbH', 'resa')}
+						/>
+					</div>
+				</div>
+			</div>
 
-					{/* Online Presence */}
-					<div className="resa-space-y-4">
-						<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-							{__('Online-Präsenz', 'resa')}
-						</h3>
-						<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-							<div className="resa-space-y-2">
-								<Label htmlFor="agent-website">
-									<span className="resa-flex resa-items-center resa-gap-1.5">
-										<Globe
-											style={{
-												width: '14px',
-												height: '14px',
-												color: 'hsl(215.4 16.3% 46.9%)',
-											}}
-										/>
-										{__('Website', 'resa')}
-									</span>
-								</Label>
-								<Input
-									id="agent-website"
-									type="url"
-									value={form.website}
-									onChange={(e) => updateField('website', e.target.value)}
-									placeholder={__('https://mustermann-immo.de', 'resa')}
+			{/* Contact Info */}
+			<div className="resa-space-y-4">
+				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+					{__('Kontaktdaten', 'resa')}
+				</h3>
+				<div className="resa-grid resa-grid-cols-2 resa-gap-4">
+					<div className="resa-space-y-2">
+						<Label htmlFor="agent-email">
+							<span className="resa-flex resa-items-center resa-gap-1.5">
+								<Mail
+									style={{
+										width: '14px',
+										height: '14px',
+										color: 'hsl(215.4 16.3% 46.9%)',
+									}}
 								/>
-							</div>
-							<div className="resa-space-y-2">
-								<Label htmlFor="agent-imprint">
-									<span className="resa-flex resa-items-center resa-gap-1.5">
-										<FileText
-											style={{
-												width: '14px',
-												height: '14px',
-												color: 'hsl(215.4 16.3% 46.9%)',
-											}}
-										/>
-										{__('Impressum-URL', 'resa')}
-									</span>
-								</Label>
-								<Input
-									id="agent-imprint"
-									type="url"
-									value={form.imprintUrl}
-									onChange={(e) => updateField('imprintUrl', e.target.value)}
-									placeholder={__('https://mustermann-immo.de/impressum', 'resa')}
-								/>
-							</div>
-						</div>
+								{__('E-Mail', 'resa')} *
+							</span>
+						</Label>
+						<Input
+							id="agent-email"
+							type="email"
+							value={form.email}
+							onChange={(e) => updateField('email', e.target.value)}
+							placeholder={__('max@mustermann-immo.de', 'resa')}
+							required
+						/>
 					</div>
+					<div className="resa-space-y-2">
+						<Label htmlFor="agent-phone">
+							<span className="resa-flex resa-items-center resa-gap-1.5">
+								<Phone
+									style={{
+										width: '14px',
+										height: '14px',
+										color: 'hsl(215.4 16.3% 46.9%)',
+									}}
+								/>
+								{__('Telefon', 'resa')}
+							</span>
+						</Label>
+						<Input
+							id="agent-phone"
+							type="tel"
+							value={form.phone}
+							onChange={(e) => updateField('phone', e.target.value)}
+							placeholder={__('+49 123 456789', 'resa')}
+						/>
+					</div>
+				</div>
+				<div className="resa-space-y-2">
+					<Label htmlFor="agent-address">{__('Adresse', 'resa')}</Label>
+					<Textarea
+						id="agent-address"
+						value={form.address}
+						onChange={(e) => updateField('address', e.target.value)}
+						placeholder={__('Musterstraße 1\n12345 Musterstadt', 'resa')}
+						rows={3}
+					/>
+				</div>
+			</div>
 
-					{/* Save Button */}
-					<div className="resa-flex resa-justify-end resa-pt-4">
-						<Button
-							type="submit"
-							disabled={!isDirty || !isValid || saveMutation.isPending}
-							style={{
-								backgroundColor:
-									isDirty && isValid ? '#a9e43f' : 'hsl(210 40% 96.1%)',
-								color: '#1e303a',
-								border: 'none',
-							}}
-						>
-							{__('Speichern', 'resa')}
-						</Button>
+			{/* Online Presence */}
+			<div className="resa-space-y-4">
+				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+					{__('Online-Präsenz', 'resa')}
+				</h3>
+				<div className="resa-grid resa-grid-cols-2 resa-gap-4">
+					<div className="resa-space-y-2">
+						<Label htmlFor="agent-website">
+							<span className="resa-flex resa-items-center resa-gap-1.5">
+								<Globe
+									style={{
+										width: '14px',
+										height: '14px',
+										color: 'hsl(215.4 16.3% 46.9%)',
+									}}
+								/>
+								{__('Website', 'resa')}
+							</span>
+						</Label>
+						<Input
+							id="agent-website"
+							type="url"
+							value={form.website}
+							onChange={(e) => updateField('website', e.target.value)}
+							placeholder={__('https://mustermann-immo.de', 'resa')}
+						/>
 					</div>
-				</form>
-			</CardContent>
-		</Card>
+					<div className="resa-space-y-2">
+						<Label htmlFor="agent-imprint">
+							<span className="resa-flex resa-items-center resa-gap-1.5">
+								<FileText
+									style={{
+										width: '14px',
+										height: '14px',
+										color: 'hsl(215.4 16.3% 46.9%)',
+									}}
+								/>
+								{__('Impressum-URL', 'resa')}
+							</span>
+						</Label>
+						<Input
+							id="agent-imprint"
+							type="url"
+							value={form.imprintUrl}
+							onChange={(e) => updateField('imprintUrl', e.target.value)}
+							placeholder={__('https://mustermann-immo.de/impressum', 'resa')}
+						/>
+					</div>
+				</div>
+			</div>
+
+			{/* Save Button */}
+			<div className="resa-flex resa-justify-end resa-pt-4">
+				<Button
+					type="submit"
+					disabled={!isDirty || !isValid || saveMutation.isPending}
+					style={{
+						backgroundColor: isDirty && isValid ? '#a9e43f' : 'hsl(210 40% 96.1%)',
+						color: '#1e303a',
+						border: 'none',
+					}}
+				>
+					{__('Speichern', 'resa')}
+				</Button>
+			</div>
+		</form>
 	);
 }
 
