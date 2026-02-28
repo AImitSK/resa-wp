@@ -141,7 +141,6 @@ export function ModuleSettings() {
 				style={{
 					padding: '24px',
 					paddingBottom: '20px',
-					borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
 				}}
 			>
 				{/* Top row: Breadcrumb + Back button */}
