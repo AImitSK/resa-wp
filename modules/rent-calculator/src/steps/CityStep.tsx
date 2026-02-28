@@ -6,7 +6,13 @@
 
 import { __ } from '@wordpress/i18n';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select';
 import type { StepProps } from '@frontend/types/wizard';
 import type { CityOption } from '../types';
 
@@ -15,6 +21,25 @@ interface CityStepProps extends StepProps {
 }
 
 export function CityStep({ data, updateData, errors, cities }: CityStepProps) {
+	const handleValueChange = (val: string) => {
+		if (val === '') {
+			updateData({
+				city_id: undefined,
+				city_name: undefined,
+				city_slug: undefined,
+			});
+			return;
+		}
+		const city = cities.find((c) => c.id === Number(val));
+		if (city) {
+			updateData({
+				city_id: city.id,
+				city_name: city.name,
+				city_slug: city.slug,
+			});
+		}
+	};
+
 	return (
 		<div className="resa-space-y-4">
 			<div className="resa-text-center">
@@ -31,36 +56,23 @@ export function CityStep({ data, updateData, errors, cities }: CityStepProps) {
 					{__('Standort', 'resa')} <span className="resa-text-destructive">*</span>
 				</Label>
 				<Select
-					id="resa-city"
 					value={data.city_id !== undefined ? String(data.city_id) : ''}
-					onChange={(e) => {
-						const val = e.target.value;
-						if (val === '') {
-							updateData({
-								city_id: undefined,
-								city_name: undefined,
-								city_slug: undefined,
-							});
-							return;
-						}
-						const city = cities.find((c) => c.id === Number(val));
-						if (city) {
-							updateData({
-								city_id: city.id,
-								city_name: city.name,
-								city_slug: city.slug,
-							});
-						}
-					}}
-					className="resa-mt-1"
-					aria-invalid={!!errors.city_id}
+					onValueChange={handleValueChange}
 				>
-					<option value="">{__('Bitte wählen', 'resa')}</option>
-					{cities.map((city) => (
-						<option key={city.id} value={city.id}>
-							{city.name}
-						</option>
-					))}
+					<SelectTrigger
+						id="resa-city"
+						className="resa-mt-1"
+						aria-invalid={!!errors.city_id}
+					>
+						<SelectValue placeholder={__('Bitte wählen', 'resa')} />
+					</SelectTrigger>
+					<SelectContent>
+						{cities.map((city) => (
+							<SelectItem key={city.id} value={String(city.id)}>
+								{city.name}
+							</SelectItem>
+						))}
+					</SelectContent>
 				</Select>
 				{errors.city_id && (
 					<p role="alert" className="resa-text-xs resa-text-destructive resa-mt-1">

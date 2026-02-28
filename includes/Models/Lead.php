@@ -197,4 +197,248 @@ final class Lead {
 			)
 		);
 	}
+
+	/**
+	 * Get all leads with pagination and filters.
+	 *
+	 * @param array<string,mixed> $filters Filter options.
+	 *   - status: string|null Filter by status.
+	 *   - asset_type: string|null Filter by asset type.
+	 *   - location_id: int|null Filter by location.
+	 *   - search: string|null Search in name/email.
+	 *   - date_from: string|null Start date (Y-m-d).
+	 *   - date_to: string|null End date (Y-m-d).
+	 *   - page: int Page number (1-based).
+	 *   - per_page: int Items per page (default 25).
+	 *   - orderby: string Column to order by.
+	 *   - order: string ASC or DESC.
+	 * @return array{items: object[], total: int, page: int, per_page: int, total_pages: int}
+	 */
+	public static function getAll( array $filters = [] ): array {
+		global $wpdb;
+
+		$table          = self::table();
+		$locations_table = $wpdb->prefix . 'resa_locations';
+
+		// Defaults.
+		$page     = max( 1, absint( $filters['page'] ?? 1 ) );
+		$per_page = max( 1, min( 100, absint( $filters['per_page'] ?? 25 ) ) );
+		$orderby  = sanitize_key( $filters['orderby'] ?? 'created_at' );
+		$order    = strtoupper( $filters['order'] ?? 'DESC' ) === 'ASC' ? 'ASC' : 'DESC';
+
+		// Whitelist orderby columns.
+		$allowed_orderby = [ 'id', 'first_name', 'last_name', 'email', 'asset_type', 'status', 'created_at', 'updated_at' ];
+		if ( ! in_array( $orderby, $allowed_orderby, true ) ) {
+			$orderby = 'created_at';
+		}
+
+		// Build WHERE clauses.
+		$where   = [ '1=1' ];
+		$prepare = [];
+
+		// Exclude partial leads from admin view by default.
+		$where[]   = 'l.status != %s';
+		$prepare[] = 'partial';
+
+		if ( ! empty( $filters['status'] ) ) {
+			$where[]   = 'l.status = %s';
+			$prepare[] = sanitize_text_field( $filters['status'] );
+		}
+
+		if ( ! empty( $filters['asset_type'] ) ) {
+			$where[]   = 'l.asset_type = %s';
+			$prepare[] = sanitize_text_field( $filters['asset_type'] );
+		}
+
+		if ( ! empty( $filters['location_id'] ) ) {
+			$where[]   = 'l.location_id = %d';
+			$prepare[] = absint( $filters['location_id'] );
+		}
+
+		if ( ! empty( $filters['search'] ) ) {
+			$search    = '%' . $wpdb->esc_like( sanitize_text_field( $filters['search'] ) ) . '%';
+			$where[]   = '(l.first_name LIKE %s OR l.last_name LIKE %s OR l.email LIKE %s)';
+			$prepare[] = $search;
+			$prepare[] = $search;
+			$prepare[] = $search;
+		}
+
+		if ( ! empty( $filters['date_from'] ) ) {
+			$where[]   = 'DATE(l.created_at) >= %s';
+			$prepare[] = sanitize_text_field( $filters['date_from'] );
+		}
+
+		if ( ! empty( $filters['date_to'] ) ) {
+			$where[]   = 'DATE(l.created_at) <= %s';
+			$prepare[] = sanitize_text_field( $filters['date_to'] );
+		}
+
+		$where_clause = implode( ' AND ', $where );
+
+		// Count total.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$total = (int) $wpdb->get_var(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$table} l WHERE {$where_clause}",
+				$prepare
+			)
+		);
+
+		$total_pages = (int) ceil( $total / $per_page );
+		$offset      = ( $page - 1 ) * $per_page;
+
+		// Fetch items with location name.
+		$prepare[] = $per_page;
+		$prepare[] = $offset;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$items = $wpdb->get_results(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$wpdb->prepare(
+				"SELECT l.*, loc.name as location_name
+				FROM {$table} l
+				LEFT JOIN {$locations_table} loc ON l.location_id = loc.id
+				WHERE {$where_clause}
+				ORDER BY l.{$orderby} {$order}
+				LIMIT %d OFFSET %d",
+				$prepare
+			)
+		);
+
+		return [
+			'items'       => $items ?: [],
+			'total'       => $total,
+			'page'        => $page,
+			'per_page'    => $per_page,
+			'total_pages' => $total_pages,
+		];
+	}
+
+	/**
+	 * Get lead statistics (counts by status).
+	 *
+	 * @return array<string, int> Status => count pairs.
+	 */
+	public static function getStats(): array {
+		global $wpdb;
+
+		$table = self::table();
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$results = $wpdb->get_results(
+			"SELECT status, COUNT(*) as count FROM {$table} WHERE status != 'partial' GROUP BY status"
+		);
+
+		$stats = [
+			'all'       => 0,
+			'new'       => 0,
+			'contacted' => 0,
+			'qualified' => 0,
+			'completed' => 0,
+			'lost'      => 0,
+		];
+
+		foreach ( $results as $row ) {
+			$stats[ $row->status ] = (int) $row->count;
+			$stats['all']         += (int) $row->count;
+		}
+
+		return $stats;
+	}
+
+	/**
+	 * Update a lead.
+	 *
+	 * @param int                 $id   Lead ID.
+	 * @param array<string,mixed> $data Fields to update.
+	 * @return bool True on success.
+	 */
+	public static function update( int $id, array $data ): bool {
+		global $wpdb;
+
+		$fields  = [];
+		$formats = [];
+
+		// Allowed string fields.
+		$allowed_strings = [ 'status', 'notes' ];
+		foreach ( $allowed_strings as $key ) {
+			if ( array_key_exists( $key, $data ) ) {
+				if ( $data[ $key ] === null ) {
+					$fields[ $key ] = null;
+					$formats[]      = null;
+				} else {
+					$fields[ $key ] = sanitize_text_field( $data[ $key ] );
+					$formats[]      = '%s';
+				}
+			}
+		}
+
+		// Agent ID (nullable integer).
+		if ( array_key_exists( 'agent_id', $data ) ) {
+			if ( $data['agent_id'] === null ) {
+				$fields['agent_id'] = null;
+				$formats[]          = null;
+			} else {
+				$fields['agent_id'] = absint( $data['agent_id'] );
+				$formats[]          = '%d';
+			}
+		}
+
+		if ( empty( $fields ) ) {
+			return false;
+		}
+
+		// Always update timestamp.
+		$fields['updated_at'] = current_time( 'mysql' );
+		$formats[]            = '%s';
+
+		$result = $wpdb->update(
+			self::table(),
+			$fields,
+			[ 'id' => $id ],
+			$formats,
+			[ '%d' ]
+		);
+
+		return $result !== false;
+	}
+
+	/**
+	 * Delete a lead (hard delete for GDPR compliance).
+	 *
+	 * @param int $id Lead ID.
+	 * @return bool True on success.
+	 */
+	public static function delete( int $id ): bool {
+		global $wpdb;
+
+		$result = $wpdb->delete(
+			self::table(),
+			[ 'id' => $id ],
+			[ '%d' ]
+		);
+
+		return $result !== false;
+	}
+
+	/**
+	 * Count all complete leads (excluding partial).
+	 *
+	 * @return int Total count.
+	 */
+	public static function countAll(): int {
+		global $wpdb;
+
+		$table = self::table();
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT COUNT(*) FROM {$table} WHERE status != %s",
+				'partial'
+			)
+		);
+	}
 }

@@ -5,6 +5,8 @@ declare( strict_types=1 );
 namespace Resa\Api;
 
 use Resa\Core\ErrorMessages;
+use Resa\Core\Plugin;
+use Resa\Freemius\FeatureGate;
 use Resa\Models\Lead;
 use Resa\Services\Email\EmailService;
 use Resa\Services\Notifications\LeadNotificationService;
@@ -17,6 +19,14 @@ use Resa\Services\Pdf\PdfGenerator;
  * Public endpoints (no auth):
  *  POST /leads/partial  — Phase 1: save quiz answers.
  *  POST /leads/complete — Phase 2: save contact data + DSGVO consent.
+ *
+ * Admin endpoints (requires manage_options):
+ *  GET    /admin/leads       — List with pagination/filters.
+ *  GET    /admin/leads/{id}  — Single lead (full data).
+ *  PUT    /admin/leads/{id}  — Update status/notes.
+ *  DELETE /admin/leads/{id}  — Delete lead.
+ *  GET    /admin/leads/stats — Status counts.
+ *  GET    /admin/leads/export — CSV export (Pro).
  */
 final class LeadsController extends RestController {
 
@@ -24,6 +34,7 @@ final class LeadsController extends RestController {
 	 * Register lead routes.
 	 */
 	public function registerRoutes(): void {
+		// Public endpoints.
 		register_rest_route(
 			self::NAMESPACE,
 			'/leads/partial',
@@ -43,6 +54,80 @@ final class LeadsController extends RestController {
 				'callback'            => [ $this, 'completeLead' ],
 				'permission_callback' => [ $this, 'publicAccess' ],
 				'args'                => $this->getCompleteArgs(),
+			]
+		);
+
+		// Admin endpoints.
+		register_rest_route(
+			self::NAMESPACE,
+			'/admin/leads',
+			[
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'adminIndex' ],
+				'permission_callback' => [ $this, 'adminAccess' ],
+			]
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/admin/leads/stats',
+			[
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'adminStats' ],
+				'permission_callback' => [ $this, 'adminAccess' ],
+			]
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/admin/leads/export',
+			[
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'adminExport' ],
+				'permission_callback' => [ $this, 'adminAccess' ],
+			]
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/admin/leads/(?P<id>\d+)',
+			[
+				[
+					'methods'             => 'GET',
+					'callback'            => [ $this, 'adminShow' ],
+					'permission_callback' => [ $this, 'adminAccess' ],
+					'args'                => [
+						'id' => [
+							'type'              => 'integer',
+							'required'          => true,
+							'sanitize_callback' => 'absint',
+						],
+					],
+				],
+				[
+					'methods'             => 'PUT',
+					'callback'            => [ $this, 'adminUpdate' ],
+					'permission_callback' => [ $this, 'adminAccess' ],
+					'args'                => [
+						'id' => [
+							'type'              => 'integer',
+							'required'          => true,
+							'sanitize_callback' => 'absint',
+						],
+					],
+				],
+				[
+					'methods'             => 'DELETE',
+					'callback'            => [ $this, 'adminDelete' ],
+					'permission_callback' => [ $this, 'adminAccess' ],
+					'args'                => [
+						'id' => [
+							'type'              => 'integer',
+							'required'          => true,
+							'sanitize_callback' => 'absint',
+						],
+					],
+				],
 			]
 		);
 	}
@@ -212,6 +297,299 @@ final class LeadsController extends RestController {
 			]
 		);
 	}
+
+	// ─── Admin Endpoints ────────────────────────────────────
+
+	/**
+	 * GET /admin/leads — List leads with pagination and filters.
+	 */
+	public function adminIndex( \WP_REST_Request $request ): \WP_REST_Response {
+		$filters = [
+			'status'      => $request->get_param( 'status' ),
+			'asset_type'  => $request->get_param( 'assetType' ),
+			'location_id' => $request->get_param( 'locationId' ),
+			'search'      => $request->get_param( 'search' ),
+			'date_from'   => $request->get_param( 'dateFrom' ),
+			'date_to'     => $request->get_param( 'dateTo' ),
+			'page'        => $request->get_param( 'page' ) ?? 1,
+			'per_page'    => $request->get_param( 'perPage' ) ?? 25,
+			'orderby'     => $request->get_param( 'orderby' ) ?? 'created_at',
+			'order'       => $request->get_param( 'order' ) ?? 'DESC',
+		];
+
+		// Apply lead limit for free plan.
+		$plugin = Plugin::getInstance();
+		$limit  = PHP_INT_MAX;
+		if ( $plugin ) {
+			$featureGate = new FeatureGate( $plugin->getModuleRegistry() );
+			$limit       = $featureGate->getLeadLimit();
+		}
+
+		$result = Lead::getAll( $filters );
+
+		// Format items for response.
+		$items = array_map(
+			[ self::class, 'formatListItem' ],
+			$result['items']
+		);
+
+		// Apply limit (for free plan, only show last N leads).
+		$total = $result['total'];
+		if ( $total > $limit ) {
+			$items = array_slice( $items, 0, $limit );
+			$total = $limit;
+		}
+
+		return $this->success( [
+			'items'       => $items,
+			'total'       => $total,
+			'page'        => $result['page'],
+			'perPage'     => $result['per_page'],
+			'totalPages'  => (int) ceil( $total / $result['per_page'] ),
+		] );
+	}
+
+	/**
+	 * GET /admin/leads/stats — Lead counts by status.
+	 */
+	public function adminStats(): \WP_REST_Response {
+		$stats = Lead::getStats();
+
+		// Apply lead limit for free plan display.
+		$plugin = Plugin::getInstance();
+		if ( $plugin ) {
+			$featureGate = new FeatureGate( $plugin->getModuleRegistry() );
+			$limit       = $featureGate->getLeadLimit();
+			if ( $stats['all'] > $limit ) {
+				$stats['all'] = $limit;
+			}
+		}
+
+		return $this->success( $stats );
+	}
+
+	/**
+	 * GET /admin/leads/{id} — Single lead with full data.
+	 */
+	public function adminShow( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$id   = (int) $request->get_param( 'id' );
+		$lead = Lead::findById( $id );
+
+		if ( ! $lead ) {
+			return $this->notFound( __( 'Lead nicht gefunden.', 'resa' ) );
+		}
+
+		return $this->success( self::formatDetail( $lead ) );
+	}
+
+	/**
+	 * PUT /admin/leads/{id} — Update lead status/notes.
+	 */
+	public function adminUpdate( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$id   = (int) $request->get_param( 'id' );
+		$lead = Lead::findById( $id );
+
+		if ( ! $lead ) {
+			return $this->notFound( __( 'Lead nicht gefunden.', 'resa' ) );
+		}
+
+		$params     = $request->get_json_params();
+		$updateData = [];
+
+		// Status.
+		if ( array_key_exists( 'status', $params ) ) {
+			$allowed_statuses = [ 'new', 'contacted', 'qualified', 'completed', 'lost' ];
+			$status           = sanitize_text_field( (string) $params['status'] );
+			if ( in_array( $status, $allowed_statuses, true ) ) {
+				$updateData['status'] = $status;
+			}
+		}
+
+		// Notes.
+		if ( array_key_exists( 'notes', $params ) ) {
+			$updateData['notes'] = $params['notes'];
+		}
+
+		// Agent ID.
+		if ( array_key_exists( 'agentId', $params ) ) {
+			$updateData['agent_id'] = $params['agentId'];
+		}
+
+		$success = Lead::update( $id, $updateData );
+
+		if ( ! $success ) {
+			return $this->error(
+				'resa_update_failed',
+				__( 'Lead konnte nicht aktualisiert werden.', 'resa' ),
+				500
+			);
+		}
+
+		$lead = Lead::findById( $id );
+
+		return $this->success( self::formatDetail( $lead ) );
+	}
+
+	/**
+	 * DELETE /admin/leads/{id} — Delete a lead.
+	 */
+	public function adminDelete( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$id   = (int) $request->get_param( 'id' );
+		$lead = Lead::findById( $id );
+
+		if ( ! $lead ) {
+			return $this->notFound( __( 'Lead nicht gefunden.', 'resa' ) );
+		}
+
+		$success = Lead::delete( $id );
+
+		if ( ! $success ) {
+			return $this->error(
+				'resa_delete_failed',
+				__( 'Lead konnte nicht gelöscht werden.', 'resa' ),
+				500
+			);
+		}
+
+		return $this->success( [ 'deleted' => true ] );
+	}
+
+	/**
+	 * GET /admin/leads/export — CSV export (Pro feature).
+	 */
+	public function adminExport( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		// Check feature gate.
+		$plugin = Plugin::getInstance();
+		if ( $plugin ) {
+			$featureGate = new FeatureGate( $plugin->getModuleRegistry() );
+			if ( ! $featureGate->canExportLeads() ) {
+				return $this->error(
+					'resa_feature_restricted',
+					__( 'CSV-Export ist nur mit Premium verfügbar.', 'resa' ),
+					403
+				);
+			}
+		}
+
+		$filters = [
+			'status'      => $request->get_param( 'status' ),
+			'asset_type'  => $request->get_param( 'assetType' ),
+			'location_id' => $request->get_param( 'locationId' ),
+			'search'      => $request->get_param( 'search' ),
+			'date_from'   => $request->get_param( 'dateFrom' ),
+			'date_to'     => $request->get_param( 'dateTo' ),
+			'per_page'    => 10000, // Export all matching.
+		];
+
+		$result = Lead::getAll( $filters );
+
+		// Build CSV.
+		$csv_lines   = [];
+		$csv_lines[] = implode( ';', [
+			'ID',
+			'Vorname',
+			'Nachname',
+			'E-Mail',
+			'Telefon',
+			'Firma',
+			'Modul',
+			'Standort',
+			'Status',
+			'Erstellt',
+			'Notizen',
+		] );
+
+		foreach ( $result['items'] as $lead ) {
+			$csv_lines[] = implode( ';', [
+				$lead->id,
+				'"' . str_replace( '"', '""', $lead->first_name ?? '' ) . '"',
+				'"' . str_replace( '"', '""', $lead->last_name ?? '' ) . '"',
+				$lead->email ?? '',
+				$lead->phone ?? '',
+				'"' . str_replace( '"', '""', $lead->company ?? '' ) . '"',
+				$lead->asset_type ?? '',
+				'"' . str_replace( '"', '""', $lead->location_name ?? '' ) . '"',
+				$lead->status ?? '',
+				$lead->created_at ?? '',
+				'"' . str_replace( '"', '""', $lead->notes ?? '' ) . '"',
+			] );
+		}
+
+		return $this->success( [
+			'csv'      => implode( "\n", $csv_lines ),
+			'filename' => 'resa-leads-' . gmdate( 'Y-m-d' ) . '.csv',
+			'total'    => $result['total'],
+		] );
+	}
+
+	// ─── Formatters ─────────────────────────────────────────
+
+	/**
+	 * Format a lead for list view.
+	 *
+	 * @param object|null $lead Lead row.
+	 * @return array<string, mixed>
+	 */
+	private static function formatListItem( ?object $lead ): array {
+		if ( ! $lead ) {
+			return [];
+		}
+
+		return [
+			'id'           => (int) $lead->id,
+			'sessionId'    => $lead->session_id,
+			'firstName'    => $lead->first_name,
+			'lastName'     => $lead->last_name,
+			'email'        => $lead->email,
+			'phone'        => $lead->phone,
+			'assetType'    => $lead->asset_type,
+			'locationId'   => $lead->location_id ? (int) $lead->location_id : null,
+			'locationName' => $lead->location_name ?? null,
+			'status'       => $lead->status,
+			'createdAt'    => $lead->created_at,
+			'result'       => json_decode( $lead->result ?? 'null', true ),
+		];
+	}
+
+	/**
+	 * Format a lead for detail view.
+	 *
+	 * @param object|null $lead Lead row.
+	 * @return array<string, mixed>
+	 */
+	private static function formatDetail( ?object $lead ): array {
+		if ( ! $lead ) {
+			return [];
+		}
+
+		return [
+			'id'           => (int) $lead->id,
+			'sessionId'    => $lead->session_id,
+			'firstName'    => $lead->first_name,
+			'lastName'     => $lead->last_name,
+			'email'        => $lead->email,
+			'phone'        => $lead->phone,
+			'company'      => $lead->company,
+			'salutation'   => $lead->salutation,
+			'message'      => $lead->message,
+			'assetType'    => $lead->asset_type,
+			'locationId'   => $lead->location_id ? (int) $lead->location_id : null,
+			'status'       => $lead->status,
+			'inputs'       => json_decode( $lead->inputs ?? '{}', true ),
+			'result'       => json_decode( $lead->result ?? 'null', true ),
+			'meta'         => json_decode( $lead->meta ?? '{}', true ),
+			'notes'        => $lead->notes,
+			'agentId'      => $lead->agent_id ? (int) $lead->agent_id : null,
+			'consentGiven' => (bool) $lead->consent_given,
+			'consentText'  => $lead->consent_text,
+			'consentDate'  => $lead->consent_date,
+			'createdAt'    => $lead->created_at,
+			'updatedAt'    => $lead->updated_at,
+			'completedAt'  => $lead->completed_at,
+		];
+	}
+
+	// ─── Argument Definitions ───────────────────────────────
 
 	/**
 	 * Argument definitions for the partial endpoint.

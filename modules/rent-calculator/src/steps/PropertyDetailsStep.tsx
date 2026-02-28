@@ -5,12 +5,22 @@
 import { __ } from '@wordpress/i18n';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select';
 import type { StepProps } from '@frontend/types/wizard';
 
 const roomOptions = ['1', '1.5', '2', '2.5', '3', '3.5', '4', '4.5', '5', '6+'];
 
 export function PropertyDetailsStep({ data, updateData, errors }: StepProps) {
+	const handleRoomsChange = (val: string) => {
+		updateData({ rooms: val === '' ? undefined : Number(val) });
+	};
+
 	return (
 		<div className="resa-space-y-4">
 			<div className="resa-text-center">
@@ -58,20 +68,19 @@ export function PropertyDetailsStep({ data, updateData, errors }: StepProps) {
 				<div>
 					<Label htmlFor="resa-rooms">{__('Zimmer', 'resa')}</Label>
 					<Select
-						id="resa-rooms"
 						value={data.rooms !== undefined ? String(data.rooms) : ''}
-						onChange={(e) => {
-							const val = e.target.value;
-							updateData({ rooms: val === '' ? undefined : Number(val) });
-						}}
-						className="resa-mt-1"
+						onValueChange={handleRoomsChange}
 					>
-						<option value="">{__('Bitte wählen', 'resa')}</option>
-						{roomOptions.map((r) => (
-							<option key={r} value={r === '6+' ? '6' : r}>
-								{r}
-							</option>
-						))}
+						<SelectTrigger id="resa-rooms" className="resa-mt-1">
+							<SelectValue placeholder={__('Bitte wählen', 'resa')} />
+						</SelectTrigger>
+						<SelectContent>
+							{roomOptions.map((r) => (
+								<SelectItem key={r} value={r === '6+' ? '6' : r}>
+									{r}
+								</SelectItem>
+							))}
+						</SelectContent>
 					</Select>
 				</div>
 
