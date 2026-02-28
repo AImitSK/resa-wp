@@ -51,6 +51,17 @@
 	font-size: inherit;
 	line-height: inherit;
 	color: inherit;
+	border: 1px solid hsl(var(--resa-input)) !important;
+	border-radius: var(--resa-radius);
+	background-color: transparent;
+}
+
+#resa-admin-root input:focus,
+#resa-admin-root select:focus,
+#resa-admin-root textarea:focus {
+	outline: none;
+	border-color: hsl(var(--resa-ring)) !important;
+	box-shadow: 0 0 0 1px hsl(var(--resa-ring));
 }
 
 /* Reset für Tables */
