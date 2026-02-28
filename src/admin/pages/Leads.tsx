@@ -1575,13 +1575,14 @@ export function Leads() {
 						>
 							<Table>
 								<TableHeader>
-									<TableRow>
+									<TableRow style={{ backgroundColor: 'hsl(210 40% 96.1%)' }}>
 										<TableHead
 											style={{
 												width: '48px',
 												paddingLeft: '16px',
 												paddingTop: '12px',
 												paddingBottom: '12px',
+												borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
 											}}
 										>
 											<Checkbox
@@ -1594,32 +1595,56 @@ export function Leads() {
 											/>
 										</TableHead>
 										<TableHead
-											style={{ paddingTop: '12px', paddingBottom: '12px' }}
+											style={{
+												paddingTop: '12px',
+												paddingBottom: '12px',
+												borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+											}}
 										>
 											{__('Name', 'resa')}
 										</TableHead>
 										<TableHead
-											style={{ paddingTop: '12px', paddingBottom: '12px' }}
+											style={{
+												paddingTop: '12px',
+												paddingBottom: '12px',
+												borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+											}}
 										>
 											{__('E-Mail', 'resa')}
 										</TableHead>
 										<TableHead
-											style={{ paddingTop: '12px', paddingBottom: '12px' }}
+											style={{
+												paddingTop: '12px',
+												paddingBottom: '12px',
+												borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+											}}
 										>
 											{__('Modul', 'resa')}
 										</TableHead>
 										<TableHead
-											style={{ paddingTop: '12px', paddingBottom: '12px' }}
+											style={{
+												paddingTop: '12px',
+												paddingBottom: '12px',
+												borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+											}}
 										>
 											{__('Standort', 'resa')}
 										</TableHead>
 										<TableHead
-											style={{ paddingTop: '12px', paddingBottom: '12px' }}
+											style={{
+												paddingTop: '12px',
+												paddingBottom: '12px',
+												borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+											}}
 										>
 											{__('Status', 'resa')}
 										</TableHead>
 										<TableHead
-											style={{ paddingTop: '12px', paddingBottom: '12px' }}
+											style={{
+												paddingTop: '12px',
+												paddingBottom: '12px',
+												borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+											}}
 										>
 											{__('Datum', 'resa')}
 										</TableHead>
@@ -1628,6 +1653,7 @@ export function Leads() {
 												width: '40px',
 												paddingTop: '12px',
 												paddingBottom: '12px',
+												borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
 											}}
 										></TableHead>
 									</TableRow>
@@ -1663,6 +1689,8 @@ export function Leads() {
 														paddingLeft: '16px',
 														paddingTop: '12px',
 														paddingBottom: '12px',
+														borderBottom:
+															'1px solid hsl(214.3 31.8% 91.4%)',
 													}}
 												>
 													<Checkbox
@@ -1684,6 +1712,8 @@ export function Leads() {
 														fontWeight: 500,
 														paddingTop: '12px',
 														paddingBottom: '12px',
+														borderBottom:
+															'1px solid hsl(214.3 31.8% 91.4%)',
 													}}
 												>
 													{fullName}
@@ -1693,6 +1723,8 @@ export function Leads() {
 														color: 'hsl(215.4 16.3% 46.9%)',
 														paddingTop: '12px',
 														paddingBottom: '12px',
+														borderBottom:
+															'1px solid hsl(214.3 31.8% 91.4%)',
 													}}
 												>
 													{lead.email}
@@ -1701,6 +1733,8 @@ export function Leads() {
 													style={{
 														paddingTop: '12px',
 														paddingBottom: '12px',
+														borderBottom:
+															'1px solid hsl(214.3 31.8% 91.4%)',
 													}}
 												>
 													{moduleName}
@@ -1710,6 +1744,8 @@ export function Leads() {
 														color: 'hsl(215.4 16.3% 46.9%)',
 														paddingTop: '12px',
 														paddingBottom: '12px',
+														borderBottom:
+															'1px solid hsl(214.3 31.8% 91.4%)',
 													}}
 												>
 													{lead.locationName || '—'}
@@ -1718,6 +1754,8 @@ export function Leads() {
 													style={{
 														paddingTop: '12px',
 														paddingBottom: '12px',
+														borderBottom:
+															'1px solid hsl(214.3 31.8% 91.4%)',
 													}}
 												>
 													<Badge
@@ -1736,6 +1774,8 @@ export function Leads() {
 														color: 'hsl(215.4 16.3% 46.9%)',
 														paddingTop: '12px',
 														paddingBottom: '12px',
+														borderBottom:
+															'1px solid hsl(214.3 31.8% 91.4%)',
 													}}
 												>
 													{formatDate(lead.createdAt)}
@@ -1744,6 +1784,8 @@ export function Leads() {
 													style={{
 														paddingTop: '12px',
 														paddingBottom: '12px',
+														borderBottom:
+															'1px solid hsl(214.3 31.8% 91.4%)',
 													}}
 												>
 													<DropdownMenu>

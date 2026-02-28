@@ -4,11 +4,12 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
-	({ className, ...props }, ref) => (
+	({ className, style, ...props }, ref) => (
 		<div className="resa-relative resa-w-full resa-overflow-auto">
 			<table
 				ref={ref}
 				className={cn('resa-w-full resa-caption-bottom resa-text-sm', className)}
+				style={{ borderCollapse: 'collapse', ...style }}
 				{...props}
 			/>
 		</div>
@@ -48,13 +49,14 @@ const TableFooter = React.forwardRef<
 TableFooter.displayName = 'TableFooter';
 
 const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTMLTableRowElement>>(
-	({ className, ...props }, ref) => (
+	({ className, style, ...props }, ref) => (
 		<tr
 			ref={ref}
 			className={cn(
 				'resa-border-b resa-transition-colors hover:resa-bg-muted/50 data-[state=selected]:resa-bg-muted',
 				className,
 			)}
+			style={{ borderColor: 'hsl(214.3 31.8% 91.4%)', ...style }}
 			{...props}
 		/>
 	),
@@ -64,13 +66,14 @@ TableRow.displayName = 'TableRow';
 const TableHead = React.forwardRef<
 	HTMLTableCellElement,
 	React.ThHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
+>(({ className, style, ...props }, ref) => (
 	<th
 		ref={ref}
 		className={cn(
 			'resa-h-10 resa-px-2 resa-text-left resa-align-middle resa-font-medium resa-text-muted-foreground [&:has([role=checkbox])]:resa-pr-0 [&>[role=checkbox]]:resa-translate-y-[2px]',
 			className,
 		)}
+		style={{ borderBottom: '1px solid hsl(214.3 31.8% 91.4%)', ...style }}
 		{...props}
 	/>
 ));
@@ -79,13 +82,14 @@ TableHead.displayName = 'TableHead';
 const TableCell = React.forwardRef<
 	HTMLTableCellElement,
 	React.TdHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
+>(({ className, style, ...props }, ref) => (
 	<td
 		ref={ref}
 		className={cn(
 			'resa-p-2 resa-align-middle [&:has([role=checkbox])]:resa-pr-0 [&>[role=checkbox]]:resa-translate-y-[2px]',
 			className,
 		)}
+		style={{ borderBottom: '1px solid hsl(214.3 31.8% 91.4%)', ...style }}
 		{...props}
 	/>
 ));
