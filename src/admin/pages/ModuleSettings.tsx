@@ -192,7 +192,7 @@ export function ModuleSettings() {
 					<div
 						style={{
 							display: 'flex',
-							alignItems: 'center',
+							alignItems: 'flex-start',
 							gap: '12px',
 							marginTop: '16px',
 						}}
