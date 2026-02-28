@@ -200,7 +200,11 @@ export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps)
 											}}
 										>
 											{__('Basispreis:', 'resa')}{' '}
-											{preset.base_price.toFixed(2)} €/m²
+											{preset.base_price.toLocaleString('de-DE', {
+												minimumFractionDigits: 2,
+												maximumFractionDigits: 2,
+											})}{' '}
+											€/m²
 										</div>
 									)}
 								</div>

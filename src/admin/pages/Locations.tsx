@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { __, sprintf } from '@wordpress/i18n';
+import { __, sprintf, _n } from '@wordpress/i18n';
 import { Plus, MapPin, Pencil, Trash2, Building2, Crown, AlertTriangle } from 'lucide-react';
 import {
 	useLocations,
@@ -164,6 +164,7 @@ export function Locations() {
 									margin: '0 auto 24px',
 								}}
 							>
+								{/* translators: %d = maximale Anzahl Standorte in der Free-Version */}
 								{sprintf(
 									__(
 										'In der kostenlosen Version kannst du maximal %d Standort anlegen. Upgrade auf Premium für unbegrenzte Standorte.',
@@ -308,8 +309,9 @@ export function Locations() {
 						<div>
 							<div style={{ fontWeight: 500, color: '#1e303a', fontSize: '14px' }}>
 								{canAddLocation
-									? sprintf(
-											__('%d von %d Standorten verwendet', 'resa'),
+									? /* translators: 1: aktuelle Anzahl Standorte, 2: maximale Anzahl Standorte */
+										sprintf(
+											__('%1$d von %2$d Standorten verwendet', 'resa'),
 											locationCount,
 											maxLocations,
 										)
@@ -395,7 +397,10 @@ export function Locations() {
 				<Card>
 					<CardHeader>
 						<CardTitle className="resa-text-lg">
-							{sprintf(__('%d Standorte', 'resa'), locations.length)}
+							{sprintf(
+								_n('%d Standort', '%d Standorte', locations.length, 'resa'),
+								locations.length,
+							)}
 						</CardTitle>
 						<CardDescription>
 							{__(

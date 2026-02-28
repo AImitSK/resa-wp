@@ -35,7 +35,7 @@ export function PropertyDetailsStep({ data, updateData, errors }: StepProps) {
 							type="number"
 							min={10}
 							max={10000}
-							placeholder="z.B. 70"
+							placeholder={__('z.B. 70', 'resa')}
 							value={data.size !== undefined ? String(data.size) : ''}
 							onChange={(e) => {
 								const val = e.target.value;
@@ -83,7 +83,7 @@ export function PropertyDetailsStep({ data, updateData, errors }: StepProps) {
 						type="number"
 						min={1800}
 						max={new Date().getFullYear() + 5}
-						placeholder="z.B. 1990"
+						placeholder={__('z.B. 1990', 'resa')}
 						value={data.year_built !== undefined ? String(data.year_built) : ''}
 						onChange={(e) => {
 							const val = e.target.value;

@@ -4,7 +4,7 @@
  */
 
 import { useState, useMemo, useCallback } from 'react';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import {
 	flexRender,
 	getCoreRowModel,
@@ -247,7 +247,13 @@ export function LocationValuesTab({
 						}}
 					>
 						{row.original.base_price !== null && row.original.base_price !== 0 ? (
-							<>{row.original.base_price.toFixed(2)} €/m²</>
+							<>
+								{row.original.base_price.toLocaleString('de-DE', {
+									minimumFractionDigits: 2,
+									maximumFractionDigits: 2,
+								})}{' '}
+								€/m²
+							</>
 						) : (
 							<span style={{ color: 'hsl(215.4 16.3% 60%)', fontStyle: 'italic' }}>
 								{__('nicht konfiguriert', 'resa')}
@@ -272,8 +278,16 @@ export function LocationValuesTab({
 						row.original.price_max !== null &&
 						(row.original.price_min !== 0 || row.original.price_max !== 0) ? (
 							<>
-								{row.original.price_min.toFixed(2)} –{' '}
-								{row.original.price_max.toFixed(2)} €/m²
+								{row.original.price_min.toLocaleString('de-DE', {
+									minimumFractionDigits: 2,
+									maximumFractionDigits: 2,
+								})}{' '}
+								–{' '}
+								{row.original.price_max.toLocaleString('de-DE', {
+									minimumFractionDigits: 2,
+									maximumFractionDigits: 2,
+								})}{' '}
+								€/m²
 							</>
 						) : (
 							'—'
@@ -298,7 +312,7 @@ export function LocationValuesTab({
 									justifyContent: 'center',
 								}}
 							>
-								<span className="resa-sr-only">Open menu</span>
+								<span className="resa-sr-only">{__('Menü öffnen', 'resa')}</span>
 								<MoreHorizontal style={{ width: '16px', height: '16px' }} />
 							</Button>
 						</DropdownMenuTrigger>
@@ -648,8 +662,12 @@ export function LocationValuesTab({
 				}}
 			>
 				<span>
-					{tableData.filter((r) => r.hasCustomValues).length} {__('von', 'resa')}{' '}
-					{tableData.length} {__('Standorten mit individuellen Werten', 'resa')}
+					{/* translators: 1: Anzahl individueller Standorte, 2: Gesamtanzahl Standorte */}
+					{sprintf(
+						__('%1$d von %2$d Standorten mit individuellen Werten', 'resa'),
+						tableData.filter((r) => r.hasCustomValues).length,
+						tableData.length,
+					)}
 				</span>
 			</div>
 		</div>
