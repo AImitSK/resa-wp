@@ -11,7 +11,12 @@
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { __ } from '@wordpress/i18n';
+import { AlertCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Spinner } from '@/components/ui/spinner';
 import { StepWizard } from '@frontend/components/shared/StepWizard';
 import { LeadForm } from '@frontend/components/shared/LeadForm';
 import type { StepConfig, WizardData } from '@frontend/types/wizard';
@@ -84,7 +89,7 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 				trackEvent('asset_view', 'rent-calculator');
 			})
 			.catch(() => {
-				setErrorMessage('Konfiguration konnte nicht geladen werden.');
+				setErrorMessage(__('Konfiguration konnte nicht geladen werden.', 'resa'));
 				setPhase('error');
 			});
 	}, [presetCity]);
@@ -99,13 +104,13 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 		const allSteps: StepConfig[] = [
 			{
 				id: 'property_type',
-				label: 'Immobilienart',
+				label: __('Immobilienart', 'resa'),
 				component: PropertyTypeStep,
 				schema: propertyTypeSchema,
 			},
 			{
 				id: 'details',
-				label: 'Grunddaten',
+				label: __('Grunddaten', 'resa'),
 				component: PropertyDetailsStep,
 				schema: propertyDetailsSchema,
 			},
@@ -115,7 +120,7 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 		if (!presetCity || !wizardData.city_id) {
 			allSteps.push({
 				id: 'city',
-				label: 'Standort',
+				label: __('Standort', 'resa'),
 				component: (props) => <CityStep {...props} cities={cities} />,
 				schema: citySchema,
 			});
@@ -124,19 +129,19 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 		allSteps.push(
 			{
 				id: 'condition',
-				label: 'Zustand',
+				label: __('Zustand', 'resa'),
 				component: ConditionStep,
 				schema: conditionSchema,
 			},
 			{
 				id: 'location_rating',
-				label: 'Lage',
+				label: __('Lage', 'resa'),
 				component: (props) => <LocationRatingStep {...props} />,
 				schema: locationRatingSchema,
 			},
 			{
 				id: 'features',
-				label: 'Ausstattung',
+				label: __('Ausstattung', 'resa'),
 				component: (props) => <FeaturesStep {...props} featureOptions={features} />,
 				schema: featuresSchema,
 			},
@@ -148,7 +153,7 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 	// Handle wizard completion → calculate + create partial lead.
 	const handleWizardComplete = useCallback(async (data: WizardData) => {
 		if (!isRentCalculatorData(data)) {
-			setErrorMessage('Ungültige Formulardaten');
+			setErrorMessage(__('Ungültige Formulardaten', 'resa'));
 			setPhase('error');
 			return;
 		}
@@ -194,7 +199,9 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 
 			setPhase('lead-form');
 		} catch {
-			setErrorMessage('Berechnung fehlgeschlagen. Bitte versuchen Sie es erneut.');
+			setErrorMessage(
+				__('Berechnung fehlgeschlagen. Bitte versuchen Sie es erneut.', 'resa'),
+			);
 			setPhase('error');
 		}
 	}, []);
@@ -224,7 +231,7 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 
 				setPhase('result');
 			} catch {
-				setErrorMessage('Formular konnte nicht gesendet werden.');
+				setErrorMessage(__('Formular konnte nicht gesendet werden.', 'resa'));
 				setPhase('error');
 			} finally {
 				setIsSubmitting(false);
@@ -237,23 +244,28 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 	const renderContent = () => {
 		if (phase === 'loading') {
 			return (
-				<div className="resa-flex resa-items-center resa-justify-center resa-py-12">
-					<div className="resa-animate-spin resa-h-8 resa-w-8 resa-rounded-full resa-border-4 resa-border-primary resa-border-t-transparent" />
+				<div className="resa-flex resa-items-center resa-justify-center resa-py-12 resa-gap-3">
+					<Spinner className="resa-size-6" />
+					<span className="resa-text-sm resa-text-muted-foreground">
+						{__('Wird geladen...', 'resa')}
+					</span>
 				</div>
 			);
 		}
 
 		if (phase === 'error') {
 			return (
-				<div className="resa-text-center">
-					<p className="resa-text-sm resa-text-destructive">{errorMessage}</p>
-					<button
-						type="button"
-						onClick={() => setPhase('wizard')}
-						className="resa-mt-3 resa-text-sm resa-text-primary resa-underline resa-border-0 resa-bg-transparent"
-					>
-						Erneut versuchen
-					</button>
+				<div className="resa-space-y-4">
+					<Alert variant="destructive">
+						<AlertCircle className="resa-h-4 resa-w-4" />
+						<AlertTitle>{__('Fehler', 'resa')}</AlertTitle>
+						<AlertDescription>{errorMessage}</AlertDescription>
+					</Alert>
+					<div className="resa-text-center">
+						<Button variant="outline" onClick={() => setPhase('wizard')}>
+							{__('Erneut versuchen', 'resa')}
+						</Button>
+					</div>
 				</div>
 			);
 		}
@@ -270,10 +282,10 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 
 		if (phase === 'calculating') {
 			return (
-				<div className="resa-flex resa-flex-col resa-items-center resa-justify-center resa-py-12 resa-space-y-3">
-					<div className="resa-animate-spin resa-h-8 resa-w-8 resa-rounded-full resa-border-4 resa-border-primary resa-border-t-transparent" />
+				<div className="resa-flex resa-flex-col resa-items-center resa-justify-center resa-py-12 resa-gap-3">
+					<Spinner className="resa-size-8" />
 					<p className="resa-text-sm resa-text-muted-foreground">
-						Mietpreis wird berechnet...
+						{__('Mietpreis wird berechnet...', 'resa')}
 					</p>
 				</div>
 			);

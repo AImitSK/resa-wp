@@ -2,6 +2,7 @@
  * Overview tab — Module info and status display.
  */
 
+import { __ } from '@wordpress/i18n';
 import type { ModuleInfo } from '../../hooks/useModuleSettings';
 
 interface OverviewTabProps {
@@ -9,95 +10,153 @@ interface OverviewTabProps {
 }
 
 export function OverviewTab({ module }: OverviewTabProps) {
+	const statCardStyle: React.CSSProperties = {
+		backgroundColor: 'hsl(210 40% 96.1%)',
+		borderRadius: '8px',
+		padding: '16px',
+	};
+
+	const statLabelStyle: React.CSSProperties = {
+		fontSize: '11px',
+		color: 'hsl(215.4 16.3% 46.9%)',
+		textTransform: 'uppercase',
+		letterSpacing: '0.05em',
+		fontWeight: 500,
+	};
+
+	const statValueStyle: React.CSSProperties = {
+		fontSize: '18px',
+		fontWeight: 600,
+		color: '#1e303a',
+		marginTop: '4px',
+	};
+
 	return (
-		<div className="resa-space-y-6">
-			{/* Module info card */}
-			<div className="resa-rounded-lg resa-border resa-bg-card resa-p-6">
-				<div className="resa-flex resa-items-start resa-gap-4">
-					<div className="resa-w-12 resa-h-12 resa-rounded-lg resa-bg-primary/10 resa-flex resa-items-center resa-justify-center">
-						<span className="resa-text-2xl">
-							{module.icon === 'haus' ? '🏠' : '📊'}
-						</span>
+		<div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+			{/* Module description */}
+			<div
+				style={{
+					backgroundColor: 'hsl(210 40% 96.1%)',
+					borderRadius: '8px',
+					padding: '20px',
+				}}
+			>
+				<p style={{ fontSize: '14px', color: '#1e303a', lineHeight: 1.6, margin: 0 }}>
+					{module.description}
+				</p>
+			</div>
+
+			{/* Quick stats */}
+			<div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+				<div style={statCardStyle}>
+					<div style={statLabelStyle}>{__('Kategorie', 'resa')}</div>
+					<div style={statValueStyle}>
+						{module.category === 'calculator'
+							? __('Kalkulator', 'resa')
+							: module.category}
 					</div>
-					<div className="resa-flex-1">
-						<h2 className="resa-text-xl resa-font-semibold">{module.name}</h2>
-						<p className="resa-text-muted-foreground resa-mt-1">{module.description}</p>
-						<div className="resa-flex resa-gap-2 resa-mt-3">
-							<FlagBadge flag={module.flag} />
-							<StatusBadge active={module.active} />
-						</div>
+				</div>
+				<div style={statCardStyle}>
+					<div style={statLabelStyle}>{__('Status', 'resa')}</div>
+					<div
+						style={{
+							...statValueStyle,
+							color: module.active ? '#a9e43f' : 'hsl(215.4 16.3% 46.9%)',
+						}}
+					>
+						{module.active ? __('Aktiv', 'resa') : __('Inaktiv', 'resa')}
+					</div>
+				</div>
+				<div style={statCardStyle}>
+					<div style={statLabelStyle}>{__('Plan', 'resa')}</div>
+					<div
+						style={{
+							...statValueStyle,
+							color: module.flag === 'pro' ? '#a9e43f' : '#1e303a',
+						}}
+					>
+						{module.flag === 'free'
+							? 'Free'
+							: module.flag === 'pro'
+								? 'Premium'
+								: 'Add-on'}
 					</div>
 				</div>
 			</div>
 
-			{/* Quick stats */}
-			<div className="resa-grid resa-grid-cols-3 resa-gap-4">
-				<StatCard
-					label="Kategorie"
-					value={module.category === 'calculator' ? 'Kalkulator' : module.category}
-				/>
-				<StatCard label="Status" value={module.active ? 'Aktiv' : 'Inaktiv'} />
-				<StatCard
-					label="Plan"
-					value={
-						module.flag === 'free' ? 'Free' : module.flag === 'pro' ? 'Pro' : 'Add-on'
-					}
-				/>
+			{/* Shortcode info */}
+			<div
+				style={{
+					backgroundColor: 'hsl(210 40% 96.1%)',
+					borderRadius: '8px',
+					padding: '20px',
+				}}
+			>
+				<h3 style={{ fontSize: '14px', fontWeight: 600, color: '#1e303a', margin: 0 }}>
+					{__('Shortcode', 'resa')}
+				</h3>
+				<p
+					style={{
+						fontSize: '13px',
+						color: 'hsl(215.4 16.3% 46.9%)',
+						marginTop: '8px',
+						marginBottom: '12px',
+					}}
+				>
+					{__(
+						'Füge diesen Shortcode auf einer Seite ein, um das Modul anzuzeigen:',
+						'resa',
+					)}
+				</p>
+				<code
+					style={{
+						display: 'inline-block',
+						backgroundColor: '#1e303a',
+						color: '#a9e43f',
+						padding: '8px 16px',
+						borderRadius: '6px',
+						fontSize: '13px',
+						fontFamily: 'ui-monospace, monospace',
+					}}
+				>
+					{`[resa module="${module.slug}"]`}
+				</code>
 			</div>
 
 			{/* Documentation link */}
-			<div className="resa-rounded-lg resa-border resa-bg-muted/50 resa-p-4">
-				<h3 className="resa-font-medium resa-mb-2">Dokumentation</h3>
-				<p className="resa-text-sm resa-text-muted-foreground">
-					Weitere Informationen zur Konfiguration und Verwendung dieses Moduls findest du
-					in der{' '}
-					<a href="#" className="resa-text-primary hover:resa-underline">
-						Dokumentation
+			<div
+				style={{
+					backgroundColor: 'hsl(210 40% 96.1%)',
+					borderRadius: '8px',
+					padding: '20px',
+				}}
+			>
+				<h3 style={{ fontSize: '14px', fontWeight: 600, color: '#1e303a', margin: 0 }}>
+					{__('Dokumentation', 'resa')}
+				</h3>
+				<p
+					style={{
+						fontSize: '13px',
+						color: 'hsl(215.4 16.3% 46.9%)',
+						marginTop: '8px',
+						marginBottom: 0,
+					}}
+				>
+					{__(
+						'Weitere Informationen zur Konfiguration und Verwendung dieses Moduls findest du in der',
+						'resa',
+					)}{' '}
+					<a
+						href="https://www.resa-wp.com/docs"
+						target="_blank"
+						rel="noopener noreferrer"
+						style={{ color: '#1e303a', fontWeight: 500 }}
+					>
+						{__('Dokumentation', 'resa')}
 					</a>
 					.
 				</p>
 			</div>
-		</div>
-	);
-}
-
-function FlagBadge({ flag }: { flag: string }) {
-	const styles: Record<string, string> = {
-		free: 'resa-bg-green-100 resa-text-green-800',
-		pro: 'resa-bg-blue-100 resa-text-blue-800',
-		paid: 'resa-bg-purple-100 resa-text-purple-800',
-	};
-
-	return (
-		<span
-			className={`resa-text-xs resa-font-medium resa-px-2 resa-py-0.5 resa-rounded-full ${styles[flag] ?? ''}`}
-		>
-			{flag === 'free' ? 'Free' : flag === 'pro' ? 'Pro' : 'Add-on'}
-		</span>
-	);
-}
-
-function StatusBadge({ active }: { active: boolean }) {
-	return (
-		<span
-			className={`resa-text-xs resa-font-medium resa-px-2 resa-py-0.5 resa-rounded-full ${
-				active
-					? 'resa-bg-emerald-100 resa-text-emerald-800'
-					: 'resa-bg-gray-100 resa-text-gray-600'
-			}`}
-		>
-			{active ? 'Aktiv' : 'Inaktiv'}
-		</span>
-	);
-}
-
-function StatCard({ label, value }: { label: string; value: string }) {
-	return (
-		<div className="resa-rounded-lg resa-border resa-bg-card resa-p-4">
-			<div className="resa-text-xs resa-text-muted-foreground resa-uppercase resa-tracking-wide">
-				{label}
-			</div>
-			<div className="resa-text-lg resa-font-semibold resa-mt-1">{value}</div>
 		</div>
 	);
 }

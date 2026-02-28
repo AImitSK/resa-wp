@@ -6,6 +6,15 @@
  */
 
 import { useState } from 'react';
+import { __ } from '@wordpress/i18n';
+import { Info } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
 
 interface LocationEditorProps {
 	initialData?: LocationFormData;
@@ -28,15 +37,15 @@ export interface LocationFormData {
 
 /** Region types for selection. */
 const REGION_TYPES = [
-	{ value: 'rural', label: 'Landlich' },
+	{ value: 'rural', label: 'Ländlich' },
 	{ value: 'small_town', label: 'Kleinstadt / Stadtrand' },
 	{ value: 'medium_city', label: 'Mittelstadt' },
-	{ value: 'large_city', label: 'Grossstadt / Zentrum' },
+	{ value: 'large_city', label: 'Großstadt / Zentrum' },
 ];
 
 /** German federal states. */
 const BUNDESLAENDER = [
-	'Baden-Wurttemberg',
+	'Baden-Württemberg',
 	'Bayern',
 	'Berlin',
 	'Brandenburg',
@@ -51,12 +60,12 @@ const BUNDESLAENDER = [
 	'Sachsen',
 	'Sachsen-Anhalt',
 	'Schleswig-Holstein',
-	'Thuringen',
+	'Thüringen',
 ];
 
 /** Default Grunderwerbsteuer by Bundesland. */
 const GRUNDERWERBSTEUER: Record<string, number> = {
-	'Baden-Wurttemberg': 5.0,
+	'Baden-Württemberg': 5.0,
 	Bayern: 3.5,
 	Berlin: 6.0,
 	Brandenburg: 6.5,
@@ -71,16 +80,16 @@ const GRUNDERWERBSTEUER: Record<string, number> = {
 	Sachsen: 5.5,
 	'Sachsen-Anhalt': 5.0,
 	'Schleswig-Holstein': 6.5,
-	Thuringen: 5.0,
+	Thüringen: 5.0,
 };
 
 function slugify(text: string): string {
 	return text
 		.toLowerCase()
-		.replace(/[aA]/g, 'ae')
-		.replace(/[oO]/g, 'oe')
-		.replace(/[uU]/g, 'ue')
-		.replace(/ss/g, 'ss')
+		.replace(/ä/g, 'ae')
+		.replace(/ö/g, 'oe')
+		.replace(/ü/g, 'ue')
+		.replace(/ß/g, 'ss')
 		.replace(/[^a-z0-9]+/g, '-')
 		.replace(/^-|-$/g, '');
 }
@@ -125,85 +134,101 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 		onSave(form);
 	};
 
-	const inputClass =
-		'resa-w-full resa-px-3 resa-py-2 resa-rounded-md resa-border resa-border-input resa-bg-background resa-text-sm focus:resa-outline-none focus:resa-ring-2 focus:resa-ring-ring';
-	const labelClass = 'resa-block resa-text-sm resa-font-medium resa-mb-1';
-
 	return (
 		<form onSubmit={handleSubmit} className="resa-space-y-6">
 			{/* Basic info */}
-			<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-				<div>
-					<label className={labelClass}>Name *</label>
-					<input
-						className={inputClass}
-						value={form.name}
-						onChange={(e) => updateName(e.target.value)}
-						placeholder="z.B. Munchen"
-						required
-					/>
-				</div>
-				<div>
-					<label className={labelClass}>Slug</label>
-					<input
-						className={inputClass}
-						value={form.slug}
-						onChange={(e) => {
-							setAutoSlug(false);
-							setForm((prev) => ({ ...prev, slug: e.target.value }));
-						}}
-						placeholder="z.B. muenchen"
-					/>
+			<div className="resa-space-y-4">
+				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+					{__('Grunddaten', 'resa')}
+				</h3>
+				<div className="resa-grid resa-grid-cols-2 resa-gap-4">
+					<div className="resa-space-y-2">
+						<Label htmlFor="location-name">{__('Name', 'resa')} *</Label>
+						<Input
+							id="location-name"
+							value={form.name}
+							onChange={(e) => updateName(e.target.value)}
+							placeholder={__('z.B. München', 'resa')}
+							required
+						/>
+					</div>
+					<div className="resa-space-y-2">
+						<Label htmlFor="location-slug">{__('Slug', 'resa')}</Label>
+						<Input
+							id="location-slug"
+							value={form.slug}
+							onChange={(e) => {
+								setAutoSlug(false);
+								setForm((prev) => ({ ...prev, slug: e.target.value }));
+							}}
+							placeholder={__('z.B. muenchen', 'resa')}
+						/>
+					</div>
 				</div>
 			</div>
+
+			<Separator />
 
 			{/* Location details */}
-			<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-				<div>
-					<label className={labelClass}>Bundesland</label>
-					<select
-						className={inputClass}
-						value={form.bundesland}
-						onChange={(e) => handleBundeslandChange(e.target.value)}
-					>
-						<option value="">Bitte wahlen...</option>
-						{BUNDESLAENDER.map((bl) => (
-							<option key={bl} value={bl}>
-								{bl}
-							</option>
-						))}
-					</select>
-				</div>
-				<div>
-					<label className={labelClass}>Regionstyp</label>
-					<select
-						className={inputClass}
-						value={form.region_type}
-						onChange={(e) =>
-							setForm((prev) => ({ ...prev, region_type: e.target.value }))
-						}
-					>
-						{REGION_TYPES.map((rt) => (
-							<option key={rt.value} value={rt.value}>
-								{rt.label}
-							</option>
-						))}
-					</select>
+			<div className="resa-space-y-4">
+				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+					{__('Region', 'resa')}
+				</h3>
+				<div className="resa-grid resa-grid-cols-2 resa-gap-4">
+					<div className="resa-space-y-2">
+						<Label htmlFor="location-bundesland">{__('Bundesland', 'resa')}</Label>
+						<select
+							id="location-bundesland"
+							className="resa-flex resa-h-9 resa-w-full resa-rounded-md resa-border resa-border-input resa-bg-transparent resa-px-3 resa-py-1 resa-text-sm resa-shadow-sm resa-transition-colors focus:resa-outline-none focus:resa-ring-1 focus:resa-ring-ring"
+							value={form.bundesland}
+							onChange={(e) => handleBundeslandChange(e.target.value)}
+						>
+							<option value="">{__('Bitte wählen...', 'resa')}</option>
+							{BUNDESLAENDER.map((bl) => (
+								<option key={bl} value={bl}>
+									{bl}
+								</option>
+							))}
+						</select>
+					</div>
+					<div className="resa-space-y-2">
+						<Label htmlFor="location-region-type">{__('Regionstyp', 'resa')}</Label>
+						<select
+							id="location-region-type"
+							className="resa-flex resa-h-9 resa-w-full resa-rounded-md resa-border resa-border-input resa-bg-transparent resa-px-3 resa-py-1 resa-text-sm resa-shadow-sm resa-transition-colors focus:resa-outline-none focus:resa-ring-1 focus:resa-ring-ring"
+							value={form.region_type}
+							onChange={(e) =>
+								setForm((prev) => ({ ...prev, region_type: e.target.value }))
+							}
+						>
+							{REGION_TYPES.map((rt) => (
+								<option key={rt.value} value={rt.value}>
+									{rt.label}
+								</option>
+							))}
+						</select>
+					</div>
 				</div>
 			</div>
 
+			<Separator />
+
 			{/* Tax and commission rates */}
-			<div className="resa-rounded-lg resa-border resa-bg-muted/30 resa-p-4">
-				<h4 className="resa-text-sm resa-font-medium resa-mb-3">Regionale Kostensatze</h4>
+			<div className="resa-space-y-4">
+				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+					{__('Regionale Kostensätze', 'resa')}
+				</h3>
 				<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-					<div>
-						<label className={labelClass}>Grunderwerbsteuer (%)</label>
-						<input
+					<div className="resa-space-y-2">
+						<Label htmlFor="location-grest">
+							{__('Grunderwerbsteuer (%)', 'resa')}
+						</Label>
+						<Input
+							id="location-grest"
 							type="number"
 							step="0.1"
 							min="0"
 							max="10"
-							className={inputClass}
 							value={form.data.grunderwerbsteuer ?? 5.0}
 							onChange={(e) =>
 								setForm((prev) => ({
@@ -215,18 +240,18 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 								}))
 							}
 						/>
-						<p className="resa-text-xs resa-text-muted-foreground resa-mt-1">
-							Wird automatisch bei Bundesland-Auswahl gesetzt
+						<p className="resa-text-xs resa-text-muted-foreground">
+							{__('Wird automatisch bei Bundesland-Auswahl gesetzt', 'resa')}
 						</p>
 					</div>
-					<div>
-						<label className={labelClass}>Maklerprovision (%)</label>
-						<input
+					<div className="resa-space-y-2">
+						<Label htmlFor="location-makler">{__('Maklerprovision (%)', 'resa')}</Label>
+						<Input
+							id="location-makler"
 							type="number"
 							step="0.01"
 							min="0"
 							max="10"
-							className={inputClass}
 							value={form.data.maklerprovision ?? 3.57}
 							onChange={(e) =>
 								setForm((prev) => ({
@@ -238,37 +263,35 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 								}))
 							}
 						/>
-						<p className="resa-text-xs resa-text-muted-foreground resa-mt-1">
-							Standard: 3,57% (inkl. MwSt.)
+						<p className="resa-text-xs resa-text-muted-foreground">
+							{__('Standard: 3,57% (inkl. MwSt.)', 'resa')}
 						</p>
 					</div>
 				</div>
 			</div>
 
 			{/* Info box about module settings */}
-			<div className="resa-rounded-lg resa-border resa-bg-blue-50 resa-border-blue-200 resa-p-4">
-				<p className="resa-text-sm resa-text-blue-800">
-					<strong>Hinweis:</strong> Berechnungsfaktoren (Mietpreise, Multiplikatoren)
-					werden jetzt unter <em>Smart Assets</em> → Modul-Einstellungen konfiguriert.
-				</p>
-			</div>
+			<Alert>
+				<Info className="resa-size-4" />
+				<AlertDescription>
+					{__(
+						'Berechnungsfaktoren (Mietpreise, Multiplikatoren) werden jetzt unter ',
+						'resa',
+					)}
+					<span className="resa-font-medium">{__('Smart Assets', 'resa')}</span>
+					{__(' → Modul-Einstellungen konfiguriert.', 'resa')}
+				</AlertDescription>
+			</Alert>
 
 			{/* Actions */}
-			<div className="resa-flex resa-gap-3 resa-justify-end">
-				<button
-					type="button"
-					onClick={onCancel}
-					className="resa-px-4 resa-py-2 resa-text-sm resa-rounded-md resa-border resa-border-input hover:resa-bg-muted"
-				>
-					Abbrechen
-				</button>
-				<button
-					type="submit"
-					disabled={isSaving || !form.name}
-					className="resa-px-4 resa-py-2 resa-text-sm resa-font-medium resa-rounded-md resa-bg-primary resa-text-primary-foreground hover:resa-bg-primary/90 disabled:resa-opacity-50"
-				>
-					{isSaving ? 'Speichern...' : 'Speichern'}
-				</button>
+			<div className="resa-flex resa-gap-3 resa-justify-end resa-pt-4">
+				<Button type="button" variant="outline" onClick={onCancel}>
+					{__('Abbrechen', 'resa')}
+				</Button>
+				<Button type="submit" disabled={isSaving || !form.name}>
+					{isSaving && <Spinner className="resa-mr-2" />}
+					{isSaving ? __('Speichern...', 'resa') : __('Speichern', 'resa')}
+				</Button>
 			</div>
 		</form>
 	);

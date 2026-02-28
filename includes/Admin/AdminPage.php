@@ -4,7 +4,10 @@ declare( strict_types=1 );
 
 namespace Resa\Admin;
 
+use Resa\Core\Plugin;
 use Resa\Core\Vite;
+use Resa\Freemius\FeatureGate;
+use Resa\Models\Location;
 
 /**
  * Registers RESA admin pages in the WordPress dashboard.
@@ -99,18 +102,23 @@ final class AdminPage {
 
 		$this->vite->enqueue( 'src/admin/main.tsx', 'resa-admin' );
 
+		// Build feature gate data for frontend.
+		$featureData = $this->getFeatureGateData();
+
 		// Pass context to React app.
 		wp_localize_script(
 			'resa-admin',
 			'resaAdmin',
 			[
-				'restUrl'   => esc_url_raw( rest_url( 'resa/v1/' ) ),
-				'nonce'     => wp_create_nonce( 'wp_rest' ),
+				'restUrl'        => esc_url_raw( rest_url( 'resa/v1/' ) ),
+				'nonce'          => wp_create_nonce( 'wp_rest' ),
 					// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading WP admin page slug, no form data.
-				'page'      => isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : 'resa',
-				'adminUrl'  => esc_url_raw( admin_url( 'admin.php' ) ),
-				'pluginUrl' => esc_url_raw( RESA_PLUGIN_URL ),
-				'version'   => RESA_VERSION,
+				'page'           => isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : 'resa',
+				'adminUrl'       => esc_url_raw( admin_url( 'admin.php' ) ),
+				'pluginUrl'      => esc_url_raw( RESA_PLUGIN_URL ),
+				'version'        => RESA_VERSION,
+				'features'       => $featureData,
+				'locationCount'  => Location::count(),
 			]
 		);
 	}
@@ -120,5 +128,28 @@ final class AdminPage {
 	 */
 	public function renderPage(): void {
 		echo '<div class="wrap"><div id="resa-admin-root"></div></div>';
+	}
+
+	/**
+	 * Get feature gate data for the frontend.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function getFeatureGateData(): array {
+		$plugin = Plugin::getInstance();
+		if ( ! $plugin ) {
+			// Fallback to free plan limits.
+			return [
+				'plan'          => 'free',
+				'is_trial'      => false,
+				'max_modules'   => FeatureGate::FREE_MAX_MODULES,
+				'max_locations' => FeatureGate::FREE_MAX_LOCATIONS,
+				'max_leads'     => FeatureGate::FREE_MAX_LEADS,
+			];
+		}
+
+		$featureGate = new FeatureGate( $plugin->getModuleRegistry() );
+
+		return $featureGate->toArray();
 	}
 }

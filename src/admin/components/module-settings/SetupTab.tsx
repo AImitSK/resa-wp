@@ -6,6 +6,9 @@
  */
 
 import { useState } from 'react';
+import { __ } from '@wordpress/i18n';
+import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { FactorEditor } from '../FactorEditor';
 import type {
 	ModuleSettingsData,
@@ -37,7 +40,6 @@ export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps)
 
 	const handleModeChange = (mode: 'pauschal' | 'individuell') => {
 		if (mode === 'individuell' && setupMode === 'pauschal') {
-			// Copy preset values into factors for editing
 			const preset = presets[regionPreset];
 			if (preset) {
 				setFactors({ ...preset });
@@ -80,34 +82,79 @@ export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps)
 		setHasChanges(false);
 	};
 
+	const sectionStyle: React.CSSProperties = {
+		backgroundColor: 'hsl(210 40% 96.1%)',
+		borderRadius: '8px',
+		padding: '20px',
+	};
+
+	const sectionTitleStyle: React.CSSProperties = {
+		fontSize: '14px',
+		fontWeight: 600,
+		color: '#1e303a',
+		margin: 0,
+		marginBottom: '16px',
+	};
+
+	const modeCardStyle = (isActive: boolean): React.CSSProperties => ({
+		flex: 1,
+		display: 'flex',
+		alignItems: 'flex-start',
+		gap: '12px',
+		borderRadius: '8px',
+		border: `2px solid ${isActive ? '#a9e43f' : 'hsl(214.3 31.8% 91.4%)'}`,
+		backgroundColor: isActive ? 'rgba(169, 228, 63, 0.1)' : 'white',
+		padding: '16px',
+		cursor: 'pointer',
+		transition: 'all 150ms',
+	});
+
+	const presetCardStyle = (isActive: boolean): React.CSSProperties => ({
+		display: 'flex',
+		alignItems: 'center',
+		gap: '12px',
+		borderRadius: '8px',
+		border: `2px solid ${isActive ? '#a9e43f' : 'hsl(214.3 31.8% 91.4%)'}`,
+		backgroundColor: isActive ? 'rgba(169, 228, 63, 0.1)' : 'white',
+		padding: '12px',
+		cursor: 'pointer',
+		transition: 'all 150ms',
+	});
+
 	return (
-		<div className="resa-space-y-6">
+		<div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 			{/* Setup mode toggle */}
-			<div className="resa-rounded-lg resa-border resa-bg-card resa-p-6">
-				<h3 className="resa-font-medium resa-mb-4">Einrichtungsmodus</h3>
-				<div className="resa-flex resa-gap-4">
+			<div style={sectionStyle}>
+				<h3 style={sectionTitleStyle}>{__('Einrichtungsmodus', 'resa')}</h3>
+				<div style={{ display: 'flex', gap: '16px' }}>
 					{(['pauschal', 'individuell'] as const).map((mode) => (
-						<label
-							key={mode}
-							className={`resa-flex resa-items-start resa-gap-3 resa-rounded-lg resa-border-2 resa-p-4 resa-cursor-pointer resa-transition-colors resa-flex-1 ${
-								setupMode === mode
-									? 'resa-border-primary resa-bg-primary/5'
-									: 'resa-border-input hover:resa-border-primary/50'
-							}`}
-						>
+						<label key={mode} style={modeCardStyle(setupMode === mode)}>
 							<input
 								type="radio"
 								name="setup_mode"
 								checked={setupMode === mode}
 								onChange={() => handleModeChange(mode)}
-								className="resa-mt-1"
+								style={{ marginTop: '2px', accentColor: '#a9e43f' }}
 							/>
 							<div>
-								<div className="resa-font-medium resa-capitalize">{mode}</div>
-								<div className="resa-text-xs resa-text-muted-foreground resa-mt-1">
+								<div style={{ fontWeight: 500, color: '#1e303a' }}>
 									{mode === 'pauschal'
-										? 'Verwende vordefinierte Werte fur einen Regionstyp'
-										: 'Konfiguriere alle Faktoren manuell'}
+										? __('Pauschal', 'resa')
+										: __('Individuell', 'resa')}
+								</div>
+								<div
+									style={{
+										fontSize: '12px',
+										color: 'hsl(215.4 16.3% 46.9%)',
+										marginTop: '4px',
+									}}
+								>
+									{mode === 'pauschal'
+										? __(
+												'Verwende vordefinierte Werte für einen Regionstyp',
+												'resa',
+											)
+										: __('Konfiguriere alle Faktoren manuell', 'resa')}
 								</div>
 							</div>
 						</label>
@@ -117,32 +164,43 @@ export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps)
 
 			{/* Pauschal: Preset selection */}
 			{setupMode === 'pauschal' && (
-				<div className="resa-rounded-lg resa-border resa-bg-card resa-p-6">
-					<h3 className="resa-font-medium resa-mb-4">Regionstyp</h3>
-					<div className="resa-grid resa-grid-cols-2 resa-gap-3">
+				<div style={sectionStyle}>
+					<h3 style={sectionTitleStyle}>{__('Regionstyp', 'resa')}</h3>
+					<div
+						style={{
+							display: 'grid',
+							gridTemplateColumns: 'repeat(2, 1fr)',
+							gap: '12px',
+						}}
+					>
 						{Object.entries(presets).map(([key, preset]) => (
-							<label
-								key={key}
-								className={`resa-flex resa-items-center resa-gap-3 resa-rounded-lg resa-border-2 resa-p-3 resa-cursor-pointer resa-transition-colors ${
-									regionPreset === key
-										? 'resa-border-primary resa-bg-primary/5'
-										: 'resa-border-input hover:resa-border-primary/50'
-								}`}
-							>
+							<label key={key} style={presetCardStyle(regionPreset === key)}>
 								<input
 									type="radio"
 									name="region_preset"
 									checked={regionPreset === key}
 									onChange={() => handlePresetChange(key)}
-									className="resa-shrink-0"
+									style={{ accentColor: '#a9e43f' }}
 								/>
 								<div>
-									<div className="resa-text-sm resa-font-medium">
+									<div
+										style={{
+											fontSize: '14px',
+											fontWeight: 500,
+											color: '#1e303a',
+										}}
+									>
 										{preset.label}
 									</div>
 									{preset.base_price && (
-										<div className="resa-text-xs resa-text-muted-foreground">
-											Basispreis: {preset.base_price.toFixed(2)} EUR/m2
+										<div
+											style={{
+												fontSize: '12px',
+												color: 'hsl(215.4 16.3% 46.9%)',
+											}}
+										>
+											{__('Basispreis:', 'resa')}{' '}
+											{preset.base_price.toFixed(2)} €/m²
 										</div>
 									)}
 								</div>
@@ -151,11 +209,28 @@ export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps)
 					</div>
 
 					{/* Preset preview */}
-					<details className="resa-mt-4">
-						<summary className="resa-text-sm resa-text-muted-foreground resa-cursor-pointer">
-							Vorschau der Werte
+					<details style={{ marginTop: '16px' }}>
+						<summary
+							style={{
+								fontSize: '13px',
+								color: 'hsl(215.4 16.3% 46.9%)',
+								cursor: 'pointer',
+							}}
+						>
+							{__('Vorschau der Werte', 'resa')}
 						</summary>
-						<pre className="resa-mt-2 resa-text-xs resa-bg-muted resa-p-3 resa-rounded-md resa-overflow-auto resa-max-h-48">
+						<pre
+							style={{
+								marginTop: '8px',
+								fontSize: '12px',
+								backgroundColor: 'white',
+								padding: '12px',
+								borderRadius: '6px',
+								overflow: 'auto',
+								maxHeight: '200px',
+								color: '#1e303a',
+							}}
+						>
 							{JSON.stringify(presets[regionPreset] ?? {}, null, 2)}
 						</pre>
 					</details>
@@ -164,8 +239,8 @@ export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps)
 
 			{/* Individuell: Manual factor editing */}
 			{setupMode === 'individuell' && (
-				<div className="resa-rounded-lg resa-border resa-bg-card resa-p-6">
-					<h3 className="resa-font-medium resa-mb-4">Berechnungsfaktoren</h3>
+				<div style={sectionStyle}>
+					<h3 style={sectionTitleStyle}>{__('Berechnungsfaktoren', 'resa')}</h3>
 					<FactorEditor
 						factors={factors}
 						onFactorChange={handleFactorChange}
@@ -175,15 +250,20 @@ export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps)
 			)}
 
 			{/* Save button */}
-			<div className="resa-flex resa-justify-end">
-				<button
-					type="button"
+			<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+				<Button
 					onClick={handleSave}
 					disabled={isSaving || !hasChanges}
-					className="resa-px-4 resa-py-2 resa-text-sm resa-font-medium resa-rounded-md resa-bg-primary resa-text-primary-foreground hover:resa-bg-primary/90 disabled:resa-opacity-50 disabled:resa-cursor-not-allowed"
+					style={{
+						backgroundColor: hasChanges ? '#a9e43f' : 'hsl(210 40% 96.1%)',
+						color: hasChanges ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
+						border: 'none',
+						fontWeight: 500,
+					}}
 				>
-					{isSaving ? 'Speichern...' : 'Einstellungen speichern'}
-				</button>
+					{isSaving && <Spinner style={{ marginRight: '8px' }} />}
+					{isSaving ? __('Speichern...', 'resa') : __('Einstellungen speichern', 'resa')}
+				</Button>
 			</div>
 		</div>
 	);

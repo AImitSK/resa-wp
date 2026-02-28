@@ -4,6 +4,8 @@
 
 import { __ } from '@wordpress/i18n';
 import { ResaIcon } from '@/components/icons/ResaIcon';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import type { StepProps } from '@frontend/types/wizard';
 import type { FeatureOption } from '../types';
@@ -80,23 +82,19 @@ export function FeaturesStep({ data, updateData, featureOptions }: FeaturesStepP
 			</div>
 
 			{/* Free text for additional features */}
-			<div className="resa-mt-4">
-				<label
-					htmlFor="additional-features"
-					className="resa-block resa-text-sm resa-font-medium resa-mb-1"
-				>
+			<div className="resa-mt-4 resa-space-y-1.5">
+				<Label htmlFor="additional-features">
 					{__('Weitere Ausstattung', 'resa')}
 					<span className="resa-text-muted-foreground resa-font-normal resa-ml-1">
 						{__('(optional)', 'resa')}
 					</span>
-				</label>
-				<textarea
+				</Label>
+				<Textarea
 					id="additional-features"
 					value={additionalFeatures}
 					onChange={handleAdditionalChange}
 					placeholder={__('z.B. Smart Home, Sauna, Pool, Klimaanlage...', 'resa')}
 					rows={2}
-					className="resa-w-full resa-px-3 resa-py-2 resa-rounded-md resa-border resa-border-input resa-bg-background resa-text-sm placeholder:resa-text-muted-foreground focus:resa-outline-none focus:resa-ring-2 focus:resa-ring-ring"
 				/>
 			</div>
 		</div>

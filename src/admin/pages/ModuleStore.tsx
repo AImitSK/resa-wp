@@ -1,11 +1,12 @@
 /**
- * Smart Assets page — module store with card grid and settings sheet.
+ * Smart Assets page — module store with card grid.
  *
  * Shows all available modules with their flag (free/pro/paid),
- * activation toggle, and inline settings panel.
+ * activation toggle. Click on a card navigates to the settings page.
  */
 
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { __ } from '@wordpress/i18n';
 import {
 	Settings,
@@ -17,7 +18,6 @@ import {
 	Home,
 	Calculator,
 	CheckCircle2,
-	XCircle,
 } from 'lucide-react';
 import { useModules, useToggleModule } from '../hooks/useModules';
 import type { ModuleSummary } from '../types';
@@ -36,15 +36,7 @@ import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
-import {
-	Sheet,
-	SheetContent,
-	SheetDescription,
-	SheetHeader,
-	SheetTitle,
-} from '@/components/ui/sheet';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 type FilterOption = 'all' | 'free' | 'premium';
 
@@ -63,8 +55,7 @@ const MODULE_ICONS: Record<string, React.ElementType> = {
 export function ModuleStore() {
 	const [filter, setFilter] = useState<FilterOption>('all');
 	const [searchQuery, setSearchQuery] = useState('');
-	const [selectedModule, setSelectedModule] = useState<ModuleSummary | null>(null);
-	const [sheetOpen, setSheetOpen] = useState(false);
+	const navigate = useNavigate();
 
 	const { data: modules, isLoading, error } = useModules();
 	const toggleMutation = useToggleModule();
@@ -111,9 +102,8 @@ export function ModuleStore() {
 		toggleMutation.mutate(slug);
 	};
 
-	const openModuleSheet = (module: ModuleSummary) => {
-		setSelectedModule(module);
-		setSheetOpen(true);
+	const openModuleSettings = (slug: string) => {
+		navigate(`/modules/${slug}/settings`);
 	};
 
 	if (isLoading) {
@@ -138,53 +128,25 @@ export function ModuleStore() {
 		);
 	}
 
-	// Inline styles as fallback for WordPress admin CSS conflicts
-	const tabListStyle: React.CSSProperties = {
-		display: 'inline-flex',
-		height: '36px',
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderRadius: '8px',
-		backgroundColor: 'hsl(210 40% 96.1%)',
-		padding: '4px',
-		gap: '4px',
-	};
-
-	const tabStyle = (isActive: boolean): React.CSSProperties => ({
-		display: 'inline-flex',
-		alignItems: 'center',
-		justifyContent: 'center',
-		whiteSpace: 'nowrap',
-		borderRadius: '6px',
-		padding: '6px 12px',
-		fontSize: '14px',
-		fontWeight: 500,
-		cursor: 'pointer',
-		border: 'none',
-		backgroundColor: isActive ? 'white' : 'transparent',
-		boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-		color: isActive ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
-	});
-
 	const gridStyle: React.CSSProperties = {
 		display: 'grid',
 		gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
 		gap: '16px',
 	};
 
-	const counterStyle: React.CSSProperties = {
+	const counterBadgeStyle: React.CSSProperties = {
 		display: 'inline-flex',
 		alignItems: 'center',
 		justifyContent: 'center',
-		height: '20px',
-		minWidth: '20px',
-		padding: '0 6px',
+		height: '18px',
+		minWidth: '18px',
+		padding: '0 5px',
 		marginLeft: '6px',
 		borderRadius: '9999px',
-		backgroundColor: '#94a3b8',
-		color: 'white',
+		backgroundColor: 'hsl(210 40% 90%)',
+		color: 'hsl(215.4 16.3% 46.9%)',
 		fontSize: '11px',
-		fontFamily: 'monospace',
+		fontFamily: 'ui-monospace, monospace',
 		fontWeight: 500,
 	};
 
@@ -244,29 +206,98 @@ export function ModuleStore() {
 						}}
 					>
 						{/* Filter tabs */}
-						<div style={tabListStyle}>
-							<button
-								style={tabStyle(filter === 'all')}
-								onClick={() => setFilter('all')}
+						<Tabs value={filter} onValueChange={(v) => setFilter(v as FilterOption)}>
+							<TabsList
+								style={{
+									display: 'inline-flex',
+									height: '36px',
+									alignItems: 'center',
+									justifyContent: 'center',
+									borderRadius: '8px',
+									backgroundColor: 'hsl(210 40% 96.1%)',
+									padding: '4px',
+								}}
 							>
-								{__('alle', 'resa')}
-								<span style={counterStyle}>{totalCount}</span>
-							</button>
-							<button
-								style={tabStyle(filter === 'free')}
-								onClick={() => setFilter('free')}
-							>
-								{__('free', 'resa')}
-								<span style={counterStyle}>{freeCount}</span>
-							</button>
-							<button
-								style={tabStyle(filter === 'premium')}
-								onClick={() => setFilter('premium')}
-							>
-								{__('premium', 'resa')}
-								<span style={counterStyle}>{premiumCount}</span>
-							</button>
-						</div>
+								<TabsTrigger
+									value="all"
+									style={{
+										display: 'inline-flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										whiteSpace: 'nowrap',
+										borderRadius: '6px',
+										padding: '6px 12px',
+										fontSize: '14px',
+										fontWeight: 500,
+										transition: 'all 150ms',
+										backgroundColor: filter === 'all' ? 'white' : 'transparent',
+										color:
+											filter === 'all' ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
+										boxShadow:
+											filter === 'all'
+												? '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+												: 'none',
+									}}
+								>
+									{__('alle', 'resa')}
+									<span style={counterBadgeStyle}>{totalCount}</span>
+								</TabsTrigger>
+								<TabsTrigger
+									value="free"
+									style={{
+										display: 'inline-flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										whiteSpace: 'nowrap',
+										borderRadius: '6px',
+										padding: '6px 12px',
+										fontSize: '14px',
+										fontWeight: 500,
+										transition: 'all 150ms',
+										backgroundColor:
+											filter === 'free' ? 'white' : 'transparent',
+										color:
+											filter === 'free'
+												? '#1e303a'
+												: 'hsl(215.4 16.3% 46.9%)',
+										boxShadow:
+											filter === 'free'
+												? '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+												: 'none',
+									}}
+								>
+									{__('free', 'resa')}
+									<span style={counterBadgeStyle}>{freeCount}</span>
+								</TabsTrigger>
+								<TabsTrigger
+									value="premium"
+									style={{
+										display: 'inline-flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										whiteSpace: 'nowrap',
+										borderRadius: '6px',
+										padding: '6px 12px',
+										fontSize: '14px',
+										fontWeight: 500,
+										transition: 'all 150ms',
+										backgroundColor:
+											filter === 'premium' ? 'white' : 'transparent',
+										color:
+											filter === 'premium'
+												? '#1e303a'
+												: 'hsl(215.4 16.3% 46.9%)',
+										boxShadow:
+											filter === 'premium'
+												? '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+												: 'none',
+									}}
+								>
+									{__('premium', 'resa')}
+									<span style={counterBadgeStyle}>{premiumCount}</span>
+								</TabsTrigger>
+							</TabsList>
+						</Tabs>
 
 						{/* Search */}
 						<div style={{ position: 'relative', width: '512px' }}>
@@ -305,7 +336,7 @@ export function ModuleStore() {
 									key={module.slug}
 									module={module}
 									onToggle={handleToggle}
-									onOpenSettings={() => openModuleSheet(module)}
+									onOpenSettings={() => openModuleSettings(module.slug)}
 									isToggling={toggleMutation.isPending}
 								/>
 							))}
@@ -347,19 +378,6 @@ export function ModuleStore() {
 					</div>
 				</div>
 			</Card>
-
-			{/* Module Settings Sheet */}
-			<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-				<SheetContent className="sm:resa-max-w-lg">
-					{selectedModule && (
-						<ModuleSettingsSheet
-							module={selectedModule}
-							onToggle={handleToggle}
-							isToggling={toggleMutation.isPending}
-						/>
-					)}
-				</SheetContent>
-			</Sheet>
 		</>
 	);
 }
@@ -494,199 +512,5 @@ function ModuleCard({
 				</Button>
 			</CardFooter>
 		</Card>
-	);
-}
-
-function ModuleSettingsSheet({
-	module,
-	onToggle,
-	isToggling,
-}: {
-	module: ModuleSummary;
-	onToggle: (slug: string) => void;
-	isToggling: boolean;
-}) {
-	const IconComponent = MODULE_ICONS[module.slug] ?? Zap;
-	const isPro = module.flag === 'pro' && !module.active;
-
-	return (
-		<ScrollArea className="resa-h-full">
-			<SheetHeader className="resa-pb-4">
-				<div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-					<div
-						style={{
-							display: 'flex',
-							width: '48px',
-							height: '48px',
-							alignItems: 'center',
-							justifyContent: 'center',
-							borderRadius: '8px',
-							backgroundColor: module.active ? '#a9e43f' : 'hsl(210 40% 96.1%)',
-							color: module.active ? '#1e303a' : 'inherit',
-						}}
-					>
-						<IconComponent style={{ width: '24px', height: '24px' }} />
-					</div>
-					<div>
-						<SheetTitle style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-							{module.name}
-							<Badge
-								style={{
-									backgroundColor: '#1e303a',
-									color: module.flag === 'free' ? '#ffffff' : '#a9e43f',
-								}}
-							>
-								{module.flag === 'free'
-									? __('free', 'resa')
-									: module.flag === 'pro'
-										? __('Premium', 'resa')
-										: __('Add-on', 'resa')}
-							</Badge>
-						</SheetTitle>
-						<SheetDescription>{module.description}</SheetDescription>
-					</div>
-				</div>
-			</SheetHeader>
-
-			<Separator className="resa-my-4" />
-
-			{/* Status Section */}
-			<div className="resa-space-y-4">
-				<div
-					style={{
-						display: 'flex',
-						alignItems: 'center',
-						justifyContent: 'space-between',
-						padding: '16px',
-						borderRadius: '8px',
-						border: '1px solid hsl(214.3 31.8% 91.4%)',
-						backgroundColor: 'hsl(210 40% 96.1% / 0.3)',
-					}}
-				>
-					<div>
-						<p style={{ fontWeight: 500 }}>{__('Status', 'resa')}</p>
-						<p style={{ fontSize: '14px', color: 'hsl(215.4 16.3% 46.9%)' }}>
-							{module.active
-								? __('Das Modul ist aktiv und kann verwendet werden.', 'resa')
-								: __('Das Modul ist deaktiviert.', 'resa')}
-						</p>
-					</div>
-					{isPro ? (
-						<Button variant="outline" size="sm" disabled>
-							<Lock className="resa-mr-1 resa-size-3" />
-							{__('Pro', 'resa')}
-						</Button>
-					) : (
-						<Switch
-							checked={module.active}
-							onCheckedChange={() => onToggle(module.slug)}
-							disabled={isToggling}
-						/>
-					)}
-				</div>
-
-				{/* Status indicator */}
-				<div
-					style={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: '8px',
-						padding: '12px',
-						borderRadius: '8px',
-						border: '1px solid hsl(214.3 31.8% 91.4%)',
-					}}
-				>
-					{module.active ? (
-						<>
-							<CheckCircle2
-								style={{ width: '20px', height: '20px', color: '#a9e43f' }}
-							/>
-							<div>
-								<p style={{ fontWeight: 500, color: '#7ab32a' }}>
-									{__('Modul aktiv', 'resa')}
-								</p>
-								<p style={{ fontSize: '14px', color: 'hsl(215.4 16.3% 46.9%)' }}>
-									{__('Shortcode verfügbar: ', 'resa')}
-									<code
-										style={{
-											backgroundColor: 'hsl(210 40% 96.1%)',
-											padding: '0 4px',
-											borderRadius: '4px',
-											fontSize: '12px',
-										}}
-									>
-										{`[resa module="${module.slug}"]`}
-									</code>
-								</p>
-							</div>
-						</>
-					) : (
-						<>
-							<XCircle
-								style={{
-									width: '20px',
-									height: '20px',
-									color: 'hsl(215.4 16.3% 46.9%)',
-								}}
-							/>
-							<div>
-								<p style={{ fontWeight: 500 }}>{__('Modul inaktiv', 'resa')}</p>
-								<p style={{ fontSize: '14px', color: 'hsl(215.4 16.3% 46.9%)' }}>
-									{__('Aktiviere das Modul, um es zu verwenden.', 'resa')}
-								</p>
-							</div>
-						</>
-					)}
-				</div>
-
-				{/* Quick Actions */}
-				{module.active && (
-					<>
-						<Separator className="resa-my-4" />
-						<div className="resa-space-y-2">
-							<p
-								style={{
-									fontSize: '14px',
-									fontWeight: 500,
-									color: 'hsl(215.4 16.3% 46.9%)',
-								}}
-							>
-								{__('Schnellaktionen', 'resa')}
-							</p>
-							<div style={{ display: 'grid', gap: '8px' }}>
-								<Button
-									variant="outline"
-									style={{ justifyContent: 'flex-start', gap: '8px' }}
-								>
-									<Settings style={{ width: '16px', height: '16px' }} />
-									{__('Erweiterte Einstellungen', 'resa')}
-								</Button>
-								<Button
-									variant="outline"
-									style={{ justifyContent: 'flex-start', gap: '8px' }}
-								>
-									<BarChart3 style={{ width: '16px', height: '16px' }} />
-									{__('Statistiken anzeigen', 'resa')}
-								</Button>
-							</div>
-						</div>
-					</>
-				)}
-
-				{/* Pro Upgrade Hint */}
-				{isPro && (
-					<Alert className="resa-mt-4">
-						<Lock className="resa-size-4" />
-						<AlertTitle>{__('Pro-Feature', 'resa')}</AlertTitle>
-						<AlertDescription>
-							{__(
-								'Dieses Modul ist Teil des Pro-Plans. Upgrade jetzt für Zugriff auf alle Features.',
-								'resa',
-							)}
-						</AlertDescription>
-					</Alert>
-				)}
-			</div>
-		</ScrollArea>
 	);
 }

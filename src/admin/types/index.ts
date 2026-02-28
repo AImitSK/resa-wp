@@ -1,4 +1,20 @@
 /**
+ * Feature gate data from Freemius.
+ */
+export interface FeatureGate {
+	plan: 'free' | 'premium';
+	is_trial: boolean;
+	max_modules: number | null;
+	max_locations: number | null;
+	max_leads: number;
+	can_export_leads: boolean;
+	can_use_pdf_designer: boolean;
+	can_use_smtp: boolean;
+	can_remove_branding: boolean;
+	can_use_webhooks: boolean;
+}
+
+/**
  * Admin context injected by PHP via wp_localize_script.
  */
 export interface ResaAdminContext {
@@ -8,6 +24,8 @@ export interface ResaAdminContext {
 	adminUrl: string;
 	pluginUrl: string;
 	version: string;
+	features: FeatureGate;
+	locationCount: number;
 }
 
 /**

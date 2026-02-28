@@ -33,18 +33,113 @@ const buttonVariants = cva(
 	},
 );
 
+// Inline style fallbacks for WordPress admin compatibility
+const variantStyles: Record<string, React.CSSProperties> = {
+	default: {
+		backgroundColor: '#a9e43f',
+		color: '#1e303a',
+		border: 'none',
+		boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+	},
+	destructive: {
+		backgroundColor: '#dc2626',
+		color: 'white',
+		border: 'none',
+	},
+	outline: {
+		backgroundColor: 'white',
+		color: '#1e303a',
+		border: '1px solid hsl(214.3 31.8% 91.4%)',
+		boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+	},
+	secondary: {
+		backgroundColor: 'hsl(210 40% 96.1%)',
+		color: '#1e303a',
+		border: 'none',
+	},
+	ghost: {
+		backgroundColor: 'transparent',
+		color: '#1e303a',
+		border: 'none',
+	},
+	link: {
+		backgroundColor: 'transparent',
+		color: '#1e303a',
+		border: 'none',
+		textDecoration: 'none',
+	},
+};
+
+const sizeStyles: Record<string, React.CSSProperties> = {
+	default: {
+		height: '36px',
+		padding: '8px 16px',
+	},
+	sm: {
+		height: '32px',
+		padding: '6px 12px',
+		fontSize: '13px',
+	},
+	lg: {
+		height: '40px',
+		padding: '8px 32px',
+	},
+	icon: {
+		height: '36px',
+		width: '36px',
+		padding: '0',
+	},
+};
+
+const disabledStyles: React.CSSProperties = {
+	opacity: 0.5,
+	cursor: 'not-allowed',
+	pointerEvents: 'none',
+};
+
 export interface ButtonProps
 	extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
 	asChild?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-	({ className, variant, size, asChild = false, ...props }, ref) => {
+	(
+		{
+			className,
+			variant = 'default',
+			size = 'default',
+			style,
+			disabled,
+			asChild = false,
+			...props
+		},
+		ref,
+	) => {
 		const Comp = asChild ? Slot : 'button';
+
+		const baseStyles: React.CSSProperties = {
+			display: 'inline-flex',
+			alignItems: 'center',
+			justifyContent: 'center',
+			gap: '8px',
+			whiteSpace: 'nowrap',
+			borderRadius: '6px',
+			fontSize: '14px',
+			fontWeight: 500,
+			cursor: 'pointer',
+			transition: 'all 150ms',
+			...variantStyles[variant ?? 'default'],
+			...sizeStyles[size ?? 'default'],
+			...(disabled ? disabledStyles : {}),
+			...style,
+		};
+
 		return (
 			<Comp
 				className={cn(buttonVariants({ variant, size, className }))}
 				ref={ref}
+				style={baseStyles}
+				disabled={disabled}
 				{...props}
 			/>
 		);
