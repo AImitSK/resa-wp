@@ -74,6 +74,15 @@ export function LocationValuesTab({
 		return locations?.filter((l) => l.is_active) ?? [];
 	}, [locations]);
 
+	// Translate region_type to German
+	const regionTypeLabels: Record<string, string> = {
+		city_center: __('Innenstadt', 'resa'),
+		urban: __('Städtisch', 'resa'),
+		suburban: __('Stadtrand', 'resa'),
+		small_town: __('Kleinstadt / Stadtrand', 'resa'),
+		rural: __('Ländlich', 'resa'),
+	};
+
 	// Get default values from global factors
 	const defaultValues = useMemo(() => {
 		const factors = settings.factors as Record<string, number> | null;
@@ -180,8 +189,9 @@ export function LocationValuesTab({
 								{row.original.name}
 							</div>
 							<div style={{ fontSize: '12px', color: 'hsl(215.4 16.3% 46.9%)' }}>
-								{row.original.bundesland && `${row.original.bundesland} • `}
-								{row.original.region_type}
+								{row.original.bundesland && `${row.original.bundesland} | `}
+								{regionTypeLabels[row.original.region_type] ??
+									row.original.region_type}
 							</div>
 						</div>
 					</div>
