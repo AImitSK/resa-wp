@@ -7,6 +7,7 @@
 
 import { __ } from '@wordpress/i18n';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ResaMap } from '@frontend/components/map';
 import { MarketPositionGauge } from './MarketPositionGauge';
 import type { RentCalculationResult, RentCalculatorData } from '../types';
 
@@ -144,6 +145,31 @@ export function RentResult({ result, inputs }: RentResultProps) {
 					</ul>
 				</CardContent>
 			</Card>
+
+			{/* Location map — show if address coordinates available */}
+			{inputs.address_lat && inputs.address_lng && (
+				<Card>
+					<CardContent className="resa-p-4">
+						<div className="resa-text-xs resa-font-medium resa-text-muted-foreground resa-mb-2">
+							{__('Standort', 'resa')}
+						</div>
+						<div className="resa-rounded-lg resa-overflow-hidden">
+							<ResaMap
+								center={{ lat: inputs.address_lat, lng: inputs.address_lng }}
+								zoom={15}
+								showMarker
+								height={180}
+								lazyLoad={false}
+							/>
+						</div>
+						{inputs.address && (
+							<p className="resa-text-xs resa-text-muted-foreground resa-text-center resa-mt-2">
+								{inputs.address}
+							</p>
+						)}
+					</CardContent>
+				</Card>
+			)}
 
 			{/* Agent hint */}
 			<div className="resa-rounded-lg resa-bg-muted/50 resa-p-4 resa-text-center">

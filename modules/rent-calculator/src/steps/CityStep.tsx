@@ -27,6 +27,8 @@ export function CityStep({ data, updateData, errors, cities }: CityStepProps) {
 				city_id: undefined,
 				city_name: undefined,
 				city_slug: undefined,
+				city_lat: undefined,
+				city_lng: undefined,
 			});
 			return;
 		}
@@ -36,6 +38,9 @@ export function CityStep({ data, updateData, errors, cities }: CityStepProps) {
 				city_id: city.id,
 				city_name: city.name,
 				city_slug: city.slug,
+				// Store coordinates for address search bounding.
+				city_lat: city.latitude ?? undefined,
+				city_lng: city.longitude ?? undefined,
 			});
 		}
 	};

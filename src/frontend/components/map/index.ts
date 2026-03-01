@@ -7,3 +7,4 @@ export { LeafletMap, type MapPosition, type TileStyle } from './LeafletMap';
 export { GoogleMap } from './GoogleMap';
 export { GoogleMapConsent } from './GoogleMapConsent';
 export { MapPlaceholder } from './MapPlaceholder';
+export { AddressAutocomplete } from './AddressAutocomplete';

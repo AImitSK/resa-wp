@@ -10,6 +10,16 @@ export interface RentCalculatorData {
 	city_id?: number;
 	city_name?: string;
 	city_slug?: string;
+	/** City center latitude (for bounded address search). */
+	city_lat?: number;
+	/** City center longitude (for bounded address search). */
+	city_lng?: number;
+	/** Full property address from AddressStep. */
+	address?: string;
+	/** Property latitude from AddressStep. */
+	address_lat?: number;
+	/** Property longitude from AddressStep. */
+	address_lng?: number;
 	condition?: 'new' | 'renovated' | 'good' | 'needs_renovation';
 	location_rating?: number;
 	features?: string[];
@@ -39,6 +49,12 @@ export interface CityOption {
 	id: number;
 	slug: string;
 	name: string;
+	/** City center latitude. */
+	latitude?: number | null;
+	/** City center longitude. */
+	longitude?: number | null;
+	/** Default zoom level. */
+	zoomLevel?: number;
 }
 
 export interface FeatureOption {

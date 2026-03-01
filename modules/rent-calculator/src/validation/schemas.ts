@@ -57,6 +57,33 @@ export const getFeaturesSchema = () =>
 		additional_features: z.string().optional(),
 	});
 
+/**
+ * Address step schema.
+ *
+ * Address is optional — user can skip this step.
+ * But if provided, coordinates must also be present.
+ */
+export const getAddressSchema = () =>
+	z
+		.object({
+			address: z.string().optional(),
+			address_lat: z.number().min(-90).max(90).optional(),
+			address_lng: z.number().min(-180).max(180).optional(),
+		})
+		.refine(
+			(data) => {
+				// If address is provided, coordinates should also be present.
+				if (data.address && data.address.length > 0) {
+					return data.address_lat !== undefined && data.address_lng !== undefined;
+				}
+				return true;
+			},
+			{
+				message: __('Bitte wählen Sie eine Adresse aus den Vorschlägen.', 'resa'),
+				path: ['address'],
+			},
+		);
+
 // Legacy exports for backwards compatibility
 export const propertyTypeSchema = getPropertyTypeSchema();
 export const propertyDetailsSchema = getPropertyDetailsSchema();
@@ -64,3 +91,4 @@ export const citySchema = getCitySchema();
 export const conditionSchema = getConditionSchema();
 export const locationRatingSchema = getLocationRatingSchema();
 export const featuresSchema = getFeaturesSchema();
+export const addressSchema = getAddressSchema();

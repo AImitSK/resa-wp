@@ -1,9 +1,13 @@
 /**
  * Tests for PropertyDetailsStep component.
+ *
+ * Note: The rooms field uses Radix UI Select which renders differently
+ * from native HTML select elements.
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { PropertyDetailsStep } from '@modules/rent-calculator/src/steps/PropertyDetailsStep';
 
 describe('PropertyDetailsStep', () => {
@@ -18,7 +22,8 @@ describe('PropertyDetailsStep', () => {
 
 		expect(screen.getByRole('heading')).toBeInTheDocument();
 		expect(screen.getByLabelText(/Wohnfläche/)).toBeInTheDocument();
-		expect(screen.getByLabelText(/Zimmer/)).toBeInTheDocument();
+		// Radix UI Select uses combobox role
+		expect(screen.getByRole('combobox')).toBeInTheDocument();
 		expect(screen.getByLabelText(/Baujahr/)).toBeInTheDocument();
 	});
 
@@ -31,11 +36,19 @@ describe('PropertyDetailsStep', () => {
 		expect(updateData).toHaveBeenCalledWith({ size: 75 });
 	});
 
-	it('ruft updateData bei Auswahl Zimmer auf', () => {
+	it('ruft updateData bei Auswahl Zimmer auf', async () => {
+		const user = userEvent.setup();
 		const updateData = vi.fn();
 		render(<PropertyDetailsStep {...defaultProps} updateData={updateData} />);
 
-		fireEvent.change(screen.getByLabelText(/Zimmer/), { target: { value: '3' } });
+		// Click to open dropdown
+		await user.click(screen.getByRole('combobox'));
+
+		// Wait for options and click "3"
+		await waitFor(() => {
+			expect(screen.getByRole('option', { name: '3' })).toBeInTheDocument();
+		});
+		await user.click(screen.getByRole('option', { name: '3' }));
 
 		expect(updateData).toHaveBeenCalledWith({ rooms: 3 });
 	});
@@ -58,7 +71,8 @@ describe('PropertyDetailsStep', () => {
 		);
 
 		expect(screen.getByLabelText(/Wohnfläche/)).toHaveValue(80);
-		expect(screen.getByLabelText(/Zimmer/)).toHaveValue('3');
+		// Radix UI Select shows selected value in the trigger
+		expect(screen.getByRole('combobox')).toHaveTextContent('3');
 		expect(screen.getByLabelText(/Baujahr/)).toHaveValue(2010);
 	});
 

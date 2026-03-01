@@ -27,6 +27,7 @@ import { trackEvent } from '@frontend/lib/tracking';
 import { PropertyTypeStep } from './steps/PropertyTypeStep';
 import { PropertyDetailsStep } from './steps/PropertyDetailsStep';
 import { CityStep } from './steps/CityStep';
+import { AddressStep } from './steps/AddressStep';
 import { ConditionStep } from './steps/ConditionStep';
 import { LocationRatingStep } from './steps/LocationRatingStep';
 import { FeaturesStep } from './steps/FeaturesStep';
@@ -36,6 +37,7 @@ import {
 	propertyTypeSchema,
 	propertyDetailsSchema,
 	citySchema,
+	addressSchema,
 	conditionSchema,
 	locationRatingSchema,
 	featuresSchema,
@@ -125,6 +127,31 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 				schema: citySchema,
 			});
 		}
+
+		// Address step — bounded to selected city.
+		allSteps.push({
+			id: 'address',
+			label: __('Adresse', 'resa'),
+			component: (props: {
+				data: WizardData;
+				updateData: (data: Partial<WizardData>) => void;
+				errors: Record<string, string>;
+			}) => {
+				const formData = props.data as RentCalculatorData;
+				const cityBounds =
+					formData.city_name && formData.city_lat && formData.city_lng
+						? {
+								name: formData.city_name,
+								lat: formData.city_lat,
+								lng: formData.city_lng,
+							}
+						: formData.city_name
+							? { name: formData.city_name }
+							: undefined;
+				return <AddressStep {...props} cityBounds={cityBounds} />;
+			},
+			schema: addressSchema,
+		});
 
 		allSteps.push(
 			{

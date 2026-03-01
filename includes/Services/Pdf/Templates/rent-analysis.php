@@ -29,6 +29,9 @@
  * @var string $logo_url          Branding logo URL.
  * @var string $primary_color     Primary brand color.
  * @var string $bar_chart_svg     Pre-rendered bar chart SVG.
+ * @var string $map_image_url     Static map image URL (OSM).
+ * @var float|null $address_lat   Property latitude.
+ * @var float|null $address_lng   Property longitude.
  * @var bool   $is_dompdf         Whether rendering via DOMPDF.
  *
  * @package Resa\Services\Pdf\Templates
@@ -62,6 +65,9 @@ $agent_company     = $agent_company ?? '';
 $logo_url          = $logo_url ?? '';
 $primary_color     = $primary_color ?? '#3b82f6';
 $bar_chart_svg     = $bar_chart_svg ?? '';
+$map_image_url     = $map_image_url ?? '';
+$address_lat       = $address_lat ?? null;
+$address_lng       = $address_lng ?? null;
 
 /**
  * Format a number in German locale (comma as decimal, dot as thousands).
@@ -530,6 +536,22 @@ $current_date = wp_date( 'd.m.Y' ) ?: gmdate( 'd.m.Y' );
 				</tr>
 			<?php endif; ?>
 		</table>
+
+		<!-- Location Map -->
+		<?php if ( $map_image_url !== '' ) : ?>
+			<div style="margin: 16px 0; text-align: center;">
+				<img
+					src="<?php echo esc_url( $map_image_url ); ?>"
+					alt="<?php esc_attr_e( 'Standort-Karte', 'resa' ); ?>"
+					style="max-width: 100%; height: auto; border: 1px solid #e2e8f0; border-radius: 4px;"
+				/>
+				<?php if ( $property_address !== '' ) : ?>
+					<p style="font-size: 10px; color: #64748b; margin-top: 6px;">
+						<?php echo esc_html( $property_address ); ?>
+					</p>
+				<?php endif; ?>
+			</div>
+		<?php endif; ?>
 
 		<!-- Agent Card -->
 		<?php if ( $agent_name !== '' ) : ?>

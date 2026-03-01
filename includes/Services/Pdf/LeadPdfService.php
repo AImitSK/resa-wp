@@ -209,11 +209,30 @@ final class LeadPdfService {
 		// Get city name from inputs or result.
 		$cityName = $inputs['city_name'] ?? $cityData['name'] ?? $location->name ?? '';
 
+		// Extract address coordinates for static map.
+		$addressLat = isset( $inputs['address_lat'] ) ? (float) $inputs['address_lat'] : null;
+		$addressLng = isset( $inputs['address_lng'] ) ? (float) $inputs['address_lng'] : null;
+
+		// Fall back to location coordinates if no address coordinates.
+		if ( $addressLat === null && $location !== null && isset( $location->latitude ) ) {
+			$addressLat = (float) $location->latitude;
+			$addressLng = isset( $location->longitude ) ? (float) $location->longitude : null;
+		}
+
+		// Generate static map URL if coordinates available.
+		$mapImageUrl = null;
+		if ( $addressLat !== null && $addressLng !== null ) {
+			$mapImageUrl = $this->getStaticMapUrl( $addressLat, $addressLng );
+		}
+
 		return [
 			'lead_name'         => $leadName,
 			'lead_salutation'   => $lead->salutation ?? '',
 			'property_type'     => $this->translatePropertyType( $inputs['property_type'] ?? $inputs['propertyType'] ?? '' ),
 			'property_address'  => $inputs['address'] ?? $cityName,
+			'address_lat'       => $addressLat,
+			'address_lng'       => $addressLng,
+			'map_image_url'     => $mapImageUrl,
 			'living_area'       => (float) ( $inputs['size'] ?? $inputs['livingArea'] ?? 0 ),
 			'rooms'             => (float) ( $inputs['rooms'] ?? 0 ),
 			'construction_year' => (int) ( $inputs['year_built'] ?? $inputs['constructionYear'] ?? 0 ),
@@ -769,5 +788,26 @@ final class LeadPdfService {
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
 			unlink( $pdfPath );
 		}
+	}
+
+	/**
+	 * Generate static map image URL for PDF.
+	 *
+	 * Uses OpenStreetMap Static Maps API (DSGVO-compliant, no API key required).
+	 *
+	 * @param float $lat Latitude.
+	 * @param float $lng Longitude.
+	 * @return string Static map image URL.
+	 */
+	private function getStaticMapUrl( float $lat, float $lng ): string {
+		// OpenStreetMap Static Maps API.
+		// Format: center lat,lng; zoom; size; marker position.
+		return sprintf(
+			'https://staticmap.openstreetmap.de/staticmap.php?center=%f,%f&zoom=15&size=500x200&markers=%f,%f,red-pushpin',
+			$lat,
+			$lng,
+			$lat,
+			$lng
+		);
 	}
 }

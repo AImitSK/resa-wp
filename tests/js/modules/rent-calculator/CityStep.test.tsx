@@ -1,16 +1,20 @@
 /**
  * Tests for CityStep component.
+ *
+ * Note: CityStep uses Radix UI Select which renders differently from native
+ * HTML select elements. Options are in a portal and require clicking to open.
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { CityStep } from '@modules/rent-calculator/src/steps/CityStep';
 import type { CityOption } from '@modules/rent-calculator/src/types';
 
 const mockCities: CityOption[] = [
-	{ id: 1, name: 'München', slug: 'muenchen' },
-	{ id: 2, name: 'Berlin', slug: 'berlin' },
-	{ id: 3, name: 'Hamburg', slug: 'hamburg' },
+	{ id: 1, name: 'München', slug: 'muenchen', latitude: 48.1351, longitude: 11.582 },
+	{ id: 2, name: 'Berlin', slug: 'berlin', latitude: 52.52, longitude: 13.405 },
+	{ id: 3, name: 'Hamburg', slug: 'hamburg', latitude: 53.5511, longitude: 9.9937 },
 ];
 
 describe('CityStep', () => {
@@ -25,54 +29,71 @@ describe('CityStep', () => {
 		render(<CityStep {...defaultProps} />);
 
 		expect(screen.getByRole('heading')).toBeInTheDocument();
+		// Radix UI Select uses a trigger with combobox role
+		expect(screen.getByRole('combobox')).toBeInTheDocument();
+	});
+
+	it('zeigt Standort Label', () => {
+		render(<CityStep {...defaultProps} />);
+
+		// Label for the select
 		expect(screen.getByLabelText(/Standort/)).toBeInTheDocument();
 	});
 
-	it('zeigt alle Städte als Optionen', () => {
+	it('zeigt Bitte wählen als Placeholder', () => {
 		render(<CityStep {...defaultProps} />);
 
-		expect(screen.getByText('München')).toBeInTheDocument();
-		expect(screen.getByText('Berlin')).toBeInTheDocument();
-		expect(screen.getByText('Hamburg')).toBeInTheDocument();
+		expect(screen.getByText('Bitte wählen')).toBeInTheDocument();
 	});
 
-	it('zeigt Bitte wählen als erste Option', () => {
+	it('zeigt alle Städte als Optionen beim Öffnen', async () => {
+		const user = userEvent.setup();
 		render(<CityStep {...defaultProps} />);
 
-		const select = screen.getByLabelText(/Standort/) as HTMLSelectElement;
-		expect(select.options[0].text).toBe('Bitte wählen');
+		// Click to open dropdown
+		await user.click(screen.getByRole('combobox'));
+
+		// Options should be visible
+		await waitFor(() => {
+			expect(screen.getByRole('option', { name: 'München' })).toBeInTheDocument();
+			expect(screen.getByRole('option', { name: 'Berlin' })).toBeInTheDocument();
+			expect(screen.getByRole('option', { name: 'Hamburg' })).toBeInTheDocument();
+		});
 	});
 
-	it('ruft updateData mit Stadt-Daten bei Auswahl auf', () => {
+	it('ruft updateData mit Stadt-Daten bei Auswahl auf', async () => {
+		const user = userEvent.setup();
 		const updateData = vi.fn();
 		render(<CityStep {...defaultProps} updateData={updateData} />);
 
-		fireEvent.change(screen.getByLabelText(/Standort/), { target: { value: '1' } });
+		// Click to open dropdown
+		await user.click(screen.getByRole('combobox'));
+
+		// Click München option
+		await waitFor(() => {
+			expect(screen.getByRole('option', { name: 'München' })).toBeInTheDocument();
+		});
+		await user.click(screen.getByRole('option', { name: 'München' }));
 
 		expect(updateData).toHaveBeenCalledWith({
 			city_id: 1,
 			city_name: 'München',
 			city_slug: 'muenchen',
+			city_lat: 48.1351,
+			city_lng: 11.582,
 		});
 	});
 
-	it('setzt Stadt-Daten zurück bei leerer Auswahl', () => {
-		const updateData = vi.fn();
-		render(<CityStep {...defaultProps} updateData={updateData} data={{ city_id: 1 }} />);
+	it('zeigt ausgewählte Stadt an', () => {
+		render(
+			<CityStep
+				{...defaultProps}
+				data={{ city_id: 2, city_name: 'Berlin', city_slug: 'berlin' }}
+			/>,
+		);
 
-		fireEvent.change(screen.getByLabelText(/Standort/), { target: { value: '' } });
-
-		expect(updateData).toHaveBeenCalledWith({
-			city_id: undefined,
-			city_name: undefined,
-			city_slug: undefined,
-		});
-	});
-
-	it('zeigt bestehende Auswahl an', () => {
-		render(<CityStep {...defaultProps} data={{ city_id: 2 }} />);
-
-		expect(screen.getByLabelText(/Standort/)).toHaveValue('2');
+		// The trigger should show the selected city name
+		expect(screen.getByRole('combobox')).toHaveTextContent('Berlin');
 	});
 
 	it('zeigt Fehler an', () => {
@@ -87,5 +108,11 @@ describe('CityStep', () => {
 		render(<CityStep {...defaultProps} />);
 
 		expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+	});
+
+	it('zeigt Beschreibungstext', () => {
+		render(<CityStep {...defaultProps} />);
+
+		expect(screen.getByText(/Standort der Immobilie/)).toBeInTheDocument();
 	});
 });

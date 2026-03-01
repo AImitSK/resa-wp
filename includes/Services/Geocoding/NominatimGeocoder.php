@@ -50,7 +50,7 @@ final class NominatimGeocoder implements GeocoderInterface {
 	/**
 	 * @inheritDoc
 	 */
-	public function search( string $query ): array {
+	public function search( string $query, array $options = [] ): array {
 		$query = trim( $query );
 
 		if ( $query === '' ) {
@@ -60,17 +60,27 @@ final class NominatimGeocoder implements GeocoderInterface {
 		// Rate limiting: wait if last request was < 1 second ago.
 		$this->enforceRateLimit();
 
-		$requestUrl = add_query_arg(
-			[
-				'q'              => $query,
-				'format'         => 'jsonv2',
-				'addressdetails' => '1',
-				'limit'          => (string) self::LIMIT,
-				'countrycodes'   => self::COUNTRY_CODES,
-				'accept-language' => 'de',
-			],
-			self::API_URL
-		);
+		// Extract options.
+		$viewbox = $options['viewbox'] ?? null;
+		$bounded = $options['bounded'] ?? false;
+		$limit   = $options['limit'] ?? self::LIMIT;
+
+		$queryArgs = [
+			'q'               => $query,
+			'format'          => 'jsonv2',
+			'addressdetails'  => '1',
+			'limit'           => (string) $limit,
+			'countrycodes'    => self::COUNTRY_CODES,
+			'accept-language' => 'de',
+		];
+
+		// Add viewbox for bounded search (city restriction).
+		if ( $viewbox !== null && $viewbox !== '' ) {
+			$queryArgs['viewbox'] = $viewbox;
+			$queryArgs['bounded'] = $bounded ? '1' : '0';
+		}
+
+		$requestUrl = add_query_arg( $queryArgs, self::API_URL );
 
 		$response = wp_remote_get(
 			$requestUrl,

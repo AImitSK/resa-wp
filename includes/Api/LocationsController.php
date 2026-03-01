@@ -100,6 +100,8 @@ class LocationsController extends RestController {
 
 	/**
 	 * GET /locations — List all active locations (public).
+	 *
+	 * Includes coordinates for frontend address search bounding.
 	 */
 	public function index(): \WP_REST_Response {
 		$locations = Location::getAll( true );
@@ -107,9 +109,12 @@ class LocationsController extends RestController {
 		$result = array_map(
 			static function ( object $loc ): array {
 				return [
-					'id'   => (int) $loc->id,
-					'slug' => $loc->slug,
-					'name' => $loc->name,
+					'id'        => (int) $loc->id,
+					'slug'      => $loc->slug,
+					'name'      => $loc->name,
+					'latitude'  => isset( $loc->latitude ) ? (float) $loc->latitude : null,
+					'longitude' => isset( $loc->longitude ) ? (float) $loc->longitude : null,
+					'zoomLevel' => isset( $loc->zoom_level ) ? (int) $loc->zoom_level : 13,
 				];
 			},
 			$locations
@@ -120,6 +125,8 @@ class LocationsController extends RestController {
 
 	/**
 	 * GET /locations/{id} — Single location (public).
+	 *
+	 * Includes coordinates for frontend address search bounding.
 	 */
 	public function show( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		$id       = (int) $request->get_param( 'id' );
@@ -130,9 +137,12 @@ class LocationsController extends RestController {
 		}
 
 		return $this->success( [
-			'id'   => (int) $location->id,
-			'slug' => $location->slug,
-			'name' => $location->name,
+			'id'        => (int) $location->id,
+			'slug'      => $location->slug,
+			'name'      => $location->name,
+			'latitude'  => isset( $location->latitude ) ? (float) $location->latitude : null,
+			'longitude' => isset( $location->longitude ) ? (float) $location->longitude : null,
+			'zoomLevel' => isset( $location->zoom_level ) ? (int) $location->zoom_level : 13,
 		] );
 	}
 

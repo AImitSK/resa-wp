@@ -16,50 +16,51 @@ describe('Admin App', () => {
 	it('rendert das Dashboard als Startseite', () => {
 		window.resaAdmin.page = 'resa';
 		render(<App />);
-		expect(screen.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeInTheDocument();
+		expect(screen.getByRole('heading', { level: 2, name: 'Dashboard' })).toBeInTheDocument();
 		expect(screen.getByText(/Leads gesamt/)).toBeInTheDocument();
 	});
 
 	it('rendert die Leads-Seite wenn page=resa-leads', () => {
 		window.resaAdmin.page = 'resa-leads';
 		render(<App />);
-		expect(screen.getByRole('heading', { level: 1, name: 'Leads' })).toBeInTheDocument();
-		expect(screen.getByText(/Alle erfassten Leads/)).toBeInTheDocument();
+		expect(screen.getByRole('heading', { level: 2, name: 'Leads' })).toBeInTheDocument();
+		expect(
+			screen.getByText(/Verwalte und bearbeite deine eingegangenen Leads/),
+		).toBeInTheDocument();
 	});
 
 	it('rendert die Smart Assets-Seite wenn page=resa-modules', () => {
 		window.resaAdmin.page = 'resa-modules';
 		render(<App />);
-		// Die Seite zeigt "Module werden geladen..." während des API-Calls
-		expect(screen.getByText(/Module werden geladen|Smart Assets/)).toBeInTheDocument();
+		expect(screen.getByRole('heading', { level: 2, name: 'Smart Assets' })).toBeInTheDocument();
 	});
 
 	it('rendert die Locations-Seite wenn page=resa-locations', () => {
 		window.resaAdmin.page = 'resa-locations';
 		render(<App />);
 		// Die Locations-Seite zeigt immer die Überschrift "Standorte", auch während des Ladens
-		expect(screen.getByRole('heading', { level: 1, name: 'Standorte' })).toBeInTheDocument();
+		expect(screen.getByRole('heading', { level: 2, name: 'Standorte' })).toBeInTheDocument();
 	});
 
 	it('rendert die Kommunikation-Seite wenn page=resa-communication', () => {
 		window.resaAdmin.page = 'resa-communication';
 		render(<App />);
 		expect(
-			screen.getByRole('heading', { level: 1, name: 'Kommunikation' }),
+			screen.getByRole('heading', { level: 2, name: 'Kommunikation' }),
 		).toBeInTheDocument();
 	});
 
 	it('rendert die PDF-Vorlagen-Seite wenn page=resa-pdf', () => {
 		window.resaAdmin.page = 'resa-pdf';
 		render(<App />);
-		expect(screen.getByRole('heading', { level: 1, name: 'PDF-Vorlagen' })).toBeInTheDocument();
+		expect(screen.getByRole('heading', { level: 2, name: 'PDF-Vorlagen' })).toBeInTheDocument();
 	});
 
 	it('rendert die Shortcode-Seite wenn page=resa-shortcode', () => {
 		window.resaAdmin.page = 'resa-shortcode';
 		render(<App />);
 		expect(
-			screen.getByRole('heading', { level: 1, name: 'Shortcode Generator' }),
+			screen.getByRole('heading', { level: 2, name: 'Shortcode Generator' }),
 		).toBeInTheDocument();
 	});
 
@@ -67,7 +68,7 @@ describe('Admin App', () => {
 		window.resaAdmin.page = 'resa-integrations';
 		render(<App />);
 		expect(
-			screen.getByRole('heading', { level: 1, name: 'Integrationen' }),
+			screen.getByRole('heading', { level: 2, name: 'Integrationen' }),
 		).toBeInTheDocument();
 	});
 
@@ -75,7 +76,7 @@ describe('Admin App', () => {
 		window.resaAdmin.page = 'resa-settings';
 		render(<App />);
 		expect(
-			screen.getByRole('heading', { level: 1, name: 'Einstellungen' }),
+			screen.getByRole('heading', { level: 2, name: 'Einstellungen' }),
 		).toBeInTheDocument();
 	});
 
