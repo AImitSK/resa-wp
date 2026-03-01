@@ -32,12 +32,12 @@ interface AddressAutocompleteProps {
  */
 function resultToAddressData(result: GeocodingResult): AddressData {
 	return {
-		displayName: result.displayName,
-		street: undefined, // Nominatim doesn't return street separately in displayName
-		postalCode: result.postalCode ?? undefined,
+		displayName: result.display_name,
+		street: undefined, // Nominatim doesn't return street separately
+		postalCode: result.postal_code ?? undefined,
 		city: result.city ?? undefined,
-		lat: result.latitude,
-		lng: result.longitude,
+		lat: result.lat,
+		lng: result.lng,
 	};
 }
 
@@ -61,7 +61,7 @@ export function AddressAutocomplete({
 		minLength: 3,
 		debounce: 300,
 		boundTo,
-		radius: 30,
+		radius: 10, // Smaller radius for more localized results
 	};
 
 	const {
@@ -258,7 +258,7 @@ export function AddressAutocomplete({
 				>
 					{results.map((result, index) => (
 						<li
-							key={`${result.latitude}-${result.longitude}`}
+							key={`${result.lat}-${result.lng}`}
 							role="option"
 							aria-selected={index === highlightedIndex}
 							className={`resa-address-autocomplete__option ${
@@ -285,7 +285,7 @@ export function AddressAutocomplete({
 								</svg>
 							</span>
 							<span className="resa-address-autocomplete__option-text">
-								{result.displayName}
+								{result.display_name}
 							</span>
 						</li>
 					))}

@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import type { GeocodingResult, GeocodingResponse, AddressBounds } from '../types/address';
+import type { GeocodingResult, AddressBounds } from '../types/address';
 
 /**
  * Options for the address search hook.
@@ -141,13 +141,11 @@ export function useAddressSearch(
 					throw new Error(`HTTP ${response.status}`);
 				}
 
-				const data: GeocodingResponse = await response.json();
+				const data = await response.json();
 
-				if (data.success && data.data?.results) {
-					setResults(data.data.results);
-				} else {
-					setResults([]);
-				}
+				// Handle both wrapped ({success, data: {results}}) and direct ({results}) formats.
+				const results = data.data?.results ?? data.results ?? [];
+				setResults(results);
 			} catch (err) {
 				if (err instanceof Error && err.name === 'AbortError') {
 					// Request was cancelled, ignore.

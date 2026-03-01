@@ -55,13 +55,7 @@ export function AddressStep({ data, updateData, errors, cityBounds }: AddressSte
 					{__('Wo befindet sich die Immobilie?', 'resa')}
 				</h3>
 				<p className="resa-text-sm resa-text-muted-foreground resa-mt-1">
-					{cityBounds
-						? /* translators: %s: city name */
-							__('Geben Sie die Adresse in %s ein.', 'resa').replace(
-								'%s',
-								cityBounds.name,
-							)
-						: __('Geben Sie die Adresse der Immobilie ein.', 'resa')}
+					{__('Optional: Für eine genauere Bewertung.', 'resa')}
 				</p>
 			</div>
 
@@ -69,20 +63,17 @@ export function AddressStep({ data, updateData, errors, cityBounds }: AddressSte
 				value={currentValue}
 				onChange={handleChange}
 				boundTo={cityBounds}
-				placeholder={__('Straße und Hausnummer...', 'resa')}
+				placeholder={
+					cityBounds
+						? /* translators: %s: city name */
+							__('z.B. Musterstraße 1, %s', 'resa').replace('%s', cityBounds.name)
+						: __('Straße und Hausnummer...', 'resa')
+				}
 				error={errors?.address}
 				showMap={true}
 				mapHeight={200}
 				tileStyle="minimal"
 			/>
-
-			{/* Skip hint */}
-			<p className="resa-text-xs resa-text-muted-foreground resa-text-center resa-mt-4">
-				{__(
-					'Sie können diesen Schritt überspringen, wenn Sie die Adresse nicht angeben möchten.',
-					'resa',
-				)}
-			</p>
 		</div>
 	);
 }

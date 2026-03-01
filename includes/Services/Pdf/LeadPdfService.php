@@ -219,20 +219,24 @@ final class LeadPdfService {
 			$addressLng = isset( $location->longitude ) ? (float) $location->longitude : null;
 		}
 
-		// Generate static map URL if coordinates available.
-		$mapImageUrl = null;
+		// Get logo URL and convert to base64 for DOMPDF reliability.
+		$logoUrl      = (string) get_option( 'resa_branding_logo_url', '' );
+		$logoDataUri  = $this->convertImageToDataUri( $logoUrl );
+
+		// Generate static map directly with GD (more reliable than external services).
+		$mapDataUri = '';
 		if ( $addressLat !== null && $addressLng !== null ) {
-			$mapImageUrl = $this->getStaticMapUrl( $addressLat, $addressLng );
+			$mapDataUri = $this->generateStaticMap( $addressLat, $addressLng );
 		}
 
 		return [
 			'lead_name'         => $leadName,
 			'lead_salutation'   => $lead->salutation ?? '',
 			'property_type'     => $this->translatePropertyType( $inputs['property_type'] ?? $inputs['propertyType'] ?? '' ),
-			'property_address'  => $inputs['address'] ?? $cityName,
+			'property_address'  => $inputs['address'] ?? $inputs['address_display'] ?? $cityName,
 			'address_lat'       => $addressLat,
 			'address_lng'       => $addressLng,
-			'map_image_url'     => $mapImageUrl,
+			'map_image_url'     => $mapDataUri,
 			'living_area'       => (float) ( $inputs['size'] ?? $inputs['livingArea'] ?? 0 ),
 			'rooms'             => (float) ( $inputs['rooms'] ?? 0 ),
 			'construction_year' => (int) ( $inputs['year_built'] ?? $inputs['constructionYear'] ?? 0 ),
@@ -251,7 +255,7 @@ final class LeadPdfService {
 			'agent_email'       => $agent['email'],
 			'agent_phone'       => $agent['phone'],
 			'agent_company'     => $agent['company'],
-			'logo_url'          => (string) get_option( 'resa_branding_logo_url', '' ),
+			'logo_url'          => $logoDataUri ?: $logoUrl,
 			'primary_color'     => (string) get_option( 'resa_branding_primary_color', '#3b82f6' ),
 			'bar_chart_svg'     => $barChartSvg,
 		];
@@ -791,13 +795,191 @@ final class LeadPdfService {
 	}
 
 	/**
-	 * Generate static map image URL for PDF.
+	 * Generate static map image as base64 data URI.
 	 *
-	 * Uses OpenStreetMap Static Maps API (DSGVO-compliant, no API key required).
+	 * Fetches OSM tiles directly and composites them with PHP GD.
+	 * This is more reliable than external static map services.
 	 *
 	 * @param float $lat Latitude.
 	 * @param float $lng Longitude.
-	 * @return string Static map image URL.
+	 * @return string Base64 data URI of the map image.
+	 */
+	private function generateStaticMap( float $lat, float $lng ): string {
+		// Check if GD is available.
+		if ( ! extension_loaded( 'gd' ) ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'RESA: GD extension not loaded, cannot generate map' );
+			return '';
+		}
+
+		$zoom   = 15;
+		$width  = 500;
+		$height = 200;
+
+		// Convert lat/lng to tile coordinates.
+		$tileSize   = 256;
+		$centerX    = $this->lngToTileX( $lng, $zoom );
+		$centerY    = $this->latToTileY( $lat, $zoom );
+
+		// Calculate how many tiles we need.
+		$tilesX = (int) ceil( $width / $tileSize ) + 1;
+		$tilesY = (int) ceil( $height / $tileSize ) + 1;
+
+		// Create the output image.
+		$image = imagecreatetruecolor( $width, $height );
+		if ( $image === false ) {
+			return '';
+		}
+
+		// Fill with light gray background as fallback.
+		$bgColor = imagecolorallocate( $image, 240, 240, 240 );
+		imagefill( $image, 0, 0, $bgColor );
+
+		// Calculate the offset for centering.
+		$offsetX = (int) ( ( $centerX - floor( $centerX ) ) * $tileSize );
+		$offsetY = (int) ( ( $centerY - floor( $centerY ) ) * $tileSize );
+
+		// Starting tile.
+		$startTileX = (int) floor( $centerX ) - (int) floor( $tilesX / 2 );
+		$startTileY = (int) floor( $centerY ) - (int) floor( $tilesY / 2 );
+
+		// Starting position on canvas.
+		$startPosX = (int) ( $width / 2 ) - $offsetX - (int) floor( $tilesX / 2 ) * $tileSize;
+		$startPosY = (int) ( $height / 2 ) - $offsetY - (int) floor( $tilesY / 2 ) * $tileSize;
+
+		// Fetch and draw tiles.
+		for ( $y = 0; $y < $tilesY; $y++ ) {
+			for ( $x = 0; $x < $tilesX; $x++ ) {
+				$tileX = $startTileX + $x;
+				$tileY = $startTileY + $y;
+
+				// Wrap tile X coordinate.
+				$maxTile = pow( 2, $zoom );
+				$tileX   = ( $tileX % $maxTile + $maxTile ) % $maxTile;
+
+				// Skip invalid Y coordinates.
+				if ( $tileY < 0 || $tileY >= $maxTile ) {
+					continue;
+				}
+
+				$tileUrl = sprintf(
+					'https://tile.openstreetmap.org/%d/%d/%d.png',
+					$zoom,
+					$tileX,
+					$tileY
+				);
+
+				$tileData = $this->fetchTile( $tileUrl );
+				if ( $tileData !== '' ) {
+					$tile = @imagecreatefromstring( $tileData );
+					if ( $tile !== false ) {
+						$destX = $startPosX + ( $x * $tileSize );
+						$destY = $startPosY + ( $y * $tileSize );
+						imagecopy( $image, $tile, $destX, $destY, 0, 0, $tileSize, $tileSize );
+						imagedestroy( $tile );
+					}
+				}
+			}
+		}
+
+		// Draw a marker at the center.
+		$this->drawMarker( $image, (int) ( $width / 2 ), (int) ( $height / 2 ) );
+
+		// Convert to PNG data URI.
+		ob_start();
+		imagepng( $image, null, 6 );
+		$pngData = ob_get_clean();
+		imagedestroy( $image );
+
+		if ( empty( $pngData ) ) {
+			return '';
+		}
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		return 'data:image/png;base64,' . base64_encode( $pngData );
+	}
+
+	/**
+	 * Convert longitude to tile X coordinate.
+	 *
+	 * @param float $lng  Longitude.
+	 * @param int   $zoom Zoom level.
+	 * @return float Tile X coordinate.
+	 */
+	private function lngToTileX( float $lng, int $zoom ): float {
+		return ( ( $lng + 180 ) / 360 ) * pow( 2, $zoom );
+	}
+
+	/**
+	 * Convert latitude to tile Y coordinate.
+	 *
+	 * @param float $lat  Latitude.
+	 * @param int   $zoom Zoom level.
+	 * @return float Tile Y coordinate.
+	 */
+	private function latToTileY( float $lat, int $zoom ): float {
+		$latRad = deg2rad( $lat );
+		return ( 1 - log( tan( $latRad ) + 1 / cos( $latRad ) ) / M_PI ) / 2 * pow( 2, $zoom );
+	}
+
+	/**
+	 * Fetch a single tile image.
+	 *
+	 * @param string $url Tile URL.
+	 * @return string Binary PNG data, or empty string on failure.
+	 */
+	private function fetchTile( string $url ): string {
+		$response = wp_remote_get(
+			$url,
+			[
+				'timeout'    => 5,
+				'sslverify'  => false,
+				'user-agent' => 'RESA-WP-Plugin/1.0 (PDF Map Generator)',
+			]
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return '';
+		}
+
+		$statusCode = wp_remote_retrieve_response_code( $response );
+		if ( $statusCode !== 200 ) {
+			return '';
+		}
+
+		return wp_remote_retrieve_body( $response );
+	}
+
+	/**
+	 * Draw a location marker on the image.
+	 *
+	 * @param resource|\GdImage $image Image resource.
+	 * @param int               $x     X coordinate.
+	 * @param int               $y     Y coordinate.
+	 */
+	private function drawMarker( $image, int $x, int $y ): void {
+		// Marker colors.
+		$red    = imagecolorallocate( $image, 220, 38, 38 );
+		$white  = imagecolorallocate( $image, 255, 255, 255 );
+		$shadow = imagecolorallocate( $image, 0, 0, 0 );
+
+		// Draw shadow (offset ellipse).
+		imagefilledellipse( $image, $x + 1, $y + 1, 18, 18, $shadow );
+
+		// Draw outer circle (red).
+		imagefilledellipse( $image, $x, $y, 16, 16, $red );
+
+		// Draw inner circle (white).
+		imagefilledellipse( $image, $x, $y, 8, 8, $white );
+	}
+
+	/**
+	 * Legacy method for backwards compatibility.
+	 *
+	 * @param float $lat Latitude.
+	 * @param float $lng Longitude.
+	 * @return string Static map image URL (external service).
+	 * @deprecated Use generateStaticMap() instead.
 	 */
 	private function getStaticMapUrl( float $lat, float $lng ): string {
 		// OpenStreetMap Static Maps API.
@@ -809,5 +991,150 @@ final class LeadPdfService {
 			$lat,
 			$lng
 		);
+	}
+
+	/**
+	 * Convert an image URL to a base64 data URI for DOMPDF reliability.
+	 *
+	 * DOMPDF has issues with remote URLs (timeouts, SSL, redirects).
+	 * Converting to base64 data URIs ensures reliable image embedding.
+	 *
+	 * @param string $url Image URL (can be local path, WordPress upload URL, or external).
+	 * @return string Base64 data URI, or empty string on failure.
+	 */
+	private function convertImageToDataUri( string $url ): string {
+		if ( empty( $url ) ) {
+			return '';
+		}
+
+		// Try to convert WordPress upload URL to local path for faster access.
+		$localPath = $this->urlToLocalPath( $url );
+
+		if ( $localPath !== null && file_exists( $localPath ) ) {
+			// Read from local filesystem (faster, more reliable).
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			$imageData = file_get_contents( $localPath );
+			$mimeType  = $this->getMimeType( $localPath );
+		} else {
+			// Fetch from URL with timeout.
+			$response = wp_remote_get(
+				$url,
+				[
+					'timeout'   => 10,
+					'sslverify' => false, // Some hosts have SSL issues.
+				]
+			);
+
+			if ( is_wp_error( $response ) ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( 'RESA: Failed to fetch image for PDF: ' . $url . ' - ' . $response->get_error_message() );
+				return '';
+			}
+
+			$statusCode = wp_remote_retrieve_response_code( $response );
+			if ( $statusCode !== 200 ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( 'RESA: Image fetch returned HTTP ' . $statusCode . ' for: ' . $url );
+				return '';
+			}
+
+			$imageData = wp_remote_retrieve_body( $response );
+			$mimeType  = wp_remote_retrieve_header( $response, 'content-type' );
+
+			// Clean up mime type (remove charset, etc.).
+			if ( strpos( $mimeType, ';' ) !== false ) {
+				$mimeType = trim( explode( ';', $mimeType )[0] );
+			}
+		}
+
+		if ( empty( $imageData ) ) {
+			return '';
+		}
+
+		// Validate mime type.
+		$allowedMimes = [ 'image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/svg+xml' ];
+		if ( ! in_array( $mimeType, $allowedMimes, true ) ) {
+			// Try to detect from image data.
+			$mimeType = $this->detectMimeType( $imageData );
+			if ( ! in_array( $mimeType, $allowedMimes, true ) ) {
+				return '';
+			}
+		}
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		return 'data:' . $mimeType . ';base64,' . base64_encode( $imageData );
+	}
+
+	/**
+	 * Convert WordPress upload URL to local filesystem path.
+	 *
+	 * @param string $url URL to convert.
+	 * @return string|null Local path, or null if not a local upload.
+	 */
+	private function urlToLocalPath( string $url ): ?string {
+		$uploadDir = wp_upload_dir();
+		$baseUrl   = $uploadDir['baseurl'];
+		$basePath  = $uploadDir['basedir'];
+
+		// Check if URL is within uploads directory.
+		if ( strpos( $url, $baseUrl ) === 0 ) {
+			$relativePath = substr( $url, strlen( $baseUrl ) );
+			return $basePath . $relativePath;
+		}
+
+		// Check if it's already a local path.
+		if ( strpos( $url, ABSPATH ) === 0 && file_exists( $url ) ) {
+			return $url;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Get MIME type from file extension.
+	 *
+	 * @param string $path File path.
+	 * @return string MIME type.
+	 */
+	private function getMimeType( string $path ): string {
+		$extension = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) );
+
+		$mimeTypes = [
+			'png'  => 'image/png',
+			'jpg'  => 'image/jpeg',
+			'jpeg' => 'image/jpeg',
+			'gif'  => 'image/gif',
+			'webp' => 'image/webp',
+			'svg'  => 'image/svg+xml',
+		];
+
+		return $mimeTypes[ $extension ] ?? 'image/png';
+	}
+
+	/**
+	 * Detect MIME type from image binary data.
+	 *
+	 * @param string $data Binary image data.
+	 * @return string Detected MIME type.
+	 */
+	private function detectMimeType( string $data ): string {
+		// Check magic bytes.
+		$signatures = [
+			"\x89PNG"       => 'image/png',
+			"\xFF\xD8\xFF" => 'image/jpeg',
+			'GIF87a'        => 'image/gif',
+			'GIF89a'        => 'image/gif',
+			'RIFF'          => 'image/webp', // WebP starts with RIFF.
+			'<svg'          => 'image/svg+xml',
+			'<?xml'         => 'image/svg+xml', // SVG with XML declaration.
+		];
+
+		foreach ( $signatures as $signature => $mime ) {
+			if ( strpos( $data, $signature ) === 0 ) {
+				return $mime;
+			}
+		}
+
+		return 'application/octet-stream';
 	}
 }

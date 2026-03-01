@@ -160,9 +160,11 @@ class RentCalculatorController extends RestController {
 		$cities = array_map(
 			static function ( object $loc ): array {
 				return [
-					'id'   => (int) $loc->id,
-					'slug' => $loc->slug,
-					'name' => $loc->name,
+					'id'        => (int) $loc->id,
+					'slug'      => $loc->slug,
+					'name'      => $loc->name,
+					'latitude'  => isset( $loc->latitude ) ? (float) $loc->latitude : null,
+					'longitude' => isset( $loc->longitude ) ? (float) $loc->longitude : null,
 				];
 			},
 			$locations

@@ -83,6 +83,8 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 							city_id: city.id,
 							city_name: city.name,
 							city_slug: city.slug,
+							city_lat: city.latitude ?? undefined,
+							city_lng: city.longitude ?? undefined,
 						}));
 					}
 				}

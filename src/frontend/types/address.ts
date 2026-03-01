@@ -22,14 +22,15 @@ export interface AddressData {
 
 /**
  * Single geocoding result from API.
+ * Note: Field names match PHP snake_case API response.
  */
 export interface GeocodingResult {
 	/** Latitude */
-	latitude: number;
+	lat: number;
 	/** Longitude */
-	longitude: number;
+	lng: number;
 	/** Full display name */
-	displayName: string;
+	display_name: string;
 	/** City name */
 	city: string | null;
 	/** State/region */
@@ -37,9 +38,9 @@ export interface GeocodingResult {
 	/** Country name */
 	country: string | null;
 	/** ISO country code (de, at, ch) */
-	countryCode: string | null;
+	country_code: string | null;
 	/** Postal code */
-	postalCode: string | null;
+	postal_code: string | null;
 }
 
 /**

@@ -10,7 +10,6 @@
  */
 
 import { useState, useCallback } from 'react';
-import { __ } from '@wordpress/i18n';
 import { AddressAutocomplete } from '../map/AddressAutocomplete';
 import { ResaMap, type MapPosition } from '../map';
 import type { AddressData, AddressBounds } from '../../types/address';
@@ -65,11 +64,14 @@ export function AddressInput({
 	const mapCenter: MapPosition | null =
 		value?.lat && value?.lng ? { lat: value.lat, lng: value.lng } : null;
 
-	// Default center from boundTo if no selection yet.
-	const defaultCenter: MapPosition | null =
-		boundTo?.lat && boundTo?.lng ? { lat: boundTo.lat, lng: boundTo.lng } : null;
+	// Default center: from boundTo, or Germany center as fallback.
+	const defaultCenter: MapPosition =
+		boundTo?.lat && boundTo?.lng
+			? { lat: boundTo.lat, lng: boundTo.lng }
+			: { lat: 51.1657, lng: 10.4515 }; // Germany center
 
 	const displayCenter = mapCenter || defaultCenter;
+	const displayZoom = hasSelection ? 16 : boundTo?.lat ? 13 : 6;
 
 	return (
 		<div className={`resa-address-input ${className}`}>
@@ -83,12 +85,13 @@ export function AddressInput({
 				disabled={disabled}
 			/>
 
-			{/* Map preview */}
-			{showMap && displayCenter && (
+			{/* Map preview - key forces re-render on selection to zoom to new location */}
+			{showMap && (
 				<div className="resa-address-input__map">
 					<ResaMap
+						key={mapCenter ? `${mapCenter.lat}-${mapCenter.lng}` : 'default'}
 						center={displayCenter}
-						zoom={hasSelection ? 16 : boundTo?.lat ? 13 : 10}
+						zoom={displayZoom}
 						showMarker={hasSelection}
 						markerPosition={mapCenter || undefined}
 						height={mapHeight}
@@ -96,19 +99,6 @@ export function AddressInput({
 						lazyLoad={false}
 					/>
 				</div>
-			)}
-
-			{/* Help text */}
-			{!hasSelection && !error && (
-				<p className="resa-address-input__hint">
-					{boundTo
-						? /* translators: %s: city/region name */
-							__('Geben Sie eine Adresse in %s ein.', 'resa').replace(
-								'%s',
-								boundTo.name,
-							)
-						: __('Geben Sie Straße und Hausnummer ein.', 'resa')}
-				</p>
 			)}
 
 			{/* Selected address display */}
