@@ -2,7 +2,8 @@
  * ResaMap — Provider-agnostic map component.
  *
  * Abstracts the map provider (Leaflet/OSM or Google Maps) and handles
- * lazy loading via Intersection Observer.
+ * lazy loading via Intersection Observer. Google Maps requires user
+ * consent before loading (GDPR compliance).
  *
  * Usage:
  * ```tsx
@@ -14,7 +15,10 @@
  * ```
  */
 
+import { useState, useCallback } from 'react';
 import { LeafletMap, type MapPosition, type TileStyle } from './LeafletMap';
+import { GoogleMap } from './GoogleMap';
+import { GoogleMapConsent } from './GoogleMapConsent';
 import { MapPlaceholder } from './MapPlaceholder';
 
 export type MapProvider = 'osm' | 'google';
@@ -47,6 +51,8 @@ interface ResaMapProps {
 	config?: Partial<ResaMapConfig>;
 	/** Enable lazy loading */
 	lazyLoad?: boolean;
+	/** Skip GDPR consent for Google Maps (use only if consent handled externally) */
+	skipConsent?: boolean;
 	/** Additional CSS class */
 	className?: string;
 }
@@ -58,6 +64,9 @@ const DEFAULT_CONFIG: ResaMapConfig = {
 	defaultZoom: 13,
 	scrollZoom: false,
 };
+
+// Session storage key for Google Maps consent
+const CONSENT_STORAGE_KEY = 'resa_google_maps_consent';
 
 /**
  * Get map configuration from window.resaConfig or use defaults.
@@ -77,6 +86,29 @@ function getMapConfig(): ResaMapConfig {
 	return DEFAULT_CONFIG;
 }
 
+/**
+ * Check if user has already consented to Google Maps in this session.
+ */
+function hasGoogleMapsConsent(): boolean {
+	try {
+		return sessionStorage.getItem(CONSENT_STORAGE_KEY) === 'true';
+	} catch {
+		// sessionStorage not available
+		return false;
+	}
+}
+
+/**
+ * Save Google Maps consent to session storage.
+ */
+function saveGoogleMapsConsent(): void {
+	try {
+		sessionStorage.setItem(CONSENT_STORAGE_KEY, 'true');
+	} catch {
+		// sessionStorage not available
+	}
+}
+
 export function ResaMap({
 	center,
 	zoom,
@@ -85,6 +117,7 @@ export function ResaMap({
 	height = 250,
 	config: configOverride,
 	lazyLoad = true,
+	skipConsent = false,
 	className = '',
 }: ResaMapProps) {
 	// Merge configuration
@@ -94,28 +127,50 @@ export function ResaMap({
 	};
 
 	const effectiveZoom = zoom ?? config.defaultZoom ?? 13;
+	const isGoogleMaps = config.provider === 'google' && config.googleApiKey;
+
+	// Track consent state for Google Maps
+	const [hasConsented, setHasConsented] = useState(() => {
+		// Skip consent check if not using Google Maps or if skipConsent is true
+		if (!isGoogleMaps || skipConsent) return true;
+		return hasGoogleMapsConsent();
+	});
+
+	const handleConsent = useCallback(() => {
+		saveGoogleMapsConsent();
+		setHasConsented(true);
+	}, []);
 
 	// Render the appropriate map component
 	const renderMap = () => {
-		// Google Maps support (Phase 5 - placeholder for now)
-		if (config.provider === 'google' && config.googleApiKey) {
-			// TODO: Implement GoogleMap component in Phase 5
-			// For now, fall back to Leaflet
+		// Google Maps with API key
+		if (isGoogleMaps) {
+			// Show consent dialog if not yet consented
+			if (!hasConsented) {
+				return (
+					<GoogleMapConsent
+						height={height}
+						onAccept={handleConsent}
+						className={className}
+					/>
+				);
+			}
+
 			return (
-				<LeafletMap
+				<GoogleMap
+					apiKey={config.googleApiKey!}
 					center={center}
 					zoom={effectiveZoom}
 					showMarker={showMarker}
 					markerPosition={markerPosition}
 					height={height}
 					scrollWheelZoom={config.scrollZoom}
-					tileStyle={config.tileStyle}
 					className={className}
 				/>
 			);
 		}
 
-		// Default: Leaflet/OSM
+		// Default: Leaflet/OSM (no consent needed)
 		return (
 			<LeafletMap
 				center={center}
@@ -130,8 +185,8 @@ export function ResaMap({
 		);
 	};
 
-	// Wrap in lazy loader if enabled
-	if (lazyLoad) {
+	// Wrap in lazy loader if enabled (only for actual maps, not consent)
+	if (lazyLoad && hasConsented) {
 		return (
 			<MapPlaceholder height={height} className={className}>
 				{renderMap()}
