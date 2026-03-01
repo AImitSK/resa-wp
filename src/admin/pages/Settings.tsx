@@ -18,10 +18,17 @@ import {
 	FileText,
 	X,
 	Image,
+	Map,
 } from 'lucide-react';
 import { AdminPageLayout } from '../components/AdminPageLayout';
 import { useAgentData, useSaveAgentData, type AgentData } from '../hooks/useAgentData';
 import { useBranding, useSaveBranding, type BrandingSettings } from '../hooks/useBranding';
+import {
+	useMapSettings,
+	useSaveMapSettings,
+	type MapSettings,
+	type TileStyle,
+} from '../hooks/useMapSettings';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -34,7 +41,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 
-type SettingsTab = 'agent' | 'branding' | 'license' | 'gdpr';
+type SettingsTab = 'agent' | 'branding' | 'maps' | 'license' | 'gdpr';
 
 export function Settings() {
 	const [activeTab, setActiveTab] = useState<SettingsTab>('agent');
@@ -83,6 +90,10 @@ export function Settings() {
 						<Palette style={{ width: '16px', height: '16px' }} />
 						{__('Branding', 'resa')}
 					</TabsTrigger>
+					<TabsTrigger value="maps" style={tabStyle(activeTab === 'maps')}>
+						<Map style={{ width: '16px', height: '16px' }} />
+						{__('Karten', 'resa')}
+					</TabsTrigger>
 					<TabsTrigger value="license" style={tabStyle(activeTab === 'license')}>
 						<Key style={{ width: '16px', height: '16px' }} />
 						{__('Lizenz', 'resa')}
@@ -97,6 +108,7 @@ export function Settings() {
 			{/* Tab Content */}
 			{activeTab === 'agent' && <AgentDataTab />}
 			{activeTab === 'branding' && <BrandingTab />}
+			{activeTab === 'maps' && <MapsTab />}
 			{activeTab === 'license' && <LicenseTab />}
 			{activeTab === 'gdpr' && <GdprTab />}
 		</AdminPageLayout>
@@ -770,6 +782,358 @@ function BrandingForm({ initialData }: { initialData: BrandingSettings | undefin
 							disabled={!isPremium}
 						/>
 					</div>
+				</div>
+			</div>
+
+			{/* Save Button */}
+			<div className="resa-flex resa-justify-end resa-pt-4">
+				<Button
+					type="submit"
+					disabled={!isDirty || saveMutation.isPending}
+					style={{
+						backgroundColor: isDirty ? '#a9e43f' : 'hsl(210 40% 96.1%)',
+						color: '#1e303a',
+						border: 'none',
+					}}
+				>
+					{__('Speichern', 'resa')}
+				</Button>
+			</div>
+		</form>
+	);
+}
+
+/**
+ * Maps Tab — map provider and tile style settings.
+ */
+function MapsTab() {
+	const { data: mapSettings, isLoading, error } = useMapSettings();
+
+	if (isLoading) {
+		return (
+			<div className="resa-flex resa-items-center resa-justify-center resa-gap-2 resa-py-12">
+				<Spinner className="resa-size-5" />
+				<span className="resa-text-muted-foreground">
+					{__('Lade Karteneinstellungen...', 'resa')}
+				</span>
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<Alert variant="destructive">
+				<AlertTitle>{__('Fehler beim Laden', 'resa')}</AlertTitle>
+				<AlertDescription>
+					{__('Die Karteneinstellungen konnten nicht geladen werden.', 'resa')}
+				</AlertDescription>
+			</Alert>
+		);
+	}
+
+	return <MapsForm initialData={mapSettings} />;
+}
+
+/** Tile style options with labels. */
+const TILE_STYLE_OPTIONS: { value: TileStyle; label: string; description: string }[] = [
+	{
+		value: 'standard',
+		label: __('Standard', 'resa'),
+		description: __('OpenStreetMap Standard-Kacheln', 'resa'),
+	},
+	{
+		value: 'minimal',
+		label: __('Minimal', 'resa'),
+		description: __('Helle, dezente CartoDB Positron Kacheln', 'resa'),
+	},
+	{
+		value: 'dark',
+		label: __('Dunkel', 'resa'),
+		description: __('Dunkle CartoDB Dark Matter Kacheln', 'resa'),
+	},
+];
+
+/** Zoom level options. */
+const ZOOM_OPTIONS = [
+	{ value: 5, label: __('Land', 'resa') },
+	{ value: 8, label: __('Region', 'resa') },
+	{ value: 10, label: __('Großraum', 'resa') },
+	{ value: 12, label: __('Stadt', 'resa') },
+	{ value: 13, label: __('Stadtteil', 'resa') },
+	{ value: 15, label: __('Viertel', 'resa') },
+	{ value: 17, label: __('Straße', 'resa') },
+];
+
+function MapsForm({ initialData }: { initialData: MapSettings | undefined }) {
+	const saveMutation = useSaveMapSettings();
+
+	const [form, setForm] = useState<MapSettings>(
+		initialData ?? {
+			provider: 'osm',
+			tileStyle: 'minimal',
+			defaultZoom: 13,
+			googleApiKey: '',
+			scrollZoom: false,
+			canUseGoogle: false,
+			canSelectStyle: false,
+		},
+	);
+	const [isDirty, setIsDirty] = useState(false);
+
+	const updateField = <K extends keyof MapSettings>(key: K, value: MapSettings[K]) => {
+		setForm((prev) => ({ ...prev, [key]: value }));
+		setIsDirty(true);
+	};
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+
+		await saveMutation.mutateAsync({
+			provider: form.provider,
+			tileStyle: form.tileStyle,
+			defaultZoom: form.defaultZoom,
+			googleApiKey: form.googleApiKey,
+			scrollZoom: form.scrollZoom,
+		});
+
+		setIsDirty(false);
+	};
+
+	return (
+		<form onSubmit={handleSubmit} className="resa-space-y-6">
+			{/* Header */}
+			<div style={{ marginBottom: '24px' }}>
+				<h3 className="resa-text-lg resa-font-semibold" style={{ margin: 0 }}>
+					{__('Karteneinstellungen', 'resa')}
+				</h3>
+				<p
+					className="resa-text-sm resa-text-muted-foreground"
+					style={{ margin: 0, marginTop: '2px' }}
+				>
+					{__(
+						'Kartenanbieter, Stil und Standardeinstellungen für Standortkarten.',
+						'resa',
+					)}
+				</p>
+			</div>
+
+			{/* Provider Selection */}
+			<div className="resa-space-y-4" style={{ marginTop: 0 }}>
+				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+					{__('Kartenanbieter', 'resa')}
+				</h3>
+				<div className="resa-space-y-3" style={{ maxWidth: '400px' }}>
+					{/* OSM Option */}
+					<label
+						className="resa-flex resa-items-start resa-gap-3 resa-p-3 resa-rounded-lg resa-cursor-pointer"
+						style={{
+							border:
+								form.provider === 'osm'
+									? '2px solid #a9e43f'
+									: '1px solid hsl(214.3 31.8% 91.4%)',
+							backgroundColor:
+								form.provider === 'osm' ? 'hsl(210 40% 98%)' : 'transparent',
+						}}
+					>
+						<input
+							type="radio"
+							name="provider"
+							value="osm"
+							checked={form.provider === 'osm'}
+							onChange={() => updateField('provider', 'osm')}
+							className="resa-mt-1"
+						/>
+						<div>
+							<span className="resa-font-medium">{__('OpenStreetMap', 'resa')}</span>
+							<p
+								className="resa-text-sm resa-text-muted-foreground"
+								style={{ margin: 0, marginTop: '2px' }}
+							>
+								{__('Kostenlos, kein API-Key nötig, DSGVO-freundlich.', 'resa')}
+							</p>
+						</div>
+					</label>
+
+					{/* Google Maps Option */}
+					<label
+						className="resa-flex resa-items-start resa-gap-3 resa-p-3 resa-rounded-lg"
+						style={{
+							border:
+								form.provider === 'google'
+									? '2px solid #a9e43f'
+									: '1px solid hsl(214.3 31.8% 91.4%)',
+							backgroundColor:
+								form.provider === 'google' ? 'hsl(210 40% 98%)' : 'transparent',
+							opacity: form.canUseGoogle ? 1 : 0.6,
+							cursor: form.canUseGoogle ? 'pointer' : 'not-allowed',
+						}}
+					>
+						<input
+							type="radio"
+							name="provider"
+							value="google"
+							checked={form.provider === 'google'}
+							onChange={() => form.canUseGoogle && updateField('provider', 'google')}
+							disabled={!form.canUseGoogle}
+							className="resa-mt-1"
+						/>
+						<div className="resa-flex-1">
+							<div className="resa-flex resa-items-center resa-gap-2">
+								<span className="resa-font-medium">
+									{__('Google Maps', 'resa')}
+								</span>
+								{!form.canUseGoogle && (
+									<Badge variant="secondary" style={{ fontSize: '10px' }}>
+										PRO
+									</Badge>
+								)}
+							</div>
+							<p
+								className="resa-text-sm resa-text-muted-foreground"
+								style={{ margin: 0, marginTop: '2px' }}
+							>
+								{__('Google Maps API mit Places Autocomplete.', 'resa')}
+							</p>
+						</div>
+					</label>
+				</div>
+			</div>
+
+			{/* Google API Key (only shown when Google is selected and available) */}
+			{form.provider === 'google' && form.canUseGoogle && (
+				<div className="resa-space-y-4">
+					<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+						{__('Google Maps API', 'resa')}
+					</h3>
+					<div className="resa-space-y-2" style={{ maxWidth: '400px' }}>
+						<Label htmlFor="google-api-key">
+							<span className="resa-flex resa-items-center resa-gap-1.5">
+								<Key
+									style={{
+										width: '14px',
+										height: '14px',
+										color: 'hsl(215.4 16.3% 46.9%)',
+									}}
+								/>
+								{__('API-Key', 'resa')}
+							</span>
+						</Label>
+						<Input
+							id="google-api-key"
+							type="password"
+							value={form.googleApiKey}
+							onChange={(e) => updateField('googleApiKey', e.target.value)}
+							placeholder="AIzaSy..."
+						/>
+						<p className="resa-text-xs resa-text-muted-foreground">
+							{__('Google Cloud Console → APIs & Services → Credentials', 'resa')}
+						</p>
+					</div>
+				</div>
+			)}
+
+			{/* Tile Style */}
+			<div className="resa-space-y-4">
+				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+					{__('Kartenstil', 'resa')}
+				</h3>
+				<div className="resa-space-y-2" style={{ maxWidth: '400px' }}>
+					<Label htmlFor="tile-style">
+						<span className="resa-flex resa-items-center resa-gap-1.5">
+							<Palette
+								style={{
+									width: '14px',
+									height: '14px',
+									color: 'hsl(215.4 16.3% 46.9%)',
+								}}
+							/>
+							{__('Kachel-Stil', 'resa')}
+							{!form.canSelectStyle && (
+								<Badge
+									variant="secondary"
+									style={{ fontSize: '10px', marginLeft: '4px' }}
+								>
+									PRO
+								</Badge>
+							)}
+						</span>
+					</Label>
+					<select
+						id="tile-style"
+						className="resa-flex resa-h-9 resa-w-full resa-rounded-md resa-border resa-border-input resa-bg-transparent resa-px-3 resa-py-1 resa-text-sm resa-shadow-sm resa-transition-colors focus:resa-outline-none focus:resa-ring-1 focus:resa-ring-ring"
+						value={form.tileStyle}
+						onChange={(e) => updateField('tileStyle', e.target.value as TileStyle)}
+						disabled={!form.canSelectStyle}
+					>
+						{TILE_STYLE_OPTIONS.map((option) => (
+							<option key={option.value} value={option.value}>
+								{option.label} — {option.description}
+							</option>
+						))}
+					</select>
+					{!form.canSelectStyle && (
+						<p className="resa-text-xs resa-text-muted-foreground">
+							{__('Im Free-Plan wird der minimale Stil verwendet.', 'resa')}
+						</p>
+					)}
+				</div>
+			</div>
+
+			{/* Default Zoom */}
+			<div className="resa-space-y-4">
+				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+					{__('Standardeinstellungen', 'resa')}
+				</h3>
+				<div
+					className="resa-grid resa-grid-cols-2 resa-gap-4"
+					style={{ maxWidth: '400px' }}
+				>
+					<div className="resa-space-y-2">
+						<Label htmlFor="default-zoom">{__('Standard-Zoom', 'resa')}</Label>
+						<select
+							id="default-zoom"
+							className="resa-flex resa-h-9 resa-w-full resa-rounded-md resa-border resa-border-input resa-bg-transparent resa-px-3 resa-py-1 resa-text-sm resa-shadow-sm resa-transition-colors focus:resa-outline-none focus:resa-ring-1 focus:resa-ring-ring"
+							value={form.defaultZoom}
+							onChange={(e) =>
+								updateField('defaultZoom', parseInt(e.target.value, 10))
+							}
+						>
+							{ZOOM_OPTIONS.map((option) => (
+								<option key={option.value} value={option.value}>
+									{option.value} — {option.label}
+								</option>
+							))}
+						</select>
+					</div>
+				</div>
+			</div>
+
+			{/* Scroll Zoom Toggle */}
+			<div className="resa-space-y-4">
+				<div
+					className="resa-flex resa-items-center resa-justify-between"
+					style={{
+						padding: '16px',
+						backgroundColor: 'hsl(210 40% 98%)',
+						borderRadius: '8px',
+						maxWidth: '400px',
+					}}
+				>
+					<div>
+						<p style={{ margin: 0, fontWeight: 500, color: '#1e303a' }}>
+							{__('Scroll-Zoom aktivieren', 'resa')}
+						</p>
+						<p
+							className="resa-text-sm resa-text-muted-foreground"
+							style={{ margin: 0, marginTop: '2px' }}
+						>
+							{__('Erlaubt Zoomen mit dem Mausrad auf der Karte.', 'resa')}
+						</p>
+					</div>
+					<Switch
+						checked={form.scrollZoom}
+						onCheckedChange={(checked) => updateField('scrollZoom', checked)}
+					/>
 				</div>
 			</div>
 

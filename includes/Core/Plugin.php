@@ -11,6 +11,7 @@ use Resa\Api\GeocodingController;
 use Resa\Api\HealthController;
 use Resa\Api\LeadsController;
 use Resa\Api\LocationsController;
+use Resa\Api\MapSettingsController;
 use Resa\Api\ModulesController;
 use Resa\Api\ModuleSettingsController;
 use Resa\Api\TrackingController;
@@ -137,6 +138,7 @@ final class Plugin {
 			new HealthController(),
 			new LeadsController(),
 			new LocationsController(),
+			new MapSettingsController(),
 			new ModulesController(),
 			new ModuleSettingsController(),
 			new TrackingController(),
