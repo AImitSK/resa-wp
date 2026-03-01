@@ -79,6 +79,9 @@ export function Locations() {
 				country: formData.country,
 				bundesland: formData.bundesland,
 				region_type: formData.region_type,
+				latitude: formData.latitude,
+				longitude: formData.longitude,
+				zoom_level: formData.zoom_level,
 				data: formData.data,
 			});
 			setView('list');
@@ -97,6 +100,9 @@ export function Locations() {
 					country: formData.country,
 					bundesland: formData.bundesland,
 					region_type: formData.region_type,
+					latitude: formData.latitude,
+					longitude: formData.longitude,
+					zoom_level: formData.zoom_level,
 					data: formData.data,
 				},
 			});
@@ -134,6 +140,9 @@ export function Locations() {
 				country: editingLocation.country ?? '',
 				bundesland: editingLocation.bundesland ?? '',
 				region_type: editingLocation.region_type ?? 'medium_city',
+				latitude: editingLocation.latitude,
+				longitude: editingLocation.longitude,
+				zoom_level: editingLocation.zoom_level ?? 13,
 				data: (editingLocation.data as LocationFormData['data']) ?? {
 					grunderwerbsteuer: 5.0,
 					maklerprovision: 3.57,

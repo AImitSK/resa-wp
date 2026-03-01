@@ -198,6 +198,22 @@ class LocationsController extends RestController {
 			'is_active'   => $request->get_param( 'is_active' ) ?? true,
 		];
 
+		// Coordinate fields.
+		$latitude = $request->get_param( 'latitude' );
+		if ( $latitude !== null ) {
+			$locationData['latitude'] = (float) $latitude;
+		}
+
+		$longitude = $request->get_param( 'longitude' );
+		if ( $longitude !== null ) {
+			$locationData['longitude'] = (float) $longitude;
+		}
+
+		$zoomLevel = $request->get_param( 'zoom_level' );
+		if ( $zoomLevel !== null ) {
+			$locationData['zoom_level'] = absint( $zoomLevel );
+		}
+
 		$id = Location::create( $locationData );
 
 		if ( $id === false ) {
@@ -244,6 +260,19 @@ class LocationsController extends RestController {
 
 		if ( array_key_exists( 'is_active', $params ) ) {
 			$updateData['is_active'] = $params['is_active'];
+		}
+
+		// Coordinate fields.
+		if ( array_key_exists( 'latitude', $params ) ) {
+			$updateData['latitude'] = $params['latitude'] !== null ? (float) $params['latitude'] : null;
+		}
+
+		if ( array_key_exists( 'longitude', $params ) ) {
+			$updateData['longitude'] = $params['longitude'] !== null ? (float) $params['longitude'] : null;
+		}
+
+		if ( array_key_exists( 'zoom_level', $params ) ) {
+			$updateData['zoom_level'] = absint( $params['zoom_level'] );
 		}
 
 		$success = Location::update( $id, $updateData );
@@ -304,6 +333,9 @@ class LocationsController extends RestController {
 			'bundesland'  => $location->bundesland,
 			'region_type' => $location->region_type,
 			'currency'    => $location->currency,
+			'latitude'    => isset( $location->latitude ) ? (float) $location->latitude : null,
+			'longitude'   => isset( $location->longitude ) ? (float) $location->longitude : null,
+			'zoom_level'  => isset( $location->zoom_level ) ? (int) $location->zoom_level : 13,
 			'data'        => json_decode( $location->data ?? '{}', true ),
 			'factors'     => json_decode( $location->factors ?? 'null', true ),
 			'agent_id'    => $location->agent_id ? (int) $location->agent_id : null,

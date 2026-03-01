@@ -15,7 +15,7 @@ final class Schema {
 	/**
 	 * Current schema version.
 	 */
-	public const VERSION = '0.3.0';
+	public const VERSION = '0.4.0';
 
 	/**
 	 * Run migrations from the given version to current.
@@ -35,6 +35,10 @@ final class Schema {
 
 		if ( version_compare( $fromVersion, '0.3.0', '<' ) ) {
 			self::migrateToV030();
+		}
+
+		if ( version_compare( $fromVersion, '0.4.0', '<' ) ) {
+			self::migrateToV040();
 		}
 
 		update_option( 'resa_db_version', self::VERSION );
@@ -293,6 +297,47 @@ CREATE TABLE {$prefix}resa_agent_locations (
 		if ( ! $imprint_exists ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN imprint_url VARCHAR(500) DEFAULT NULL AFTER website" );
+		}
+	}
+
+	/**
+	 * v0.4.0 — Add location coordinates for maps.
+	 *
+	 * Adds latitude, longitude, and zoom_level columns to resa_locations.
+	 */
+	private static function migrateToV040(): void {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'resa_locations';
+
+		// Add latitude column if not exists.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$latitude_exists = $wpdb->get_var(
+			"SHOW COLUMNS FROM {$table} LIKE 'latitude'"
+		);
+		if ( ! $latitude_exists ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN latitude DECIMAL(10,8) DEFAULT NULL AFTER currency" );
+		}
+
+		// Add longitude column if not exists.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$longitude_exists = $wpdb->get_var(
+			"SHOW COLUMNS FROM {$table} LIKE 'longitude'"
+		);
+		if ( ! $longitude_exists ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN longitude DECIMAL(11,8) DEFAULT NULL AFTER latitude" );
+		}
+
+		// Add zoom_level column if not exists.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$zoom_exists = $wpdb->get_var(
+			"SHOW COLUMNS FROM {$table} LIKE 'zoom_level'"
+		);
+		if ( ! $zoom_exists ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN zoom_level TINYINT UNSIGNED DEFAULT 13 AFTER longitude" );
 		}
 	}
 }

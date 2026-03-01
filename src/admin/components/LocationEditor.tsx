@@ -3,15 +3,17 @@
  *
  * Simplified version: Only basic location info (name, region, taxes).
  * Calculation factors are now managed in module settings.
+ * Now includes map picker for setting coordinates.
  */
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { __ } from '@wordpress/i18n';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { LocationMapPicker } from './LocationMapPicker';
 
 interface LocationEditorProps {
 	initialData?: LocationFormData;
@@ -26,6 +28,9 @@ export interface LocationFormData {
 	country: string;
 	bundesland: string;
 	region_type: string;
+	latitude?: number | null;
+	longitude?: number | null;
+	zoom_level?: number;
 	data: {
 		grunderwerbsteuer?: number;
 		maklerprovision?: number;
@@ -58,6 +63,9 @@ const emptyForm: LocationFormData = {
 	country: '',
 	bundesland: '',
 	region_type: 'medium_city',
+	latitude: null,
+	longitude: null,
+	zoom_level: 13,
 	data: {
 		grunderwerbsteuer: 5.0,
 		maklerprovision: 3.57,
@@ -75,6 +83,18 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 			slug: autoSlug ? slugify(name) : prev.slug,
 		}));
 	};
+
+	const handleCoordinatesChange = useCallback(
+		(lat: number | null, lng: number | null, zoom: number) => {
+			setForm((prev) => ({
+				...prev,
+				latitude: lat,
+				longitude: lng,
+				zoom_level: zoom,
+			}));
+		},
+		[],
+	);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -165,6 +185,19 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 						</select>
 					</div>
 				</div>
+			</div>
+
+			{/* Map Picker */}
+			<div className="resa-space-y-4">
+				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+					{__('Kartenposition', 'resa')}
+				</h3>
+				<LocationMapPicker
+					latitude={form.latitude}
+					longitude={form.longitude}
+					zoomLevel={form.zoom_level ?? 13}
+					onCoordinatesChange={handleCoordinatesChange}
+				/>
 			</div>
 
 			{/* Tax and commission rates */}

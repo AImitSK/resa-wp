@@ -13,6 +13,9 @@ export interface LocationAdmin {
 	bundesland: string;
 	region_type: string;
 	currency: string;
+	latitude: number | null;
+	longitude: number | null;
+	zoom_level: number;
 	data: Record<string, unknown>;
 	factors: Record<string, unknown> | null;
 	agent_id: number | null;
@@ -27,6 +30,9 @@ interface CreateLocationData {
 	country?: string;
 	bundesland?: string;
 	region_type?: string;
+	latitude?: number | null;
+	longitude?: number | null;
+	zoom_level?: number;
 	data?: Record<string, unknown>;
 	factors?: Record<string, unknown> | null;
 	is_active?: boolean;

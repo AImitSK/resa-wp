@@ -39,6 +39,9 @@ final class Location {
 				'bundesland'  => sanitize_text_field( $data['bundesland'] ?? '' ),
 				'region_type' => sanitize_text_field( $data['region_type'] ?? 'city' ),
 				'currency'    => sanitize_text_field( $data['currency'] ?? 'EUR' ),
+				'latitude'    => isset( $data['latitude'] ) ? (float) $data['latitude'] : null,
+				'longitude'   => isset( $data['longitude'] ) ? (float) $data['longitude'] : null,
+				'zoom_level'  => isset( $data['zoom_level'] ) ? absint( $data['zoom_level'] ) : 13,
 				'data'        => wp_json_encode( $data['data'] ?? [] ),
 				'factors'     => isset( $data['factors'] ) ? wp_json_encode( $data['factors'] ) : null,
 				'agent_id'    => isset( $data['agent_id'] ) ? absint( $data['agent_id'] ) : null,
@@ -47,7 +50,7 @@ final class Location {
 				'updated_at'  => current_time( 'mysql' ),
 			],
 			[
-				'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s', '%s',
+				'%s', '%s', '%s', '%s', '%s', '%s', '%f', '%f', '%d', '%s', '%s', '%d', '%d', '%s', '%s',
 			]
 		);
 
@@ -171,6 +174,22 @@ final class Location {
 		if ( array_key_exists( 'is_active', $data ) ) {
 			$fields['is_active'] = (int) $data['is_active'];
 			$formats[]           = '%d';
+		}
+
+		// Coordinate fields (wpdb handles null correctly with %f/%d).
+		if ( array_key_exists( 'latitude', $data ) ) {
+			$fields['latitude'] = $data['latitude'] !== null ? (float) $data['latitude'] : null;
+			$formats[]          = '%f';
+		}
+
+		if ( array_key_exists( 'longitude', $data ) ) {
+			$fields['longitude'] = $data['longitude'] !== null ? (float) $data['longitude'] : null;
+			$formats[]           = '%f';
+		}
+
+		if ( array_key_exists( 'zoom_level', $data ) ) {
+			$fields['zoom_level'] = absint( $data['zoom_level'] );
+			$formats[]            = '%d';
 		}
 
 		if ( empty( $fields ) ) {
