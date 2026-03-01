@@ -3,19 +3,21 @@
  *
  * Features:
  * - Interactive map with clickable/draggable marker
+ * - Address search with autocomplete (Nominatim/OSM)
  * - Latitude/Longitude input fields (auto-filled on marker move)
  * - Zoom level selector
  * - Instructions for users
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { __ } from '@wordpress/i18n';
-import { MapPin, Navigation } from 'lucide-react';
+import { MapPin, Navigation, Search, Loader2 } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { LeafletMapWrapper, type MapPosition } from './map/LeafletMapWrapper';
+import { useGeocoding, type GeocodingResult } from '../hooks/useGeocoding';
 
 interface LocationMapPickerProps {
 	/** Initial latitude */
@@ -56,6 +58,40 @@ export function LocationMapPicker({
 	const [latInput, setLatInput] = useState<string>(latitude?.toString() ?? '');
 	const [lngInput, setLngInput] = useState<string>(longitude?.toString() ?? '');
 	const [zoom, setZoom] = useState<number>(zoomLevel);
+
+	// Address search state
+	const [searchQuery, setSearchQuery] = useState('');
+	const [debouncedQuery, setDebouncedQuery] = useState('');
+	const [showResults, setShowResults] = useState(false);
+	const searchRef = useRef<HTMLDivElement>(null);
+
+	// Debounce search query
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			setDebouncedQuery(searchQuery);
+		}, 300);
+
+		return () => clearTimeout(timer);
+	}, [searchQuery]);
+
+	// Geocoding query
+	const {
+		data: searchResults,
+		isLoading: isSearching,
+		isFetched,
+	} = useGeocoding(debouncedQuery, showResults);
+
+	// Close dropdown when clicking outside
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+				setShowResults(false);
+			}
+		};
+
+		document.addEventListener('mousedown', handleClickOutside);
+		return () => document.removeEventListener('mousedown', handleClickOutside);
+	}, []);
 
 	// Determine map center and marker position
 	const hasCoordinates =
@@ -166,8 +202,92 @@ export function LocationMapPicker({
 		);
 	};
 
+	// Handle selecting a search result
+	const handleSelectResult = (result: GeocodingResult) => {
+		const lat = Math.round(result.lat * 1000000) / 1000000;
+		const lng = Math.round(result.lng * 1000000) / 1000000;
+
+		setLatInput(lat.toString());
+		setLngInput(lng.toString());
+		setZoom(13);
+		setSearchQuery('');
+		setShowResults(false);
+		onCoordinatesChange(lat, lng, 13);
+	};
+
 	return (
 		<div className="resa-space-y-4">
+			{/* Address Search */}
+			<div ref={searchRef} className="resa-relative">
+				<Label htmlFor="address-search" className="resa-mb-2 resa-block">
+					{__('Adresse suchen', 'resa')}
+				</Label>
+				<div className="resa-relative">
+					<Search
+						className="resa-absolute resa-left-3 resa-top-1/2 resa--translate-y-1/2 resa-text-muted-foreground"
+						style={{ width: '16px', height: '16px' }}
+					/>
+					<Input
+						id="address-search"
+						type="text"
+						value={searchQuery}
+						onChange={(e) => {
+							setSearchQuery(e.target.value);
+							setShowResults(true);
+						}}
+						onFocus={() => setShowResults(true)}
+						placeholder={__(
+							'z.B. "Bad Oeynhausen" oder "Bahnhofstraße 15, München"',
+							'resa',
+						)}
+						className="resa-pl-10"
+					/>
+					{isSearching && (
+						<Loader2
+							className="resa-absolute resa-right-3 resa-top-1/2 resa--translate-y-1/2 resa-animate-spin resa-text-muted-foreground"
+							style={{ width: '16px', height: '16px' }}
+						/>
+					)}
+				</div>
+
+				{/* Search Results Dropdown */}
+				{showResults && debouncedQuery.length >= 2 && (
+					<div
+						className="resa-absolute resa-z-50 resa-w-full resa-mt-1 resa-bg-background resa-border resa-border-input resa-rounded-md resa-shadow-lg resa-max-h-60 resa-overflow-auto"
+						style={{ top: '100%' }}
+					>
+						{isSearching ? (
+							<div className="resa-p-3 resa-text-sm resa-text-muted-foreground resa-text-center">
+								{__('Suche...', 'resa')}
+							</div>
+						) : searchResults && searchResults.length > 0 ? (
+							<ul className="resa-py-1">
+								{searchResults.map((result, index) => (
+									<li key={`${result.lat}-${result.lng}-${index}`}>
+										<button
+											type="button"
+											className="resa-w-full resa-px-3 resa-py-2 resa-text-left resa-text-sm hover:resa-bg-accent resa-transition-colors"
+											onClick={() => handleSelectResult(result)}
+										>
+											<span className="resa-block resa-font-medium">
+												{result.city || result.display_name.split(',')[0]}
+											</span>
+											<span className="resa-block resa-text-xs resa-text-muted-foreground resa-truncate">
+												{result.display_name}
+											</span>
+										</button>
+									</li>
+								))}
+							</ul>
+						) : isFetched ? (
+							<div className="resa-p-3 resa-text-sm resa-text-muted-foreground resa-text-center">
+								{__('Keine Ergebnisse gefunden', 'resa')}
+							</div>
+						) : null}
+					</div>
+				)}
+			</div>
+
 			{/* Map */}
 			<div>
 				<div className="resa-flex resa-items-center resa-justify-between resa-mb-2">

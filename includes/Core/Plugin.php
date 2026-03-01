@@ -7,6 +7,7 @@ namespace Resa\Core;
 use Resa\Admin\AdminPage;
 use Resa\Api\AgentsController;
 use Resa\Api\BrandingController;
+use Resa\Api\GeocodingController;
 use Resa\Api\HealthController;
 use Resa\Api\LeadsController;
 use Resa\Api\LocationsController;
@@ -132,6 +133,7 @@ final class Plugin {
 		$controllers = [
 			new AgentsController(),
 			new BrandingController(),
+			new GeocodingController(),
 			new HealthController(),
 			new LeadsController(),
 			new LocationsController(),
