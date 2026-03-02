@@ -163,12 +163,12 @@ final class Location {
 
 		if ( array_key_exists( 'factors', $data ) ) {
 			$fields['factors'] = $data['factors'] !== null ? wp_json_encode( $data['factors'] ) : null;
-			$formats[]         = $data['factors'] !== null ? '%s' : null;
+			$formats[]         = '%s';
 		}
 
 		if ( array_key_exists( 'agent_id', $data ) ) {
 			$fields['agent_id'] = $data['agent_id'] !== null ? absint( $data['agent_id'] ) : null;
-			$formats[]          = $data['agent_id'] !== null ? '%d' : null;
+			$formats[]          = '%d';
 		}
 
 		if ( array_key_exists( 'is_active', $data ) ) {
