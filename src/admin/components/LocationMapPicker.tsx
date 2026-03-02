@@ -79,6 +79,7 @@ export function LocationMapPicker({
 		data: searchResults,
 		isLoading: isSearching,
 		isFetched,
+		error: searchError,
 	} = useGeocoding(debouncedQuery, showResults);
 
 	// Close dropdown when clicking outside
@@ -224,7 +225,7 @@ export function LocationMapPicker({
 				</Label>
 				<div className="resa-relative">
 					<Search
-						className="resa-absolute resa-left-3 resa-top-1/2 resa--translate-y-1/2 resa-text-muted-foreground"
+						className="resa-absolute resa-left-3 resa-top-1/2 resa--translate-y-1/2 resa-text-muted-foreground resa-pointer-events-none"
 						style={{ width: '16px', height: '16px' }}
 					/>
 					<Input
@@ -240,7 +241,7 @@ export function LocationMapPicker({
 							'z.B. "Bad Oeynhausen" oder "Bahnhofstraße 15, München"',
 							'resa',
 						)}
-						className="resa-pl-10"
+						style={{ paddingLeft: '2.5rem' }}
 					/>
 					{isSearching && (
 						<Loader2
@@ -259,6 +260,12 @@ export function LocationMapPicker({
 						{isSearching ? (
 							<div className="resa-p-3 resa-text-sm resa-text-muted-foreground resa-text-center">
 								{__('Suche...', 'resa')}
+							</div>
+						) : searchError ? (
+							<div className="resa-p-3 resa-text-sm resa-text-destructive resa-text-center">
+								{searchError instanceof Error
+									? searchError.message
+									: __('Adresssuche fehlgeschlagen', 'resa')}
 							</div>
 						) : searchResults && searchResults.length > 0 ? (
 							<ul className="resa-py-1">

@@ -870,6 +870,67 @@ export function Leads() {
 									</div>
 								</div>
 							</div>
+
+							{/* Address Map */}
+							{selectedLead.inputs?.address_lat != null &&
+							selectedLead.inputs?.address_lng != null ? (
+								<div
+									style={{
+										borderRadius: '8px',
+										border: '1px solid hsl(214.3 31.8% 91.4%)',
+										overflow: 'hidden',
+									}}
+								>
+									<div
+										style={{
+											padding: '12px 16px',
+											backgroundColor: 'hsl(210 40% 96.1%)',
+											borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+										}}
+									>
+										<span style={{ fontWeight: 600, color: '#1e303a' }}>
+											{__('Standort', 'resa')}
+										</span>
+									</div>
+									<div style={{ padding: '0' }}>
+										<LeafletMapWrapper
+											center={{
+												lat: Number(selectedLead.inputs.address_lat),
+												lng: Number(selectedLead.inputs.address_lng),
+											}}
+											zoom={15}
+											markerPosition={{
+												lat: Number(selectedLead.inputs.address_lat),
+												lng: Number(selectedLead.inputs.address_lng),
+											}}
+											height={200}
+											clickToPlace={false}
+										/>
+									</div>
+									{selectedLead.inputs?.address != null ? (
+										<div
+											style={{
+												padding: '10px 16px',
+												borderTop: '1px solid hsl(214.3 31.8% 91.4%)',
+												fontSize: '13px',
+												color: '#1e303a',
+												display: 'flex',
+												alignItems: 'center',
+												gap: '8px',
+											}}
+										>
+											<MapPin
+												style={{
+													width: '14px',
+													height: '14px',
+													color: 'hsl(215.4 16.3% 46.9%)',
+												}}
+											/>
+											{String(selectedLead.inputs.address)}
+										</div>
+									) : null}
+								</div>
+							) : null}
 						</div>
 
 						{/* Right Column */}
@@ -935,67 +996,6 @@ export function Leads() {
 												))}
 										</TableBody>
 									</Table>
-								</div>
-							) : null}
-
-							{/* Address Map */}
-							{selectedLead.inputs?.address_lat != null &&
-							selectedLead.inputs?.address_lng != null ? (
-								<div
-									style={{
-										borderRadius: '8px',
-										border: '1px solid hsl(214.3 31.8% 91.4%)',
-										overflow: 'hidden',
-									}}
-								>
-									<div
-										style={{
-											padding: '12px 16px',
-											backgroundColor: 'hsl(210 40% 96.1%)',
-											borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
-										}}
-									>
-										<span style={{ fontWeight: 600, color: '#1e303a' }}>
-											{__('Standort', 'resa')}
-										</span>
-									</div>
-									<div style={{ padding: '0' }}>
-										<LeafletMapWrapper
-											center={{
-												lat: Number(selectedLead.inputs.address_lat),
-												lng: Number(selectedLead.inputs.address_lng),
-											}}
-											zoom={15}
-											markerPosition={{
-												lat: Number(selectedLead.inputs.address_lat),
-												lng: Number(selectedLead.inputs.address_lng),
-											}}
-											height={200}
-											clickToPlace={false}
-										/>
-									</div>
-									{selectedLead.inputs?.address != null ? (
-										<div
-											style={{
-												padding: '10px 16px',
-												borderTop: '1px solid hsl(214.3 31.8% 91.4%)',
-												fontSize: '13px',
-												color: '#1e303a',
-												display: 'flex',
-												alignItems: 'center',
-												gap: '8px',
-											}}
-										>
-											<MapPin
-												style={{
-													width: '14px',
-													height: '14px',
-													color: 'hsl(215.4 16.3% 46.9%)',
-												}}
-											/>
-											{String(selectedLead.inputs.address)}
-										</div>
-									) : null}
 								</div>
 							) : null}
 

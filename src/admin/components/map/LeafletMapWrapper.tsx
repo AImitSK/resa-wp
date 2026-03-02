@@ -217,6 +217,14 @@ export function LeafletMapWrapper({
 				{markerPosition && onMarkerChange && (
 					<DraggableMarker position={markerPosition} onDragEnd={onMarkerChange} />
 				)}
+
+				{/* Read-only marker (no drag) when no onMarkerChange is provided */}
+				{markerPosition && !onMarkerChange && (
+					<Marker
+						position={[markerPosition.lat, markerPosition.lng]}
+						icon={resaMarkerIcon}
+					/>
+				)}
 			</MapContainer>
 		</div>
 	);
