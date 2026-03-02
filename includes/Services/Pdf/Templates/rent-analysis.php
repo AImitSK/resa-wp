@@ -92,17 +92,12 @@ h1 { font-size: 20px; font-weight: bold; color: #0f172a; margin: 0 0 12px 0; }
 h2 { font-size: 14px; font-weight: bold; color: #1e293b; margin: 16px 0 8px 0; }
 h3 { font-size: 12px; font-weight: bold; color: #334155; margin: 0 0 6px 0; }
 p { margin: 0 0 8px 0; }
-.page { page-break-after: always; }
-.page:last-child { page-break-after: avoid; }
 <?php if ( $has_map ) : ?>
 #pdf-map { width: 100%; height: 200px; border: 1px solid #e2e8f0; }
 <?php endif; ?>
 </style>
 </head>
 <body>
-
-<!-- PAGE 1 -->
-<div class="page">
 
 <!-- Header -->
 <table width="100%" style="margin-bottom: 16px;">
@@ -282,35 +277,7 @@ elseif ( stripos( $market_position, 'unter' ) !== false ) { $badge_bg = '#fee2e2
 </table>
 <?php endif; ?>
 
-<table width="100%" style="margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 6px;">
-<tr>
-<td style="font-size: 8px; color: #94a3b8;"><?php esc_html_e( 'RESA — Real Estate Smart Assets', 'resa' ); ?></td>
-<td style="font-size: 8px; color: #94a3b8; text-align: right;"><?php esc_html_e( 'Seite 1 von 2', 'resa' ); ?></td>
-</tr>
-</table>
-
-</div>
-
-<!-- PAGE 2 -->
-<div class="page">
-
-<!-- Header -->
-<table width="100%" style="margin-bottom: 16px;">
-<tr>
-<td width="70%" style="vertical-align: middle;">
-<?php if ( $logo_url !== '' ) : ?>
-<img src="<?php echo $esc_image_src( $logo_url ); ?>" style="max-height: 36px; max-width: 140px;">
-<?php else : ?>
-<span style="font-size: 10px; color: #64748b;"><?php esc_html_e( 'RESA — Mietpreis-Analyse', 'resa' ); ?></span>
-<?php endif; ?>
-</td>
-<td width="30%" style="text-align: right; font-size: 10px; color: #64748b; vertical-align: middle;">
-<?php echo esc_html( $current_date ); ?>
-</td>
-</tr>
-</table>
-
-<h2 style="margin-top: 0;"><?php esc_html_e( 'Marktvergleich', 'resa' ); ?></h2>
+<h2><?php esc_html_e( 'Marktvergleich', 'resa' ); ?></h2>
 <p style="font-size: 10px; color: #64748b; margin-bottom: 12px;">
 <?php esc_html_e( 'Vergleich Ihres geschätzten Mietpreises mit regionalen Durchschnittswerten (€/m²)', 'resa' ); ?>
 </p>
@@ -392,11 +359,8 @@ echo $active_bar_chart;
 <table width="100%" style="margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 6px;">
 <tr>
 <td style="font-size: 8px; color: #94a3b8;"><?php esc_html_e( 'RESA — Real Estate Smart Assets', 'resa' ); ?></td>
-<td style="font-size: 8px; color: #94a3b8; text-align: right;"><?php esc_html_e( 'Seite 2 von 2', 'resa' ); ?></td>
 </tr>
 </table>
-
-</div>
 
 </body>
 </html>
