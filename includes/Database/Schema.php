@@ -166,7 +166,7 @@ CREATE TABLE {$prefix}resa_locations (
   id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   slug varchar(100) NOT NULL,
   name varchar(255) NOT NULL,
-  country varchar(2) NOT NULL DEFAULT 'DE',
+  country varchar(100) NOT NULL DEFAULT 'DE',
   bundesland varchar(100) DEFAULT NULL,
   region_type varchar(20) NOT NULL DEFAULT 'city',
   currency varchar(3) NOT NULL DEFAULT 'EUR',
