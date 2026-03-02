@@ -35,10 +35,10 @@ export function PropertyTypeStep({ data, updateData, errors }: StepProps) {
 						type="button"
 						onClick={() => updateData({ property_type: option.value })}
 						className={cn(
-							'resa-flex resa-flex-col resa-items-center resa-gap-3 resa-rounded-xl resa-border-2 resa-bg-card resa-p-6 resa-shadow resa-transition-all resa-cursor-pointer focus:resa-outline-none',
+							'resa-flex resa-flex-col resa-items-center resa-gap-3 resa-rounded-xl resa-border resa-bg-card resa-p-6 resa-transition-all resa-cursor-pointer focus:resa-outline-none',
 							selected === option.value
 								? 'resa-border-primary'
-								: 'resa-border-input hover:resa-border-primary/50 hover:resa-shadow-md',
+								: 'resa-border-input hover:resa-border-primary/50',
 						)}
 					>
 						<ResaIcon name={option.icon} size={48} />

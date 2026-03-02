@@ -41,10 +41,10 @@ export function ConditionStep({ data, updateData, errors }: StepProps) {
 						type="button"
 						onClick={() => updateData({ condition: option.value })}
 						className={cn(
-							'resa-flex resa-flex-col resa-items-center resa-gap-2 resa-rounded-xl resa-border-2 resa-bg-card resa-p-4 resa-shadow resa-transition-all resa-cursor-pointer focus:resa-outline-none',
+							'resa-flex resa-flex-col resa-items-center resa-gap-2 resa-rounded-xl resa-border resa-bg-card resa-p-4 resa-transition-all resa-cursor-pointer focus:resa-outline-none',
 							selected === option.value
 								? 'resa-border-primary'
-								: 'resa-border-input hover:resa-border-primary/50 hover:resa-shadow-md',
+								: 'resa-border-input hover:resa-border-primary/50',
 						)}
 					>
 						<ResaIcon name={option.icon} size={36} />

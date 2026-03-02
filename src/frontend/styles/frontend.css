@@ -50,6 +50,12 @@
 	--resa-input: 0 0% 80%;
 	--resa-ring: 221.2 83.2% 53.3%;
 
+	/* Icon-Farben (Default Blau, wird per Backend-Branding überschrieben) */
+	--resa-icon-primary: #428dff;
+	--resa-icon-secondary: #7facfa;
+	--resa-icon-light: #a4c2f7;
+	--resa-icon-bg: #e8edfc;
+
 	/* Radius */
 	--resa-radius: 0.5rem;
 
@@ -116,27 +122,110 @@
 	height: 100%;
 }
 
-/* === Form Element Base Styles === */
-/* Nur Font-Vererbung - KEINE border/background/padding Resets! */
-/* Tailwind-Klassen definieren das vollständige Styling */
-.resa-widget-root button,
-.resa-widget-root input,
-.resa-widget-root select,
-.resa-widget-root textarea {
+/* === Form Element Reset === */
+/* Doppelte Spezifität (.resa-widget-root.resa-widget-root = 0,2,1) schlägt
+   WordPress-Theme-Selektoren (z.B. body .entry-content input = 0,1,2).
+   KEIN !important — damit Tailwind-Klassen (die !important nutzen) immer gewinnen:
+   Reset (no !important) < Tailwind (!important) > Theme (no !important) */
+.resa-widget-root.resa-widget-root input,
+.resa-widget-root.resa-widget-root select,
+.resa-widget-root.resa-widget-root textarea,
+.resa-widget-root.resa-widget-root button {
+	/* Tailwind-kompatibler Border-Reset: width=0 aber style=solid,
+	   damit resa-border (border-width: 1px) sofort sichtbar wird */
+	border-width: 0;
+	border-style: solid;
+	border-color: hsl(var(--resa-border));
+	background-color: transparent;
+	background-image: none;
+	box-shadow: none;
+	outline: none;
+	-webkit-appearance: none;
+	appearance: none;
 	font-family: inherit;
 	font-size: inherit;
 	line-height: inherit;
+	color: inherit;
+}
+
+/* === Checkbox: Sichtbar trotz appearance:none Reset === */
+.resa-widget-root.resa-widget-root input[type='checkbox'] {
+	width: 16px;
+	height: 16px;
+	border-width: 1px;
+	border-style: solid;
+	border-color: hsl(var(--resa-primary));
+	border-radius: 3px;
+	background-color: hsl(var(--resa-background));
+	cursor: pointer;
+	position: relative;
+}
+.resa-widget-root.resa-widget-root input[type='checkbox']:checked {
+	background-color: hsl(var(--resa-primary));
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'%3E%3Cpath d='M12.207 4.793a1 1 0 0 1 0 1.414l-5 5a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L6.5 9.086l4.293-4.293a1 1 0 0 1 1.414 0z'/%3E%3C/svg%3E");
+	background-size: 100% 100%;
+	background-position: center;
+	background-repeat: no-repeat;
 }
 
 /* Native Select Dropdown-Pfeil */
-.resa-widget-root select {
+.resa-widget-root.resa-widget-root select {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
 	background-repeat: no-repeat;
 	background-position: right 12px center;
-	padding-right: 36px !important;
+	padding-right: 36px;
+}
+
+/* === Number-Input Spinner ausblenden === */
+.resa-widget-root.resa-widget-root input[type='number']::-webkit-inner-spin-button,
+.resa-widget-root.resa-widget-root input[type='number']::-webkit-outer-spin-button {
 	-webkit-appearance: none;
-	-moz-appearance: none;
+	margin: 0;
+}
+.resa-widget-root.resa-widget-root input[type='number'] {
+	-moz-appearance: textfield;
+}
+
+/* === Focus: Inset-Outline (wird bei overflow:hidden nicht abgeschnitten) === */
+.resa-widget-root.resa-widget-root input:focus-visible,
+.resa-widget-root.resa-widget-root select:focus-visible,
+.resa-widget-root.resa-widget-root textarea:focus-visible,
+.resa-widget-root.resa-widget-root button:focus-visible {
+	outline: 2px solid hsl(var(--resa-ring));
+	outline-offset: -2px;
+}
+
+/* === Range-Slider Reset (WordPress-Theme neutralisieren) === */
+.resa-widget-root.resa-widget-root input[type='range'] {
+	-webkit-appearance: none;
 	appearance: none;
+	background: transparent;
+	cursor: pointer;
+}
+.resa-widget-root.resa-widget-root input[type='range']::-webkit-slider-runnable-track {
+	height: 8px;
+	border-radius: 9999px;
+}
+.resa-widget-root.resa-widget-root input[type='range']::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	height: 20px;
+	width: 20px;
+	border-radius: 50%;
+	background: hsl(var(--resa-background));
+	border: 2px solid hsl(var(--resa-primary));
+	margin-top: -6px;
+}
+.resa-widget-root.resa-widget-root input[type='range']::-moz-range-track {
+	height: 8px;
+	border-radius: 9999px;
+	background: hsl(var(--resa-secondary));
+}
+.resa-widget-root.resa-widget-root input[type='range']::-moz-range-thumb {
+	height: 20px;
+	width: 20px;
+	border-radius: 50%;
+	background: hsl(var(--resa-background));
+	border: 2px solid hsl(var(--resa-primary));
 }
 
 /* === Zusätzliche Utility-Klassen === */

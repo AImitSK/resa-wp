@@ -326,19 +326,19 @@ export function AddressAutocomplete({
 
 				.resa-address-autocomplete__input {
 					width: 100%;
-					padding: 10px 40px 10px 40px;
+					padding: 10px 40px 10px 40px !important;
 					font-size: 14px;
-					border: 1px solid hsl(var(--resa-border));
+					border: 1px solid hsl(var(--resa-border)) !important;
 					border-radius: var(--resa-radius);
-					background: hsl(var(--resa-background));
+					background: hsl(var(--resa-background)) !important;
 					color: hsl(var(--resa-foreground));
 					outline: none;
 					transition: border-color 0.2s, box-shadow 0.2s;
 				}
 
 				.resa-address-autocomplete__input:focus {
-					border-color: hsl(var(--resa-primary));
-					box-shadow: 0 0 0 2px hsl(var(--resa-primary) / 0.2);
+					border-color: hsl(var(--resa-primary)) !important;
+					box-shadow: 0 0 0 2px hsl(var(--resa-primary) / 0.2) !important;
 				}
 
 				.resa-address-autocomplete__input:disabled {
@@ -367,9 +367,9 @@ export function AddressAutocomplete({
 				.resa-address-autocomplete__clear {
 					position: absolute;
 					right: 12px;
-					background: none;
-					border: none;
-					padding: 4px;
+					background: none !important;
+					border: none !important;
+					padding: 4px !important;
 					cursor: pointer;
 					color: hsl(var(--resa-muted-foreground));
 					display: flex;
@@ -380,7 +380,7 @@ export function AddressAutocomplete({
 
 				.resa-address-autocomplete__clear:hover {
 					color: hsl(var(--resa-foreground));
-					background-color: hsl(var(--resa-muted));
+					background-color: hsl(var(--resa-muted)) !important;
 				}
 
 				.resa-address-autocomplete__error {
@@ -397,10 +397,10 @@ export function AddressAutocomplete({
 					z-index: 50;
 					margin-top: 4px;
 					padding: 4px 0;
-					background: hsl(var(--resa-background));
-					border: 1px solid hsl(var(--resa-border));
+					background: hsl(var(--resa-background)) !important;
+					border: 1px solid hsl(var(--resa-border)) !important;
 					border-radius: var(--resa-radius);
-					box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+					box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
 					list-style: none;
 					max-height: 240px;
 					overflow-y: auto;

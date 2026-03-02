@@ -5,6 +5,7 @@
  * Premium feature only — requires Google Maps API key.
  */
 
+import { useMemo } from 'react';
 import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
 import type { MapPosition } from './LeafletMap';
 
@@ -29,9 +30,15 @@ interface GoogleMapProps {
 	className?: string;
 }
 
-// RESA brand colors
-const RESA_GREEN = '#a9e43f';
-const RESA_DARK = '#1e303a';
+/** Read --resa-icon-primary from .resa-widget-root (set by backend). */
+function getPrimaryColor(): string {
+	const root = document.querySelector('.resa-widget-root');
+	if (root) {
+		const value = getComputedStyle(root).getPropertyValue('--resa-icon-primary').trim();
+		if (value) return value;
+	}
+	return 'hsl(221.2, 83.2%, 53.3%)'; // default blue
+}
 
 export function GoogleMap({
 	apiKey,
@@ -45,6 +52,7 @@ export function GoogleMap({
 	className = '',
 }: GoogleMapProps) {
 	const marker = markerPosition || center;
+	const pinColor = useMemo(() => getPrimaryColor(), []);
 
 	return (
 		<div
@@ -72,11 +80,7 @@ export function GoogleMap({
 				>
 					{showMarker && (
 						<AdvancedMarker position={{ lat: marker.lat, lng: marker.lng }}>
-							<Pin
-								background={RESA_GREEN}
-								borderColor="#ffffff"
-								glyphColor={RESA_DARK}
-							/>
+							<Pin background={pinColor} borderColor="#ffffff" glyphColor="#ffffff" />
 						</AdvancedMarker>
 					)}
 				</Map>

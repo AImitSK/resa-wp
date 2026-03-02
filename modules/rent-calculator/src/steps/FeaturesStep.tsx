@@ -57,7 +57,7 @@ export function FeaturesStep({ data, updateData, featureOptions }: FeaturesStepP
 				</p>
 			</div>
 
-			<div className="resa-grid resa-grid-cols-3 resa-gap-2">
+			<div className="resa-grid resa-grid-cols-2 resa-gap-2">
 				{features.map((feature) => {
 					const isSelected = selected.includes(feature.key);
 					return (
@@ -66,14 +66,14 @@ export function FeaturesStep({ data, updateData, featureOptions }: FeaturesStepP
 							type="button"
 							onClick={() => toggle(feature.key)}
 							className={cn(
-								'resa-flex resa-flex-col resa-items-center resa-gap-1.5 resa-rounded-xl resa-border-2 resa-bg-card resa-p-3 resa-shadow-sm resa-transition-all resa-cursor-pointer focus:resa-outline-none',
+								'resa-flex resa-flex-row resa-items-center resa-gap-2 resa-rounded-xl resa-border resa-bg-card resa-p-3 resa-transition-all resa-cursor-pointer focus:resa-outline-none',
 								isSelected
 									? 'resa-border-primary'
-									: 'resa-border-input hover:resa-border-primary/50 hover:resa-shadow',
+									: 'resa-border-input hover:resa-border-primary/50',
 							)}
 						>
-							<ResaIcon name={feature.icon} size={28} />
-							<span className="resa-text-xs resa-font-medium resa-text-center resa-leading-tight">
+							<ResaIcon name={feature.icon} size={20} />
+							<span className="resa-text-xs resa-font-medium resa-text-left resa-leading-tight">
 								{feature.label}
 							</span>
 						</button>

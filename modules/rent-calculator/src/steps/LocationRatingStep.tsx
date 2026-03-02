@@ -2,6 +2,7 @@
  * Step 5: Lage-Bewertung — Slider 1-5 mit dynamischem Label.
  */
 
+import { useEffect } from 'react';
 import { __ } from '@wordpress/i18n';
 import { Slider } from '@/components/ui/slider';
 import type { StepProps } from '@frontend/types/wizard';
@@ -33,6 +34,13 @@ export function LocationRatingStep({ data, updateData, errors }: StepProps) {
 	const rating = (data.location_rating as number) ?? 3;
 	const ratingLabels = getRatingLabels();
 	const info = ratingLabels[rating] ?? ratingLabels[3];
+
+	// Initialwert sofort in data setzen, damit Zod-Validierung nicht fehlschlägt
+	useEffect(() => {
+		if (data.location_rating === undefined) {
+			updateData({ location_rating: 3 });
+		}
+	}, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 	return (
 		<div className="resa-space-y-6">

@@ -17,7 +17,7 @@ const SelectTrigger = React.forwardRef<
 	<SelectPrimitive.Trigger
 		ref={ref}
 		className={cn(
-			'resa-flex resa-h-9 resa-w-full resa-items-center resa-justify-between resa-whitespace-nowrap resa-rounded-md resa-border resa-border-input resa-bg-transparent resa-px-3 resa-py-2 resa-text-sm resa-shadow-sm resa-ring-offset-background data-[placeholder]:resa-text-muted-foreground focus:resa-outline-none focus:resa-ring-1 focus:resa-ring-ring disabled:resa-cursor-not-allowed disabled:resa-opacity-50 [&>span]:resa-line-clamp-1',
+			'resa-flex resa-h-9 resa-w-full resa-items-center resa-justify-between resa-whitespace-nowrap resa-rounded-md resa-border resa-border-input resa-bg-transparent resa-px-3 resa-py-2 resa-text-sm resa-shadow-sm data-[placeholder]:resa-text-muted-foreground disabled:resa-cursor-not-allowed disabled:resa-opacity-50 [&>span]:resa-line-clamp-1',
 			className,
 		)}
 		{...props}
@@ -77,6 +77,7 @@ const SelectContent = React.forwardRef<
 					'data-[side=bottom]:resa-translate-y-1 data-[side=left]:resa--translate-x-1 data-[side=right]:resa-translate-x-1 data-[side=top]:resa--translate-y-1',
 				className,
 			)}
+			style={{ backgroundColor: 'white' }}
 			position={position}
 			{...props}
 		>

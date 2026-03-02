@@ -119,7 +119,7 @@ export function StepWizard({
 				labels={steps.map((s) => s.label)}
 			/>
 
-			<div className="resa-relative resa-overflow-hidden resa-min-h-[200px]">
+			<div className="resa-relative resa-overflow-hidden resa-min-h-[320px] resa-py-4">
 				<AnimatePresence mode="wait" custom={direction}>
 					<motion.div
 						key={currentStep.id}

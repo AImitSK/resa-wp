@@ -214,7 +214,7 @@ function CheckboxField({ field, privacyUrl, register, error }: CheckboxFieldProp
 				<input
 					id={`resa-${field.slug}`}
 					type="checkbox"
-					className="resa-mt-1 resa-shrink-0"
+					className="resa-mt-1 resa-h-4 resa-w-4 resa-shrink-0 resa-rounded-sm resa-border resa-border-primary resa-bg-background checked:resa-bg-primary"
 					aria-invalid={!!error}
 					{...register(field.slug)}
 				/>

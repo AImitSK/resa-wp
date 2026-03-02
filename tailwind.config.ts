@@ -4,16 +4,16 @@ import type { Config } from 'tailwindcss';
  * Tailwind CSS — Shared Config (Frontend + Admin)
  *
  * - `resa-` Prefix auf alle Utility-Klassen (CSS-Isolation)
+ * - `important: true` damit resa-* Klassen WordPress-Theme-Styles überschreiben
  * - Kein Preflight (Frontend: schützt Host-Theme, Admin: WP hat eigene Basis)
  * - CSS-Variablen für dynamisches Makler-Branding (shadcn/ui kompatibel)
  *
- * Hinweis: `important` Scoping (.resa-widget-root) wird bewusst NICHT gesetzt,
- * da Vite PostCSS-Config nur einmal lädt und nicht pro Entry unterscheiden kann.
- * Der `resa-` Prefix + Widget Mini-Reset bieten ausreichende Isolation.
- * Falls nötig, kann ein Custom-PostCSS-Plugin das Scoping nachrüsten.
+ * Durch den resa-Prefix betreffen !important-Utilities nur Elemente die
+ * explizit resa-Klassen verwenden — kein Risiko für Host-Theme-Konflikte.
  */
 export default {
 	prefix: 'resa-',
+	important: true,
 
 	content: [
 		'./src/components/**/*.{ts,tsx}',
