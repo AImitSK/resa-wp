@@ -98,6 +98,11 @@ class RentCalculatorService {
 
 		$marketPosition = self::getMarketPosition( $pricePerSqm, $basePrice );
 
+		// City average = location base price. County average from price range midpoint.
+		$priceRangeMin = (float) ( $locationData['price_range_min'] ?? $basePrice * 0.7 );
+		$priceRangeMax = (float) ( $locationData['price_range_max'] ?? $basePrice * 1.5 );
+		$countyAverage = round( ( $priceRangeMin + $priceRangeMax ) / 2, 2 );
+
 		return [
 			'monthly_rent'    => [
 				'estimate' => $monthlyRent,
@@ -106,6 +111,8 @@ class RentCalculatorService {
 			],
 			'annual_rent'     => round( $monthlyRent * 12, 2 ),
 			'price_per_sqm'   => $pricePerSqm,
+			'city_average'    => $basePrice,
+			'county_average'  => $countyAverage,
 			'market_position' => $marketPosition,
 			'factors'         => [
 				'base_price'       => $basePrice,

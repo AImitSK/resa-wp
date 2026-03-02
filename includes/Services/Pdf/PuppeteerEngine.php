@@ -5,24 +5,32 @@ declare( strict_types=1 );
 namespace Resa\Services\Pdf;
 
 /**
- * Puppeteer-based PDF engine (Node.js + Chromium).
+ * Puppeteer-based PDF engine via HTTP microservice.
  *
- * Calls an external Node.js script that uses Puppeteer to render
- * HTML to PDF with full CSS/SVG support.
+ * Sends HTML to a Node.js/Puppeteer service running in a Docker container.
+ * The service renders the HTML with Chromium and returns a PDF binary.
  *
- * Requires Node.js 18+ and the generate-pdf script.
+ * Service URL configurable via:
+ *  - RESA_PDF_SERVICE_URL env var
+ *  - resa_pdf_service_url option
+ *  - Default: http://node:3000 (Docker service name)
  */
 final class PuppeteerEngine implements PdfEngineInterface {
-
-	/**
-	 * Minimum required Node.js version.
-	 */
-	private const MIN_NODE_VERSION = '18.0.0';
 
 	/**
 	 * PDF magic bytes for validation.
 	 */
 	private const PDF_MAGIC = '%PDF-';
+
+	/**
+	 * HTTP timeout for PDF generation (seconds).
+	 */
+	private const GENERATE_TIMEOUT = 30;
+
+	/**
+	 * HTTP timeout for health check (seconds).
+	 */
+	private const HEALTH_TIMEOUT = 5;
 
 	/**
 	 * Default margins (mm).
@@ -37,33 +45,33 @@ final class PuppeteerEngine implements PdfEngineInterface {
 	];
 
 	/**
-	 * Path to the Node.js generate-pdf script.
+	 * Base URL of the PDF service.
 	 *
 	 * @var string
 	 */
-	private string $scriptPath;
+	private string $serviceUrl;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param string|null $scriptPath Path to generate-pdf.js. Defaults to plugin scripts/ dir.
+	 * @param string|null $serviceUrl Base URL of the PDF service (without trailing slash).
 	 */
-	public function __construct( ?string $scriptPath = null ) {
-		$this->scriptPath = $scriptPath ?? $this->defaultScriptPath();
+	public function __construct( ?string $serviceUrl = null ) {
+		$this->serviceUrl = $serviceUrl ?? $this->resolveServiceUrl();
 	}
 
 	/**
-	 * Generate PDF by calling the Node.js Puppeteer script.
+	 * Generate PDF by sending HTML to the Puppeteer service via HTTP.
 	 *
 	 * @param string              $html    Full HTML document.
 	 * @param array<string,mixed> $options Options: margins, format.
 	 * @return string Raw PDF binary.
 	 *
-	 * @throws \RuntimeException When Node.js script fails or returns invalid output.
+	 * @throws \RuntimeException When the service is unavailable or returns invalid output.
 	 */
 	public function generate( string $html, array $options = [] ): string {
 		if ( ! $this->isAvailable() ) {
-			throw new \RuntimeException( 'Puppeteer engine is not available. Node.js 18+ required.' );
+			throw new \RuntimeException( 'Puppeteer PDF service is not available.' );
 		}
 
 		$margins = $options['margins'] ?? self::DEFAULT_MARGINS;
@@ -77,50 +85,57 @@ final class PuppeteerEngine implements PdfEngineInterface {
 			]
 		);
 
-		$tmpFile = wp_tempnam( 'resa-pdf-input-' );
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
-		file_put_contents( $tmpFile, $payload );
-
-		$command = sprintf(
-			'node %s %s 2>&1',
-			escapeshellarg( $this->scriptPath ),
-			escapeshellarg( $tmpFile )
+		$response = wp_remote_post(
+			$this->serviceUrl . '/api/pdf/generate',
+			[
+				'body'    => $payload,
+				'headers' => [ 'Content-Type' => 'application/json' ],
+				'timeout' => self::GENERATE_TIMEOUT,
+			]
 		);
 
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_shell_exec
-		$output = shell_exec( $command );
-
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
-		unlink( $tmpFile );
-
-		if ( empty( $output ) ) {
-			throw new \RuntimeException( 'Puppeteer script returned no output.' );
+		if ( is_wp_error( $response ) ) {
+			throw new \RuntimeException( 'Puppeteer service request failed: ' . $response->get_error_message() );
 		}
 
-		if ( substr( $output, 0, 5 ) !== self::PDF_MAGIC ) {
+		$statusCode = wp_remote_retrieve_response_code( $response );
+		$body       = wp_remote_retrieve_body( $response );
+
+		if ( $statusCode !== 200 ) {
+			$error = json_decode( $body, true );
+			$msg   = $error['message'] ?? 'HTTP ' . $statusCode;
 			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message, not HTML output.
-			throw new \RuntimeException( 'Puppeteer output is not a valid PDF. First bytes: ' . substr( $output, 0, 100 ) );
+			throw new \RuntimeException( 'Puppeteer service returned error: ' . $msg );
 		}
 
-		return $output;
+		if ( substr( $body, 0, 5 ) !== self::PDF_MAGIC ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message, not HTML output.
+			throw new \RuntimeException( 'Puppeteer output is not a valid PDF. First bytes: ' . substr( $body, 0, 100 ) );
+		}
+
+		return $body;
 	}
 
 	/**
-	 * Check if Node.js 18+ is available.
+	 * Check if the Puppeteer PDF service is reachable.
 	 *
-	 * @return bool True if Node.js is present and version >= 18.
+	 * @return bool True if the /health endpoint returns 200.
 	 */
 	public function isAvailable(): bool {
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_shell_exec
-		$nodeVersion = shell_exec( 'node --version 2>/dev/null' );
+		$response = wp_remote_get(
+			$this->serviceUrl . '/health',
+			[
+				'timeout' => self::HEALTH_TIMEOUT,
+			]
+		);
 
-		if ( empty( $nodeVersion ) ) {
+		if ( is_wp_error( $response ) ) {
 			return false;
 		}
 
-		$version = ltrim( trim( $nodeVersion ), 'v' );
+		$statusCode = wp_remote_retrieve_response_code( $response );
 
-		return version_compare( $version, self::MIN_NODE_VERSION, '>=' );
+		return $statusCode === 200;
 	}
 
 	/**
@@ -133,11 +148,29 @@ final class PuppeteerEngine implements PdfEngineInterface {
 	}
 
 	/**
-	 * Get default script path inside the plugin.
+	 * Resolve the PDF service URL from environment or options.
 	 *
-	 * @return string
+	 * Priority:
+	 *  1. RESA_PDF_SERVICE_URL env var
+	 *  2. resa_pdf_service_url WP option
+	 *  3. Default Docker service URL
+	 *
+	 * @return string Service URL without trailing slash.
 	 */
-	private function defaultScriptPath(): string {
-		return dirname( __DIR__, 3 ) . '/scripts/generate-pdf.js';
+	private function resolveServiceUrl(): string {
+		// 1. Environment variable (set in docker-compose or .env).
+		$envUrl = getenv( 'RESA_PDF_SERVICE_URL' );
+		if ( is_string( $envUrl ) && $envUrl !== '' ) {
+			return rtrim( $envUrl, '/' );
+		}
+
+		// 2. WordPress option (configurable via admin settings).
+		$optionUrl = get_option( 'resa_pdf_service_url', '' );
+		if ( is_string( $optionUrl ) && $optionUrl !== '' ) {
+			return rtrim( $optionUrl, '/' );
+		}
+
+		// 3. Default: Docker service name from docker-compose.
+		return 'http://node:3000';
 	}
 }

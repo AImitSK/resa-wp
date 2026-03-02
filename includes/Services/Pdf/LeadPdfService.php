@@ -8,6 +8,7 @@ use Resa\Models\Lead;
 use Resa\Models\Location;
 use Resa\Services\Email\EmailService;
 use Resa\Services\Pdf\Charts\SimpleBarChart;
+use Resa\Services\Pdf\Charts\SimpleGaugeChart;
 
 /**
  * Lead PDF service — generates analysis PDFs and sends them to leads.
@@ -200,8 +201,16 @@ final class LeadPdfService {
 		$cityAverage   = (float) ( $result['cityAverage'] ?? $result['city_average'] ?? 0 );
 		$countyAverage = (float) ( $result['countyAverage'] ?? $result['county_average'] ?? 0 );
 
-		// Build comparison chart.
-		$barChartSvg = $this->buildComparisonChart( $pricePerSqm, $cityAverage, $countyAverage );
+		// Build comparison charts (SVG for Puppeteer, PNG for DOMPDF).
+		$barChartSvg      = $this->buildComparisonChart( $pricePerSqm, $cityAverage, $countyAverage, false );
+		$barChartPng      = $this->buildComparisonChart( $pricePerSqm, $cityAverage, $countyAverage, true );
+
+		// Build market position gauge (SVG for Puppeteer, PNG for DOMPDF).
+		$marketPercentile = (int) ( $result['market_position']['percentile'] ?? 50 );
+		$marketLabel      = $result['market_position']['label'] ?? '';
+		$gaugeChart       = new SimpleGaugeChart();
+		$gaugeSvg         = $gaugeChart->render( $marketPercentile, $marketLabel, [ 'size' => 200 ] );
+		$gaugePng         = $gaugeChart->renderPng( $marketPercentile, $marketLabel, [ 'size' => 200 ] );
 
 		// Build factors array from result.factors object.
 		$factors = $this->buildFactorsArray( $result, $inputs );
@@ -223,11 +232,8 @@ final class LeadPdfService {
 		$logoUrl      = (string) get_option( 'resa_branding_logo_url', '' );
 		$logoDataUri  = $this->convertImageToDataUri( $logoUrl );
 
-		// Generate static map directly with GD (more reliable than external services).
-		$mapDataUri = '';
-		if ( $addressLat !== null && $addressLng !== null ) {
-			$mapDataUri = $this->generateStaticMap( $addressLat, $addressLng );
-		}
+		// Static map via GD disabled — Puppeteer renders Leaflet maps natively.
+		// Coordinates are passed to the template for Leaflet initialization.
 
 		return [
 			'lead_name'         => $leadName,
@@ -236,12 +242,12 @@ final class LeadPdfService {
 			'property_address'  => $inputs['address'] ?? $inputs['address_display'] ?? $cityName,
 			'address_lat'       => $addressLat,
 			'address_lng'       => $addressLng,
-			'map_image_url'     => $mapDataUri,
 			'living_area'       => (float) ( $inputs['size'] ?? $inputs['livingArea'] ?? 0 ),
 			'rooms'             => (float) ( $inputs['rooms'] ?? 0 ),
 			'construction_year' => (int) ( $inputs['year_built'] ?? $inputs['constructionYear'] ?? 0 ),
 			'condition'         => $this->translateCondition( $inputs['condition'] ?? '' ),
-			'equipment'         => $this->formatEquipment( $inputs['features'] ?? $inputs['equipment'] ?? [] ),
+			'equipment'              => $this->formatEquipment( $inputs['features'] ?? $inputs['equipment'] ?? [] ),
+			'additional_equipment'   => (string) ( $inputs['additional_features'] ?? '' ),
 			'estimated_rent'    => $estimatedRent,
 			'rent_min'          => $rentMin,
 			'rent_max'          => $rentMax,
@@ -257,19 +263,25 @@ final class LeadPdfService {
 			'agent_company'     => $agent['company'],
 			'logo_url'          => $logoDataUri ?: $logoUrl,
 			'primary_color'     => (string) get_option( 'resa_branding_primary_color', '#3b82f6' ),
+			// Dual-rendering: SVG for Puppeteer, PNG data URI for DOMPDF.
 			'bar_chart_svg'     => $barChartSvg,
+			'bar_chart_png'     => $barChartPng,
+			'gauge_svg'         => $gaugeSvg,
+			'gauge_png'         => $gaugePng,
+			'market_percentile' => $marketPercentile,
 		];
 	}
 
 	/**
-	 * Build comparison bar chart SVG.
+	 * Build comparison bar chart (SVG or PNG).
 	 *
 	 * @param float $propertyValue  Property price per sqm.
 	 * @param float $cityAverage    City average.
 	 * @param float $countyAverage  County average.
-	 * @return string SVG markup.
+	 * @param bool  $asPng          True for GD-PNG (DOMPDF), false for SVG (Puppeteer).
+	 * @return string SVG markup or base64 PNG data URI.
 	 */
-	private function buildComparisonChart( float $propertyValue, float $cityAverage, float $countyAverage ): string {
+	private function buildComparisonChart( float $propertyValue, float $cityAverage, float $countyAverage, bool $asPng = false ): string {
 		if ( $propertyValue <= 0 && $cityAverage <= 0 && $countyAverage <= 0 ) {
 			return '';
 		}
@@ -306,14 +318,13 @@ final class LeadPdfService {
 			return '';
 		}
 
-		return $chart->render(
-			$bars,
-			[
-				'width'  => 480,
-				'height' => 200,
-				'unit'   => '€/m²',
-			]
-		);
+		$config = [
+			'width'  => 480,
+			'height' => 200,
+			'unit'   => '€/m²',
+		];
+
+		return $asPng ? $chart->renderPng( $bars, $config ) : $chart->render( $bars, $config );
 	}
 
 	/**

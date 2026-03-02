@@ -8,7 +8,7 @@ namespace Resa\Services\Pdf;
  * PDF generation orchestrator with automatic engine detection.
  *
  * Tries Puppeteer first (better quality), falls back to DOMPDF.
- * Premium users get Puppeteer, Free users always get DOMPDF.
+ * Both Free and Premium users get the best available engine.
  */
 final class PdfGenerator {
 
@@ -108,14 +108,15 @@ final class PdfGenerator {
 	/**
 	 * Detect the best available engine.
 	 *
-	 * Priority: Puppeteer (if available + premium) > DOMPDF.
+	 * Priority: Puppeteer (if available) > DOMPDF.
+	 * Both plans get the best engine — PDF quality is not a premium feature.
 	 *
 	 * @return PdfEngineInterface
 	 *
 	 * @throws \RuntimeException When no engine is available.
 	 */
 	public function detectEngine(): PdfEngineInterface {
-		if ( $this->puppeteer->isAvailable() && $this->isPremium() ) {
+		if ( $this->puppeteer->isAvailable() ) {
 			return $this->puppeteer;
 		}
 
@@ -136,12 +137,10 @@ final class PdfGenerator {
 			'puppeteer' => [
 				'available' => $this->puppeteer->isAvailable(),
 				'name'      => $this->puppeteer->getName(),
-				'premium'   => true,
 			],
 			'dompdf'    => [
 				'available' => $this->dompdf->isAvailable(),
 				'name'      => $this->dompdf->getName(),
-				'premium'   => false,
 			],
 		];
 	}
@@ -204,16 +203,4 @@ final class PdfGenerator {
 		);
 	}
 
-	/**
-	 * Check if current user has premium plan.
-	 *
-	 * @return bool
-	 */
-	private function isPremium(): bool {
-		if ( function_exists( 'resa_fs' ) ) {
-			return resa_fs()->can_use_premium_code();
-		}
-
-		return false;
-	}
 }
