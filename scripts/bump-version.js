@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
 /**
- * bump-version.js — Synchronizes the version across all three locations:
+ * bump-version.js — Synchronizes the version across all four locations:
  *   1. package.json         → "version": "x.y.z"
  *   2. resa.php Header      → * Version: x.y.z
  *   3. resa.php Constant    → define('RESA_VERSION', 'x.y.z')
+ *   4. readme.txt           → Stable tag: x.y.z
  *
  * Usage:
  *   node scripts/bump-version.js 1.0.0          # Set explicit version
@@ -84,6 +85,19 @@ function updateResaPhp(filePath, version) {
 	return changes;
 }
 
+function updateReadmeTxt(filePath, version) {
+	let content = readFileSync(filePath, 'utf-8');
+
+	// Stable tag: x.y.z
+	const stableTagRe = /^(Stable tag:\s*).+$/m;
+	if (stableTagRe.test(content)) {
+		content = content.replace(stableTagRe, `$1${version}`);
+		writeFileSync(filePath, content, 'utf-8');
+		return true;
+	}
+	throw new Error('Konnte "Stable tag:" in readme.txt nicht finden.');
+}
+
 // --- Main ---
 
 const args = process.argv.slice(2);
@@ -114,18 +128,22 @@ if (BUMP_KEYWORDS.includes(versionArg)) {
 	process.exit(1);
 }
 
+const readmePath = resolve(ROOT, 'readme.txt');
+
 // Apply changes
 const oldVersion = updatePackageJson(pkgPath, newVersion);
 updateResaPhp(phpPath, newVersion);
+updateReadmeTxt(readmePath, newVersion);
 
 console.log(`Version: ${oldVersion} → ${newVersion}`);
 console.log(`  ✓ package.json`);
 console.log(`  ✓ resa.php (Header + Konstante)`);
+console.log(`  ✓ readme.txt (Stable tag)`);
 
 // Optional: git commit + tag
 if (doTag) {
 	try {
-		execSync(`git add package.json resa.php`, { cwd: ROOT, stdio: 'pipe' });
+		execSync(`git add package.json resa.php readme.txt`, { cwd: ROOT, stdio: 'pipe' });
 		execSync(`git commit -m "chore: bump version to ${newVersion}"`, {
 			cwd: ROOT,
 			stdio: 'pipe',
