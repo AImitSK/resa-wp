@@ -100,9 +100,9 @@
 	--resa-card: 0 0% 100%;
 	--resa-card-foreground: 203 35% 17%; /* #1e303a */
 
-	/* Primärfarbe */
-	--resa-primary: 221.2 83.2% 53.3%;
-	--resa-primary-foreground: 210 40% 98%;
+	/* Primärfarbe — RESA Grün #a9e43f */
+	--resa-primary: 81.5 75.4% 57.1%;
+	--resa-primary-foreground: 203 35% 17%; /* #1e303a */
 
 	/* Sekundärfarbe */
 	--resa-secondary: 210 40% 96.1%;
@@ -116,10 +116,14 @@
 	--resa-destructive: 0 84.2% 60.2%;
 	--resa-destructive-foreground: 210 40% 98%;
 
+	/* Popover — Dropdowns, Selects, Menus */
+	--resa-popover: 0 0% 100%;
+	--resa-popover-foreground: 203 35% 17%; /* #1e303a */
+
 	/* Borders & Inputs */
 	--resa-border: 214.3 31.8% 91.4%;
 	--resa-input: 214.3 31.8% 91.4%;
-	--resa-ring: 221.2 83.2% 53.3%;
+	--resa-ring: 81.5 75.4% 57.1%; /* RESA Grün */
 
 	/* Radius */
 	--resa-radius: 0.5rem;

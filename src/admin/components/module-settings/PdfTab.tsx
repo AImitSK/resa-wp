@@ -216,10 +216,8 @@ function PdfTabInner({ settings, slug }: { settings: ModulePdfSettings; slug: st
 										width: '32px',
 										height: '32px',
 										borderRadius: '6px',
-										backgroundColor: checked
-											? 'rgba(169, 228, 63, 0.15)'
-											: 'hsl(210 40% 96.1%)',
-										color: checked ? '#6d8c1f' : 'hsl(215.4 16.3% 46.9%)',
+										backgroundColor: checked ? '#a9e43f' : 'hsl(210 40% 96.1%)',
+										color: checked ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
 										flexShrink: 0,
 									}}
 								>
@@ -355,8 +353,9 @@ function PdfTabInner({ settings, slug }: { settings: ModulePdfSettings; slug: st
 					onClick={handleSave}
 					disabled={!hasChanges || saveSettings.isPending}
 					style={{
-						backgroundColor: hasChanges ? '#a9e43f' : undefined,
-						color: hasChanges ? '#1e303a' : undefined,
+						backgroundColor: hasChanges ? '#a9e43f' : 'hsl(210 40% 96.1%)',
+						color: '#1e303a',
+						border: 'none',
 					}}
 				>
 					{saveSettings.isPending ? (

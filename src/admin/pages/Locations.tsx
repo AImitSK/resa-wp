@@ -571,9 +571,7 @@ export function Locations() {
 												paddingBottom: '12px',
 											}}
 										>
-											{grunderwerbsteuer
-												? `${Number(grunderwerbsteuer).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`
-												: '—'}
+											{`${Number(grunderwerbsteuer ?? 5.0).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`}
 										</TableCell>
 										<TableCell
 											style={{

@@ -42,6 +42,10 @@ export const baseConfig: Omit<Config, 'content'> = {
 					DEFAULT: 'hsl(var(--resa-accent))',
 					foreground: 'hsl(var(--resa-accent-foreground))',
 				},
+				popover: {
+					DEFAULT: 'hsl(var(--resa-popover))',
+					foreground: 'hsl(var(--resa-popover-foreground))',
+				},
 				card: {
 					DEFAULT: 'hsl(var(--resa-card))',
 					foreground: 'hsl(var(--resa-card-foreground))',
