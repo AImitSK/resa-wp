@@ -1,3 +1,4 @@
+@config "../../../tailwind.config.admin.ts";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -51,7 +52,7 @@
 	font-size: inherit;
 	line-height: inherit;
 	color: inherit;
-	border: 1px solid hsl(var(--resa-input)) !important;
+	border: 1px solid hsl(var(--resa-input));
 	border-radius: var(--resa-radius);
 	background-color: transparent;
 }
@@ -60,7 +61,7 @@
 #resa-admin-root select:focus,
 #resa-admin-root textarea:focus {
 	outline: none;
-	border-color: hsl(var(--resa-ring)) !important;
+	border-color: hsl(var(--resa-ring));
 	box-shadow: 0 0 0 1px hsl(var(--resa-ring));
 }
 
@@ -83,17 +84,12 @@
 
 /* === Fix für WordPress Admin Style-Konflikte === */
 #resa-admin-root [role='tablist'] {
-	display: inline-flex !important;
-	background-color: hsl(var(--resa-muted)) !important;
+	display: inline-flex;
+	background-color: hsl(var(--resa-muted));
 }
 
 #resa-admin-root [data-state='active'] {
-	background-color: hsl(var(--resa-background)) !important;
-}
-
-/* Grid fix für WordPress Admin */
-#resa-admin-root .resa-grid {
-	display: grid !important;
+	background-color: hsl(var(--resa-background));
 }
 
 /* === Design Tokens (gleiche Variablen wie Frontend) === */
