@@ -4,6 +4,9 @@ declare( strict_types=1 );
 
 namespace Resa\Services\Pdf;
 
+use Resa\Api\PdfSettingsController;
+use Resa\Models\Agent;
+
 /**
  * PDF generation orchestrator with automatic engine detection.
  *
@@ -165,6 +168,72 @@ final class PdfGenerator {
 
 		$data['is_dompdf'] = $forDompdf;
 
+		// Inject PDF settings if not already provided.
+		if ( ! isset( $data['margins'] ) || ! isset( $data['show_agents'] ) ) {
+			$pdfSettings = PdfSettingsController::getSettings();
+
+			$data = array_merge(
+				[
+					'header_text'   => $pdfSettings['header_text'] ?? '',
+					'footer_text'   => $pdfSettings['footer_text'] ?? '',
+					'show_date'     => $pdfSettings['show_date'] ?? true,
+					'show_agents'   => $pdfSettings['show_agents'] ?? true,
+					'logo_position' => $pdfSettings['logo_position'] ?? 'left',
+					'logo_size'     => (int) ( $pdfSettings['logo_size'] ?? 36 ),
+					'margins'       => $pdfSettings['margins'] ?? [],
+				],
+				$data
+			);
+		}
+
+		// Inject agents based on location if not already provided.
+		if ( ! isset( $data['agents'] ) && ( $data['show_agents'] ?? true ) ) {
+			$locationId = $data['location_id'] ?? 0;
+			$agents     = [];
+
+			if ( $locationId > 0 ) {
+				$agents = Agent::getByLocationId( (int) $locationId );
+			}
+
+			// Fallback: use default agent if no location-specific agents found.
+			if ( empty( $agents ) ) {
+				$default = Agent::getDefault();
+				if ( $default ) {
+					$agents = [ $default ];
+				}
+			}
+
+			$data['agents'] = $agents;
+		}
+
+		// Inject broker info (from Maklerdaten/default agent) for footer address line.
+		if ( ! isset( $data['broker'] ) ) {
+			$defaultAgent = Agent::getDefault();
+			if ( $defaultAgent ) {
+				$data['broker'] = [
+					'company'     => $defaultAgent->company ?? '',
+					'address'     => $defaultAgent->address ?? '',
+					'phone'       => $defaultAgent->phone ?? '',
+					'email'       => $defaultAgent->email ?? '',
+					'website'     => $defaultAgent->website ?? '',
+					'imprint_url' => $defaultAgent->imprint_url ?? '',
+				];
+			} else {
+				$data['broker'] = [];
+			}
+		}
+
+		// Convert agent photo URLs to base64 data URIs for reliable rendering.
+		$this->convertAgentPhotos( $data );
+
+		// Inject per-module PDF section settings.
+		if ( ! isset( $data['pdf_sections'] ) ) {
+			$moduleSlug = $this->resolveModuleSlug( $template );
+			if ( $moduleSlug !== null ) {
+				$data['pdf_sections'] = \Resa\Api\ModuleSettingsController::getModulePdfSettings( $moduleSlug );
+			}
+		}
+
 		/**
 		 * Filter template data before rendering.
 		 *
@@ -201,6 +270,99 @@ final class PdfGenerator {
 			dirname( __DIR__, 2 ) . '/Services/Pdf/Templates/' . $sanitized . '.php',
 			$template
 		);
+	}
+
+	/**
+	 * Map template name back to module slug.
+	 *
+	 * @param string $template Template name.
+	 * @return string|null Module slug, or null if unknown.
+	 */
+	private function resolveModuleSlug( string $template ): ?string {
+		$map = [
+			'rent-analysis'   => 'rent-calculator',
+			'value-analysis'  => 'value-calculator',
+			'purchase-costs'  => 'purchase-costs',
+			'budget-analysis' => 'budget-calculator',
+			'roi-analysis'    => 'roi-calculator',
+		];
+
+		return $map[ $template ] ?? null;
+	}
+
+	/**
+	 * Convert agent photo URLs to base64 data URIs.
+	 *
+	 * Puppeteer inside Docker cannot resolve localhost URLs,
+	 * so photos must be embedded as data URIs (same as logos).
+	 *
+	 * @param array<string,mixed> &$data Template data (modified in place).
+	 */
+	private function convertAgentPhotos( array &$data ): void {
+		if ( empty( $data['agents'] ) || ! is_array( $data['agents'] ) ) {
+			return;
+		}
+
+		$uploadDir = wp_upload_dir();
+		$baseUrl   = $uploadDir['baseurl'];
+		$basePath  = $uploadDir['basedir'];
+
+		$mimeMap = [
+			'png'  => 'image/png',
+			'jpg'  => 'image/jpeg',
+			'jpeg' => 'image/jpeg',
+			'gif'  => 'image/gif',
+			'webp' => 'image/webp',
+		];
+
+		foreach ( $data['agents'] as $agent ) {
+			$photoUrl = $agent->photo_url ?? '';
+
+			if ( empty( $photoUrl ) || strpos( $photoUrl, 'data:' ) === 0 ) {
+				continue;
+			}
+
+			$imageData = '';
+			$mime      = 'image/jpeg';
+
+			// Try local filesystem first (WordPress uploads).
+			$localPath = null;
+			if ( strpos( $photoUrl, $baseUrl ) === 0 ) {
+				$localPath = $basePath . substr( $photoUrl, strlen( $baseUrl ) );
+			}
+
+			if ( $localPath !== null && file_exists( $localPath ) ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+				$imageData = file_get_contents( $localPath );
+				$ext       = strtolower( pathinfo( $localPath, PATHINFO_EXTENSION ) );
+				$mime      = $mimeMap[ $ext ] ?? 'image/jpeg';
+			} else {
+				// Fetch remotely.
+				$response = wp_remote_get(
+					$photoUrl,
+					[
+						'timeout'   => 10,
+						'sslverify' => false,
+					]
+				);
+
+				if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
+					continue;
+				}
+
+				$imageData = wp_remote_retrieve_body( $response );
+				$mime      = wp_remote_retrieve_header( $response, 'content-type' );
+
+				if ( strpos( $mime, ';' ) !== false ) {
+					$mime = trim( explode( ';', $mime )[0] );
+				}
+			}
+
+			if ( ! empty( $imageData ) ) {
+				// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+				$agent->photo_url = 'data:' . $mime . ';base64,' . base64_encode( $imageData );
+			}
+		}
 	}
 
 }

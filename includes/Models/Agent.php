@@ -21,6 +21,134 @@ final class Agent {
 	}
 
 	/**
+	 * Get the agent_locations pivot table name.
+	 */
+	private static function pivotTable(): string {
+		global $wpdb;
+		return $wpdb->prefix . 'resa_agent_locations';
+	}
+
+	/**
+	 * Get all active agents with their location assignments.
+	 *
+	 * @return array<int,object> Array of agent objects with location_ids.
+	 */
+	public static function getAll(): array {
+		global $wpdb;
+
+		$table = self::table();
+		$pivot = self::pivotTable();
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$agents = $wpdb->get_results(
+			"SELECT * FROM {$table} ORDER BY id ASC"
+		);
+
+		if ( ! $agents ) {
+			return [];
+		}
+
+		// Load location assignments for all agents.
+		$agent_ids = array_map( fn( $a ) => (int) $a->id, $agents );
+		$placeholders = implode( ',', array_fill( 0, count( $agent_ids ), '%d' ) );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$pivots = $wpdb->get_results(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT agent_id, location_id FROM {$pivot} WHERE agent_id IN ({$placeholders})",
+				...$agent_ids
+			)
+		);
+
+		$locationMap = [];
+		foreach ( $pivots as $row ) {
+			$locationMap[ (int) $row->agent_id ][] = (int) $row->location_id;
+		}
+
+		foreach ( $agents as $agent ) {
+			$agent->location_ids = $locationMap[ (int) $agent->id ] ?? [];
+		}
+
+		return $agents;
+	}
+
+	/**
+	 * Get agents assigned to a specific location.
+	 *
+	 * @param int $locationId Location ID.
+	 * @return array<int,object> Array of agent objects.
+	 */
+	public static function getByLocationId( int $locationId ): array {
+		global $wpdb;
+
+		$table = self::table();
+		$pivot = self::pivotTable();
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		return $wpdb->get_results(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT a.* FROM {$table} a
+				INNER JOIN {$pivot} al ON a.id = al.agent_id
+				WHERE al.location_id = %d AND a.is_active = 1
+				ORDER BY a.id ASC",
+				$locationId
+			)
+		) ?: [];
+	}
+
+	/**
+	 * Delete an agent and its location assignments.
+	 *
+	 * @param int $id Agent ID.
+	 * @return bool True on success.
+	 */
+	public static function delete( int $id ): bool {
+		global $wpdb;
+
+		// Remove location assignments first.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->delete( self::pivotTable(), [ 'agent_id' => $id ], [ '%d' ] );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->delete( self::table(), [ 'id' => $id ], [ '%d' ] );
+
+		return $result !== false;
+	}
+
+	/**
+	 * Sync location assignments for an agent.
+	 *
+	 * Replaces all existing assignments with the given location IDs.
+	 *
+	 * @param int       $agentId     Agent ID.
+	 * @param int[]     $locationIds Array of location IDs.
+	 */
+	public static function syncLocations( int $agentId, array $locationIds ): void {
+		global $wpdb;
+
+		$pivot = self::pivotTable();
+
+		// Remove existing assignments.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->delete( $pivot, [ 'agent_id' => $agentId ], [ '%d' ] );
+
+		// Insert new assignments.
+		foreach ( $locationIds as $locationId ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->insert(
+				$pivot,
+				[
+					'agent_id'    => $agentId,
+					'location_id' => absint( $locationId ),
+				],
+				[ '%d', '%d' ]
+			);
+		}
+	}
+
+	/**
 	 * Get the default (primary) agent.
 	 *
 	 * Returns the first active agent. In single-agent setups,
@@ -98,6 +226,7 @@ final class Agent {
 			[
 				'wp_user_id'  => isset( $data['wp_user_id'] ) ? absint( $data['wp_user_id'] ) : null,
 				'name'        => sanitize_text_field( $data['name'] ?? '' ),
+				'position'    => sanitize_text_field( $data['position'] ?? '' ),
 				'email'       => sanitize_email( $data['email'] ?? '' ),
 				'phone'       => sanitize_text_field( $data['phone'] ?? '' ),
 				'photo_url'   => esc_url_raw( $data['photo_url'] ?? '' ),
@@ -109,7 +238,7 @@ final class Agent {
 				'created_at'  => current_time( 'mysql' ),
 			],
 			[
-				'%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s',
+				'%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s',
 			]
 		);
 
@@ -137,6 +266,11 @@ final class Agent {
 		if ( array_key_exists( 'name', $data ) ) {
 			$fields['name'] = sanitize_text_field( $data['name'] );
 			$formats[]      = '%s';
+		}
+
+		if ( array_key_exists( 'position', $data ) ) {
+			$fields['position'] = sanitize_text_field( $data['position'] );
+			$formats[]          = '%s';
 		}
 
 		if ( array_key_exists( 'phone', $data ) ) {

@@ -28,6 +28,11 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 		throw new Error(error.message || `HTTP ${response.status}`);
 	}
 
+	// 204 No Content — return null (no body to parse).
+	if (response.status === 204) {
+		return null as T;
+	}
+
 	return response.json();
 }
 

@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { __ } from '@wordpress/i18n';
 import {
 	User,
+	Users,
 	Palette,
 	Key,
 	Shield,
@@ -19,6 +20,11 @@ import {
 	X,
 	Image,
 	Map,
+	Plus,
+	Pencil,
+	Trash2,
+	MapPin,
+	Briefcase,
 } from 'lucide-react';
 import { AdminPageLayout } from '../components/AdminPageLayout';
 import { useAgentData, useSaveAgentData, type AgentData } from '../hooks/useAgentData';
@@ -29,6 +35,14 @@ import {
 	type MapSettings,
 	type TileStyle,
 } from '../hooks/useMapSettings';
+import {
+	useTeamMembers,
+	useCreateTeamMember,
+	useUpdateTeamMember,
+	useDeleteTeamMember,
+	type TeamMember,
+} from '../hooks/useTeam';
+import { useLocations, type LocationAdmin } from '../hooks/useLocations';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -40,8 +54,9 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 
-type SettingsTab = 'agent' | 'branding' | 'maps' | 'license' | 'gdpr';
+type SettingsTab = 'agent' | 'team' | 'branding' | 'maps' | 'license' | 'gdpr';
 
 export function Settings() {
 	const [activeTab, setActiveTab] = useState<SettingsTab>('agent');
@@ -86,6 +101,10 @@ export function Settings() {
 						<User style={{ width: '16px', height: '16px' }} />
 						{__('Maklerdaten', 'resa')}
 					</TabsTrigger>
+					<TabsTrigger value="team" style={tabStyle(activeTab === 'team')}>
+						<Users style={{ width: '16px', height: '16px' }} />
+						{__('Team', 'resa')}
+					</TabsTrigger>
 					<TabsTrigger value="branding" style={tabStyle(activeTab === 'branding')}>
 						<Palette style={{ width: '16px', height: '16px' }} />
 						{__('Branding', 'resa')}
@@ -107,6 +126,7 @@ export function Settings() {
 
 			{/* Tab Content */}
 			{activeTab === 'agent' && <AgentDataTab />}
+			{activeTab === 'team' && <TeamTab />}
 			{activeTab === 'branding' && <BrandingTab />}
 			{activeTab === 'maps' && <MapsTab />}
 			{activeTab === 'license' && <LicenseTab />}
@@ -380,6 +400,643 @@ function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) 
 					}}
 				>
 					{__('Speichern', 'resa')}
+				</Button>
+			</div>
+		</form>
+	);
+}
+
+/**
+ * Team Tab — manage multiple contact persons (agents).
+ */
+type TeamView = 'list' | 'create' | 'edit';
+
+function TeamTab() {
+	const { data: members, isLoading, error } = useTeamMembers();
+	const { data: locations } = useLocations();
+	const createMutation = useCreateTeamMember();
+	const updateMutation = useUpdateTeamMember();
+	const deleteMutation = useDeleteTeamMember();
+
+	const [view, setView] = useState<TeamView>('list');
+	const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
+
+	const handleCreate = async (data: Omit<TeamMember, 'id'>) => {
+		await createMutation.mutateAsync(data);
+		setView('list');
+	};
+
+	const handleUpdate = async (data: Omit<TeamMember, 'id'> & { id: number }) => {
+		await updateMutation.mutateAsync(data);
+		setView('list');
+		setEditingMember(null);
+	};
+
+	const handleDelete = async (id: number) => {
+		await deleteMutation.mutateAsync(id);
+	};
+
+	const handleEdit = (member: TeamMember) => {
+		setEditingMember(member);
+		setView('edit');
+	};
+
+	if (isLoading) {
+		return (
+			<div className="resa-flex resa-items-center resa-justify-center resa-gap-2 resa-py-12">
+				<Spinner className="resa-size-5" />
+				<span className="resa-text-muted-foreground">{__('Lade Team...', 'resa')}</span>
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<Alert variant="destructive">
+				<AlertTitle>{__('Fehler beim Laden', 'resa')}</AlertTitle>
+				<AlertDescription>
+					{__('Das Team konnte nicht geladen werden.', 'resa')}
+				</AlertDescription>
+			</Alert>
+		);
+	}
+
+	if (view === 'create') {
+		return (
+			<TeamMemberForm
+				locations={locations ?? []}
+				isSaving={createMutation.isPending}
+				onSave={handleCreate}
+				onCancel={() => setView('list')}
+			/>
+		);
+	}
+
+	if (view === 'edit' && editingMember) {
+		return (
+			<TeamMemberForm
+				initialData={editingMember}
+				locations={locations ?? []}
+				isSaving={updateMutation.isPending}
+				onSave={(data) => handleUpdate({ ...data, id: editingMember.id! })}
+				onCancel={() => {
+					setView('list');
+					setEditingMember(null);
+				}}
+			/>
+		);
+	}
+
+	return (
+		<div className="resa-space-y-6">
+			{/* Header */}
+			<div className="resa-flex resa-items-center resa-justify-between">
+				<div>
+					<h3 className="resa-text-lg resa-font-semibold" style={{ margin: 0 }}>
+						{__('Team', 'resa')}
+					</h3>
+					<p
+						className="resa-text-sm resa-text-muted-foreground"
+						style={{ margin: 0, marginTop: '2px' }}
+					>
+						{__('Ansprechpartner für Standorte und PDF-Dokumente verwalten.', 'resa')}
+					</p>
+				</div>
+				<Button
+					onClick={() => setView('create')}
+					style={{ backgroundColor: '#a9e43f', color: '#1e303a', border: 'none' }}
+				>
+					<Plus style={{ width: '16px', height: '16px', marginRight: '6px' }} />
+					{__('Ansprechpartner hinzufügen', 'resa')}
+				</Button>
+			</div>
+
+			{/* Team Members List */}
+			{!members || members.length === 0 ? (
+				<div
+					className="resa-py-12 resa-text-center"
+					style={{
+						border: '2px dashed hsl(214.3 31.8% 91.4%)',
+						borderRadius: '8px',
+					}}
+				>
+					<div
+						style={{
+							width: '48px',
+							height: '48px',
+							margin: '0 auto 16px',
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							borderRadius: '50%',
+							backgroundColor: 'hsl(210 40% 96.1%)',
+						}}
+					>
+						<Users
+							style={{
+								width: '24px',
+								height: '24px',
+								color: 'hsl(215.4 16.3% 46.9%)',
+							}}
+						/>
+					</div>
+					<h3 style={{ fontWeight: 600, marginBottom: '8px', color: '#1e303a' }}>
+						{__('Noch keine Ansprechpartner', 'resa')}
+					</h3>
+					<p style={{ color: 'hsl(215.4 16.3% 46.9%)', marginBottom: '16px' }}>
+						{__(
+							'Füge Ansprechpartner hinzu, die in PDFs und auf Ergebnisseiten angezeigt werden.',
+							'resa',
+						)}
+					</p>
+					<Button
+						onClick={() => setView('create')}
+						style={{ backgroundColor: '#a9e43f', color: '#1e303a', border: 'none' }}
+					>
+						<Plus style={{ width: '16px', height: '16px', marginRight: '6px' }} />
+						{__('Ersten Ansprechpartner anlegen', 'resa')}
+					</Button>
+				</div>
+			) : (
+				<div
+					style={{
+						border: '1px solid hsl(214.3 31.8% 91.4%)',
+						borderRadius: '8px',
+						overflow: 'hidden',
+					}}
+				>
+					<table style={{ width: '100%', borderCollapse: 'collapse' }}>
+						<thead>
+							<tr style={{ backgroundColor: 'hsl(210 40% 98%)' }}>
+								<th
+									style={{
+										padding: '12px 16px',
+										textAlign: 'left',
+										fontSize: '12px',
+										fontWeight: 600,
+										color: 'hsl(215.4 16.3% 46.9%)',
+										width: '48px',
+									}}
+								/>
+								<th
+									style={{
+										padding: '12px 16px',
+										textAlign: 'left',
+										fontSize: '12px',
+										fontWeight: 600,
+										color: 'hsl(215.4 16.3% 46.9%)',
+									}}
+								>
+									{__('Name & Position', 'resa')}
+								</th>
+								<th
+									style={{
+										padding: '12px 16px',
+										textAlign: 'left',
+										fontSize: '12px',
+										fontWeight: 600,
+										color: 'hsl(215.4 16.3% 46.9%)',
+									}}
+								>
+									{__('Standort(e)', 'resa')}
+								</th>
+								<th
+									style={{
+										padding: '12px 16px',
+										textAlign: 'right',
+										fontSize: '12px',
+										fontWeight: 600,
+										color: 'hsl(215.4 16.3% 46.9%)',
+										width: '100px',
+									}}
+								>
+									{__('Aktionen', 'resa')}
+								</th>
+							</tr>
+						</thead>
+						<tbody>
+							{members.map((member) => (
+								<tr
+									key={member.id}
+									style={{ borderTop: '1px solid hsl(214.3 31.8% 91.4%)' }}
+								>
+									<td style={{ padding: '12px 16px' }}>
+										{member.photoUrl ? (
+											<img
+												src={member.photoUrl}
+												alt={member.name}
+												style={{
+													width: '36px',
+													height: '36px',
+													borderRadius: '50%',
+													objectFit: 'cover',
+												}}
+											/>
+										) : (
+											<div
+												style={{
+													width: '36px',
+													height: '36px',
+													borderRadius: '50%',
+													backgroundColor: 'hsl(210 40% 96.1%)',
+													display: 'flex',
+													alignItems: 'center',
+													justifyContent: 'center',
+												}}
+											>
+												<User
+													style={{
+														width: '18px',
+														height: '18px',
+														color: 'hsl(215.4 16.3% 46.9%)',
+													}}
+												/>
+											</div>
+										)}
+									</td>
+									<td style={{ padding: '12px 16px' }}>
+										<div style={{ fontWeight: 500, color: '#1e303a' }}>
+											{member.name}
+										</div>
+										{member.position && (
+											<div
+												className="resa-text-sm resa-text-muted-foreground"
+												style={{ marginTop: '2px' }}
+											>
+												{member.position}
+											</div>
+										)}
+									</td>
+									<td style={{ padding: '12px 16px' }}>
+										<div className="resa-flex resa-flex-wrap resa-gap-1">
+											{member.locationIds.length > 0 ? (
+												member.locationIds.map((locId) => {
+													const loc = locations?.find(
+														(l) => l.id === locId,
+													);
+													return (
+														<Badge
+															key={locId}
+															variant="secondary"
+															style={{ fontSize: '11px' }}
+														>
+															<MapPin
+																style={{
+																	width: '10px',
+																	height: '10px',
+																	marginRight: '3px',
+																}}
+															/>
+															{loc?.name ?? `#${locId}`}
+														</Badge>
+													);
+												})
+											) : (
+												<span className="resa-text-sm resa-text-muted-foreground">
+													{__('Keine Zuordnung', 'resa')}
+												</span>
+											)}
+										</div>
+									</td>
+									<td style={{ padding: '12px 16px', textAlign: 'right' }}>
+										<div className="resa-flex resa-justify-end resa-gap-1">
+											<Button
+												variant="ghost"
+												size="sm"
+												onClick={() => handleEdit(member)}
+												style={{ padding: '6px' }}
+											>
+												<Pencil style={{ width: '14px', height: '14px' }} />
+											</Button>
+											<Button
+												variant="ghost"
+												size="sm"
+												onClick={() => member.id && handleDelete(member.id)}
+												style={{
+													padding: '6px',
+													color: 'hsl(0 84.2% 60.2%)',
+												}}
+											>
+												<Trash2 style={{ width: '14px', height: '14px' }} />
+											</Button>
+										</div>
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
+			)}
+		</div>
+	);
+}
+
+/**
+ * Team member create/edit form.
+ */
+function TeamMemberForm({
+	initialData,
+	locations,
+	isSaving,
+	onSave,
+	onCancel,
+}: {
+	initialData?: TeamMember;
+	locations: LocationAdmin[];
+	isSaving: boolean;
+	onSave: (data: Omit<TeamMember, 'id'>) => Promise<void>;
+	onCancel: () => void;
+}) {
+	const [form, setForm] = useState<Omit<TeamMember, 'id'>>({
+		name: initialData?.name ?? '',
+		position: initialData?.position ?? '',
+		email: initialData?.email ?? '',
+		phone: initialData?.phone ?? '',
+		photoUrl: initialData?.photoUrl ?? null,
+		locationIds: initialData?.locationIds ?? [],
+	});
+
+	const updateField = <K extends keyof Omit<TeamMember, 'id'>>(
+		key: K,
+		value: Omit<TeamMember, 'id'>[K],
+	) => {
+		setForm((prev) => ({ ...prev, [key]: value }));
+	};
+
+	const toggleLocation = (locationId: number) => {
+		setForm((prev) => ({
+			...prev,
+			locationIds: prev.locationIds.includes(locationId)
+				? prev.locationIds.filter((id) => id !== locationId)
+				: [...prev.locationIds, locationId],
+		}));
+	};
+
+	const handleSelectPhoto = async () => {
+		const result = await openMediaLibrary(
+			__('Foto auswählen', 'resa'),
+			__('Als Foto verwenden', 'resa'),
+		);
+		if (result) {
+			updateField('photoUrl', result.url);
+		}
+	};
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		await onSave(form);
+	};
+
+	const isValid = form.name.trim() !== '' && form.email.trim() !== '';
+	const isEditing = !!initialData;
+
+	return (
+		<form onSubmit={handleSubmit} className="resa-space-y-6">
+			{/* Header */}
+			<div style={{ marginBottom: '24px' }}>
+				<h3 className="resa-text-lg resa-font-semibold" style={{ margin: 0 }}>
+					{isEditing
+						? __('Ansprechpartner bearbeiten', 'resa')
+						: __('Neuer Ansprechpartner', 'resa')}
+				</h3>
+				<p
+					className="resa-text-sm resa-text-muted-foreground"
+					style={{ margin: 0, marginTop: '2px' }}
+				>
+					{__('Kontaktdaten und Standort-Zuordnung festlegen.', 'resa')}
+				</p>
+			</div>
+
+			{/* Photo */}
+			<div className="resa-space-y-4" style={{ marginTop: 0 }}>
+				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+					{__('Foto', 'resa')}
+				</h3>
+				{form.photoUrl ? (
+					<div className="resa-flex resa-items-center resa-gap-4">
+						<img
+							src={form.photoUrl}
+							alt={form.name}
+							style={{
+								width: '64px',
+								height: '64px',
+								borderRadius: '50%',
+								objectFit: 'cover',
+								border: '1px solid hsl(214.3 31.8% 91.4%)',
+							}}
+						/>
+						<div className="resa-flex resa-gap-2">
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={handleSelectPhoto}
+							>
+								{__('Ändern', 'resa')}
+							</Button>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={() => updateField('photoUrl', null)}
+								style={{ color: 'hsl(0 84.2% 60.2%)' }}
+							>
+								<X style={{ width: '14px', height: '14px', marginRight: '4px' }} />
+								{__('Entfernen', 'resa')}
+							</Button>
+						</div>
+					</div>
+				) : (
+					<button
+						type="button"
+						onClick={handleSelectPhoto}
+						style={{
+							width: '64px',
+							height: '64px',
+							borderRadius: '50%',
+							border: '2px dashed hsl(214.3 31.8% 91.4%)',
+							backgroundColor: 'hsl(210 40% 98%)',
+							cursor: 'pointer',
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							transition: 'border-color 150ms',
+						}}
+						onMouseEnter={(e) =>
+							(e.currentTarget.style.borderColor = 'hsl(215.4 16.3% 46.9%)')
+						}
+						onMouseLeave={(e) =>
+							(e.currentTarget.style.borderColor = 'hsl(214.3 31.8% 91.4%)')
+						}
+					>
+						<Image
+							style={{
+								width: '20px',
+								height: '20px',
+								color: 'hsl(215.4 16.3% 46.9%)',
+							}}
+						/>
+					</button>
+				)}
+			</div>
+
+			{/* Personal Info */}
+			<div className="resa-space-y-4">
+				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+					{__('Persönliche Daten', 'resa')}
+				</h3>
+				<div className="resa-grid resa-grid-cols-2 resa-gap-4">
+					<div className="resa-space-y-2">
+						<Label htmlFor="member-name">
+							<span className="resa-flex resa-items-center resa-gap-1.5">
+								<User
+									style={{
+										width: '14px',
+										height: '14px',
+										color: 'hsl(215.4 16.3% 46.9%)',
+									}}
+								/>
+								{__('Name', 'resa')} *
+							</span>
+						</Label>
+						<Input
+							id="member-name"
+							value={form.name}
+							onChange={(e) => updateField('name', e.target.value)}
+							placeholder={__('Max Mustermann', 'resa')}
+							required
+						/>
+					</div>
+					<div className="resa-space-y-2">
+						<Label htmlFor="member-position">
+							<span className="resa-flex resa-items-center resa-gap-1.5">
+								<Briefcase
+									style={{
+										width: '14px',
+										height: '14px',
+										color: 'hsl(215.4 16.3% 46.9%)',
+									}}
+								/>
+								{__('Position/Funktion', 'resa')}
+							</span>
+						</Label>
+						<Input
+							id="member-position"
+							value={form.position}
+							onChange={(e) => updateField('position', e.target.value)}
+							placeholder={__('Geschäftsführer', 'resa')}
+						/>
+					</div>
+				</div>
+			</div>
+
+			{/* Contact Info */}
+			<div className="resa-space-y-4">
+				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+					{__('Kontaktdaten', 'resa')}
+				</h3>
+				<div className="resa-grid resa-grid-cols-2 resa-gap-4">
+					<div className="resa-space-y-2">
+						<Label htmlFor="member-email">
+							<span className="resa-flex resa-items-center resa-gap-1.5">
+								<Mail
+									style={{
+										width: '14px',
+										height: '14px',
+										color: 'hsl(215.4 16.3% 46.9%)',
+									}}
+								/>
+								{__('E-Mail', 'resa')} *
+							</span>
+						</Label>
+						<Input
+							id="member-email"
+							type="email"
+							value={form.email}
+							onChange={(e) => updateField('email', e.target.value)}
+							placeholder={__('max@mustermann-immo.de', 'resa')}
+							required
+						/>
+					</div>
+					<div className="resa-space-y-2">
+						<Label htmlFor="member-phone">
+							<span className="resa-flex resa-items-center resa-gap-1.5">
+								<Phone
+									style={{
+										width: '14px',
+										height: '14px',
+										color: 'hsl(215.4 16.3% 46.9%)',
+									}}
+								/>
+								{__('Telefon', 'resa')}
+							</span>
+						</Label>
+						<Input
+							id="member-phone"
+							type="tel"
+							value={form.phone}
+							onChange={(e) => updateField('phone', e.target.value)}
+							placeholder={__('+49 123 456789', 'resa')}
+						/>
+					</div>
+				</div>
+			</div>
+
+			{/* Location Assignment */}
+			{locations.length > 0 && (
+				<div className="resa-space-y-4">
+					<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
+						{__('Standort-Zuordnung', 'resa')}
+					</h3>
+					<div
+						className="resa-space-y-2"
+						style={{
+							maxWidth: '400px',
+							padding: '12px',
+							backgroundColor: 'hsl(210 40% 98%)',
+							borderRadius: '8px',
+						}}
+					>
+						{locations.map((location) => (
+							<label
+								key={location.id}
+								className="resa-flex resa-items-center resa-gap-3 resa-py-1.5 resa-cursor-pointer"
+							>
+								<Checkbox
+									checked={form.locationIds.includes(location.id)}
+									onCheckedChange={() => toggleLocation(location.id)}
+								/>
+								<span className="resa-flex resa-items-center resa-gap-1.5 resa-text-sm">
+									<MapPin
+										style={{
+											width: '12px',
+											height: '12px',
+											color: 'hsl(215.4 16.3% 46.9%)',
+										}}
+									/>
+									{location.name}
+								</span>
+							</label>
+						))}
+					</div>
+				</div>
+			)}
+
+			{/* Actions */}
+			<div className="resa-flex resa-justify-end resa-gap-3 resa-pt-4">
+				<Button type="button" variant="outline" onClick={onCancel}>
+					{__('Abbrechen', 'resa')}
+				</Button>
+				<Button
+					type="submit"
+					disabled={!isValid || isSaving}
+					style={{
+						backgroundColor: isValid ? '#a9e43f' : 'hsl(210 40% 96.1%)',
+						color: '#1e303a',
+						border: 'none',
+					}}
+				>
+					{isEditing ? __('Speichern', 'resa') : __('Erstellen', 'resa')}
 				</Button>
 			</div>
 		</form>

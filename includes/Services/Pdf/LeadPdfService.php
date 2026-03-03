@@ -257,10 +257,13 @@ final class LeadPdfService {
 			'market_position'   => $result['market_position']['label'] ?? $this->determineMarketPosition( $pricePerSqm, $cityAverage ),
 			'factors'           => $factors,
 			'location_name'     => $cityName ?: __( 'Nicht zugewiesen', 'resa' ),
+			// Legacy single-agent fields (backwards compat for existing templates).
 			'agent_name'        => $agent['name'],
 			'agent_email'       => $agent['email'],
 			'agent_phone'       => $agent['phone'],
 			'agent_company'     => $agent['company'],
+			// Location ID for multi-agent injection in PdfGenerator::renderTemplate().
+			'location_id'       => (int) ( $lead->location_id ?? 0 ),
 			'logo_url'          => $logoDataUri ?: $logoUrl,
 			'primary_color'     => (string) get_option( 'resa_branding_primary_color', '#3b82f6' ),
 			// Dual-rendering: SVG for Puppeteer, PNG data URI for DOMPDF.

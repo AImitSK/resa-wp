@@ -89,6 +89,38 @@ class ModuleSettingsController extends RestController {
 			]
 		);
 
+		// Module-specific PDF settings.
+		register_rest_route(
+			self::NAMESPACE,
+			'/admin/modules/(?P<slug>[a-z0-9-]+)/pdf-settings',
+			[
+				[
+					'methods'             => 'GET',
+					'callback'            => [ $this, 'getPdfSettings' ],
+					'permission_callback' => [ $this, 'adminAccess' ],
+					'args'                => [
+						'slug' => [
+							'type'              => 'string',
+							'required'          => true,
+							'sanitize_callback' => 'sanitize_key',
+						],
+					],
+				],
+				[
+					'methods'             => 'PUT',
+					'callback'            => [ $this, 'savePdfSettings' ],
+					'permission_callback' => [ $this, 'adminAccess' ],
+					'args'                => [
+						'slug' => [
+							'type'              => 'string',
+							'required'          => true,
+							'sanitize_callback' => 'sanitize_key',
+						],
+					],
+				],
+			]
+		);
+
 		register_rest_route(
 			self::NAMESPACE,
 			'/admin/modules/(?P<slug>[a-z0-9-]+)/settings/locations/(?P<location_id>\d+)',
@@ -310,6 +342,95 @@ class ModuleSettingsController extends RestController {
 		}
 
 		return $this->success( [ 'deleted' => true ] );
+	}
+
+	/**
+	 * Default PDF section settings per module.
+	 *
+	 * @var array<string,mixed>
+	 */
+	private const PDF_DEFAULTS = [
+		'showChart'      => true,
+		'showFactors'    => true,
+		'showMap'        => true,
+		'showCta'        => true,
+		'showDisclaimer' => true,
+		'ctaTitle'       => '',
+		'ctaText'        => '',
+	];
+
+	/**
+	 * GET /admin/modules/{slug}/pdf-settings
+	 *
+	 * Returns per-module PDF section settings.
+	 *
+	 * @param \WP_REST_Request $request REST request.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function getPdfSettings( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$slug = $request->get_param( 'slug' );
+
+		$module = $this->getModule( $slug );
+		if ( ! $module ) {
+			return $this->notFound( ErrorMessages::getWithParam( 'module_not_found', $slug ) );
+		}
+
+		return $this->success( self::getModulePdfSettings( $slug ) );
+	}
+
+	/**
+	 * PUT /admin/modules/{slug}/pdf-settings
+	 *
+	 * Save per-module PDF section settings.
+	 *
+	 * @param \WP_REST_Request $request REST request.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function savePdfSettings( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$slug = $request->get_param( 'slug' );
+
+		$module = $this->getModule( $slug );
+		if ( ! $module ) {
+			return $this->notFound( ErrorMessages::getWithParam( 'module_not_found', $slug ) );
+		}
+
+		$params   = $request->get_json_params();
+		$settings = self::getModulePdfSettings( $slug );
+
+		$boolKeys = [ 'showChart', 'showFactors', 'showMap', 'showCta', 'showDisclaimer' ];
+		foreach ( $boolKeys as $key ) {
+			if ( array_key_exists( $key, $params ) ) {
+				$settings[ $key ] = (bool) $params[ $key ];
+			}
+		}
+
+		if ( array_key_exists( 'ctaTitle', $params ) ) {
+			$settings['ctaTitle'] = sanitize_text_field( $params['ctaTitle'] ?? '' );
+		}
+
+		if ( array_key_exists( 'ctaText', $params ) ) {
+			$settings['ctaText'] = sanitize_text_field( $params['ctaText'] ?? '' );
+		}
+
+		update_option( 'resa_module_pdf_' . $slug, $settings );
+
+		return $this->success( $settings );
+	}
+
+	/**
+	 * Get stored module PDF settings merged with defaults.
+	 *
+	 * @param string $slug Module slug.
+	 * @return array<string,mixed>
+	 */
+	public static function getModulePdfSettings( string $slug ): array {
+		$stored = get_option( 'resa_module_pdf_' . $slug, [] );
+
+		if ( ! is_array( $stored ) ) {
+			$stored = [];
+		}
+
+		return array_merge( self::PDF_DEFAULTS, $stored );
 	}
 
 	/**

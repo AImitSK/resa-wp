@@ -42,6 +42,49 @@ $address_lat       = $address_lat ?? null;
 $address_lng       = $address_lng ?? null;
 $market_percentile = $market_percentile ?? 0;
 
+// New multi-agent + PDF settings variables (injected by PdfGenerator::renderTemplate).
+$agents        = $agents ?? [];
+$show_agents   = $show_agents ?? true;
+$show_date     = $show_date ?? true;
+$header_text   = $header_text ?? '';
+$footer_text   = $footer_text ?? '';
+$margins       = $margins ?? [ 'top' => 20, 'bottom' => 25, 'left' => 15, 'right' => 15 ];
+$branding_text = $branding_text ?? 'RESA — Real Estate Smart Assets';
+
+// Logo layout settings.
+$logo_position = $logo_position ?? 'left';
+$logo_size     = $logo_size ?? 36;
+
+// Per-module PDF section toggles (injected by PdfGenerator::renderTemplate).
+$pdf_sections   = $pdf_sections ?? [];
+$show_chart     = $pdf_sections['showChart'] ?? true;
+$show_factors   = $pdf_sections['showFactors'] ?? true;
+$show_map       = $pdf_sections['showMap'] ?? true;
+$show_cta       = $pdf_sections['showCta'] ?? true;
+$show_disclaimer = $pdf_sections['showDisclaimer'] ?? true;
+$cta_title_custom = $pdf_sections['ctaTitle'] ?? '';
+$cta_text_custom  = $pdf_sections['ctaText'] ?? '';
+
+// Build legacy single-agent into agents array if agents is empty.
+if ( empty( $agents ) && $agent_name !== '' ) {
+	$agents = [
+		(object) [
+			'name'      => $agent_name,
+			'position'  => '',
+			'email'     => $agent_email,
+			'phone'     => $agent_phone,
+			'photo_url' => '',
+		],
+	];
+}
+
+$display_footer = $footer_text !== '' ? $footer_text : $branding_text;
+
+$m_top    = absint( $margins['top'] ?? 20 );
+$m_bottom = absint( $margins['bottom'] ?? 25 );
+$m_left   = absint( $margins['left'] ?? 15 );
+$m_right  = absint( $margins['right'] ?? 15 );
+
 // Dual-rendering chart data.
 $bar_chart_svg     = $bar_chart_svg ?? '';
 $bar_chart_png     = $bar_chart_png ?? '';
@@ -72,8 +115,8 @@ $esc_image_src = function ( string $src ): string {
 $active_bar_chart = $is_dompdf ? $bar_chart_png : $bar_chart_svg;
 $active_gauge     = $is_dompdf ? $gauge_png : $gauge_svg;
 
-// Map is only available with Puppeteer (Leaflet requires JS).
-$has_map = ! $is_dompdf && $address_lat !== null && $address_lng !== null;
+// Map is only available with Puppeteer (Leaflet requires JS) and when enabled.
+$has_map = $show_map && ! $is_dompdf && $address_lat !== null && $address_lng !== null;
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -85,7 +128,7 @@ $has_map = ! $is_dompdf && $address_lat !== null && $address_lng !== null;
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <?php endif; ?>
 <style>
-@page { size: A4; margin: 15mm; }
+@page { size: A4; margin: <?php echo esc_attr( "{$m_top}mm {$m_right}mm {$m_bottom}mm {$m_left}mm" ); ?>; }
 body { font-family: DejaVu Sans, Helvetica, Arial, sans-serif; font-size: 11px; line-height: 1.4; color: #1e293b; margin: 0; padding: 0; }
 table { border-collapse: collapse; }
 h1 { font-size: 20px; font-weight: bold; color: #0f172a; margin: 0 0 12px 0; }
@@ -100,18 +143,67 @@ p { margin: 0 0 8px 0; }
 <body>
 
 <!-- Header -->
+<?php
+$logo_max_height = absint( $logo_size ) ?: 36;
+$logo_max_width  = (int) round( $logo_max_height * 4 );
+$has_logo        = $logo_url !== '';
+$has_header_text = $header_text !== '';
+
+// Determine column layout based on logo position.
+// Left: [Logo | Text ... | Date]
+// Center: [Text | Logo (center) | Date]
+// Right: [Text ... | Date | Logo]
+?>
 <table width="100%" style="margin-bottom: 16px;">
 <tr>
-<td width="70%" style="vertical-align: middle;">
-<?php if ( $logo_url !== '' ) : ?>
-<img src="<?php echo $esc_image_src( $logo_url ); ?>" style="max-height: 36px; max-width: 140px;">
+<?php if ( $logo_position === 'left' ) : ?>
+<td style="vertical-align: middle;">
+<?php if ( $has_logo ) : ?>
+<img src="<?php echo $esc_image_src( $logo_url ); ?>" style="max-height: <?php echo esc_attr( $logo_max_height ); ?>px; max-width: <?php echo esc_attr( $logo_max_width ); ?>px;">
+<?php if ( $has_header_text ) : ?>
+<div style="font-size: 10px; color: #64748b; margin-top: 4px;"><?php echo esc_html( $header_text ); ?></div>
+<?php endif; ?>
+<?php elseif ( $has_header_text ) : ?>
+<span style="font-size: 10px; color: #64748b;"><?php echo esc_html( $header_text ); ?></span>
 <?php else : ?>
 <span style="font-size: 10px; color: #64748b;"><?php esc_html_e( 'RESA — Mietpreis-Analyse', 'resa' ); ?></span>
 <?php endif; ?>
 </td>
-<td width="30%" style="text-align: right; font-size: 10px; color: #64748b; vertical-align: middle;">
+<?php if ( $show_date ) : ?>
+<td style="text-align: right; font-size: 10px; color: #64748b; vertical-align: middle;">
 <?php echo esc_html( $current_date ); ?>
 </td>
+<?php endif; ?>
+
+<?php elseif ( $logo_position === 'center' ) : ?>
+<td width="30%" style="vertical-align: middle;">
+<?php if ( $has_header_text ) : ?>
+<span style="font-size: 10px; color: #64748b;"><?php echo esc_html( $header_text ); ?></span>
+<?php endif; ?>
+</td>
+<td style="text-align: center; vertical-align: middle;">
+<?php if ( $has_logo ) : ?>
+<img src="<?php echo $esc_image_src( $logo_url ); ?>" style="max-height: <?php echo esc_attr( $logo_max_height ); ?>px; max-width: <?php echo esc_attr( $logo_max_width ); ?>px;">
+<?php endif; ?>
+</td>
+<td width="30%" style="text-align: right; font-size: 10px; color: #64748b; vertical-align: middle;">
+<?php if ( $show_date ) : ?>
+<?php echo esc_html( $current_date ); ?>
+<?php endif; ?>
+</td>
+
+<?php else : /* right — no date in header, footer is enough */ ?>
+<td style="vertical-align: middle;">
+<?php if ( $has_header_text ) : ?>
+<span style="font-size: 10px; color: #64748b;"><?php echo esc_html( $header_text ); ?></span>
+<?php endif; ?>
+</td>
+<td style="text-align: right; vertical-align: middle;">
+<?php if ( $has_logo ) : ?>
+<img src="<?php echo $esc_image_src( $logo_url ); ?>" style="max-height: <?php echo esc_attr( $logo_max_height ); ?>px; max-width: <?php echo esc_attr( $logo_max_width ); ?>px;">
+<?php endif; ?>
+</td>
+<?php endif; ?>
 </tr>
 </table>
 
@@ -127,8 +219,12 @@ printf( esc_html__( 'Guten Tag %s,', 'resa' ), esc_html( $greeting ) );
 </p>
 <?php endif; ?>
 
+<!-- Result + Gauge side by side -->
+<table width="100%" style="margin-bottom: 16px;" cellspacing="0" cellpadding="0">
+<tr>
+<td style="vertical-align: middle; padding-right: 12px;">
 <!-- Result Box -->
-<table width="100%" style="background-color: #f0f9ff; border-left: 4px solid <?php echo esc_attr( $primary_color ); ?>; margin-bottom: 16px;">
+<table width="100%" style="background-color: #f0f9ff; border-left: 4px solid <?php echo esc_attr( $primary_color ); ?>;">
 <tr>
 <td style="padding: 14px 16px;">
 <div style="font-size: 26px; font-weight: bold; color: <?php echo esc_attr( $primary_color ); ?>;">
@@ -143,6 +239,34 @@ printf( esc_html__( 'Guten Tag %s,', 'resa' ), esc_html( $greeting ) );
 <?php esc_html_e( 'Geschätzte marktübliche Kaltmiete', 'resa' ); ?>
 </div>
 </td>
+</tr>
+</table>
+</td>
+<?php if ( $active_gauge !== '' ) : ?>
+<td width="200" style="vertical-align: middle; text-align: center;">
+<?php if ( $is_dompdf ) : ?>
+<img src="<?php echo $esc_image_src( $active_gauge ); ?>" style="width: 180px; height: auto;">
+<?php else : ?>
+<div style="display: inline-block; width: 200px;">
+<?php
+// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG generated by SimpleGaugeChart, not user input.
+echo $active_gauge;
+?>
+</div>
+<?php endif; ?>
+</td>
+<?php elseif ( $market_position !== '' ) : ?>
+<td width="140" style="vertical-align: middle; text-align: center;">
+<?php
+$badge_bg = '#fef3c7'; $badge_color = '#92400e';
+if ( stripos( $market_position, 'über' ) !== false ) { $badge_bg = '#dcfce7'; $badge_color = '#166534'; }
+elseif ( stripos( $market_position, 'unter' ) !== false ) { $badge_bg = '#fee2e2'; $badge_color = '#991b1b'; }
+?>
+<span style="background-color: <?php echo esc_attr( $badge_bg ); ?>; color: <?php echo esc_attr( $badge_color ); ?>; padding: 3px 8px; font-size: 10px; font-weight: bold;">
+<?php echo esc_html( $market_position ); ?>
+</span>
+</td>
+<?php endif; ?>
 </tr>
 </table>
 
@@ -163,37 +287,6 @@ printf( esc_html__( 'Guten Tag %s,', 'resa' ), esc_html( $greeting ) );
 </td>
 </tr>
 </table>
-
-<?php if ( $active_gauge !== '' ) : ?>
-<table width="100%" style="margin-bottom: 14px;">
-<tr>
-<td style="text-align: center;">
-<?php if ( $is_dompdf ) : ?>
-<img src="<?php echo $esc_image_src( $active_gauge ); ?>" style="width: 180px; height: auto;">
-<?php else : ?>
-<div style="display: inline-block; width: 200px;">
-<?php
-// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG generated by SimpleGaugeChart, not user input.
-echo $active_gauge;
-?>
-</div>
-<?php endif; ?>
-</td>
-</tr>
-</table>
-<?php elseif ( $market_position !== '' ) : ?>
-<p style="margin-bottom: 14px;">
-<?php esc_html_e( 'Marktposition:', 'resa' ); ?>
-<?php
-$badge_bg = '#fef3c7'; $badge_color = '#92400e';
-if ( stripos( $market_position, 'über' ) !== false ) { $badge_bg = '#dcfce7'; $badge_color = '#166534'; }
-elseif ( stripos( $market_position, 'unter' ) !== false ) { $badge_bg = '#fee2e2'; $badge_color = '#991b1b'; }
-?>
-<span style="background-color: <?php echo esc_attr( $badge_bg ); ?>; color: <?php echo esc_attr( $badge_color ); ?>; padding: 3px 8px; font-size: 10px; font-weight: bold;">
-<?php echo esc_html( $market_position ); ?>
-</span>
-</p>
-<?php endif; ?>
 
 <h2><?php esc_html_e( 'Objektdaten', 'resa' ); ?></h2>
 <table width="100%" style="margin-bottom: 14px;">
@@ -256,27 +349,71 @@ elseif ( stripos( $market_position, 'unter' ) !== false ) { $badge_bg = '#fee2e2
 </script>
 <?php endif; ?>
 
-<?php if ( $agent_name !== '' ) : ?>
-<table width="100%" style="background-color: #f8fafc; border: 1px solid #e2e8f0; margin-top: 14px;">
+<?php if ( $show_agents && ! empty( $agents ) ) :
+	// Build filtered agents list.
+	$visible_agents = [];
+	foreach ( $agents as $a ) {
+		$a_name = is_object( $a ) ? ( $a->name ?? '' ) : ( $a['name'] ?? '' );
+		if ( $a_name !== '' ) {
+			$visible_agents[] = $a;
+		}
+	}
+?>
+<?php if ( ! empty( $visible_agents ) ) : ?>
+<div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid #e2e8f0;">
+<h3><?php echo esc_html( count( $visible_agents ) > 1 ? __( 'Ihre Ansprechpartner', 'resa' ) : __( 'Ihr Ansprechpartner', 'resa' ) ); ?></h3>
+<table width="100%" cellspacing="0" cellpadding="0">
+<?php
+$chunks = array_chunk( $visible_agents, 2 );
+foreach ( $chunks as $row ) :
+?>
 <tr>
-<td style="padding: 12px;">
-<h3><?php esc_html_e( 'Ihr Ansprechpartner', 'resa' ); ?></h3>
-<div style="font-size: 13px; font-weight: bold; color: #0f172a;"><?php echo esc_html( $agent_name ); ?></div>
-<?php if ( $agent_company !== '' ) : ?>
-<div style="font-size: 11px; color: #64748b;"><?php echo esc_html( $agent_company ); ?></div>
+<?php foreach ( $row as $a ) :
+	$a_name     = is_object( $a ) ? ( $a->name ?? '' ) : ( $a['name'] ?? '' );
+	$a_position = is_object( $a ) ? ( $a->position ?? '' ) : ( $a['position'] ?? '' );
+	$a_email    = is_object( $a ) ? ( $a->email ?? '' ) : ( $a['email'] ?? '' );
+	$a_phone    = is_object( $a ) ? ( $a->phone ?? '' ) : ( $a['phone'] ?? '' );
+	$a_photo    = is_object( $a ) ? ( $a->photo_url ?? '' ) : ( $a['photo_url'] ?? '' );
+?>
+<td width="50%" style="padding: 5px; vertical-align: top;">
+<table width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
+<tr>
+<?php if ( $a_photo !== '' ) : ?>
+<td width="50" style="padding: 10px 0 10px 10px; vertical-align: top;">
+<img src="<?php echo $esc_image_src( $a_photo ); ?>" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+</td>
+<?php else : ?>
+<td width="50" style="padding: 10px 0 10px 10px; vertical-align: top;">
+<div style="width: 40px; height: 40px; border-radius: 50%; background-color: #e2e8f0;"></div>
+</td>
 <?php endif; ?>
-<?php if ( $agent_phone !== '' || $agent_email !== '' ) : ?>
-<div style="font-size: 11px; color: #334155; margin-top: 6px;">
-<?php if ( $agent_phone !== '' ) : ?><?php esc_html_e( 'Tel.:', 'resa' ); ?> <?php echo esc_html( $agent_phone ); ?><?php endif; ?>
-<?php if ( $agent_phone !== '' && $agent_email !== '' ) : ?> | <?php endif; ?>
-<?php if ( $agent_email !== '' ) : ?><?php echo esc_html( $agent_email ); ?><?php endif; ?>
-</div>
+<td style="padding: 10px 10px 10px 8px; vertical-align: top;">
+<div style="font-size: 12px; font-weight: bold; color: #0f172a;"><?php echo esc_html( $a_name ); ?></div>
+<?php if ( $a_position !== '' ) : ?>
+<div style="font-size: 10px; color: #64748b;"><?php echo esc_html( $a_position ); ?></div>
+<?php endif; ?>
+<?php if ( $a_phone !== '' ) : ?>
+<div style="font-size: 10px; color: #334155; margin-top: 3px;"><?php echo esc_html( $a_phone ); ?></div>
+<?php endif; ?>
+<?php if ( $a_email !== '' ) : ?>
+<div style="font-size: 10px; color: #334155;"><?php echo esc_html( $a_email ); ?></div>
 <?php endif; ?>
 </td>
 </tr>
 </table>
+</td>
+<?php endforeach; ?>
+<?php if ( count( $row ) === 1 ) : ?>
+<td width="50%"></td>
+<?php endif; ?>
+</tr>
+<?php endforeach; ?>
+</table>
+</div>
+<?php endif; ?>
 <?php endif; ?>
 
+<?php if ( $show_chart ) : ?>
 <h2><?php esc_html_e( 'Marktvergleich', 'resa' ); ?></h2>
 <p style="font-size: 10px; color: #64748b; margin-bottom: 12px;">
 <?php esc_html_e( 'Vergleich Ihres geschätzten Mietpreises mit regionalen Durchschnittswerten (€/m²)', 'resa' ); ?>
@@ -296,8 +433,9 @@ echo $active_bar_chart;
 <?php endif; ?>
 </div>
 <?php endif; ?>
+<?php endif; ?>
 
-<?php if ( ! empty( $factors ) ) : ?>
+<?php if ( $show_factors && ! empty( $factors ) ) : ?>
 <h2><?php esc_html_e( 'Einflussfaktoren', 'resa' ); ?></h2>
 <p style="font-size: 10px; color: #64748b; margin-bottom: 10px;">
 <?php esc_html_e( 'Diese Faktoren beeinflussen den geschätzten Mietpreis Ihres Objekts:', 'resa' ); ?>
@@ -327,6 +465,7 @@ echo $active_bar_chart;
 </table>
 <?php endif; ?>
 
+<?php if ( $show_disclaimer ) : ?>
 <table width="100%" style="background-color: #fefce8; border: 1px solid #fef08a; margin-top: 20px;">
 <tr>
 <td style="padding: 10px; font-size: 9px; color: #713f12;">
@@ -335,30 +474,73 @@ echo $active_bar_chart;
 </td>
 </tr>
 </table>
+<?php endif; ?>
 
-<?php if ( $agent_name !== '' ) : ?>
+<?php if ( $show_cta ) :
+// CTA block — use first agent for the contact CTA.
+$cta_agent_name  = '';
+$cta_agent_phone = '';
+if ( $show_agents && ! empty( $agents ) ) {
+	$first = $agents[0];
+	$cta_agent_name  = is_object( $first ) ? ( $first->name ?? '' ) : ( $first['name'] ?? '' );
+	$cta_agent_phone = is_object( $first ) ? ( $first->phone ?? '' ) : ( $first['phone'] ?? '' );
+} elseif ( $agent_name !== '' ) {
+	$cta_agent_name  = $agent_name;
+	$cta_agent_phone = $agent_phone;
+}
+
+// Custom CTA texts with {name} placeholder.
+$cta_display_title = $cta_title_custom !== '' ? $cta_title_custom : __( 'Interesse an einer persönlichen Beratung?', 'resa' );
+$cta_display_text  = $cta_text_custom !== ''
+	? str_replace( '{name}', $cta_agent_name, $cta_text_custom )
+	: sprintf( __( 'Kontaktieren Sie %s für eine unverbindliche Einschätzung.', 'resa' ), $cta_agent_name );
+?>
+<?php if ( $cta_agent_name !== '' ) : ?>
 <table width="100%" style="background-color: #f0f9ff; border: 1px solid #bae6fd; margin-top: 16px;">
 <tr>
 <td style="padding: 14px; text-align: center;">
 <div style="font-size: 12px; font-weight: bold; color: #0f172a; margin-bottom: 4px;">
-<?php esc_html_e( 'Interesse an einer persönlichen Beratung?', 'resa' ); ?>
+<?php echo esc_html( $cta_display_title ); ?>
 </div>
 <div style="font-size: 10px; color: #475569;">
-<?php printf( esc_html__( 'Kontaktieren Sie %s für eine unverbindliche Einschätzung.', 'resa' ), esc_html( $agent_name ) ); ?>
+<?php echo esc_html( $cta_display_text ); ?>
 </div>
-<?php if ( $agent_phone !== '' ) : ?>
+<?php if ( $cta_agent_phone !== '' ) : ?>
 <div style="font-size: 14px; font-weight: bold; color: <?php echo esc_attr( $primary_color ); ?>; margin-top: 8px;">
-<?php echo esc_html( $agent_phone ); ?>
+<?php echo esc_html( $cta_agent_phone ); ?>
 </div>
 <?php endif; ?>
 </td>
 </tr>
 </table>
 <?php endif; ?>
+<?php endif; ?>
 
+<!-- Footer -->
+<?php
+$broker = $broker ?? [];
+$footer_parts = array_filter( [
+	$broker['company'] ?? '',
+	$broker['address'] ?? '',
+	$broker['phone'] ?? '',
+	$broker['email'] ?? '',
+	$broker['website'] ?? '',
+] );
+$footer_address = implode( '  ·  ', $footer_parts );
+?>
 <table width="100%" style="margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 6px;">
+<?php if ( $footer_address !== '' ) : ?>
 <tr>
-<td style="font-size: 8px; color: #94a3b8;"><?php esc_html_e( 'RESA — Real Estate Smart Assets', 'resa' ); ?></td>
+<td colspan="2" style="font-size: 8px; color: #94a3b8; padding-bottom: 3px;">
+<?php echo esc_html( $footer_address ); ?>
+</td>
+</tr>
+<?php endif; ?>
+<tr>
+<td style="font-size: 8px; color: #94a3b8;"><?php echo esc_html( $display_footer ); ?></td>
+<?php if ( $show_date ) : ?>
+<td style="font-size: 8px; color: #94a3b8; text-align: right;"><?php echo esc_html( $current_date ); ?></td>
+<?php endif; ?>
 </tr>
 </table>
 

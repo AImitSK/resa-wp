@@ -20,6 +20,7 @@ import {
 import { OverviewTab } from '../components/module-settings/OverviewTab';
 import { SetupTab } from '../components/module-settings/SetupTab';
 import { LocationValuesTab } from '../components/module-settings/LocationValuesTab';
+import { PdfTab } from '../components/module-settings/PdfTab';
 import { AdminPageLayout } from '../components/AdminPageLayout';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -41,7 +42,7 @@ const MODULE_ICONS: Record<string, React.ElementType> = {
 	'buyer-checklist': CheckCircle2,
 };
 
-type SettingsTab = 'overview' | 'setup' | 'locations';
+type SettingsTab = 'overview' | 'setup' | 'locations' | 'pdf';
 
 export function ModuleSettings() {
 	const { slug } = useParams<{ slug: string }>();
@@ -247,6 +248,9 @@ export function ModuleSettings() {
 					>
 						{__('Standort-Werte', 'resa')}
 					</TabsTrigger>
+					<TabsTrigger value="pdf" style={tabTriggerStyle(activeTab === 'pdf')}>
+						{__('PDF', 'resa')}
+					</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="overview">
@@ -271,6 +275,8 @@ export function ModuleSettings() {
 						isSaving={saveLocationValue.isPending || deleteLocationValue.isPending}
 					/>
 				</TabsContent>
+
+				<TabsContent value="pdf">{slug && <PdfTab slug={slug} />}</TabsContent>
 			</Tabs>
 		</AdminPageLayout>
 	);

@@ -15,7 +15,7 @@ final class Schema {
 	/**
 	 * Current schema version.
 	 */
-	public const VERSION = '0.4.0';
+	public const VERSION = '0.5.0';
 
 	/**
 	 * Run migrations from the given version to current.
@@ -39,6 +39,10 @@ final class Schema {
 
 		if ( version_compare( $fromVersion, '0.4.0', '<' ) ) {
 			self::migrateToV040();
+		}
+
+		if ( version_compare( $fromVersion, '0.5.0', '<' ) ) {
+			self::migrateToV050();
 		}
 
 		update_option( 'resa_db_version', self::VERSION );
@@ -338,6 +342,26 @@ CREATE TABLE {$prefix}resa_agent_locations (
 		if ( ! $zoom_exists ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN zoom_level TINYINT UNSIGNED DEFAULT 13 AFTER longitude" );
+		}
+	}
+
+	/**
+	 * v0.5.0 — Add position column to agents table.
+	 *
+	 * Stores the agent's role/title (e.g. "Geschäftsführer", "Vertrieb").
+	 */
+	private static function migrateToV050(): void {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'resa_agents';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$position_exists = $wpdb->get_var(
+			"SHOW COLUMNS FROM {$table} LIKE 'position'"
+		);
+		if ( ! $position_exists ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN position VARCHAR(255) DEFAULT NULL AFTER name" );
 		}
 	}
 }

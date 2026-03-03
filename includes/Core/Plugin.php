@@ -14,6 +14,7 @@ use Resa\Api\LocationsController;
 use Resa\Api\MapSettingsController;
 use Resa\Api\ModulesController;
 use Resa\Api\ModuleSettingsController;
+use Resa\Api\PdfSettingsController;
 use Resa\Api\TrackingController;
 use Resa\Database\Schema;
 use Resa\Core\ModuleRegistry;
@@ -141,6 +142,7 @@ final class Plugin {
 			new MapSettingsController(),
 			new ModulesController(),
 			new ModuleSettingsController(),
+			new PdfSettingsController(),
 			new TrackingController(),
 		];
 
