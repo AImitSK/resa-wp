@@ -45,6 +45,7 @@ import {
 import { useLocations } from '../hooks/useLocations';
 import { useFeatures } from '../hooks/useFeatures';
 import { AdminPageLayout } from '../components/AdminPageLayout';
+import { LeadEmailLogSection } from '../components/leads/LeadEmailLogSection';
 import { LeafletMapWrapper } from '../components/map/LeafletMapWrapper';
 
 import { Button } from '@/components/ui/button';
@@ -930,73 +931,6 @@ export function Leads() {
 									) : null}
 								</div>
 							) : null}
-						</div>
-
-						{/* Right Column */}
-						<div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-							{/* Inputs Table */}
-							{Object.keys(selectedLead.inputs ?? {}).length > 0 ? (
-								<div
-									style={{
-										borderRadius: '8px',
-										border: '1px solid hsl(214.3 31.8% 91.4%)',
-										overflow: 'hidden',
-									}}
-								>
-									<div
-										style={{
-											padding: '12px 16px',
-											backgroundColor: 'hsl(210 40% 96.1%)',
-											borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
-										}}
-									>
-										<span style={{ fontWeight: 600, color: '#1e303a' }}>
-											{__('Eingabedaten', 'resa')}
-										</span>
-									</div>
-									<Table>
-										<TableBody>
-											{Object.entries(selectedLead.inputs)
-												.filter(
-													([key]) =>
-														!['city_id', 'city_slug'].includes(key),
-												)
-												.map(([key, value], index, arr) => (
-													<TableRow key={key}>
-														<TableCell
-															style={{
-																padding: '10px 16px',
-																width: '160px',
-																color: 'hsl(215.4 16.3% 46.9%)',
-																fontSize: '13px',
-																borderBottom:
-																	index < arr.length - 1
-																		? '1px solid hsl(214.3 31.8% 91.4%)'
-																		: 'none',
-															}}
-														>
-															{INPUT_LABELS[key] || key}
-														</TableCell>
-														<TableCell
-															style={{
-																padding: '10px 16px',
-																fontWeight: 500,
-																fontSize: '13px',
-																color: '#1e303a',
-																borderBottom:
-																	index < arr.length - 1
-																		? '1px solid hsl(214.3 31.8% 91.4%)'
-																		: 'none',
-															}}
-														>
-															{formatInputValue(key, value)}
-														</TableCell>
-													</TableRow>
-												))}
-										</TableBody>
-									</Table>
-								</div>
-							) : null}
 
 							{/* Notes */}
 							<div
@@ -1068,6 +1002,76 @@ export function Leads() {
 									</div>
 								</div>
 							</div>
+						</div>
+
+						{/* Right Column */}
+						<div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+							{/* Inputs Table */}
+							{Object.keys(selectedLead.inputs ?? {}).length > 0 ? (
+								<div
+									style={{
+										borderRadius: '8px',
+										border: '1px solid hsl(214.3 31.8% 91.4%)',
+										overflow: 'hidden',
+									}}
+								>
+									<div
+										style={{
+											padding: '12px 16px',
+											backgroundColor: 'hsl(210 40% 96.1%)',
+											borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+										}}
+									>
+										<span style={{ fontWeight: 600, color: '#1e303a' }}>
+											{__('Eingabedaten', 'resa')}
+										</span>
+									</div>
+									<Table>
+										<TableBody>
+											{Object.entries(selectedLead.inputs)
+												.filter(
+													([key]) =>
+														!['city_id', 'city_slug'].includes(key),
+												)
+												.map(([key, value], index, arr) => (
+													<TableRow key={key}>
+														<TableCell
+															style={{
+																padding: '10px 16px',
+																width: '160px',
+																color: 'hsl(215.4 16.3% 46.9%)',
+																fontSize: '13px',
+																borderBottom:
+																	index < arr.length - 1
+																		? '1px solid hsl(214.3 31.8% 91.4%)'
+																		: 'none',
+															}}
+														>
+															{INPUT_LABELS[key] || key}
+														</TableCell>
+														<TableCell
+															style={{
+																padding: '10px 16px',
+																fontWeight: 500,
+																fontSize: '13px',
+																color: '#1e303a',
+																borderBottom:
+																	index < arr.length - 1
+																		? '1px solid hsl(214.3 31.8% 91.4%)'
+																		: 'none',
+															}}
+														>
+															{formatInputValue(key, value)}
+														</TableCell>
+													</TableRow>
+												))}
+										</TableBody>
+									</Table>
+								</div>
+							) : null}
+
+							{/* Email Log */}
+							<LeadEmailLogSection leadId={selectedLead.id} />
 						</div>
 					</div>
 				</div>

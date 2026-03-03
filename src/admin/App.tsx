@@ -14,8 +14,7 @@ import { Leads } from './pages/Leads';
 import { ModuleStore } from './pages/ModuleStore';
 import { ModuleSettings } from './pages/ModuleSettings';
 import { Locations } from './pages/Locations';
-import { Communication } from './pages/Communication';
-import { PdfTemplates } from './pages/PdfTemplates';
+import { Templates } from './pages/Templates';
 import { Integrations } from './pages/Integrations';
 import { Settings } from './pages/Settings';
 
@@ -36,8 +35,7 @@ const PAGE_ROUTES: Record<string, string> = {
 	'resa-leads': '/leads',
 	'resa-modules': '/modules',
 	'resa-locations': '/locations',
-	'resa-communication': '/communication',
-	'resa-pdf': '/pdf',
+	'resa-templates': '/templates',
 	'resa-integrations': '/integrations',
 	'resa-settings': '/settings',
 };
@@ -58,8 +56,7 @@ export function App() {
 						<Route path="modules" element={<ModuleStore />} />
 						<Route path="modules/:slug/settings" element={<ModuleSettings />} />
 						<Route path="locations" element={<Locations />} />
-						<Route path="communication" element={<Communication />} />
-						<Route path="pdf" element={<PdfTemplates />} />
+						<Route path="templates" element={<Templates />} />
 						<Route path="integrations" element={<Integrations />} />
 						<Route path="settings" element={<Settings />} />
 						<Route path="*" element={<Navigate to="/" replace />} />

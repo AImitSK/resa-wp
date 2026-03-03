@@ -93,7 +93,7 @@ export function PdfTemplates() {
 /**
  * Base Layout Tab — settings + live preview side by side.
  */
-function BaseLayoutTab({
+export function BaseLayoutTab({
 	initialData,
 	logoUrl,
 	teamMembers,

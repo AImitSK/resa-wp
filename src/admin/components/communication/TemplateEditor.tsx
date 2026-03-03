@@ -111,7 +111,7 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 		<AdminPageLayout
 			variant="detail"
 			breadcrumbs={[
-				{ label: __('Kommunikation', 'resa'), onClick: onBack },
+				{ label: __('Vorlagen', 'resa'), onClick: onBack },
 				{ label: template.name },
 			]}
 			onBack={onBack}

@@ -8,6 +8,7 @@ use Resa\Core\ErrorMessages;
 use Resa\Core\Plugin;
 use Resa\Freemius\FeatureGate;
 use Resa\Models\Lead;
+use Resa\Services\Email\EmailLogger;
 use Resa\Services\Email\EmailService;
 use Resa\Services\Notifications\LeadNotificationService;
 use Resa\Services\Pdf\LeadPdfService;
@@ -85,6 +86,23 @@ final class LeadsController extends RestController {
 				'methods'             => 'GET',
 				'callback'            => [ $this, 'adminExport' ],
 				'permission_callback' => [ $this, 'adminAccess' ],
+			]
+		);
+
+		register_rest_route(
+			self::NAMESPACE,
+			'/admin/leads/(?P<id>\d+)/emails',
+			[
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'adminLeadEmails' ],
+				'permission_callback' => [ $this, 'adminAccess' ],
+				'args'                => [
+					'id' => [
+						'type'              => 'integer',
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					],
+				],
 			]
 		);
 
@@ -366,6 +384,37 @@ final class LeadsController extends RestController {
 		}
 
 		return $this->success( $stats );
+	}
+
+	/**
+	 * GET /admin/leads/{id}/emails — Email log for a lead.
+	 */
+	public function adminLeadEmails( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$id   = (int) $request->get_param( 'id' );
+		$lead = Lead::findById( $id );
+
+		if ( ! $lead ) {
+			return $this->notFound( __( 'Lead nicht gefunden.', 'resa' ) );
+		}
+
+		$logs = EmailLogger::findByLead( $id );
+
+		$items = array_map(
+			static function ( object $log ): array {
+				return [
+					'id'         => (int) $log->id,
+					'templateId' => $log->template_id,
+					'recipient'  => $log->recipient,
+					'subject'    => $log->subject,
+					'status'     => $log->status,
+					'error'      => $log->error_message ?? null,
+					'sentAt'     => $log->sent_at,
+				];
+			},
+			$logs
+		);
+
+		return $this->success( $items );
 	}
 
 	/**

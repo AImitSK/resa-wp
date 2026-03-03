@@ -10,8 +10,6 @@ import {
 	User,
 	Users,
 	Palette,
-	Key,
-	Shield,
 	Building2,
 	Mail,
 	Phone,
@@ -19,12 +17,14 @@ import {
 	FileText,
 	X,
 	Image,
-	Map,
 	Plus,
 	Pencil,
 	Trash2,
 	MapPin,
 	Briefcase,
+	Server,
+	Key,
+	Shield,
 } from 'lucide-react';
 import { AdminPageLayout } from '../components/AdminPageLayout';
 import { useAgentData, useSaveAgentData, type AgentData } from '../hooks/useAgentData';
@@ -56,7 +56,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 
-type SettingsTab = 'agent' | 'team' | 'branding' | 'maps' | 'license' | 'gdpr';
+type SettingsTab = 'agent' | 'team' | 'branding' | 'maps' | 'email' | 'license' | 'gdpr';
 
 export function Settings() {
 	const [activeTab, setActiveTab] = useState<SettingsTab>('agent');
@@ -82,7 +82,10 @@ export function Settings() {
 		<AdminPageLayout
 			variant="overview"
 			title={__('Einstellungen', 'resa')}
-			description={__('Maklerdaten, Branding, Lizenz und Datenschutz-Einstellungen.', 'resa')}
+			description={__(
+				'Maklerdaten, Branding, E-Mail, Lizenz und Datenschutz-Einstellungen.',
+				'resa',
+			)}
 		>
 			{/* Tab Navigation */}
 			<Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as SettingsTab)}>
@@ -98,27 +101,24 @@ export function Settings() {
 					}}
 				>
 					<TabsTrigger value="agent" style={tabStyle(activeTab === 'agent')}>
-						<User style={{ width: '16px', height: '16px' }} />
 						{__('Maklerdaten', 'resa')}
 					</TabsTrigger>
 					<TabsTrigger value="team" style={tabStyle(activeTab === 'team')}>
-						<Users style={{ width: '16px', height: '16px' }} />
 						{__('Team', 'resa')}
 					</TabsTrigger>
 					<TabsTrigger value="branding" style={tabStyle(activeTab === 'branding')}>
-						<Palette style={{ width: '16px', height: '16px' }} />
 						{__('Branding', 'resa')}
 					</TabsTrigger>
 					<TabsTrigger value="maps" style={tabStyle(activeTab === 'maps')}>
-						<Map style={{ width: '16px', height: '16px' }} />
 						{__('Karten', 'resa')}
 					</TabsTrigger>
+					<TabsTrigger value="email" style={tabStyle(activeTab === 'email')}>
+						{__('E-Mail', 'resa')}
+					</TabsTrigger>
 					<TabsTrigger value="license" style={tabStyle(activeTab === 'license')}>
-						<Key style={{ width: '16px', height: '16px' }} />
 						{__('Lizenz', 'resa')}
 					</TabsTrigger>
 					<TabsTrigger value="gdpr" style={tabStyle(activeTab === 'gdpr')}>
-						<Shield style={{ width: '16px', height: '16px' }} />
 						{__('Datenschutz', 'resa')}
 					</TabsTrigger>
 				</TabsList>
@@ -129,6 +129,7 @@ export function Settings() {
 			{activeTab === 'team' && <TeamTab />}
 			{activeTab === 'branding' && <BrandingTab />}
 			{activeTab === 'maps' && <MapsTab />}
+			{activeTab === 'email' && <EmailSettingsTab />}
 			{activeTab === 'license' && <LicenseTab />}
 			{activeTab === 'gdpr' && <GdprTab />}
 		</AdminPageLayout>
@@ -1809,6 +1810,46 @@ function MapsForm({ initialData }: { initialData: MapSettings | undefined }) {
 				</Button>
 			</div>
 		</form>
+	);
+}
+
+/**
+ * Email Settings Tab — SMTP transport info.
+ */
+function EmailSettingsTab() {
+	return (
+		<Card>
+			<div style={{ padding: '24px', paddingBottom: '16px' }}>
+				<h3 className="resa-text-lg resa-font-semibold" style={{ margin: 0 }}>
+					{__('SMTP-Einstellungen', 'resa')}
+				</h3>
+				<p
+					className="resa-text-sm resa-text-muted-foreground"
+					style={{ margin: 0, marginTop: '2px' }}
+				>
+					{__('Konfiguriere deinen E-Mail-Server für den Versand.', 'resa')}
+				</p>
+			</div>
+			<CardContent>
+				<div className="resa-flex resa-items-center resa-gap-3 resa-p-4 resa-rounded-lg resa-border resa-bg-muted/30">
+					<Server className="resa-size-5 resa-text-muted-foreground" />
+					<div>
+						<p className="resa-font-medium" style={{ margin: 0 }}>
+							{__('WordPress Standard', 'resa')}
+						</p>
+						<p
+							className="resa-text-sm resa-text-muted-foreground"
+							style={{ margin: 0, marginTop: '2px' }}
+						>
+							{__('E-Mails werden über wp_mail() versendet.', 'resa')}
+						</p>
+					</div>
+					<Badge variant="secondary" className="resa-ml-auto">
+						{__('Aktiv', 'resa')}
+					</Badge>
+				</div>
+			</CardContent>
+		</Card>
 	);
 }
 

@@ -34,8 +34,7 @@ final class AdminPage {
 			'resa-leads'         => __( 'Leads', 'resa' ),
 			'resa-modules'       => __( 'Smart Assets', 'resa' ),
 			'resa-locations'     => __( 'Standorte', 'resa' ),
-			'resa-communication' => __( 'Kommunikation', 'resa' ),
-			'resa-pdf'           => __( 'PDF-Vorlagen', 'resa' ),
+			'resa-templates'     => __( 'Vorlagen', 'resa' ),
 			'resa-integrations'  => __( 'Integrationen', 'resa' ),
 			'resa-settings'      => __( 'Einstellungen', 'resa' ),
 		];
