@@ -16,7 +16,6 @@ import { ModuleSettings } from './pages/ModuleSettings';
 import { Locations } from './pages/Locations';
 import { Communication } from './pages/Communication';
 import { PdfTemplates } from './pages/PdfTemplates';
-import { ShortcodeGenerator } from './pages/ShortcodeGenerator';
 import { Integrations } from './pages/Integrations';
 import { Settings } from './pages/Settings';
 
@@ -39,7 +38,6 @@ const PAGE_ROUTES: Record<string, string> = {
 	'resa-locations': '/locations',
 	'resa-communication': '/communication',
 	'resa-pdf': '/pdf',
-	'resa-shortcode': '/shortcode',
 	'resa-integrations': '/integrations',
 	'resa-settings': '/settings',
 };
@@ -62,7 +60,6 @@ export function App() {
 						<Route path="locations" element={<Locations />} />
 						<Route path="communication" element={<Communication />} />
 						<Route path="pdf" element={<PdfTemplates />} />
-						<Route path="shortcode" element={<ShortcodeGenerator />} />
 						<Route path="integrations" element={<Integrations />} />
 						<Route path="settings" element={<Settings />} />
 						<Route path="*" element={<Navigate to="/" replace />} />

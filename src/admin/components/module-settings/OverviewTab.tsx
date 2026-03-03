@@ -66,7 +66,7 @@ export function OverviewTab({ module }: OverviewTabProps) {
 		display: 'inline-flex',
 		alignItems: 'center',
 		padding: '3px 10px 5px 10px',
-		borderRadius: '4px',
+		borderRadius: '9999px',
 		fontSize: '11px',
 		fontWeight: 500,
 		backgroundColor: '#1e303a',
@@ -151,6 +151,81 @@ export function OverviewTab({ module }: OverviewTabProps) {
 								? __('Premium', 'resa')
 								: __('Add-on', 'resa')}
 					</span>
+				</div>
+			</div>
+
+			{/* Description (2/3) + Documentation (1/3) side by side */}
+			<div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
+				{/* Module description */}
+				<div
+					style={{
+						backgroundColor: 'white',
+						borderRadius: '8px',
+						border: '1px solid hsl(214.3 31.8% 91.4%)',
+						padding: '20px',
+					}}
+				>
+					<h3 style={{ fontSize: '14px', fontWeight: 600, color: '#1e303a', margin: 0 }}>
+						{__('Über dieses Modul', 'resa')}
+					</h3>
+					<p
+						style={{
+							fontSize: '14px',
+							color: '#1e303a',
+							lineHeight: 1.7,
+							marginTop: '12px',
+							marginBottom: 0,
+						}}
+					>
+						{getModuleDescription()}
+					</p>
+				</div>
+
+				{/* Documentation link */}
+				<div
+					style={{
+						backgroundColor: 'white',
+						borderRadius: '8px',
+						border: '1px solid hsl(214.3 31.8% 91.4%)',
+						padding: '20px',
+						display: 'flex',
+						flexDirection: 'column',
+					}}
+				>
+					<h3 style={{ fontSize: '14px', fontWeight: 600, color: '#1e303a', margin: 0 }}>
+						{__('Dokumentation', 'resa')}
+					</h3>
+					<p
+						style={{
+							fontSize: '13px',
+							color: 'hsl(215.4 16.3% 46.9%)',
+							lineHeight: 1.6,
+							marginTop: '12px',
+							marginBottom: '16px',
+							flex: 1,
+						}}
+					>
+						{__(
+							'Ausführliche Anleitungen zur Konfiguration und Best Practices für die Lead-Generierung.',
+							'resa',
+						)}
+					</p>
+					<a
+						href="https://www.resa-wp.com/docs"
+						target="_blank"
+						rel="noopener noreferrer"
+						style={{
+							display: 'inline-flex',
+							alignItems: 'center',
+							gap: '6px',
+							color: '#1e303a',
+							fontWeight: 500,
+							fontSize: '13px',
+							textDecoration: 'none',
+						}}
+					>
+						{__('Zur Dokumentation', 'resa')} →
+					</a>
 				</div>
 			</div>
 
@@ -497,81 +572,6 @@ export function OverviewTab({ module }: OverviewTabProps) {
 							)}
 						</button>
 					</div>
-				</div>
-			</div>
-
-			{/* Description (2/3) + Documentation (1/3) side by side */}
-			<div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
-				{/* Module description */}
-				<div
-					style={{
-						backgroundColor: 'white',
-						borderRadius: '8px',
-						border: '1px solid hsl(214.3 31.8% 91.4%)',
-						padding: '20px',
-					}}
-				>
-					<h3 style={{ fontSize: '14px', fontWeight: 600, color: '#1e303a', margin: 0 }}>
-						{__('Über dieses Modul', 'resa')}
-					</h3>
-					<p
-						style={{
-							fontSize: '14px',
-							color: '#1e303a',
-							lineHeight: 1.7,
-							marginTop: '12px',
-							marginBottom: 0,
-						}}
-					>
-						{getModuleDescription()}
-					</p>
-				</div>
-
-				{/* Documentation link */}
-				<div
-					style={{
-						backgroundColor: 'white',
-						borderRadius: '8px',
-						border: '1px solid hsl(214.3 31.8% 91.4%)',
-						padding: '20px',
-						display: 'flex',
-						flexDirection: 'column',
-					}}
-				>
-					<h3 style={{ fontSize: '14px', fontWeight: 600, color: '#1e303a', margin: 0 }}>
-						{__('Dokumentation', 'resa')}
-					</h3>
-					<p
-						style={{
-							fontSize: '13px',
-							color: 'hsl(215.4 16.3% 46.9%)',
-							lineHeight: 1.6,
-							marginTop: '12px',
-							marginBottom: '16px',
-							flex: 1,
-						}}
-					>
-						{__(
-							'Ausführliche Anleitungen zur Konfiguration und Best Practices für die Lead-Generierung.',
-							'resa',
-						)}
-					</p>
-					<a
-						href="https://www.resa-wp.com/docs"
-						target="_blank"
-						rel="noopener noreferrer"
-						style={{
-							display: 'inline-flex',
-							alignItems: 'center',
-							gap: '6px',
-							color: '#1e303a',
-							fontWeight: 500,
-							fontSize: '13px',
-							textDecoration: 'none',
-						}}
-					>
-						{__('Zur Dokumentation', 'resa')} →
-					</a>
 				</div>
 			</div>
 		</div>

@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { __ } from '@wordpress/i18n';
-import { BarChart3, Table2, Map, MessageSquare, AlertTriangle, Save } from 'lucide-react';
+import { BarChart3, Table2, Map, MessageSquare, AlertTriangle } from 'lucide-react';
 import {
 	useModulePdfSettings,
 	useSaveModulePdfSettings,
@@ -364,10 +364,7 @@ function PdfTabInner({ settings, slug }: { settings: ModulePdfSettings; slug: st
 							{__('Speichern...', 'resa')}
 						</>
 					) : (
-						<>
-							<Save style={{ width: '16px', height: '16px' }} />
-							{__('Speichern', 'resa')}
-						</>
+						__('Speichern', 'resa')
 					)}
 				</Button>
 			</div>

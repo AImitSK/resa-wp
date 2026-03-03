@@ -16,7 +16,6 @@ import {
 	Trash2,
 	Crown,
 	ArrowLeft,
-	Save,
 	Eye,
 	ChevronLeft,
 	ChevronRight,
@@ -1064,13 +1063,6 @@ export function Leads() {
 													}}
 												/>
 											)}
-											<Save
-												style={{
-													width: '14px',
-													height: '14px',
-													marginRight: '6px',
-												}}
-											/>
 											{__('Speichern', 'resa')}
 										</Button>
 									</div>

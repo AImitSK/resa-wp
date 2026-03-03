@@ -36,7 +36,6 @@ final class AdminPage {
 			'resa-locations'     => __( 'Standorte', 'resa' ),
 			'resa-communication' => __( 'Kommunikation', 'resa' ),
 			'resa-pdf'           => __( 'PDF-Vorlagen', 'resa' ),
-			'resa-shortcode'     => __( 'Shortcode', 'resa' ),
 			'resa-integrations'  => __( 'Integrationen', 'resa' ),
 			'resa-settings'      => __( 'Einstellungen', 'resa' ),
 		];
@@ -130,7 +129,13 @@ final class AdminPage {
 	 * Render the React SPA container (shared by all pages).
 	 */
 	public function renderPage(): void {
-		echo '<div class="wrap"><div id="resa-admin-root"></div></div>';
+		echo '<div class="wrap">';
+		echo '<h1 class="wp-heading-inline" style="display:none;">'
+			. esc_html( get_admin_page_title() )
+			. '</h1>';
+		echo '<hr class="wp-header-end">';
+		echo '<div id="resa-admin-root"></div>';
+		echo '</div>';
 	}
 
 	/**
