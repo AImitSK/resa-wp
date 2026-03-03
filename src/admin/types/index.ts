@@ -26,6 +26,8 @@ export interface ResaAdminContext {
 	version: string;
 	features: FeatureGate;
 	locationCount: number;
+	siteName: string;
+	adminEmail: string;
 }
 
 /**

@@ -121,6 +121,8 @@ final class AdminPage {
 				'version'        => RESA_VERSION,
 				'features'       => $featureData,
 				'locationCount'  => Location::count(),
+				'siteName'       => get_bloginfo( 'name' ),
+				'adminEmail'     => get_option( 'admin_email', '' ),
 			]
 		);
 	}

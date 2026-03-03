@@ -4,6 +4,7 @@ declare( strict_types=1 );
 
 namespace Resa\Services\Notifications;
 
+use Resa\Models\EmailTemplate;
 use Resa\Models\Lead;
 use Resa\Models\Location;
 use Resa\Services\Email\EmailService;
@@ -49,6 +50,12 @@ final class LeadNotificationService {
 			return false;
 		}
 
+		// Check if template is active.
+		$template = EmailTemplate::get( self::TEMPLATE_ID );
+		if ( $template !== null && ( $template['is_active'] ?? true ) === false ) {
+			return false;
+		}
+
 		$lead = Lead::findById( $leadId );
 		if ( $lead === null ) {
 			return false;
@@ -62,8 +69,19 @@ final class LeadNotificationService {
 		}
 
 		$agentName = $this->getAgentName( $location );
-		$subject   = $this->buildSubject( $lead );
-		$html      = $this->buildEmailContent( $lead, $location, $agentName );
+		$vars      = $this->buildTemplateVariables( $lead, $location, $agentName );
+
+		// Build subject and body from DB template (with variable replacement).
+		if ( $template !== null && $template['is_modified'] ) {
+			$subject = EmailService::renderVariables( $template['subject'], $vars );
+			$body    = EmailService::renderVariables( $template['body'], $vars );
+			$body    = $this->stripVariableSpans( $body );
+			$html    = EmailService::wrapInLayout( $body );
+		} else {
+			// Legacy: use PHP template file.
+			$subject = $this->buildSubject( $lead );
+			$html    = $this->buildEmailContent( $lead, $location, $agentName );
+		}
 
 		try {
 			return $this->emailService->send(
@@ -77,6 +95,20 @@ final class LeadNotificationService {
 			// Log error but don't propagate — lead completion should not fail.
 			return false;
 		}
+	}
+
+	/**
+	 * Strip data-variable spans, keeping their inner text content.
+	 *
+	 * @param string $html HTML string.
+	 * @return string Cleaned HTML.
+	 */
+	private function stripVariableSpans( string $html ): string {
+		return preg_replace(
+			'/<span\s+data-variable="[^"]*">(.*?)<\/span>/i',
+			'$1',
+			$html
+		) ?? $html;
 	}
 
 	/**

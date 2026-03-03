@@ -1,23 +1,40 @@
 /**
  * Communication page — email templates, send log, SMTP setup.
+ *
+ * Two views: list (tabs with templates/log/smtp) and editor (template detail).
  */
 
+import { useState } from 'react';
 import { __ } from '@wordpress/i18n';
-import { Mail, FileText, Server, Send, Clock } from 'lucide-react';
+import { FileText, Server, Send, Clock } from 'lucide-react';
+
 import { AdminPageLayout } from '../components/AdminPageLayout';
+import { TemplatesTab } from '../components/communication/TemplatesTab';
+import { TemplateEditor } from '../components/communication/TemplateEditor';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+type View = { type: 'list' } | { type: 'editor'; templateId: string };
+
 export function Communication() {
+	const [view, setView] = useState<View>({ type: 'list' });
+
+	// Editor view.
+	if (view.type === 'editor') {
+		return (
+			<TemplateEditor templateId={view.templateId} onBack={() => setView({ type: 'list' })} />
+		);
+	}
+
+	// List view.
 	return (
 		<AdminPageLayout
 			variant="overview"
 			title={__('Kommunikation', 'resa')}
 			description={__('E-Mail-Vorlagen, Versandlog und SMTP-Einstellungen.', 'resa')}
 		>
-			{/* Tabs */}
 			<Tabs defaultValue="templates">
 				<TabsList>
 					<TabsTrigger value="templates" className="resa-gap-1">
@@ -35,69 +52,7 @@ export function Communication() {
 				</TabsList>
 
 				<TabsContent value="templates" className="resa-mt-4">
-					<div className="resa-grid resa-gap-4">
-						{/* Template cards */}
-						{[
-							{
-								title: __('Lead-Benachrichtigung', 'resa'),
-								description: __('E-Mail an Makler bei neuem Lead.', 'resa'),
-								status: 'active',
-							},
-							{
-								title: __('Lead-PDF', 'resa'),
-								description: __('PDF-Ergebnis an Interessenten.', 'resa'),
-								status: 'active',
-							},
-							{
-								title: __('Follow-up', 'resa'),
-								description: __('Automatische Nachfass-E-Mail.', 'resa'),
-								status: 'inactive',
-							},
-						].map((template, index) => (
-							<Card
-								key={index}
-								className="hover:resa-shadow-md resa-transition-shadow"
-							>
-								<CardHeader className="resa-pb-2">
-									<div className="resa-flex resa-items-center resa-justify-between">
-										<div className="resa-flex resa-items-center resa-gap-3">
-											<div className="resa-flex resa-size-10 resa-items-center resa-justify-center resa-rounded-lg resa-bg-muted">
-												<Mail className="resa-size-5 resa-text-muted-foreground" />
-											</div>
-											<div>
-												<CardTitle className="resa-text-base">
-													{template.title}
-												</CardTitle>
-												<CardDescription className="resa-mt-0.5">
-													{template.description}
-												</CardDescription>
-											</div>
-										</div>
-										<Badge
-											variant={
-												template.status === 'active'
-													? 'default'
-													: 'secondary'
-											}
-										>
-											{template.status === 'active'
-												? __('Aktiv', 'resa')
-												: __('Inaktiv', 'resa')}
-										</Badge>
-									</div>
-								</CardHeader>
-							</Card>
-						))}
-
-						<div className="resa-text-center resa-py-4">
-							<Badge variant="outline">
-								{__(
-									'Kommunikationszentrale wird in Phase 3.6 implementiert.',
-									'resa',
-								)}
-							</Badge>
-						</div>
-					</div>
+					<TemplatesTab onEdit={(id) => setView({ type: 'editor', templateId: id })} />
 				</TabsContent>
 
 				<TabsContent value="log" className="resa-mt-4">

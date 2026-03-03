@@ -4,6 +4,7 @@ declare( strict_types=1 );
 
 namespace Resa\Services\Pdf;
 
+use Resa\Models\EmailTemplate;
 use Resa\Models\Lead;
 use Resa\Models\Location;
 use Resa\Services\Email\EmailService;
@@ -57,6 +58,12 @@ final class LeadPdfService {
 	public function generateAndSend( int $leadId ): bool {
 		// Check if PDF sending is enabled.
 		if ( ! $this->isEnabled() ) {
+			return false;
+		}
+
+		// Check if the email template is active.
+		$emailTemplate = EmailTemplate::get( self::TEMPLATE_ID );
+		if ( $emailTemplate !== null && ( $emailTemplate['is_active'] ?? true ) === false ) {
 			return false;
 		}
 
@@ -627,8 +634,19 @@ final class LeadPdfService {
 	 */
 	private function sendEmail( object $lead, ?object $location, string $pdfPath ): bool {
 		$emailData = $this->buildEmailData( $lead, $location );
-		$subject   = $this->buildEmailSubject( $lead );
-		$html      = $this->buildEmailContent( $emailData );
+
+		// Try DB template first.
+		$template = EmailTemplate::get( self::TEMPLATE_ID );
+		if ( $template !== null && $template['is_modified'] ) {
+			$subject = EmailService::renderVariables( $template['subject'], $emailData );
+			$body    = EmailService::renderVariables( $template['body'], $emailData );
+			$body    = $this->stripVariableSpans( $body );
+			$html    = EmailService::wrapInLayout( $body );
+		} else {
+			// Legacy: use PHP template file.
+			$subject = $this->buildEmailSubject( $lead );
+			$html    = $this->buildEmailContent( $emailData );
+		}
 
 		return $this->emailService->send(
 			(int) $lead->id,
@@ -640,6 +658,20 @@ final class LeadPdfService {
 				'attachments' => [ $pdfPath ],
 			]
 		);
+	}
+
+	/**
+	 * Strip data-variable spans, keeping their inner text content.
+	 *
+	 * @param string $html HTML string.
+	 * @return string Cleaned HTML.
+	 */
+	private function stripVariableSpans( string $html ): string {
+		return preg_replace(
+			'/<span\s+data-variable="[^"]*">(.*?)<\/span>/i',
+			'$1',
+			$html
+		) ?? $html;
 	}
 
 	/**
