@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { __ } from '@wordpress/i18n';
 import { Copy, Check } from 'lucide-react';
 import type { ModuleInfo } from '../../hooks/useModuleSettings';
+import { useLocations } from '../../hooks/useLocations';
 
 interface OverviewTabProps {
 	module: ModuleInfo;
@@ -13,7 +14,20 @@ interface OverviewTabProps {
 
 export function OverviewTab({ module }: OverviewTabProps) {
 	const [copied, setCopied] = useState(false);
+	const [copiedExample, setCopiedExample] = useState(false);
+	const { data: locations } = useLocations();
 	const shortcode = `[resa module="${module.slug}"]`;
+
+	const firstCity = locations?.find((l) => l.is_active)?.slug;
+	const shortcodeWithCity = firstCity
+		? `[resa module="${module.slug}" city="${firstCity}"]`
+		: `[resa module="${module.slug}" city="muenchen"]`;
+
+	const copyExample = () => {
+		navigator.clipboard.writeText(shortcodeWithCity);
+		setCopiedExample(true);
+		setTimeout(() => setCopiedExample(false), 2000);
+	};
 
 	const copyToClipboard = () => {
 		navigator.clipboard.writeText(shortcode);
@@ -202,6 +216,287 @@ export function OverviewTab({ module }: OverviewTabProps) {
 							<Copy style={{ width: '16px', height: '16px' }} />
 						)}
 					</button>
+				</div>
+
+				{/* Shortcode Options Table */}
+				<div style={{ marginTop: '20px' }}>
+					<h4
+						style={{
+							fontSize: '13px',
+							fontWeight: 600,
+							color: '#1e303a',
+							margin: '0 0 10px 0',
+						}}
+					>
+						{__('Parameter', 'resa')}
+					</h4>
+					<table
+						style={{
+							width: '100%',
+							borderCollapse: 'collapse',
+							fontSize: '13px',
+						}}
+					>
+						<thead>
+							<tr
+								style={{
+									backgroundColor: 'hsl(210 40% 98%)',
+									textAlign: 'left',
+								}}
+							>
+								<th
+									style={{
+										padding: '8px 12px',
+										fontWeight: 600,
+										color: '#1e303a',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+									}}
+								>
+									{__('Attribut', 'resa')}
+								</th>
+								<th
+									style={{
+										padding: '8px 12px',
+										fontWeight: 600,
+										color: '#1e303a',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+									}}
+								>
+									{__('Pflicht', 'resa')}
+								</th>
+								<th
+									style={{
+										padding: '8px 12px',
+										fontWeight: 600,
+										color: '#1e303a',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+									}}
+								>
+									{__('Beschreibung', 'resa')}
+								</th>
+								<th
+									style={{
+										padding: '8px 12px',
+										fontWeight: 600,
+										color: '#1e303a',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+									}}
+								>
+									{__('Beispiel', 'resa')}
+								</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td
+									style={{
+										padding: '8px 12px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+									}}
+								>
+									<code
+										style={{
+											backgroundColor: 'hsl(210 40% 96.1%)',
+											padding: '2px 6px',
+											borderRadius: '3px',
+											fontSize: '12px',
+											fontFamily: 'ui-monospace, monospace',
+											color: '#1e303a',
+										}}
+									>
+										module
+									</code>
+								</td>
+								<td
+									style={{
+										padding: '8px 12px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+										color: '#dc2626',
+										fontWeight: 500,
+									}}
+								>
+									{__('Ja', 'resa')}
+								</td>
+								<td
+									style={{
+										padding: '8px 12px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+										color: 'hsl(215.4 16.3% 46.9%)',
+									}}
+								>
+									{__('Modul-Slug, das angezeigt werden soll.', 'resa')}
+								</td>
+								<td
+									style={{
+										padding: '8px 12px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+									}}
+								>
+									<code
+										style={{
+											fontSize: '12px',
+											fontFamily: 'ui-monospace, monospace',
+											color: 'hsl(215.4 16.3% 46.9%)',
+										}}
+									>
+										{module.slug}
+									</code>
+								</td>
+							</tr>
+							<tr>
+								<td
+									style={{
+										padding: '8px 12px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+									}}
+								>
+									<code
+										style={{
+											backgroundColor: 'hsl(210 40% 96.1%)',
+											padding: '2px 6px',
+											borderRadius: '3px',
+											fontSize: '12px',
+											fontFamily: 'ui-monospace, monospace',
+											color: '#1e303a',
+										}}
+									>
+										city
+									</code>
+								</td>
+								<td
+									style={{
+										padding: '8px 12px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+										color: 'hsl(215.4 16.3% 46.9%)',
+									}}
+								>
+									{__('Nein', 'resa')}
+								</td>
+								<td
+									style={{
+										padding: '8px 12px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+										color: 'hsl(215.4 16.3% 46.9%)',
+									}}
+								>
+									{__(
+										'Standort-Slug für Vorauswahl. Ohne diesen Parameter wählt der Nutzer den Standort selbst.',
+										'resa',
+									)}
+								</td>
+								<td
+									style={{
+										padding: '8px 12px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+									}}
+								>
+									<code
+										style={{
+											fontSize: '12px',
+											fontFamily: 'ui-monospace, monospace',
+											color: 'hsl(215.4 16.3% 46.9%)',
+										}}
+									>
+										{firstCity ?? 'muenchen'}
+									</code>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				{/* Available locations */}
+				{locations && locations.length > 0 && (
+					<div style={{ marginTop: '16px' }}>
+						<h4
+							style={{
+								fontSize: '13px',
+								fontWeight: 600,
+								color: '#1e303a',
+								margin: '0 0 8px 0',
+							}}
+						>
+							{__('Verfügbare Standort-Slugs', 'resa')}
+						</h4>
+						<div
+							style={{
+								display: 'flex',
+								flexWrap: 'wrap',
+								gap: '6px',
+							}}
+						>
+							{locations
+								.filter((l) => l.is_active)
+								.map((l) => (
+									<code
+										key={l.id}
+										style={{
+											display: 'inline-block',
+											backgroundColor: 'hsl(210 40% 96.1%)',
+											padding: '3px 8px',
+											borderRadius: '4px',
+											fontSize: '12px',
+											fontFamily: 'ui-monospace, monospace',
+											color: '#1e303a',
+										}}
+									>
+										{l.slug}
+									</code>
+								))}
+						</div>
+					</div>
+				)}
+
+				{/* Example with city */}
+				<div style={{ marginTop: '16px' }}>
+					<h4
+						style={{
+							fontSize: '13px',
+							fontWeight: 600,
+							color: '#1e303a',
+							margin: '0 0 8px 0',
+						}}
+					>
+						{__('Beispiel mit Standort', 'resa')}
+					</h4>
+					<div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+						<code
+							style={{
+								display: 'inline-block',
+								backgroundColor: '#1e303a',
+								color: '#a9e43f',
+								padding: '8px 16px',
+								borderRadius: '6px',
+								fontSize: '13px',
+								fontFamily: 'ui-monospace, monospace',
+							}}
+						>
+							{shortcodeWithCity}
+						</code>
+						<button
+							onClick={copyExample}
+							style={{
+								display: 'inline-flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								width: '32px',
+								height: '32px',
+								borderRadius: '6px',
+								border: '1px solid hsl(214.3 31.8% 91.4%)',
+								backgroundColor: 'white',
+								cursor: 'pointer',
+								color: copiedExample ? '#a9e43f' : '#1e303a',
+								transition: 'all 150ms',
+							}}
+							title={copiedExample ? __('Kopiert!', 'resa') : __('Kopieren', 'resa')}
+						>
+							{copiedExample ? (
+								<Check style={{ width: '16px', height: '16px' }} />
+							) : (
+								<Copy style={{ width: '16px', height: '16px' }} />
+							)}
+						</button>
+					</div>
 				</div>
 			</div>
 
