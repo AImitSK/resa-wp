@@ -1,0 +1,152 @@
+name: Deploy to Freemius
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # --- Extract & Verify Version ---
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/v}"
+          echo "version=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Version from tag: $TAG"
+
+      - name: Verify version consistency
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+
+          # package.json
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [ "$PKG_VERSION" != "$VERSION" ]; then
+            echo "::error::Version mismatch! Tag: $VERSION, package.json: $PKG_VERSION"
+            exit 1
+          fi
+
+          # resa.php header
+          PHP_HEADER=$(grep -oP '^\s*\*\s*Version:\s*\K.+' resa.php | tr -d '[:space:]')
+          if [ "$PHP_HEADER" != "$VERSION" ]; then
+            echo "::error::Version mismatch! Tag: $VERSION, resa.php header: $PHP_HEADER"
+            exit 1
+          fi
+
+          # RESA_VERSION constant
+          PHP_CONST=$(grep -oP "define\(\s*'RESA_VERSION',\s*'\K[^']+" resa.php)
+          if [ "$PHP_CONST" != "$VERSION" ]; then
+            echo "::error::Version mismatch! Tag: $VERSION, RESA_VERSION: $PHP_CONST"
+            exit 1
+          fi
+
+          echo "✓ Version $VERSION is consistent across all files"
+
+      # --- Setup ---
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer:v2, wp-cli
+
+      - name: Get Composer cache dir
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      # --- Install & Build ---
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Install PHP dependencies (production)
+        run: composer install --no-dev --optimize-autoloader --no-interaction
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Build i18n
+        run: npm run i18n:build
+
+      # --- Package ---
+
+      - name: Create ZIP
+        run: node scripts/create-zip.js
+
+      - name: Verify ZIP
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          ZIP="resa-${VERSION}.zip"
+          if [ ! -f "$ZIP" ]; then
+            echo "::error::ZIP file $ZIP not found!"
+            exit 1
+          fi
+          echo "ZIP contents:"
+          unzip -l "$ZIP" | head -40
+          echo "..."
+          SIZE=$(du -h "$ZIP" | cut -f1)
+          echo "✓ $ZIP ($SIZE)"
+
+      # --- Deploy to Freemius ---
+
+      - name: Deploy to Freemius
+        env:
+          FREEMIUS_BEARER_TOKEN: ${{ secrets.FREEMIUS_BEARER_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          ZIP="resa-${VERSION}.zip"
+
+          echo "Deploying $ZIP to Freemius (version $VERSION, pending release)..."
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${FREEMIUS_BEARER_TOKEN}" \
+            -F "add_contributor=false" \
+            -F "file=@${ZIP}" \
+            "https://api.freemius.com/v1/products/24963/tags.json")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $BODY"
+
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "::error::Freemius API returned HTTP $HTTP_CODE"
+            exit 1
+          fi
+
+          echo "✓ Successfully deployed to Freemius (pending release)"
+
+      # --- Upload Artifact ---
+
+      - name: Upload ZIP as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: resa-${{ steps.version.outputs.version }}
+          path: resa-${{ steps.version.outputs.version }}.zip
+          retention-days: 90

@@ -28,6 +28,9 @@ Thumbs.db
 # Coverage
 coverage/
 
+# Plugin ZIP builds
+resa-*.zip
+
 # Freemius SDK download
 wordpress-sdk-master.zip
 
