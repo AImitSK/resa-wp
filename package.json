@@ -1,7 +1,7 @@
 {
 	"name": "resa",
 	"private": true,
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
@@ -20,6 +20,7 @@
 		"i18n:build": "npm run i18n:pot && npm run i18n:update && npm run i18n:mo && npm run i18n:json",
 		"plugin:build": "npm run build && npm run i18n:build && composer install --no-dev --optimize-autoloader",
 		"plugin:zip": "npm run plugin:build && node scripts/create-zip.js",
+		"version:bump": "node scripts/bump-version.js",
 		"prepare": "husky"
 	},
 	"dependencies": {
@@ -72,6 +73,7 @@
 		"@types/react-dom": "^18.3.5",
 		"@types/wordpress__i18n": "^3.4.0",
 		"@vitejs/plugin-react": "^4.3.4",
+		"archiver": "^7.0.1",
 		"autoprefixer": "^10.4.24",
 		"eslint": "^9.39.3",
 		"eslint-config-prettier": "^10.1.8",
