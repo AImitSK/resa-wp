@@ -4,28 +4,21 @@
 
 import { useState } from 'react';
 import { __, sprintf } from '@wordpress/i18n';
-import {
-	FileText,
-	Settings2,
-	Type,
-	AlignVerticalSpaceAround,
-	AlignLeft,
-	AlignCenter,
-	AlignRight,
-	Image,
-} from 'lucide-react';
 import { AdminPageLayout } from '../components/AdminPageLayout';
 import { PdfPreview } from '../components/PdfPreview';
 import { usePdfSettings, useSavePdfSettings, type PdfSettings } from '../hooks/usePdfSettings';
 import { useBranding } from '../hooks/useBranding';
 import { useTeamMembers } from '../hooks/useTeam';
 
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
+import { Separator } from '@/components/ui/separator';
 
 export function PdfTemplates() {
 	const { data: pdfSettings, isLoading, error } = usePdfSettings();
@@ -154,355 +147,377 @@ export function BaseLayoutTab({
 			}}
 		>
 			{/* Settings Panel (left) */}
-			<form onSubmit={handleSubmit} className="resa-space-y-6">
-				{/* Header Section */}
-				<div className="resa-space-y-4">
-					<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-						<span className="resa-flex resa-items-center resa-gap-1.5">
-							<Type
+			<form
+				onSubmit={handleSubmit}
+				style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+			>
+				{/* Header Card */}
+				<Card>
+					<CardContent style={{ padding: '20px' }}>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+							<h3
 								style={{
-									width: '14px',
-									height: '14px',
-									color: 'hsl(215.4 16.3% 46.9%)',
+									margin: 0,
+									fontSize: '14px',
+									fontWeight: 600,
+									color: '#1e303a',
 								}}
-							/>
-							{__('Header', 'resa')}
-						</span>
-					</h3>
+							>
+								{__('Header', 'resa')}
+							</h3>
 
-					{/* Logo info */}
-					<div
-						style={{
-							padding: '12px',
-							backgroundColor: 'hsl(210 40% 98%)',
-							borderRadius: '8px',
-						}}
-					>
-						<div className="resa-flex resa-items-center resa-justify-between">
-							<div>
+							{/* Logo info */}
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'space-between',
+									padding: '10px 12px',
+									backgroundColor: 'hsl(210 40% 98%)',
+									borderRadius: '6px',
+								}}
+							>
+								<div>
+									<p
+										style={{
+											margin: 0,
+											fontSize: '13px',
+											fontWeight: 500,
+											color: '#1e303a',
+										}}
+									>
+										{__('Logo', 'resa')}
+									</p>
+									<p
+										style={{
+											margin: '2px 0 0',
+											fontSize: '12px',
+											color: 'hsl(215.4 16.3% 46.9%)',
+										}}
+									>
+										{logoUrl
+											? __('Synced von Branding-Einstellungen.', 'resa')
+											: __('Kein Logo konfiguriert.', 'resa')}
+									</p>
+								</div>
+								{logoUrl && (
+									<img
+										src={logoUrl}
+										alt="Logo"
+										style={{
+											maxHeight: '28px',
+											maxWidth: '80px',
+											objectFit: 'contain',
+										}}
+									/>
+								)}
+							</div>
+
+							{/* Logo Position + Size — side by side */}
+							<div
+								style={{
+									display: 'grid',
+									gridTemplateColumns: '1fr 1fr',
+									gap: '16px',
+								}}
+							>
+								<div
+									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+								>
+									<Label>{__('Position', 'resa')}</Label>
+									<div
+										style={{
+											display: 'inline-flex',
+											borderRadius: '6px',
+											border: '1px solid hsl(214.3 31.8% 91.4%)',
+											overflow: 'hidden',
+											alignSelf: 'flex-start',
+										}}
+									>
+										{(
+											[
+												['left', __('Links', 'resa')],
+												['center', __('Mitte', 'resa')],
+												['right', __('Rechts', 'resa')],
+											] as [PdfSettings['logoPosition'], string][]
+										).map(([pos, label]) => (
+											<button
+												key={pos}
+												type="button"
+												onClick={() => updateField('logoPosition', pos)}
+												style={{
+													padding: '5px 12px',
+													fontSize: '13px',
+													fontWeight: 500,
+													border: 'none',
+													cursor: 'pointer',
+													backgroundColor:
+														form.logoPosition === pos
+															? '#1e303a'
+															: 'white',
+													color:
+														form.logoPosition === pos
+															? '#a9e43f'
+															: 'hsl(215.4 16.3% 46.9%)',
+													transition: 'all 150ms',
+												}}
+											>
+												{label}
+											</button>
+										))}
+									</div>
+								</div>
+								<div
+									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+								>
+									<Label>{__('Größe', 'resa')}</Label>
+									<div
+										style={{
+											display: 'flex',
+											alignItems: 'center',
+											gap: '10px',
+										}}
+									>
+										<Slider
+											value={form.logoSize}
+											min={16}
+											max={80}
+											step={2}
+											onChange={(v) => updateField('logoSize', v)}
+										/>
+										<span
+											style={{
+												fontSize: '13px',
+												fontWeight: 500,
+												color: '#1e303a',
+												minWidth: '36px',
+												textAlign: 'right',
+											}}
+										>
+											{form.logoSize}px
+										</span>
+									</div>
+								</div>
+							</div>
+
+							<Separator />
+
+							{/* Header Text */}
+							<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+								<Label htmlFor="header-text">{__('Text', 'resa')}</Label>
+								<Input
+									id="header-text"
+									value={form.headerText}
+									onChange={(e) => updateField('headerText', e.target.value)}
+									placeholder={__('z.B. Firmenname oder Slogan', 'resa')}
+								/>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+
+				{/* Footer Card */}
+				<Card>
+					<CardContent style={{ padding: '20px' }}>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+							<h3
+								style={{
+									margin: 0,
+									fontSize: '14px',
+									fontWeight: 600,
+									color: '#1e303a',
+								}}
+							>
+								{__('Footer', 'resa')}
+							</h3>
+
+							<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+								<Label htmlFor="footer-text">{__('Text', 'resa')}</Label>
+								<Input
+									id="footer-text"
+									value={form.footerText}
+									onChange={(e) => updateField('footerText', e.target.value)}
+									placeholder={__('z.B. © 2026 Mustermann Immobilien', 'resa')}
+								/>
+							</div>
+
+							{/* Show Date Toggle */}
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'space-between',
+									padding: '10px 12px',
+									backgroundColor: 'hsl(210 40% 98%)',
+									borderRadius: '6px',
+								}}
+							>
+								<div>
+									<p
+										style={{
+											margin: 0,
+											fontSize: '13px',
+											fontWeight: 500,
+											color: '#1e303a',
+										}}
+									>
+										{__('Datum anzeigen', 'resa')}
+									</p>
+									<p
+										style={{
+											margin: '2px 0 0',
+											fontSize: '12px',
+											color: 'hsl(215.4 16.3% 46.9%)',
+										}}
+									>
+										{__('Erstellungsdatum in Header und Footer.', 'resa')}
+									</p>
+								</div>
+								<Switch
+									checked={form.showDate}
+									onCheckedChange={(checked) => updateField('showDate', checked)}
+								/>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+
+				{/* Options Card */}
+				<Card>
+					<CardContent style={{ padding: '20px' }}>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+							<h3
+								style={{
+									margin: 0,
+									fontSize: '14px',
+									fontWeight: 600,
+									color: '#1e303a',
+								}}
+							>
+								{__('Optionen', 'resa')}
+							</h3>
+
+							{/* Show Agents Toggle */}
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'space-between',
+									padding: '10px 12px',
+									backgroundColor: 'hsl(210 40% 98%)',
+									borderRadius: '6px',
+								}}
+							>
+								<div>
+									<p
+										style={{
+											margin: 0,
+											fontSize: '13px',
+											fontWeight: 500,
+											color: '#1e303a',
+										}}
+									>
+										{__('Ansprechpartner anzeigen', 'resa')}
+									</p>
+									<p
+										style={{
+											margin: '2px 0 0',
+											fontSize: '12px',
+											color: 'hsl(215.4 16.3% 46.9%)',
+										}}
+									>
+										{__('Automatisch dem Standort zugeordnet.', 'resa')}
+									</p>
+								</div>
+								<Switch
+									checked={form.showAgents}
+									onCheckedChange={(checked) =>
+										updateField('showAgents', checked)
+									}
+								/>
+							</div>
+
+							{form.showAgents && teamMembers.length === 0 && (
 								<p
 									style={{
 										margin: 0,
-										fontSize: '13px',
-										fontWeight: 500,
-										color: '#1e303a',
-									}}
-								>
-									{__('Logo', 'resa')}
-								</p>
-								<p
-									className="resa-text-xs resa-text-muted-foreground"
-									style={{ margin: 0, marginTop: '2px' }}
-								>
-									{logoUrl
-										? __('Synced von Branding-Einstellungen.', 'resa')
-										: __('Kein Logo konfiguriert.', 'resa')}
-								</p>
-							</div>
-							{logoUrl && (
-								<img
-									src={logoUrl}
-									alt="Logo"
-									style={{
-										maxHeight: '28px',
-										maxWidth: '80px',
-										objectFit: 'contain',
-									}}
-								/>
-							)}
-						</div>
-					</div>
-
-					{/* Logo Position */}
-					<div className="resa-space-y-2">
-						<Label>
-							<span className="resa-flex resa-items-center resa-gap-1.5">
-								<Image
-									style={{
-										width: '14px',
-										height: '14px',
+										fontSize: '12px',
+										fontStyle: 'italic',
 										color: 'hsl(215.4 16.3% 46.9%)',
 									}}
-								/>
-								{__('Logo-Position', 'resa')}
-							</span>
-						</Label>
-						<div
-							style={{
-								display: 'inline-flex',
-								borderRadius: '8px',
-								border: '1px solid hsl(214.3 31.8% 91.4%)',
-								overflow: 'hidden',
-							}}
-						>
-							{(
-								[
-									['left', __('Links', 'resa'), AlignLeft],
-									['center', __('Mitte', 'resa'), AlignCenter],
-									['right', __('Rechts', 'resa'), AlignRight],
-								] as [PdfSettings['logoPosition'], string, React.ElementType][]
-							).map(([pos, label, Icon]) => (
-								<button
-									key={pos}
-									type="button"
-									onClick={() => updateField('logoPosition', pos)}
-									style={{
-										display: 'flex',
-										alignItems: 'center',
-										gap: '6px',
-										padding: '6px 14px',
-										fontSize: '13px',
-										fontWeight: 500,
-										border: 'none',
-										cursor: 'pointer',
-										backgroundColor:
-											form.logoPosition === pos ? '#1e303a' : 'white',
-										color:
-											form.logoPosition === pos
-												? '#a9e43f'
-												: 'hsl(215.4 16.3% 46.9%)',
-										transition: 'all 150ms',
-									}}
-									title={label}
 								>
-									<Icon style={{ width: '14px', height: '14px' }} />
-									{label}
-								</button>
-							))}
-						</div>
-					</div>
-
-					{/* Logo Size */}
-					<div className="resa-space-y-2">
-						<Label htmlFor="logo-size">{__('Logo-Größe (Höhe in px)', 'resa')}</Label>
-						<div
-							style={{
-								display: 'flex',
-								alignItems: 'center',
-								gap: '12px',
-								maxWidth: '280px',
-							}}
-						>
-							<input
-								id="logo-size"
-								type="range"
-								min={16}
-								max={80}
-								step={2}
-								value={form.logoSize}
-								onChange={(e) =>
-									updateField('logoSize', parseInt(e.target.value, 10))
-								}
-								style={{ flex: 1 }}
-							/>
-							<span
-								style={{
-									fontSize: '13px',
-									fontWeight: 500,
-									color: '#1e303a',
-									minWidth: '36px',
-									textAlign: 'right',
-								}}
-							>
-								{form.logoSize}px
-							</span>
-						</div>
-					</div>
-
-					{/* Header Text */}
-					<div className="resa-space-y-2">
-						<Label htmlFor="header-text">{__('Header-Text', 'resa')}</Label>
-						<Input
-							id="header-text"
-							value={form.headerText}
-							onChange={(e) => updateField('headerText', e.target.value)}
-							placeholder={__('z.B. Firmenname oder Slogan', 'resa')}
-						/>
-						<p
-							className="resa-text-xs resa-text-muted-foreground"
-							style={{ margin: 0 }}
-						>
-							{__(
-								'Wird im Header neben dem Logo angezeigt (z.B. Firmenname oder Slogan).',
-								'resa',
+									{sprintf(
+										/* translators: %s: path to team settings */
+										__(
+											'Noch keine Ansprechpartner angelegt. Verwalte dein Team unter Einstellungen → Team.',
+											'resa',
+										),
+									)}
+								</p>
 							)}
-						</p>
-					</div>
-				</div>
 
-				{/* Footer Section */}
-				<div className="resa-space-y-4">
-					<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-						<span className="resa-flex resa-items-center resa-gap-1.5">
-							<FileText
-								style={{
-									width: '14px',
-									height: '14px',
-									color: 'hsl(215.4 16.3% 46.9%)',
-								}}
-							/>
-							{__('Footer', 'resa')}
-						</span>
-					</h3>
+							<Separator />
 
-					<div className="resa-space-y-2">
-						<Label htmlFor="footer-text">{__('Footer-Text', 'resa')}</Label>
-						<Input
-							id="footer-text"
-							value={form.footerText}
-							onChange={(e) => updateField('footerText', e.target.value)}
-							placeholder={__('z.B. © 2026 Mustermann Immobilien', 'resa')}
-						/>
-					</div>
-
-					{/* Show Date Toggle */}
-					<div
-						className="resa-flex resa-items-center resa-justify-between"
-						style={{
-							padding: '12px',
-							backgroundColor: 'hsl(210 40% 98%)',
-							borderRadius: '8px',
-						}}
-					>
-						<div>
-							<p
-								style={{
-									margin: 0,
-									fontSize: '13px',
-									fontWeight: 500,
-									color: '#1e303a',
-								}}
-							>
-								{__('Datum anzeigen', 'resa')}
-							</p>
-							<p
-								className="resa-text-xs resa-text-muted-foreground"
-								style={{ margin: 0, marginTop: '2px' }}
-							>
-								{__('Zeigt das Erstellungsdatum in Header und Footer.', 'resa')}
-							</p>
-						</div>
-						<Switch
-							checked={form.showDate}
-							onCheckedChange={(checked) => updateField('showDate', checked)}
-						/>
-					</div>
-				</div>
-
-				{/* Agents Section */}
-				<div className="resa-space-y-4">
-					<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-						<span className="resa-flex resa-items-center resa-gap-1.5">
-							<Settings2
-								style={{
-									width: '14px',
-									height: '14px',
-									color: 'hsl(215.4 16.3% 46.9%)',
-								}}
-							/>
-							{__('Ansprechpartner', 'resa')}
-						</span>
-					</h3>
-
-					<div
-						className="resa-flex resa-items-center resa-justify-between"
-						style={{
-							padding: '12px',
-							backgroundColor: 'hsl(210 40% 98%)',
-							borderRadius: '8px',
-						}}
-					>
-						<div>
-							<p
-								style={{
-									margin: 0,
-									fontSize: '13px',
-									fontWeight: 500,
-									color: '#1e303a',
-								}}
-							>
-								{__('Ansprechpartner anzeigen', 'resa')}
-							</p>
-							<p
-								className="resa-text-xs resa-text-muted-foreground"
-								style={{ margin: 0, marginTop: '2px' }}
-							>
-								{__(
-									'Ansprechpartner werden automatisch dem Standort zugeordnet.',
-									'resa',
-								)}
-							</p>
-						</div>
-						<Switch
-							checked={form.showAgents}
-							onCheckedChange={(checked) => updateField('showAgents', checked)}
-						/>
-					</div>
-
-					{form.showAgents && teamMembers.length === 0 && (
-						<p
-							className="resa-text-xs resa-text-muted-foreground"
-							style={{ margin: 0, fontStyle: 'italic' }}
-						>
-							{sprintf(
-								/* translators: %s: path to team settings */
-								__(
-									'Noch keine Ansprechpartner angelegt. Verwalte dein Team unter Einstellungen → Team.',
-									'resa',
-								),
-							)}
-						</p>
-					)}
-				</div>
-
-				{/* Margins Section */}
-				<div className="resa-space-y-4">
-					<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-						<span className="resa-flex resa-items-center resa-gap-1.5">
-							<AlignVerticalSpaceAround
-								style={{
-									width: '14px',
-									height: '14px',
-									color: 'hsl(215.4 16.3% 46.9%)',
-								}}
-							/>
-							{__('Seitenränder (mm)', 'resa')}
-						</span>
-					</h3>
-					<div
-						className="resa-grid resa-gap-4"
-						style={{ gridTemplateColumns: 'repeat(4, 1fr)', maxWidth: '400px' }}
-					>
-						{(
-							[
-								['top', __('Oben', 'resa')],
-								['bottom', __('Unten', 'resa')],
-								['left', __('Links', 'resa')],
-								['right', __('Rechts', 'resa')],
-							] as [keyof PdfSettings['margins'], string][]
-						).map(([side, label]) => (
-							<div key={side} className="resa-space-y-1">
-								<Label htmlFor={`margin-${side}`} style={{ fontSize: '12px' }}>
-									{label}
-								</Label>
-								<Input
-									id={`margin-${side}`}
-									type="number"
-									min={0}
-									max={50}
-									value={form.margins[side]}
-									onChange={(e) =>
-										updateMargin(side, parseInt(e.target.value, 10) || 0)
-									}
-									style={{ textAlign: 'center' }}
-								/>
+							{/* Margins */}
+							<div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+								<Label>{__('Seitenränder (mm)', 'resa')}</Label>
+								<div
+									style={{
+										display: 'grid',
+										gridTemplateColumns: 'repeat(4, 1fr)',
+										gap: '10px',
+										maxWidth: '320px',
+									}}
+								>
+									{(
+										[
+											['top', __('Oben', 'resa')],
+											['bottom', __('Unten', 'resa')],
+											['left', __('Links', 'resa')],
+											['right', __('Rechts', 'resa')],
+										] as [keyof PdfSettings['margins'], string][]
+									).map(([side, label]) => (
+										<div
+											key={side}
+											style={{
+												display: 'flex',
+												flexDirection: 'column',
+												gap: '4px',
+											}}
+										>
+											<Label
+												htmlFor={`margin-${side}`}
+												style={{
+													fontSize: '11px',
+													color: 'hsl(215.4 16.3% 46.9%)',
+												}}
+											>
+												{label}
+											</Label>
+											<Input
+												id={`margin-${side}`}
+												type="number"
+												min={0}
+												max={50}
+												value={form.margins[side]}
+												onChange={(e) =>
+													updateMargin(
+														side,
+														parseInt(e.target.value, 10) || 0,
+													)
+												}
+												style={{ textAlign: 'center' }}
+											/>
+										</div>
+									))}
+								</div>
 							</div>
-						))}
-					</div>
-				</div>
+						</div>
+					</CardContent>
+				</Card>
 
 				{/* Save Button */}
-				<div className="resa-flex resa-justify-end resa-pt-4">
+				<div className="resa-flex resa-justify-end">
 					<Button
 						type="submit"
 						disabled={!isDirty || saveMutation.isPending}

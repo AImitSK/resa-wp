@@ -6,26 +6,7 @@
 
 import { useState } from 'react';
 import { __ } from '@wordpress/i18n';
-import {
-	User,
-	Users,
-	Palette,
-	Building2,
-	Mail,
-	Phone,
-	Globe,
-	FileText,
-	X,
-	Image,
-	Plus,
-	Pencil,
-	Trash2,
-	MapPin,
-	Briefcase,
-	Server,
-	Key,
-	Shield,
-} from 'lucide-react';
+import { User, Users, X, Image, Plus, Pencil, Trash2, MapPin, Shield } from 'lucide-react';
 import { AdminPageLayout } from '../components/AdminPageLayout';
 import { useAgentData, useSaveAgentData, type AgentData } from '../hooks/useAgentData';
 import { useBranding, useSaveBranding, type BrandingSettings } from '../hooks/useBranding';
@@ -55,8 +36,9 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Separator } from '@/components/ui/separator';
 
-type SettingsTab = 'agent' | 'team' | 'branding' | 'maps' | 'email' | 'license' | 'gdpr';
+type SettingsTab = 'agent' | 'team' | 'branding' | 'maps' | 'license' | 'gdpr';
 
 export function Settings() {
 	const [activeTab, setActiveTab] = useState<SettingsTab>('agent');
@@ -82,10 +64,7 @@ export function Settings() {
 		<AdminPageLayout
 			variant="overview"
 			title={__('Einstellungen', 'resa')}
-			description={__(
-				'Maklerdaten, Branding, E-Mail, Lizenz und Datenschutz-Einstellungen.',
-				'resa',
-			)}
+			description={__('Maklerdaten, Branding, Lizenz und Datenschutz-Einstellungen.', 'resa')}
 		>
 			{/* Tab Navigation */}
 			<Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as SettingsTab)}>
@@ -112,9 +91,6 @@ export function Settings() {
 					<TabsTrigger value="maps" style={tabStyle(activeTab === 'maps')}>
 						{__('Karten', 'resa')}
 					</TabsTrigger>
-					<TabsTrigger value="email" style={tabStyle(activeTab === 'email')}>
-						{__('E-Mail', 'resa')}
-					</TabsTrigger>
 					<TabsTrigger value="license" style={tabStyle(activeTab === 'license')}>
 						{__('Lizenz', 'resa')}
 					</TabsTrigger>
@@ -129,7 +105,6 @@ export function Settings() {
 			{activeTab === 'team' && <TeamTab />}
 			{activeTab === 'branding' && <BrandingTab />}
 			{activeTab === 'maps' && <MapsTab />}
-			{activeTab === 'email' && <EmailSettingsTab />}
 			{activeTab === 'license' && <LicenseTab />}
 			{activeTab === 'gdpr' && <GdprTab />}
 		</AdminPageLayout>
@@ -209,188 +184,154 @@ function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) 
 	const isValid = form.name.trim() !== '' && form.email.trim() !== '';
 
 	return (
-		<form onSubmit={handleSubmit} className="resa-space-y-6">
-			{/* Header */}
-			<div style={{ marginBottom: '24px' }}>
-				<h3 className="resa-text-lg resa-font-semibold" style={{ margin: 0 }}>
-					{__('Maklerdaten', 'resa')}
-				</h3>
-				<p
-					className="resa-text-sm resa-text-muted-foreground"
-					style={{ margin: 0, marginTop: '2px' }}
-				>
+		<form
+			onSubmit={handleSubmit}
+			style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+		>
+			{/* Persönliche Daten */}
+			<Card>
+				<CardContent style={{ padding: '20px' }}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+						<h3
+							style={{
+								margin: 0,
+								fontSize: '14px',
+								fontWeight: 600,
+								color: '#1e303a',
+							}}
+						>
+							{__('Persönliche Daten', 'resa')}
+						</h3>
+						<div className="resa-grid resa-grid-cols-2 resa-gap-4">
+							<div className="resa-space-y-2">
+								<Label htmlFor="agent-name">{__('Name', 'resa')} *</Label>
+								<Input
+									id="agent-name"
+									value={form.name}
+									onChange={(e) => updateField('name', e.target.value)}
+									placeholder={__('Max Mustermann', 'resa')}
+									required
+								/>
+							</div>
+							<div className="resa-space-y-2">
+								<Label htmlFor="agent-company">{__('Firma', 'resa')}</Label>
+								<Input
+									id="agent-company"
+									value={form.company}
+									onChange={(e) => updateField('company', e.target.value)}
+									placeholder={__('Mustermann Immobilien GmbH', 'resa')}
+								/>
+							</div>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Kontaktdaten */}
+			<Card>
+				<CardContent style={{ padding: '20px' }}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+						<h3
+							style={{
+								margin: 0,
+								fontSize: '14px',
+								fontWeight: 600,
+								color: '#1e303a',
+							}}
+						>
+							{__('Kontaktdaten', 'resa')}
+						</h3>
+						<div className="resa-grid resa-grid-cols-2 resa-gap-4">
+							<div className="resa-space-y-2">
+								<Label htmlFor="agent-email">{__('E-Mail', 'resa')} *</Label>
+								<Input
+									id="agent-email"
+									type="email"
+									value={form.email}
+									onChange={(e) => updateField('email', e.target.value)}
+									placeholder={__('max@mustermann-immo.de', 'resa')}
+									required
+								/>
+							</div>
+							<div className="resa-space-y-2">
+								<Label htmlFor="agent-phone">{__('Telefon', 'resa')}</Label>
+								<Input
+									id="agent-phone"
+									type="tel"
+									value={form.phone}
+									onChange={(e) => updateField('phone', e.target.value)}
+									placeholder={__('+49 123 456789', 'resa')}
+								/>
+							</div>
+						</div>
+						<div className="resa-space-y-2">
+							<Label htmlFor="agent-address">{__('Adresse', 'resa')}</Label>
+							<Textarea
+								id="agent-address"
+								value={form.address}
+								onChange={(e) => updateField('address', e.target.value)}
+								placeholder={__('Musterstraße 1\n12345 Musterstadt', 'resa')}
+								rows={3}
+							/>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Online-Präsenz */}
+			<Card>
+				<CardContent style={{ padding: '20px' }}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+						<h3
+							style={{
+								margin: 0,
+								fontSize: '14px',
+								fontWeight: 600,
+								color: '#1e303a',
+							}}
+						>
+							{__('Online-Präsenz', 'resa')}
+						</h3>
+						<div className="resa-grid resa-grid-cols-2 resa-gap-4">
+							<div className="resa-space-y-2">
+								<Label htmlFor="agent-website">{__('Website', 'resa')}</Label>
+								<Input
+									id="agent-website"
+									type="url"
+									value={form.website}
+									onChange={(e) => updateField('website', e.target.value)}
+									placeholder={__('https://mustermann-immo.de', 'resa')}
+								/>
+							</div>
+							<div className="resa-space-y-2">
+								<Label htmlFor="agent-imprint">{__('Impressum-URL', 'resa')}</Label>
+								<Input
+									id="agent-imprint"
+									type="url"
+									value={form.imprintUrl}
+									onChange={(e) => updateField('imprintUrl', e.target.value)}
+									placeholder={__('https://mustermann-immo.de/impressum', 'resa')}
+								/>
+							</div>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Info + Save */}
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'space-between',
+				}}
+			>
+				<p style={{ margin: 0, fontSize: '12px', color: 'hsl(215.4 16.3% 46.9%)' }}>
 					{__(
 						'Diese Daten werden in PDF-Dokumenten, E-Mails und auf der Ergebnisseite angezeigt.',
 						'resa',
 					)}
 				</p>
-			</div>
-
-			{/* Personal Info */}
-			<div className="resa-space-y-4" style={{ marginTop: 0 }}>
-				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-					{__('Persönliche Daten', 'resa')}
-				</h3>
-				<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-					<div className="resa-space-y-2">
-						<Label htmlFor="agent-name">
-							<span className="resa-flex resa-items-center resa-gap-1.5">
-								<User
-									style={{
-										width: '14px',
-										height: '14px',
-										color: 'hsl(215.4 16.3% 46.9%)',
-									}}
-								/>
-								{__('Name', 'resa')} *
-							</span>
-						</Label>
-						<Input
-							id="agent-name"
-							value={form.name}
-							onChange={(e) => updateField('name', e.target.value)}
-							placeholder={__('Max Mustermann', 'resa')}
-							required
-						/>
-					</div>
-					<div className="resa-space-y-2">
-						<Label htmlFor="agent-company">
-							<span className="resa-flex resa-items-center resa-gap-1.5">
-								<Building2
-									style={{
-										width: '14px',
-										height: '14px',
-										color: 'hsl(215.4 16.3% 46.9%)',
-									}}
-								/>
-								{__('Firma', 'resa')}
-							</span>
-						</Label>
-						<Input
-							id="agent-company"
-							value={form.company}
-							onChange={(e) => updateField('company', e.target.value)}
-							placeholder={__('Mustermann Immobilien GmbH', 'resa')}
-						/>
-					</div>
-				</div>
-			</div>
-
-			{/* Contact Info */}
-			<div className="resa-space-y-4">
-				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-					{__('Kontaktdaten', 'resa')}
-				</h3>
-				<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-					<div className="resa-space-y-2">
-						<Label htmlFor="agent-email">
-							<span className="resa-flex resa-items-center resa-gap-1.5">
-								<Mail
-									style={{
-										width: '14px',
-										height: '14px',
-										color: 'hsl(215.4 16.3% 46.9%)',
-									}}
-								/>
-								{__('E-Mail', 'resa')} *
-							</span>
-						</Label>
-						<Input
-							id="agent-email"
-							type="email"
-							value={form.email}
-							onChange={(e) => updateField('email', e.target.value)}
-							placeholder={__('max@mustermann-immo.de', 'resa')}
-							required
-						/>
-					</div>
-					<div className="resa-space-y-2">
-						<Label htmlFor="agent-phone">
-							<span className="resa-flex resa-items-center resa-gap-1.5">
-								<Phone
-									style={{
-										width: '14px',
-										height: '14px',
-										color: 'hsl(215.4 16.3% 46.9%)',
-									}}
-								/>
-								{__('Telefon', 'resa')}
-							</span>
-						</Label>
-						<Input
-							id="agent-phone"
-							type="tel"
-							value={form.phone}
-							onChange={(e) => updateField('phone', e.target.value)}
-							placeholder={__('+49 123 456789', 'resa')}
-						/>
-					</div>
-				</div>
-				<div className="resa-space-y-2">
-					<Label htmlFor="agent-address">{__('Adresse', 'resa')}</Label>
-					<Textarea
-						id="agent-address"
-						value={form.address}
-						onChange={(e) => updateField('address', e.target.value)}
-						placeholder={__('Musterstraße 1\n12345 Musterstadt', 'resa')}
-						rows={3}
-					/>
-				</div>
-			</div>
-
-			{/* Online Presence */}
-			<div className="resa-space-y-4">
-				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-					{__('Online-Präsenz', 'resa')}
-				</h3>
-				<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-					<div className="resa-space-y-2">
-						<Label htmlFor="agent-website">
-							<span className="resa-flex resa-items-center resa-gap-1.5">
-								<Globe
-									style={{
-										width: '14px',
-										height: '14px',
-										color: 'hsl(215.4 16.3% 46.9%)',
-									}}
-								/>
-								{__('Website', 'resa')}
-							</span>
-						</Label>
-						<Input
-							id="agent-website"
-							type="url"
-							value={form.website}
-							onChange={(e) => updateField('website', e.target.value)}
-							placeholder={__('https://mustermann-immo.de', 'resa')}
-						/>
-					</div>
-					<div className="resa-space-y-2">
-						<Label htmlFor="agent-imprint">
-							<span className="resa-flex resa-items-center resa-gap-1.5">
-								<FileText
-									style={{
-										width: '14px',
-										height: '14px',
-										color: 'hsl(215.4 16.3% 46.9%)',
-									}}
-								/>
-								{__('Impressum-URL', 'resa')}
-							</span>
-						</Label>
-						<Input
-							id="agent-imprint"
-							type="url"
-							value={form.imprintUrl}
-							onChange={(e) => updateField('imprintUrl', e.target.value)}
-							placeholder={__('https://mustermann-immo.de/impressum', 'resa')}
-						/>
-					</div>
-				</div>
-			</div>
-
-			{/* Save Button */}
-			<div className="resa-flex resa-justify-end resa-pt-4">
 				<Button
 					type="submit"
 					disabled={!isDirty || !isValid || saveMutation.isPending}
@@ -792,9 +733,12 @@ function TeamMemberForm({
 	const isEditing = !!initialData;
 
 	return (
-		<form onSubmit={handleSubmit} className="resa-space-y-6">
+		<form
+			onSubmit={handleSubmit}
+			style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+		>
 			{/* Header */}
-			<div style={{ marginBottom: '24px' }}>
+			<div>
 				<h3 className="resa-text-lg resa-font-semibold" style={{ margin: 0 }}>
 					{isEditing
 						? __('Ansprechpartner bearbeiten', 'resa')
@@ -808,223 +752,211 @@ function TeamMemberForm({
 				</p>
 			</div>
 
-			{/* Photo */}
-			<div className="resa-space-y-4" style={{ marginTop: 0 }}>
-				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-					{__('Foto', 'resa')}
-				</h3>
-				{form.photoUrl ? (
-					<div className="resa-flex resa-items-center resa-gap-4">
-						<img
-							src={form.photoUrl}
-							alt={form.name}
+			{/* Person Card — Photo + Name + Position */}
+			<Card>
+				<CardContent style={{ padding: '20px' }}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+						<h3
 							style={{
-								width: '64px',
-								height: '64px',
-								borderRadius: '50%',
-								objectFit: 'cover',
-								border: '1px solid hsl(214.3 31.8% 91.4%)',
+								margin: 0,
+								fontSize: '14px',
+								fontWeight: 600,
+								color: '#1e303a',
 							}}
-						/>
-						<div className="resa-flex resa-gap-2">
-							<Button
+						>
+							{__('Person', 'resa')}
+						</h3>
+
+						{/* Photo */}
+						{form.photoUrl ? (
+							<div className="resa-flex resa-items-center resa-gap-4">
+								<img
+									src={form.photoUrl}
+									alt={form.name}
+									style={{
+										width: '64px',
+										height: '64px',
+										borderRadius: '50%',
+										objectFit: 'cover',
+										border: '1px solid hsl(214.3 31.8% 91.4%)',
+									}}
+								/>
+								<div className="resa-flex resa-gap-2">
+									<Button
+										type="button"
+										variant="outline"
+										size="sm"
+										onClick={handleSelectPhoto}
+									>
+										{__('Ändern', 'resa')}
+									</Button>
+									<Button
+										type="button"
+										variant="outline"
+										size="sm"
+										onClick={() => updateField('photoUrl', null)}
+										style={{ color: 'hsl(0 84.2% 60.2%)' }}
+									>
+										<X
+											style={{
+												width: '14px',
+												height: '14px',
+												marginRight: '4px',
+											}}
+										/>
+										{__('Entfernen', 'resa')}
+									</Button>
+								</div>
+							</div>
+						) : (
+							<button
 								type="button"
-								variant="outline"
-								size="sm"
 								onClick={handleSelectPhoto}
+								style={{
+									width: '64px',
+									height: '64px',
+									borderRadius: '50%',
+									border: '2px dashed hsl(214.3 31.8% 91.4%)',
+									backgroundColor: 'hsl(210 40% 98%)',
+									cursor: 'pointer',
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									transition: 'border-color 150ms',
+								}}
+								onMouseEnter={(e) =>
+									(e.currentTarget.style.borderColor = 'hsl(215.4 16.3% 46.9%)')
+								}
+								onMouseLeave={(e) =>
+									(e.currentTarget.style.borderColor = 'hsl(214.3 31.8% 91.4%)')
+								}
 							>
-								{__('Ändern', 'resa')}
-							</Button>
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								onClick={() => updateField('photoUrl', null)}
-								style={{ color: 'hsl(0 84.2% 60.2%)' }}
-							>
-								<X style={{ width: '14px', height: '14px', marginRight: '4px' }} />
-								{__('Entfernen', 'resa')}
-							</Button>
+								<Image
+									style={{
+										width: '20px',
+										height: '20px',
+										color: 'hsl(215.4 16.3% 46.9%)',
+									}}
+								/>
+							</button>
+						)}
+
+						<Separator />
+
+						{/* Name + Position */}
+						<div className="resa-grid resa-grid-cols-2 resa-gap-4">
+							<div className="resa-space-y-2">
+								<Label htmlFor="member-name">{__('Name', 'resa')} *</Label>
+								<Input
+									id="member-name"
+									value={form.name}
+									onChange={(e) => updateField('name', e.target.value)}
+									placeholder={__('Max Mustermann', 'resa')}
+									required
+								/>
+							</div>
+							<div className="resa-space-y-2">
+								<Label htmlFor="member-position">
+									{__('Position/Funktion', 'resa')}
+								</Label>
+								<Input
+									id="member-position"
+									value={form.position}
+									onChange={(e) => updateField('position', e.target.value)}
+									placeholder={__('Geschäftsführer', 'resa')}
+								/>
+							</div>
 						</div>
 					</div>
-				) : (
-					<button
-						type="button"
-						onClick={handleSelectPhoto}
-						style={{
-							width: '64px',
-							height: '64px',
-							borderRadius: '50%',
-							border: '2px dashed hsl(214.3 31.8% 91.4%)',
-							backgroundColor: 'hsl(210 40% 98%)',
-							cursor: 'pointer',
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-							transition: 'border-color 150ms',
-						}}
-						onMouseEnter={(e) =>
-							(e.currentTarget.style.borderColor = 'hsl(215.4 16.3% 46.9%)')
-						}
-						onMouseLeave={(e) =>
-							(e.currentTarget.style.borderColor = 'hsl(214.3 31.8% 91.4%)')
-						}
-					>
-						<Image
+				</CardContent>
+			</Card>
+
+			{/* Kontakt Card */}
+			<Card>
+				<CardContent style={{ padding: '20px' }}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+						<h3
 							style={{
-								width: '20px',
-								height: '20px',
-								color: 'hsl(215.4 16.3% 46.9%)',
+								margin: 0,
+								fontSize: '14px',
+								fontWeight: 600,
+								color: '#1e303a',
 							}}
-						/>
-					</button>
-				)}
-			</div>
+						>
+							{__('Kontaktdaten', 'resa')}
+						</h3>
+						<div className="resa-grid resa-grid-cols-2 resa-gap-4">
+							<div className="resa-space-y-2">
+								<Label htmlFor="member-email">{__('E-Mail', 'resa')} *</Label>
+								<Input
+									id="member-email"
+									type="email"
+									value={form.email}
+									onChange={(e) => updateField('email', e.target.value)}
+									placeholder={__('max@mustermann-immo.de', 'resa')}
+									required
+								/>
+							</div>
+							<div className="resa-space-y-2">
+								<Label htmlFor="member-phone">{__('Telefon', 'resa')}</Label>
+								<Input
+									id="member-phone"
+									type="tel"
+									value={form.phone}
+									onChange={(e) => updateField('phone', e.target.value)}
+									placeholder={__('+49 123 456789', 'resa')}
+								/>
+							</div>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
 
-			{/* Personal Info */}
-			<div className="resa-space-y-4">
-				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-					{__('Persönliche Daten', 'resa')}
-				</h3>
-				<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-					<div className="resa-space-y-2">
-						<Label htmlFor="member-name">
-							<span className="resa-flex resa-items-center resa-gap-1.5">
-								<User
-									style={{
-										width: '14px',
-										height: '14px',
-										color: 'hsl(215.4 16.3% 46.9%)',
-									}}
-								/>
-								{__('Name', 'resa')} *
-							</span>
-						</Label>
-						<Input
-							id="member-name"
-							value={form.name}
-							onChange={(e) => updateField('name', e.target.value)}
-							placeholder={__('Max Mustermann', 'resa')}
-							required
-						/>
-					</div>
-					<div className="resa-space-y-2">
-						<Label htmlFor="member-position">
-							<span className="resa-flex resa-items-center resa-gap-1.5">
-								<Briefcase
-									style={{
-										width: '14px',
-										height: '14px',
-										color: 'hsl(215.4 16.3% 46.9%)',
-									}}
-								/>
-								{__('Position/Funktion', 'resa')}
-							</span>
-						</Label>
-						<Input
-							id="member-position"
-							value={form.position}
-							onChange={(e) => updateField('position', e.target.value)}
-							placeholder={__('Geschäftsführer', 'resa')}
-						/>
-					</div>
-				</div>
-			</div>
-
-			{/* Contact Info */}
-			<div className="resa-space-y-4">
-				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-					{__('Kontaktdaten', 'resa')}
-				</h3>
-				<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-					<div className="resa-space-y-2">
-						<Label htmlFor="member-email">
-							<span className="resa-flex resa-items-center resa-gap-1.5">
-								<Mail
-									style={{
-										width: '14px',
-										height: '14px',
-										color: 'hsl(215.4 16.3% 46.9%)',
-									}}
-								/>
-								{__('E-Mail', 'resa')} *
-							</span>
-						</Label>
-						<Input
-							id="member-email"
-							type="email"
-							value={form.email}
-							onChange={(e) => updateField('email', e.target.value)}
-							placeholder={__('max@mustermann-immo.de', 'resa')}
-							required
-						/>
-					</div>
-					<div className="resa-space-y-2">
-						<Label htmlFor="member-phone">
-							<span className="resa-flex resa-items-center resa-gap-1.5">
-								<Phone
-									style={{
-										width: '14px',
-										height: '14px',
-										color: 'hsl(215.4 16.3% 46.9%)',
-									}}
-								/>
-								{__('Telefon', 'resa')}
-							</span>
-						</Label>
-						<Input
-							id="member-phone"
-							type="tel"
-							value={form.phone}
-							onChange={(e) => updateField('phone', e.target.value)}
-							placeholder={__('+49 123 456789', 'resa')}
-						/>
-					</div>
-				</div>
-			</div>
-
-			{/* Location Assignment */}
+			{/* Standort-Zuordnung Card */}
 			{locations.length > 0 && (
-				<div className="resa-space-y-4">
-					<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-						{__('Standort-Zuordnung', 'resa')}
-					</h3>
-					<div
-						className="resa-space-y-2"
-						style={{
-							maxWidth: '400px',
-							padding: '12px',
-							backgroundColor: 'hsl(210 40% 98%)',
-							borderRadius: '8px',
-						}}
-					>
-						{locations.map((location) => (
-							<label
-								key={location.id}
-								className="resa-flex resa-items-center resa-gap-3 resa-py-1.5 resa-cursor-pointer"
+				<Card>
+					<CardContent style={{ padding: '20px' }}>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+							<h3
+								style={{
+									margin: 0,
+									fontSize: '14px',
+									fontWeight: 600,
+									color: '#1e303a',
+								}}
 							>
-								<Checkbox
-									checked={form.locationIds.includes(location.id)}
-									onCheckedChange={() => toggleLocation(location.id)}
-								/>
-								<span className="resa-flex resa-items-center resa-gap-1.5 resa-text-sm">
-									<MapPin
-										style={{
-											width: '12px',
-											height: '12px',
-											color: 'hsl(215.4 16.3% 46.9%)',
-										}}
-									/>
-									{location.name}
-								</span>
-							</label>
-						))}
-					</div>
-				</div>
+								{__('Standort-Zuordnung', 'resa')}
+							</h3>
+							<div className="resa-space-y-2">
+								{locations.map((location) => (
+									<label
+										key={location.id}
+										className="resa-flex resa-items-center resa-gap-3 resa-py-1.5 resa-cursor-pointer"
+									>
+										<Checkbox
+											checked={form.locationIds.includes(location.id)}
+											onCheckedChange={() => toggleLocation(location.id)}
+										/>
+										<span className="resa-flex resa-items-center resa-gap-1.5 resa-text-sm">
+											<MapPin
+												style={{
+													width: '12px',
+													height: '12px',
+													color: 'hsl(215.4 16.3% 46.9%)',
+												}}
+											/>
+											{location.name}
+										</span>
+									</label>
+								))}
+							</div>
+						</div>
+					</CardContent>
+				</Card>
 			)}
 
 			{/* Actions */}
-			<div className="resa-flex resa-justify-end resa-gap-3 resa-pt-4">
+			<div className="resa-flex resa-justify-end resa-gap-3">
 				<Button type="button" variant="outline" onClick={onCancel}>
 					{__('Abbrechen', 'resa')}
 				</Button>
@@ -1181,270 +1113,274 @@ function BrandingForm({ initialData }: { initialData: BrandingSettings | undefin
 	};
 
 	return (
-		<form onSubmit={handleSubmit} className="resa-space-y-6">
-			{/* Header */}
-			<div style={{ marginBottom: '24px' }}>
-				<h3 className="resa-text-lg resa-font-semibold" style={{ margin: 0 }}>
-					{__('Branding & Design', 'resa')}
-				</h3>
-				<p
-					className="resa-text-sm resa-text-muted-foreground"
-					style={{ margin: 0, marginTop: '2px' }}
-				>
-					{__('Logo und Farben für deine Smart Assets.', 'resa')}
-				</p>
-			</div>
-
-			{/* Logo Section */}
-			<div className="resa-space-y-4" style={{ marginTop: 0 }}>
-				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-					{__('Logo', 'resa')}
-				</h3>
-
-				{form.logoUrl ? (
-					<div className="resa-flex resa-items-start resa-gap-4">
-						<div
+		<form
+			onSubmit={handleSubmit}
+			style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+		>
+			{/* Logo Card */}
+			<Card>
+				<CardContent style={{ padding: '20px' }}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+						<h3
 							style={{
-								width: '120px',
-								height: '80px',
-								borderRadius: '8px',
-								border: '1px solid hsl(214.3 31.8% 91.4%)',
-								backgroundColor: '#fff',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								overflow: 'hidden',
+								margin: 0,
+								fontSize: '14px',
+								fontWeight: 600,
+								color: '#1e303a',
 							}}
 						>
-							<img
-								src={form.logoUrl}
-								alt={__('Logo', 'resa')}
-								style={{
-									maxWidth: '100%',
-									maxHeight: '100%',
-									objectFit: 'contain',
-								}}
-							/>
-						</div>
-						<div className="resa-flex resa-gap-2">
-							<Button
+							{__('Logo', 'resa')}
+						</h3>
+
+						{form.logoUrl ? (
+							<div className="resa-flex resa-items-start resa-gap-4">
+								<div
+									style={{
+										width: '120px',
+										height: '80px',
+										borderRadius: '8px',
+										border: '1px solid hsl(214.3 31.8% 91.4%)',
+										backgroundColor: '#fff',
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										overflow: 'hidden',
+									}}
+								>
+									<img
+										src={form.logoUrl}
+										alt={__('Logo', 'resa')}
+										style={{
+											maxWidth: '100%',
+											maxHeight: '100%',
+											objectFit: 'contain',
+										}}
+									/>
+								</div>
+								<div className="resa-flex resa-gap-2">
+									<Button
+										type="button"
+										variant="outline"
+										size="sm"
+										onClick={handleSelectLogo}
+									>
+										{__('Ändern', 'resa')}
+									</Button>
+									<Button
+										type="button"
+										variant="outline"
+										size="sm"
+										onClick={handleRemoveLogo}
+										style={{ color: 'hsl(0 84.2% 60.2%)' }}
+									>
+										<X
+											style={{
+												width: '14px',
+												height: '14px',
+												marginRight: '4px',
+											}}
+										/>
+										{__('Entfernen', 'resa')}
+									</Button>
+								</div>
+							</div>
+						) : (
+							<button
 								type="button"
-								variant="outline"
-								size="sm"
 								onClick={handleSelectLogo}
+								style={{
+									width: '100%',
+									maxWidth: '400px',
+									padding: '24px',
+									border: '2px dashed hsl(214.3 31.8% 91.4%)',
+									borderRadius: '8px',
+									backgroundColor: 'hsl(210 40% 98%)',
+									cursor: 'pointer',
+									display: 'flex',
+									flexDirection: 'column',
+									alignItems: 'center',
+									gap: '8px',
+									transition: 'border-color 150ms',
+								}}
+								onMouseEnter={(e) =>
+									(e.currentTarget.style.borderColor = 'hsl(215.4 16.3% 46.9%)')
+								}
+								onMouseLeave={(e) =>
+									(e.currentTarget.style.borderColor = 'hsl(214.3 31.8% 91.4%)')
+								}
 							>
-								{__('Ändern', 'resa')}
-							</Button>
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								onClick={handleRemoveLogo}
-								style={{ color: 'hsl(0 84.2% 60.2%)' }}
-							>
-								<X style={{ width: '14px', height: '14px', marginRight: '4px' }} />
-								{__('Entfernen', 'resa')}
-							</Button>
-						</div>
+								<div
+									style={{
+										width: '40px',
+										height: '40px',
+										borderRadius: '50%',
+										backgroundColor: 'hsl(210 40% 96.1%)',
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+									}}
+								>
+									<Image
+										style={{
+											width: '20px',
+											height: '20px',
+											color: 'hsl(215.4 16.3% 46.9%)',
+										}}
+									/>
+								</div>
+								<span style={{ fontWeight: 500, color: '#1e303a' }}>
+									{__('Logo auswählen', 'resa')}
+								</span>
+								<span style={{ fontSize: '12px', color: 'hsl(215.4 16.3% 46.9%)' }}>
+									{__('PNG, JPG oder SVG empfohlen', 'resa')}
+								</span>
+							</button>
+						)}
 					</div>
-				) : (
-					<button
-						type="button"
-						onClick={handleSelectLogo}
-						style={{
-							width: '100%',
-							maxWidth: '400px',
-							padding: '24px',
-							border: '2px dashed hsl(214.3 31.8% 91.4%)',
-							borderRadius: '8px',
-							backgroundColor: 'hsl(210 40% 98%)',
-							cursor: 'pointer',
-							display: 'flex',
-							flexDirection: 'column',
-							alignItems: 'center',
-							gap: '8px',
-							transition: 'border-color 150ms',
-						}}
-						onMouseEnter={(e) =>
-							(e.currentTarget.style.borderColor = 'hsl(215.4 16.3% 46.9%)')
-						}
-						onMouseLeave={(e) =>
-							(e.currentTarget.style.borderColor = 'hsl(214.3 31.8% 91.4%)')
-						}
-					>
-						<div
+				</CardContent>
+			</Card>
+
+			{/* Farben Card */}
+			<Card>
+				<CardContent style={{ padding: '20px' }}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+						<h3
 							style={{
-								width: '40px',
-								height: '40px',
-								borderRadius: '50%',
-								backgroundColor: 'hsl(210 40% 96.1%)',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
+								margin: 0,
+								fontSize: '14px',
+								fontWeight: 600,
+								color: '#1e303a',
 							}}
 						>
-							<Image
-								style={{
-									width: '20px',
-									height: '20px',
-									color: 'hsl(215.4 16.3% 46.9%)',
-								}}
-							/>
+							{__('Farben', 'resa')}
+						</h3>
+						<div
+							className="resa-grid resa-grid-cols-2 resa-gap-4"
+							style={{ maxWidth: '400px' }}
+						>
+							<div className="resa-space-y-2">
+								<Label htmlFor="primary-color">{__('Primärfarbe', 'resa')}</Label>
+								<div className="resa-flex resa-items-center resa-gap-2">
+									<input
+										id="primary-color"
+										type="color"
+										value={form.primaryColor}
+										onChange={(e) =>
+											updateField('primaryColor', e.target.value)
+										}
+										style={{
+											width: '40px',
+											height: '40px',
+											padding: 0,
+											border: '1px solid hsl(214.3 31.8% 91.4%)',
+											borderRadius: '6px',
+											cursor: 'pointer',
+											backgroundColor: 'transparent',
+										}}
+									/>
+									<Input
+										type="text"
+										value={form.primaryColor}
+										onChange={(e) =>
+											updateField('primaryColor', e.target.value)
+										}
+										style={{ width: '100px', fontFamily: 'monospace' }}
+										maxLength={7}
+									/>
+								</div>
+								<p
+									className="resa-text-xs resa-text-muted-foreground"
+									style={{ margin: 0 }}
+								>
+									{__('Buttons, Akzente, Progress-Bar', 'resa')}
+								</p>
+							</div>
+							<div className="resa-space-y-2">
+								<Label htmlFor="secondary-color">
+									{__('Sekundärfarbe', 'resa')}
+								</Label>
+								<div className="resa-flex resa-items-center resa-gap-2">
+									<input
+										id="secondary-color"
+										type="color"
+										value={form.secondaryColor}
+										onChange={(e) =>
+											updateField('secondaryColor', e.target.value)
+										}
+										style={{
+											width: '40px',
+											height: '40px',
+											padding: 0,
+											border: '1px solid hsl(214.3 31.8% 91.4%)',
+											borderRadius: '6px',
+											cursor: 'pointer',
+											backgroundColor: 'transparent',
+										}}
+									/>
+									<Input
+										type="text"
+										value={form.secondaryColor}
+										onChange={(e) =>
+											updateField('secondaryColor', e.target.value)
+										}
+										style={{ width: '100px', fontFamily: 'monospace' }}
+										maxLength={7}
+									/>
+								</div>
+								<p
+									className="resa-text-xs resa-text-muted-foreground"
+									style={{ margin: 0 }}
+								>
+									{__('Texte, Hover-States', 'resa')}
+								</p>
+							</div>
 						</div>
-						<span style={{ fontWeight: 500, color: '#1e303a' }}>
-							{__('Logo auswählen', 'resa')}
-						</span>
-						<span style={{ fontSize: '12px', color: 'hsl(215.4 16.3% 46.9%)' }}>
-							{__('PNG, JPG oder SVG empfohlen', 'resa')}
-						</span>
-					</button>
-				)}
-			</div>
+					</div>
+				</CardContent>
+			</Card>
 
-			{/* Colors Section */}
-			<div className="resa-space-y-4">
-				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-					{__('Farben', 'resa')}
-				</h3>
-				<div
-					className="resa-grid resa-grid-cols-2 resa-gap-4"
-					style={{ maxWidth: '400px' }}
-				>
-					<div className="resa-space-y-2">
-						<Label htmlFor="primary-color">
-							<span className="resa-flex resa-items-center resa-gap-1.5">
-								<Palette
-									style={{
-										width: '14px',
-										height: '14px',
-										color: 'hsl(215.4 16.3% 46.9%)',
-									}}
-								/>
-								{__('Primärfarbe', 'resa')}
-							</span>
-						</Label>
-						<div className="resa-flex resa-items-center resa-gap-2">
-							<input
-								id="primary-color"
-								type="color"
-								value={form.primaryColor}
-								onChange={(e) => updateField('primaryColor', e.target.value)}
+			{/* Branding-Hinweis Card */}
+			<Card>
+				<CardContent style={{ padding: '20px' }}>
+					<div className="resa-flex resa-items-center resa-justify-between">
+						<div>
+							<h3
 								style={{
-									width: '40px',
-									height: '40px',
-									padding: 0,
-									border: '1px solid hsl(214.3 31.8% 91.4%)',
-									borderRadius: '6px',
-									cursor: 'pointer',
-									backgroundColor: 'transparent',
+									margin: 0,
+									fontSize: '14px',
+									fontWeight: 600,
+									color: '#1e303a',
 								}}
-							/>
-							<Input
-								type="text"
-								value={form.primaryColor}
-								onChange={(e) => updateField('primaryColor', e.target.value)}
-								style={{ width: '100px', fontFamily: 'monospace' }}
-								maxLength={7}
+							>
+								{__('"Powered by RESA" anzeigen', 'resa')}
+							</h3>
+							<p
+								className="resa-text-sm resa-text-muted-foreground"
+								style={{ margin: 0, marginTop: '2px' }}
+							>
+								{isPremium
+									? __('Zeigt den RESA-Hinweis in deinen Smart Assets.', 'resa')
+									: __('Im Free-Plan ist der Hinweis immer sichtbar.', 'resa')}
+							</p>
+						</div>
+						<div className="resa-flex resa-items-center resa-gap-2">
+							{!isPremium && (
+								<Badge variant="secondary" style={{ fontSize: '10px' }}>
+									PRO
+								</Badge>
+							)}
+							<Switch
+								checked={form.showPoweredBy}
+								onCheckedChange={(checked) => updateField('showPoweredBy', checked)}
+								disabled={!isPremium}
 							/>
 						</div>
-						<p
-							className="resa-text-xs resa-text-muted-foreground"
-							style={{ margin: 0 }}
-						>
-							{__('Buttons, Akzente, Progress-Bar', 'resa')}
-						</p>
 					</div>
-					<div className="resa-space-y-2">
-						<Label htmlFor="secondary-color">
-							<span className="resa-flex resa-items-center resa-gap-1.5">
-								<Palette
-									style={{
-										width: '14px',
-										height: '14px',
-										color: 'hsl(215.4 16.3% 46.9%)',
-									}}
-								/>
-								{__('Sekundärfarbe', 'resa')}
-							</span>
-						</Label>
-						<div className="resa-flex resa-items-center resa-gap-2">
-							<input
-								id="secondary-color"
-								type="color"
-								value={form.secondaryColor}
-								onChange={(e) => updateField('secondaryColor', e.target.value)}
-								style={{
-									width: '40px',
-									height: '40px',
-									padding: 0,
-									border: '1px solid hsl(214.3 31.8% 91.4%)',
-									borderRadius: '6px',
-									cursor: 'pointer',
-									backgroundColor: 'transparent',
-								}}
-							/>
-							<Input
-								type="text"
-								value={form.secondaryColor}
-								onChange={(e) => updateField('secondaryColor', e.target.value)}
-								style={{ width: '100px', fontFamily: 'monospace' }}
-								maxLength={7}
-							/>
-						</div>
-						<p
-							className="resa-text-xs resa-text-muted-foreground"
-							style={{ margin: 0 }}
-						>
-							{__('Texte, Hover-States', 'resa')}
-						</p>
-					</div>
-				</div>
-			</div>
-
-			{/* Powered by RESA Section */}
-			<div className="resa-space-y-4">
-				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-					{__('Branding-Hinweis', 'resa')}
-				</h3>
-				<div
-					className="resa-flex resa-items-center resa-justify-between"
-					style={{
-						padding: '16px',
-						backgroundColor: 'hsl(210 40% 98%)',
-						borderRadius: '8px',
-						maxWidth: '400px',
-					}}
-				>
-					<div>
-						<p style={{ margin: 0, fontWeight: 500, color: '#1e303a' }}>
-							{__('"Powered by RESA" anzeigen', 'resa')}
-						</p>
-						<p
-							className="resa-text-sm resa-text-muted-foreground"
-							style={{ margin: 0, marginTop: '2px' }}
-						>
-							{isPremium
-								? __('Zeigt den RESA-Hinweis in deinen Smart Assets.', 'resa')
-								: __('Im Free-Plan ist der Hinweis immer sichtbar.', 'resa')}
-						</p>
-					</div>
-					<div className="resa-flex resa-items-center resa-gap-2">
-						{!isPremium && (
-							<Badge variant="secondary" style={{ fontSize: '10px' }}>
-								PRO
-							</Badge>
-						)}
-						<Switch
-							checked={form.showPoweredBy}
-							onCheckedChange={(checked) => updateField('showPoweredBy', checked)}
-							disabled={!isPremium}
-						/>
-					</div>
-				</div>
-			</div>
+				</CardContent>
+			</Card>
 
 			{/* Save Button */}
-			<div className="resa-flex resa-justify-end resa-pt-4">
+			<div className="resa-flex resa-justify-end">
 				<Button
 					type="submit"
 					disabled={!isDirty || saveMutation.isPending}
@@ -1558,245 +1494,262 @@ function MapsForm({ initialData }: { initialData: MapSettings | undefined }) {
 	};
 
 	return (
-		<form onSubmit={handleSubmit} className="resa-space-y-6">
-			{/* Header */}
-			<div style={{ marginBottom: '24px' }}>
-				<h3 className="resa-text-lg resa-font-semibold" style={{ margin: 0 }}>
-					{__('Karteneinstellungen', 'resa')}
-				</h3>
-				<p
-					className="resa-text-sm resa-text-muted-foreground"
-					style={{ margin: 0, marginTop: '2px' }}
-				>
-					{__(
-						'Kartenanbieter, Stil und Standardeinstellungen für Standortkarten.',
-						'resa',
-					)}
-				</p>
-			</div>
-
-			{/* Provider Selection */}
-			<div className="resa-space-y-4" style={{ marginTop: 0 }}>
-				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-					{__('Kartenanbieter', 'resa')}
-				</h3>
-				<div className="resa-space-y-3" style={{ maxWidth: '400px' }}>
-					{/* OSM Option */}
-					<label
-						className="resa-flex resa-items-start resa-gap-3 resa-p-3 resa-rounded-lg resa-cursor-pointer"
-						style={{
-							border:
-								form.provider === 'osm'
-									? '2px solid #a9e43f'
-									: '1px solid hsl(214.3 31.8% 91.4%)',
-							backgroundColor:
-								form.provider === 'osm' ? 'hsl(210 40% 98%)' : 'transparent',
-						}}
-					>
-						<input
-							type="radio"
-							name="provider"
-							value="osm"
-							checked={form.provider === 'osm'}
-							onChange={() => updateField('provider', 'osm')}
-							className="resa-mt-1"
-						/>
-						<div>
-							<span className="resa-font-medium">{__('OpenStreetMap', 'resa')}</span>
-							<p
-								className="resa-text-sm resa-text-muted-foreground"
-								style={{ margin: 0, marginTop: '2px' }}
+		<form
+			onSubmit={handleSubmit}
+			style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+		>
+			{/* Kartenanbieter Card */}
+			<Card>
+				<CardContent style={{ padding: '20px' }}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+						<h3
+							style={{
+								margin: 0,
+								fontSize: '14px',
+								fontWeight: 600,
+								color: '#1e303a',
+							}}
+						>
+							{__('Kartenanbieter', 'resa')}
+						</h3>
+						<div className="resa-space-y-3" style={{ maxWidth: '400px' }}>
+							{/* OSM Option */}
+							<label
+								className="resa-flex resa-items-start resa-gap-3 resa-p-3 resa-rounded-lg resa-cursor-pointer"
+								style={{
+									border:
+										form.provider === 'osm'
+											? '2px solid #a9e43f'
+											: '1px solid hsl(214.3 31.8% 91.4%)',
+									backgroundColor:
+										form.provider === 'osm'
+											? 'hsl(210 40% 98%)'
+											: 'transparent',
+								}}
 							>
-								{__('Kostenlos, kein API-Key nötig, DSGVO-freundlich.', 'resa')}
-							</p>
-						</div>
-					</label>
+								<input
+									type="radio"
+									name="provider"
+									value="osm"
+									checked={form.provider === 'osm'}
+									onChange={() => updateField('provider', 'osm')}
+									className="resa-mt-1"
+								/>
+								<div>
+									<span className="resa-font-medium">
+										{__('OpenStreetMap', 'resa')}
+									</span>
+									<p
+										className="resa-text-sm resa-text-muted-foreground"
+										style={{ margin: 0, marginTop: '2px' }}
+									>
+										{__(
+											'Kostenlos, kein API-Key nötig, DSGVO-freundlich.',
+											'resa',
+										)}
+									</p>
+								</div>
+							</label>
 
-					{/* Google Maps Option */}
-					<label
-						className="resa-flex resa-items-start resa-gap-3 resa-p-3 resa-rounded-lg"
-						style={{
-							border:
-								form.provider === 'google'
-									? '2px solid #a9e43f'
-									: '1px solid hsl(214.3 31.8% 91.4%)',
-							backgroundColor:
-								form.provider === 'google' ? 'hsl(210 40% 98%)' : 'transparent',
-							opacity: form.canUseGoogle ? 1 : 0.6,
-							cursor: form.canUseGoogle ? 'pointer' : 'not-allowed',
-						}}
-					>
-						<input
-							type="radio"
-							name="provider"
-							value="google"
-							checked={form.provider === 'google'}
-							onChange={() => form.canUseGoogle && updateField('provider', 'google')}
-							disabled={!form.canUseGoogle}
-							className="resa-mt-1"
-						/>
-						<div className="resa-flex-1">
-							<div className="resa-flex resa-items-center resa-gap-2">
-								<span className="resa-font-medium">
-									{__('Google Maps', 'resa')}
-								</span>
-								{!form.canUseGoogle && (
-									<Badge variant="secondary" style={{ fontSize: '10px' }}>
-										PRO
-									</Badge>
+							{/* Google Maps Option */}
+							<label
+								className="resa-flex resa-items-start resa-gap-3 resa-p-3 resa-rounded-lg"
+								style={{
+									border:
+										form.provider === 'google'
+											? '2px solid #a9e43f'
+											: '1px solid hsl(214.3 31.8% 91.4%)',
+									backgroundColor:
+										form.provider === 'google'
+											? 'hsl(210 40% 98%)'
+											: 'transparent',
+									opacity: form.canUseGoogle ? 1 : 0.6,
+									cursor: form.canUseGoogle ? 'pointer' : 'not-allowed',
+								}}
+							>
+								<input
+									type="radio"
+									name="provider"
+									value="google"
+									checked={form.provider === 'google'}
+									onChange={() =>
+										form.canUseGoogle && updateField('provider', 'google')
+									}
+									disabled={!form.canUseGoogle}
+									className="resa-mt-1"
+								/>
+								<div className="resa-flex-1">
+									<div className="resa-flex resa-items-center resa-gap-2">
+										<span className="resa-font-medium">
+											{__('Google Maps', 'resa')}
+										</span>
+										{!form.canUseGoogle && (
+											<Badge variant="secondary" style={{ fontSize: '10px' }}>
+												PRO
+											</Badge>
+										)}
+									</div>
+									<p
+										className="resa-text-sm resa-text-muted-foreground"
+										style={{ margin: 0, marginTop: '2px' }}
+									>
+										{__('Google Maps API mit Places Autocomplete.', 'resa')}
+									</p>
+								</div>
+							</label>
+						</div>
+
+						{/* Google API Key (conditional) */}
+						{form.provider === 'google' && form.canUseGoogle && (
+							<>
+								<Separator />
+								<div className="resa-space-y-2" style={{ maxWidth: '400px' }}>
+									<Label htmlFor="google-api-key">{__('API-Key', 'resa')}</Label>
+									<Input
+										id="google-api-key"
+										type="password"
+										value={form.googleApiKey}
+										onChange={(e) =>
+											updateField('googleApiKey', e.target.value)
+										}
+										placeholder="AIzaSy..."
+									/>
+									<p
+										className="resa-text-xs resa-text-muted-foreground"
+										style={{ margin: 0 }}
+									>
+										{__(
+											'Google Cloud Console → APIs & Services → Credentials',
+											'resa',
+										)}
+									</p>
+								</div>
+							</>
+						)}
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Darstellung Card */}
+			<Card>
+				<CardContent style={{ padding: '20px' }}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+						<h3
+							style={{
+								margin: 0,
+								fontSize: '14px',
+								fontWeight: 600,
+								color: '#1e303a',
+							}}
+						>
+							{__('Darstellung', 'resa')}
+						</h3>
+
+						{/* Tile Style + Zoom side by side */}
+						<div
+							className="resa-grid resa-grid-cols-2 resa-gap-4"
+							style={{ maxWidth: '400px' }}
+						>
+							<div className="resa-space-y-2">
+								<Label htmlFor="tile-style">
+									<span className="resa-flex resa-items-center resa-gap-1.5">
+										{__('Kachel-Stil', 'resa')}
+										{!form.canSelectStyle && (
+											<Badge variant="secondary" style={{ fontSize: '10px' }}>
+												PRO
+											</Badge>
+										)}
+									</span>
+								</Label>
+								<select
+									id="tile-style"
+									className="resa-flex resa-h-9 resa-w-full resa-rounded-md resa-border resa-border-input resa-bg-transparent resa-px-3 resa-py-1 resa-text-sm resa-shadow-sm resa-transition-colors focus:resa-outline-none focus:resa-ring-1 focus:resa-ring-ring"
+									value={form.tileStyle}
+									onChange={(e) =>
+										updateField('tileStyle', e.target.value as TileStyle)
+									}
+									disabled={!form.canSelectStyle}
+								>
+									{TILE_STYLE_OPTIONS.map((option) => (
+										<option key={option.value} value={option.value}>
+											{option.label} — {option.description}
+										</option>
+									))}
+								</select>
+								{!form.canSelectStyle && (
+									<p
+										className="resa-text-xs resa-text-muted-foreground"
+										style={{ margin: 0 }}
+									>
+										{__(
+											'Im Free-Plan wird der minimale Stil verwendet.',
+											'resa',
+										)}
+									</p>
 								)}
 							</div>
-							<p
-								className="resa-text-sm resa-text-muted-foreground"
-								style={{ margin: 0, marginTop: '2px' }}
-							>
-								{__('Google Maps API mit Places Autocomplete.', 'resa')}
-							</p>
+							<div className="resa-space-y-2">
+								<Label htmlFor="default-zoom">{__('Standard-Zoom', 'resa')}</Label>
+								<select
+									id="default-zoom"
+									className="resa-flex resa-h-9 resa-w-full resa-rounded-md resa-border resa-border-input resa-bg-transparent resa-px-3 resa-py-1 resa-text-sm resa-shadow-sm resa-transition-colors focus:resa-outline-none focus:resa-ring-1 focus:resa-ring-ring"
+									value={form.defaultZoom}
+									onChange={(e) =>
+										updateField('defaultZoom', parseInt(e.target.value, 10))
+									}
+								>
+									{ZOOM_OPTIONS.map((option) => (
+										<option key={option.value} value={option.value}>
+											{option.value} — {option.label}
+										</option>
+									))}
+								</select>
+							</div>
 						</div>
-					</label>
-				</div>
-			</div>
 
-			{/* Google API Key (only shown when Google is selected and available) */}
-			{form.provider === 'google' && form.canUseGoogle && (
-				<div className="resa-space-y-4">
-					<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-						{__('Google Maps API', 'resa')}
-					</h3>
-					<div className="resa-space-y-2" style={{ maxWidth: '400px' }}>
-						<Label htmlFor="google-api-key">
-							<span className="resa-flex resa-items-center resa-gap-1.5">
-								<Key
+						<Separator />
+
+						{/* Scroll Zoom Toggle */}
+						<div
+							className="resa-flex resa-items-center resa-justify-between"
+							style={{
+								padding: '10px 12px',
+								backgroundColor: 'hsl(210 40% 98%)',
+								borderRadius: '6px',
+							}}
+						>
+							<div>
+								<p
 									style={{
-										width: '14px',
-										height: '14px',
+										margin: 0,
+										fontSize: '13px',
+										fontWeight: 500,
+										color: '#1e303a',
+									}}
+								>
+									{__('Scroll-Zoom aktivieren', 'resa')}
+								</p>
+								<p
+									style={{
+										margin: '2px 0 0',
+										fontSize: '12px',
 										color: 'hsl(215.4 16.3% 46.9%)',
 									}}
-								/>
-								{__('API-Key', 'resa')}
-							</span>
-						</Label>
-						<Input
-							id="google-api-key"
-							type="password"
-							value={form.googleApiKey}
-							onChange={(e) => updateField('googleApiKey', e.target.value)}
-							placeholder="AIzaSy..."
-						/>
-						<p className="resa-text-xs resa-text-muted-foreground">
-							{__('Google Cloud Console → APIs & Services → Credentials', 'resa')}
-						</p>
-					</div>
-				</div>
-			)}
-
-			{/* Tile Style */}
-			<div className="resa-space-y-4">
-				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-					{__('Kartenstil', 'resa')}
-				</h3>
-				<div className="resa-space-y-2" style={{ maxWidth: '400px' }}>
-					<Label htmlFor="tile-style">
-						<span className="resa-flex resa-items-center resa-gap-1.5">
-							<Palette
-								style={{
-									width: '14px',
-									height: '14px',
-									color: 'hsl(215.4 16.3% 46.9%)',
-								}}
-							/>
-							{__('Kachel-Stil', 'resa')}
-							{!form.canSelectStyle && (
-								<Badge
-									variant="secondary"
-									style={{ fontSize: '10px', marginLeft: '4px' }}
 								>
-									PRO
-								</Badge>
-							)}
-						</span>
-					</Label>
-					<select
-						id="tile-style"
-						className="resa-flex resa-h-9 resa-w-full resa-rounded-md resa-border resa-border-input resa-bg-transparent resa-px-3 resa-py-1 resa-text-sm resa-shadow-sm resa-transition-colors focus:resa-outline-none focus:resa-ring-1 focus:resa-ring-ring"
-						value={form.tileStyle}
-						onChange={(e) => updateField('tileStyle', e.target.value as TileStyle)}
-						disabled={!form.canSelectStyle}
-					>
-						{TILE_STYLE_OPTIONS.map((option) => (
-							<option key={option.value} value={option.value}>
-								{option.label} — {option.description}
-							</option>
-						))}
-					</select>
-					{!form.canSelectStyle && (
-						<p className="resa-text-xs resa-text-muted-foreground">
-							{__('Im Free-Plan wird der minimale Stil verwendet.', 'resa')}
-						</p>
-					)}
-				</div>
-			</div>
-
-			{/* Default Zoom */}
-			<div className="resa-space-y-4">
-				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-					{__('Standardeinstellungen', 'resa')}
-				</h3>
-				<div
-					className="resa-grid resa-grid-cols-2 resa-gap-4"
-					style={{ maxWidth: '400px' }}
-				>
-					<div className="resa-space-y-2">
-						<Label htmlFor="default-zoom">{__('Standard-Zoom', 'resa')}</Label>
-						<select
-							id="default-zoom"
-							className="resa-flex resa-h-9 resa-w-full resa-rounded-md resa-border resa-border-input resa-bg-transparent resa-px-3 resa-py-1 resa-text-sm resa-shadow-sm resa-transition-colors focus:resa-outline-none focus:resa-ring-1 focus:resa-ring-ring"
-							value={form.defaultZoom}
-							onChange={(e) =>
-								updateField('defaultZoom', parseInt(e.target.value, 10))
-							}
-						>
-							{ZOOM_OPTIONS.map((option) => (
-								<option key={option.value} value={option.value}>
-									{option.value} — {option.label}
-								</option>
-							))}
-						</select>
+									{__('Erlaubt Zoomen mit dem Mausrad auf der Karte.', 'resa')}
+								</p>
+							</div>
+							<Switch
+								checked={form.scrollZoom}
+								onCheckedChange={(checked) => updateField('scrollZoom', checked)}
+							/>
+						</div>
 					</div>
-				</div>
-			</div>
-
-			{/* Scroll Zoom Toggle */}
-			<div className="resa-space-y-4">
-				<div
-					className="resa-flex resa-items-center resa-justify-between"
-					style={{
-						padding: '16px',
-						backgroundColor: 'hsl(210 40% 98%)',
-						borderRadius: '8px',
-						maxWidth: '400px',
-					}}
-				>
-					<div>
-						<p style={{ margin: 0, fontWeight: 500, color: '#1e303a' }}>
-							{__('Scroll-Zoom aktivieren', 'resa')}
-						</p>
-						<p
-							className="resa-text-sm resa-text-muted-foreground"
-							style={{ margin: 0, marginTop: '2px' }}
-						>
-							{__('Erlaubt Zoomen mit dem Mausrad auf der Karte.', 'resa')}
-						</p>
-					</div>
-					<Switch
-						checked={form.scrollZoom}
-						onCheckedChange={(checked) => updateField('scrollZoom', checked)}
-					/>
-				</div>
-			</div>
+				</CardContent>
+			</Card>
 
 			{/* Save Button */}
-			<div className="resa-flex resa-justify-end resa-pt-4">
+			<div className="resa-flex resa-justify-end">
 				<Button
 					type="submit"
 					disabled={!isDirty || saveMutation.isPending}
@@ -1814,90 +1767,64 @@ function MapsForm({ initialData }: { initialData: MapSettings | undefined }) {
 }
 
 /**
- * Email Settings Tab — SMTP transport info.
- */
-function EmailSettingsTab() {
-	return (
-		<Card>
-			<div style={{ padding: '24px', paddingBottom: '16px' }}>
-				<h3 className="resa-text-lg resa-font-semibold" style={{ margin: 0 }}>
-					{__('SMTP-Einstellungen', 'resa')}
-				</h3>
-				<p
-					className="resa-text-sm resa-text-muted-foreground"
-					style={{ margin: 0, marginTop: '2px' }}
-				>
-					{__('Konfiguriere deinen E-Mail-Server für den Versand.', 'resa')}
-				</p>
-			</div>
-			<CardContent>
-				<div className="resa-flex resa-items-center resa-gap-3 resa-p-4 resa-rounded-lg resa-border resa-bg-muted/30">
-					<Server className="resa-size-5 resa-text-muted-foreground" />
-					<div>
-						<p className="resa-font-medium" style={{ margin: 0 }}>
-							{__('WordPress Standard', 'resa')}
-						</p>
-						<p
-							className="resa-text-sm resa-text-muted-foreground"
-							style={{ margin: 0, marginTop: '2px' }}
-						>
-							{__('E-Mails werden über wp_mail() versendet.', 'resa')}
-						</p>
-					</div>
-					<Badge variant="secondary" className="resa-ml-auto">
-						{__('Aktiv', 'resa')}
-					</Badge>
-				</div>
-			</CardContent>
-		</Card>
-	);
-}
-
-/**
  * License Tab — shows current plan info with placeholder for account management.
  */
 function LicenseTab() {
 	return (
 		<Card>
-			<div style={{ padding: '24px', paddingBottom: '16px' }}>
-				<h3 className="resa-text-lg resa-font-semibold" style={{ margin: 0 }}>
-					{__('Lizenzinformationen', 'resa')}
-				</h3>
-				<p
-					className="resa-text-sm resa-text-muted-foreground"
-					style={{ margin: 0, marginTop: '2px' }}
-				>
-					{__('Details zu deinem aktuellen Plan und deiner Installation.', 'resa')}
-				</p>
-			</div>
-			<CardContent>
-				<div className="resa-grid resa-grid-cols-2 md:resa-grid-cols-4 resa-gap-4">
-					<div className="resa-space-y-1">
-						<p className="resa-text-sm resa-text-muted-foreground">
-							{__('Version', 'resa')}
-						</p>
-						<p className="resa-font-medium">{window.resaAdmin?.version ?? '—'}</p>
-					</div>
-					<div className="resa-space-y-1">
-						<p className="resa-text-sm resa-text-muted-foreground">
-							{__('Plan', 'resa')}
-						</p>
-						<div className="resa-flex resa-items-center resa-gap-2">
-							<p className="resa-font-medium">{__('Free', 'resa')}</p>
-							<Badge variant="secondary">{__('Aktiv', 'resa')}</Badge>
+			<CardContent style={{ padding: '20px' }}>
+				<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+					<h3 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#1e303a' }}>
+						{__('Lizenzinformationen', 'resa')}
+					</h3>
+					<div className="resa-grid resa-grid-cols-2 md:resa-grid-cols-4 resa-gap-4">
+						<div className="resa-space-y-1">
+							<p
+								className="resa-text-sm resa-text-muted-foreground"
+								style={{ margin: 0 }}
+							>
+								{__('Version', 'resa')}
+							</p>
+							<p className="resa-font-medium" style={{ margin: 0 }}>
+								{window.resaAdmin?.version ?? '—'}
+							</p>
 						</div>
-					</div>
-					<div className="resa-space-y-1">
-						<p className="resa-text-sm resa-text-muted-foreground">
-							{__('Aktive Module', 'resa')}
-						</p>
-						<p className="resa-font-medium">2 / 2</p>
-					</div>
-					<div className="resa-space-y-1">
-						<p className="resa-text-sm resa-text-muted-foreground">
-							{__('Leads diesen Monat', 'resa')}
-						</p>
-						<p className="resa-font-medium">24 / 50</p>
+						<div className="resa-space-y-1">
+							<p
+								className="resa-text-sm resa-text-muted-foreground"
+								style={{ margin: 0 }}
+							>
+								{__('Plan', 'resa')}
+							</p>
+							<div className="resa-flex resa-items-center resa-gap-2">
+								<p className="resa-font-medium" style={{ margin: 0 }}>
+									{__('Free', 'resa')}
+								</p>
+								<Badge variant="secondary">{__('Aktiv', 'resa')}</Badge>
+							</div>
+						</div>
+						<div className="resa-space-y-1">
+							<p
+								className="resa-text-sm resa-text-muted-foreground"
+								style={{ margin: 0 }}
+							>
+								{__('Aktive Module', 'resa')}
+							</p>
+							<p className="resa-font-medium" style={{ margin: 0 }}>
+								2 / 2
+							</p>
+						</div>
+						<div className="resa-space-y-1">
+							<p
+								className="resa-text-sm resa-text-muted-foreground"
+								style={{ margin: 0 }}
+							>
+								{__('Leads diesen Monat', 'resa')}
+							</p>
+							<p className="resa-font-medium" style={{ margin: 0 }}>
+								24 / 50
+							</p>
+						</div>
 					</div>
 				</div>
 			</CardContent>
@@ -1911,48 +1838,42 @@ function LicenseTab() {
 function GdprTab() {
 	return (
 		<Card>
-			<div style={{ padding: '24px', paddingBottom: '16px' }}>
-				<h3 className="resa-text-lg resa-font-semibold" style={{ margin: 0 }}>
-					{__('Datenschutz (DSGVO)', 'resa')}
-				</h3>
-				<p
-					className="resa-text-sm resa-text-muted-foreground"
-					style={{ margin: 0, marginTop: '2px' }}
-				>
-					{__('Einwilligungstexte, Aufbewahrungsfristen und Datenlöschung.', 'resa')}
-				</p>
-			</div>
-			<CardContent>
-				<div className="resa-py-12 resa-text-center">
-					<div
-						style={{
-							width: '48px',
-							height: '48px',
-							margin: '0 auto 16px',
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-							borderRadius: '50%',
-							backgroundColor: 'hsl(210 40% 96.1%)',
-						}}
-					>
-						<Shield
-							style={{
-								width: '24px',
-								height: '24px',
-								color: 'hsl(215.4 16.3% 46.9%)',
-							}}
-						/>
-					</div>
-					<h3 style={{ fontWeight: 600, marginBottom: '8px', color: '#1e303a' }}>
-						{__('Kommt bald', 'resa')}
+			<CardContent style={{ padding: '20px' }}>
+				<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+					<h3 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#1e303a' }}>
+						{__('Datenschutz (DSGVO)', 'resa')}
 					</h3>
-					<p style={{ color: 'hsl(215.4 16.3% 46.9%)' }}>
-						{__(
-							'Datenschutz-Einstellungen werden in einer zukünftigen Version verfügbar sein.',
-							'resa',
-						)}
-					</p>
+					<div className="resa-py-12 resa-text-center">
+						<div
+							style={{
+								width: '48px',
+								height: '48px',
+								margin: '0 auto 16px',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								borderRadius: '50%',
+								backgroundColor: 'hsl(210 40% 96.1%)',
+							}}
+						>
+							<Shield
+								style={{
+									width: '24px',
+									height: '24px',
+									color: 'hsl(215.4 16.3% 46.9%)',
+								}}
+							/>
+						</div>
+						<h3 style={{ fontWeight: 600, marginBottom: '8px', color: '#1e303a' }}>
+							{__('Kommt bald', 'resa')}
+						</h3>
+						<p style={{ color: 'hsl(215.4 16.3% 46.9%)', margin: 0 }}>
+							{__(
+								'Datenschutz-Einstellungen werden in einer zukünftigen Version verfügbar sein.',
+								'resa',
+							)}
+						</p>
+					</div>
 				</div>
 			</CardContent>
 		</Card>

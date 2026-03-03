@@ -1,33 +1,35 @@
 #!/bin/bash
 set -e
 
-# Warten bis MySQL bereit ist
+echo "=== RESA WordPress Setup ==="
+
+# MySQL warten
 echo "Warte auf MySQL..."
-while ! mysqladmin ping -h"$WORDPRESS_DB_HOST" --silent 2>/dev/null; do
+until mysqladmin ping -h"$WORDPRESS_DB_HOST" --silent 2>/dev/null; do
     sleep 2
 done
-echo "MySQL ist bereit."
+echo "MySQL bereit."
 
-# Warten bis WordPress-Dateien vorhanden sind
+# WordPress-Dateien warten
 echo "Warte auf WordPress-Dateien..."
-while [ ! -f /var/www/html/wp-includes/version.php ]; do
+until [ -f /var/www/html/wp-includes/version.php ]; do
     sleep 2
 done
 echo "WordPress-Dateien vorhanden."
 
-# Kurz warten damit WordPress vollständig initialisiert
+# WordPress-Init abwarten
 sleep 5
 
 cd /var/www/html
 
-# MU-Plugin kopieren falls noch nicht vorhanden
+# MU-Plugin kopieren
 if [ ! -f wp-content/mu-plugins/resa-mailpit.php ]; then
     mkdir -p wp-content/mu-plugins
     cp /usr/src/wordpress/wp-content/mu-plugins/resa-mailpit.php wp-content/mu-plugins/
     echo "Mailpit MU-Plugin installiert."
 fi
 
-# WordPress installieren falls noch nicht geschehen
+# WordPress installieren
 if ! wp core is-installed --allow-root 2>/dev/null; then
     echo "Installiere WordPress..."
     wp core install \
@@ -39,23 +41,24 @@ if ! wp core is-installed --allow-root 2>/dev/null; then
         --skip-email \
         --allow-root
 
-    # Deutsche Sprache installieren und aktivieren
+    # Deutsch
     wp language core install de_DE --allow-root
     wp site switch-language de_DE --allow-root
 
-    # Permalink-Struktur setzen
+    # Permalinks
     wp rewrite structure '/%postname%/' --allow-root
     wp rewrite flush --allow-root
 
-    # Plugin aktivieren
+    # RESA-Plugin aktivieren
     if [ -d wp-content/plugins/resa ]; then
-        wp plugin activate resa --allow-root 2>/dev/null || echo "Plugin konnte nicht aktiviert werden (noch keine Plugin-Hauptdatei?)"
+        wp plugin activate resa --allow-root 2>/dev/null \
+            || echo "Plugin konnte nicht aktiviert werden (noch keine Plugin-Hauptdatei?)"
     fi
 
-    # Blogname setzen
+    # Blogname
     wp option update blogname "RESA Dev" --allow-root
 
-    # Testseite mit Shortcode erstellen
+    # Testseite mit Shortcode
     wp post create \
         --post_type=page \
         --post_title="Smart Asset Test" \
@@ -63,7 +66,7 @@ if ! wp core is-installed --allow-root 2>/dev/null; then
         --post_status=publish \
         --allow-root
 
-    echo "WordPress-Setup abgeschlossen!"
+    echo "=== WordPress-Setup abgeschlossen! ==="
 else
     echo "WordPress ist bereits installiert."
 fi

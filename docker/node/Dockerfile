@@ -1,8 +1,9 @@
 FROM node:20-slim
 
-# Puppeteer/Chromium-Abhängigkeiten installieren
-RUN apt-get update && apt-get install -y \
+# Puppeteer / Chromium-Abhängigkeiten
+RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
+    curl \
     fonts-liberation \
     fonts-noto-color-emoji \
     libatk-bridge2.0-0 \
@@ -14,7 +15,6 @@ RUN apt-get update && apt-get install -y \
     libxcomposite1 \
     libxdamage1 \
     libxrandr2 \
-    --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
@@ -22,11 +22,10 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 WORKDIR /app
 
-# Platzhalter Express-Server für spätere PDF-API
-COPY server.js /app/server.js
 COPY package.json /app/package.json
+RUN npm ci --omit=dev
 
-RUN npm install --production
+COPY server.js /app/server.js
 
 EXPOSE 3000
 

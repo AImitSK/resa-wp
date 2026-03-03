@@ -16,15 +16,24 @@ services:
         define('WP_DEBUG_DISPLAY', true);
         define('SCRIPT_DEBUG', true);
         define('WP_ENVIRONMENT_TYPE', 'local');
+        define('RESA_PDF_SERVICE_URL', 'http://node:3000');
     volumes:
       - wp_data:/var/www/html
       - ./:/var/www/html/wp-content/plugins/resa
     depends_on:
       mysql:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    networks:
+      - resa
 
   mysql:
     image: mysql:8.0
@@ -41,6 +50,8 @@ services:
       timeout: 5s
       retries: 10
     restart: unless-stopped
+    networks:
+      - resa
 
   phpmyadmin:
     image: phpmyadmin:latest
@@ -54,13 +65,17 @@ services:
       mysql:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - resa
 
   mailpit:
     image: axllent/mailpit:latest
     ports:
-      - "8025:8025"
-      - "1025:1025"
+      - "8025:8025"   # Web UI
+      - "1025:1025"   # SMTP
     restart: unless-stopped
+    networks:
+      - resa
 
   node:
     build:
@@ -70,7 +85,15 @@ services:
       - "3000:3000"
     environment:
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     restart: unless-stopped
+    networks:
+      - resa
 
   wpcli:
     build:
@@ -91,10 +114,18 @@ services:
       - ./:/var/www/html/wp-content/plugins/resa
     depends_on:
       wordpress:
-        condition: service_started
+        condition: service_healthy
       mysql:
         condition: service_healthy
+    profiles:
+      - setup
+    networks:
+      - resa
 
 volumes:
   wp_data:
   mysql_data:
+
+networks:
+  resa:
+    driver: bridge

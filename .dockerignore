@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build output
+dist/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Claude
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Tests
+tests/
+coverage/
+
+# Docs
+docs/
+*.md
+!README.md
+
+# Archives
+*.zip
+*.tar.gz
