@@ -17,9 +17,11 @@ use Resa\Api\ModulesController;
 use Resa\Api\ModuleSettingsController;
 use Resa\Api\PdfSettingsController;
 use Resa\Api\TrackingController;
+use Resa\Api\WebhooksController;
 use Resa\Database\Schema;
 use Resa\Core\ModuleRegistry;
 use Resa\Freemius\FeatureGate;
+use Resa\Services\Integration\WebhookDispatcher;
 use Resa\Shortcode\ResaShortcode;
 
 /**
@@ -124,6 +126,10 @@ final class Plugin {
 		// [resa] shortcode for frontend widget embedding.
 		$shortcode = new ResaShortcode( $this->vite );
 		$shortcode->register();
+
+		// Webhook dispatcher — fires on lead creation.
+		$dispatcher = new WebhookDispatcher();
+		add_action( 'resa_lead_created', [ $dispatcher, 'onLeadCreated' ] );
 	}
 
 	/**
@@ -146,6 +152,7 @@ final class Plugin {
 			new ModuleSettingsController(),
 			new PdfSettingsController(),
 			new TrackingController(),
+			new WebhooksController(),
 		];
 
 		foreach ( $controllers as $controller ) {

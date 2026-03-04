@@ -284,6 +284,15 @@ final class LeadsController extends RestController {
 
 		$updatedLead = Lead::findBySession( $sessionId );
 
+		/**
+		 * Fires when a lead is completed (Phase 2).
+		 *
+		 * @param int $leadId The completed lead ID.
+		 */
+		if ( $updatedLead !== null ) {
+			do_action( 'resa_lead_created', (int) $updatedLead->id );
+		}
+
 		// Notify agent of new lead (non-blocking — errors are logged, not propagated).
 		if ( $updatedLead !== null ) {
 			$emailService = new EmailService();

@@ -30,6 +30,9 @@ final class ErrorMessages {
 	public const CONSENT_REQUIRED       = 'resa_consent_required';
 	public const FIELD_REQUIRED         = 'resa_field_required';
 	public const UNAUTHORIZED           = 'resa_unauthorized';
+	public const WEBHOOK_NOT_FOUND     = 'resa_webhook_not_found';
+	public const WEBHOOK_LIMIT         = 'resa_webhook_limit';
+	public const WEBHOOK_INVALID_URL   = 'resa_webhook_invalid_url';
 
 	/**
 	 * Get error message by code.
@@ -51,6 +54,9 @@ final class ErrorMessages {
 			self::CONSENT_REQUIRED       => __( 'Die Datenschutz-Einwilligung ist erforderlich.', 'resa' ),
 			self::FIELD_REQUIRED         => __( 'Dieses Feld ist erforderlich.', 'resa' ),
 			self::UNAUTHORIZED           => __( 'Sie haben keine Berechtigung für diese Aktion.', 'resa' ),
+			self::WEBHOOK_NOT_FOUND     => __( 'Webhook nicht gefunden.', 'resa' ),
+			self::WEBHOOK_LIMIT         => __( 'Maximal 5 Webhooks erlaubt.', 'resa' ),
+			self::WEBHOOK_INVALID_URL   => __( 'Bitte geben Sie eine gültige URL ein.', 'resa' ),
 			default                      => __( 'Ein Fehler ist aufgetreten.', 'resa' ),
 		};
 	}

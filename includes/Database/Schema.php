@@ -15,7 +15,7 @@ final class Schema {
 	/**
 	 * Current schema version.
 	 */
-	public const VERSION = '0.5.0';
+	public const VERSION = '0.6.0';
 
 	/**
 	 * Run migrations from the given version to current.
@@ -43,6 +43,10 @@ final class Schema {
 
 		if ( version_compare( $fromVersion, '0.5.0', '<' ) ) {
 			self::migrateToV050();
+		}
+
+		if ( version_compare( $fromVersion, '0.6.0', '<' ) ) {
+			self::migrateToV060();
 		}
 
 		update_option( 'resa_db_version', self::VERSION );
@@ -83,6 +87,7 @@ final class Schema {
 			$wpdb->prefix . 'resa_agents',
 			$wpdb->prefix . 'resa_agent_locations',
 			$wpdb->prefix . 'resa_module_settings',
+			$wpdb->prefix . 'resa_webhooks',
 		];
 	}
 
@@ -350,6 +355,33 @@ CREATE TABLE {$prefix}resa_agent_locations (
 	 *
 	 * Stores the agent's role/title (e.g. "Geschäftsführer", "Vertrieb").
 	 */
+	/**
+	 * v0.6.0 — Add webhooks table.
+	 *
+	 * Stores webhook configurations for lead event dispatching.
+	 */
+	private static function migrateToV060(): void {
+		global $wpdb;
+
+		$charset = $wpdb->get_charset_collate();
+		$prefix  = $wpdb->prefix;
+
+		$sql = "CREATE TABLE {$prefix}resa_webhooks (
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  name varchar(255) NOT NULL,
+  url varchar(500) NOT NULL,
+  secret varchar(255) NOT NULL,
+  events longtext NOT NULL,
+  is_active tinyint(1) NOT NULL DEFAULT 1,
+  created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY  (id),
+  KEY idx_active (is_active)
+) {$charset};";
+
+		dbDelta( $sql );
+	}
+
 	private static function migrateToV050(): void {
 		global $wpdb;
 

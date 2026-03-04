@@ -15,6 +15,14 @@ export interface FeatureGate {
 }
 
 /**
+ * Integration tab registered by an add-on plugin via `resa_integration_tabs` filter.
+ */
+export interface IntegrationTab {
+	slug: string;
+	label: string;
+}
+
+/**
  * Admin context injected by PHP via wp_localize_script.
  */
 export interface ResaAdminContext {
@@ -28,6 +36,7 @@ export interface ResaAdminContext {
 	locationCount: number;
 	siteName: string;
 	adminEmail: string;
+	integrationTabs: IntegrationTab[];
 }
 
 /**
@@ -59,4 +68,38 @@ export interface ModuleSummary {
 	category: string;
 	flag: 'free' | 'pro' | 'paid';
 	active: boolean;
+}
+
+/**
+ * Webhook configuration from the REST API.
+ */
+export interface WebhookConfig {
+	id: number;
+	name: string;
+	url: string;
+	secret: string;
+	events: string[];
+	isActive: boolean;
+	createdAt: string;
+	updatedAt: string;
+}
+
+/**
+ * Data for creating/updating a webhook.
+ */
+export interface WebhookFormData {
+	name: string;
+	url: string;
+	secret?: string;
+	events: string[];
+	isActive: boolean;
+}
+
+/**
+ * Result from a webhook test send.
+ */
+export interface WebhookTestResult {
+	success: boolean;
+	statusCode?: number;
+	error?: string;
 }
