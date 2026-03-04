@@ -102,7 +102,7 @@ class FreemiusInit {
 					'is_block_features' => true,
 				],
 				'menu'           => [
-					'slug'    => 'resa-dashboard',
+					'slug'    => 'resa',
 					'support' => false,
 				],
 			]

@@ -106,30 +106,43 @@ final class AdminPage {
 		// Build feature gate data for frontend.
 		$featureData = $this->getFeatureGateData();
 
+		// Collect integration tabs registered by add-on plugins.
+		$addon_tabs = apply_filters( 'resa_integration_tabs', [] );
+
 		// Pass context to React app.
 		wp_localize_script(
 			'resa-admin',
 			'resaAdmin',
 			[
-				'restUrl'        => esc_url_raw( rest_url( 'resa/v1/' ) ),
-				'nonce'          => wp_create_nonce( 'wp_rest' ),
+				'restUrl'           => esc_url_raw( rest_url( 'resa/v1/' ) ),
+				'nonce'             => wp_create_nonce( 'wp_rest' ),
 					// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading WP admin page slug, no form data.
-				'page'           => isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : 'resa',
-				'adminUrl'       => esc_url_raw( admin_url( 'admin.php' ) ),
-				'pluginUrl'      => esc_url_raw( RESA_PLUGIN_URL ),
-				'version'        => RESA_VERSION,
-				'features'       => $featureData,
-				'locationCount'  => Location::count(),
-				'siteName'       => get_bloginfo( 'name' ),
-				'adminEmail'     => get_option( 'admin_email', '' ),
+				'page'              => isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : 'resa',
+				'adminUrl'          => esc_url_raw( admin_url( 'admin.php' ) ),
+				'pluginUrl'         => esc_url_raw( RESA_PLUGIN_URL ),
+				'version'           => RESA_VERSION,
+				'features'          => $featureData,
+				'locationCount'     => Location::count(),
+				'siteName'          => get_bloginfo( 'name' ),
+				'adminEmail'        => get_option( 'admin_email', '' ),
+				'integrationTabs'   => $addon_tabs,
 			]
 		);
 	}
 
 	/**
 	 * Render the React SPA container (shared by all pages).
+	 *
+	 * When Freemius opt-in is pending, renders the SDK connect page
+	 * instead of the React app so the user can complete registration.
 	 */
 	public function renderPage(): void {
+		// Show Freemius connect page when not yet registered.
+		if ( $this->shouldShowFreemiusConnect() ) {
+			resa_fs()->_connect_page_render();
+			return;
+		}
+
 		echo '<div class="wrap">';
 		echo '<h1 class="wp-heading-inline" style="display:none;">'
 			. esc_html( get_admin_page_title() )
@@ -137,6 +150,27 @@ final class AdminPage {
 		echo '<hr class="wp-header-end">';
 		echo '<div id="resa-admin-root"></div>';
 		echo '</div>';
+	}
+
+	/**
+	 * Whether to show the Freemius connect/opt-in page instead of the SPA.
+	 */
+	private function shouldShowFreemiusConnect(): bool {
+		if ( ! function_exists( 'resa_fs' ) || ! resa_fs() ) {
+			return false;
+		}
+
+		$fs = resa_fs();
+
+		// Only on the main RESA page.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$page = isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : '';
+		if ( 'resa' !== $page ) {
+			return false;
+		}
+
+		// Show connect page when not registered and not anonymous (skipped).
+		return ! $fs->is_registered() && ! $fs->is_anonymous();
 	}
 
 	/**
