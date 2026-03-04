@@ -18,7 +18,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-type FixedTab = 'webhooks' | 'api' | 'slack-teams';
+type FixedTab = 'webhooks' | 'api' | 'messenger';
 type IntegrationsTab = FixedTab | string;
 
 export function Integrations() {
@@ -54,8 +54,8 @@ export function Integrations() {
 				return <WebhooksTab />;
 			case 'api':
 				return <ApiKeysTab />;
-			case 'slack-teams':
-				return <SlackTeamsTab />;
+			case 'messenger':
+				return <MessengerTab />;
 			default: {
 				const addon = addonTabs.find((t) => t.slug === activeTab);
 				return addon ? <AddonTab name={addon.label} /> : null;
@@ -91,8 +91,8 @@ export function Integrations() {
 					<TabsTrigger value="api" style={tabStyle(activeTab === 'api')}>
 						{__('API', 'resa')}
 					</TabsTrigger>
-					<TabsTrigger value="slack-teams" style={tabStyle(activeTab === 'slack-teams')}>
-						{__('Slack / Teams', 'resa')}
+					<TabsTrigger value="messenger" style={tabStyle(activeTab === 'messenger')}>
+						{__('Messenger', 'resa')}
 					</TabsTrigger>
 					{addonTabs.map((tab) => (
 						<TabsTrigger
@@ -144,20 +144,23 @@ function UpgradeNotice() {
 }
 
 /**
- * Slack / Teams tab — placeholder.
+ * Messenger tab — placeholder.
  */
-function SlackTeamsTab() {
+function MessengerTab() {
 	return (
 		<Card>
 			<CardHeader>
 				<CardTitle className="resa-flex resa-items-center resa-gap-2">
 					<MessageSquare className="resa-h-5 resa-w-5" />
-					{__('Slack / Teams', 'resa')}
+					{__('Messenger', 'resa')}
 				</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<p className="resa-text-sm resa-text-muted-foreground">
-					{__('Slack/Teams-Benachrichtigungen werden hier implementiert.', 'resa')}
+					{__(
+						'Messenger-Benachrichtigungen (Slack, Teams, etc.) werden hier implementiert.',
+						'resa',
+					)}
 				</p>
 			</CardContent>
 		</Card>
