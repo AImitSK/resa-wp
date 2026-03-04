@@ -39,7 +39,7 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 
-type SettingsTab = 'agent' | 'team' | 'branding' | 'maps' | 'tracking' | 'license' | 'gdpr';
+type SettingsTab = 'agent' | 'team' | 'branding' | 'maps' | 'tracking' | 'gdpr';
 
 export function Settings() {
 	const [activeTab, setActiveTab] = useState<SettingsTab>('agent');
@@ -65,7 +65,10 @@ export function Settings() {
 		<AdminPageLayout
 			variant="overview"
 			title={__('Einstellungen', 'resa')}
-			description={__('Maklerdaten, Branding, Lizenz und Datenschutz-Einstellungen.', 'resa')}
+			description={__(
+				'Maklerdaten, Branding, Tracking und Datenschutz-Einstellungen.',
+				'resa',
+			)}
 		>
 			{/* Tab Navigation */}
 			<Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as SettingsTab)}>
@@ -95,9 +98,6 @@ export function Settings() {
 					<TabsTrigger value="tracking" style={tabStyle(activeTab === 'tracking')}>
 						{__('Tracking', 'resa')}
 					</TabsTrigger>
-					<TabsTrigger value="license" style={tabStyle(activeTab === 'license')}>
-						{__('Lizenz', 'resa')}
-					</TabsTrigger>
 					<TabsTrigger value="gdpr" style={tabStyle(activeTab === 'gdpr')}>
 						{__('Datenschutz', 'resa')}
 					</TabsTrigger>
@@ -110,7 +110,6 @@ export function Settings() {
 			{activeTab === 'branding' && <BrandingTab />}
 			{activeTab === 'maps' && <MapsTab />}
 			{activeTab === 'tracking' && <TrackingTab />}
-			{activeTab === 'license' && <LicenseTab />}
 			{activeTab === 'gdpr' && <GdprTab />}
 		</AdminPageLayout>
 	);
@@ -1774,69 +1773,6 @@ function MapsForm({ initialData }: { initialData: MapSettings | undefined }) {
 /**
  * License Tab — shows current plan info with placeholder for account management.
  */
-function LicenseTab() {
-	return (
-		<Card>
-			<CardContent style={{ padding: '20px' }}>
-				<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-					<h3 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#1e303a' }}>
-						{__('Lizenzinformationen', 'resa')}
-					</h3>
-					<div className="resa-grid resa-grid-cols-2 md:resa-grid-cols-4 resa-gap-4">
-						<div className="resa-space-y-1">
-							<p
-								className="resa-text-sm resa-text-muted-foreground"
-								style={{ margin: 0 }}
-							>
-								{__('Version', 'resa')}
-							</p>
-							<p className="resa-font-medium" style={{ margin: 0 }}>
-								{window.resaAdmin?.version ?? '—'}
-							</p>
-						</div>
-						<div className="resa-space-y-1">
-							<p
-								className="resa-text-sm resa-text-muted-foreground"
-								style={{ margin: 0 }}
-							>
-								{__('Plan', 'resa')}
-							</p>
-							<div className="resa-flex resa-items-center resa-gap-2">
-								<p className="resa-font-medium" style={{ margin: 0 }}>
-									{__('Free', 'resa')}
-								</p>
-								<Badge variant="secondary">{__('Aktiv', 'resa')}</Badge>
-							</div>
-						</div>
-						<div className="resa-space-y-1">
-							<p
-								className="resa-text-sm resa-text-muted-foreground"
-								style={{ margin: 0 }}
-							>
-								{__('Aktive Module', 'resa')}
-							</p>
-							<p className="resa-font-medium" style={{ margin: 0 }}>
-								2 / 2
-							</p>
-						</div>
-						<div className="resa-space-y-1">
-							<p
-								className="resa-text-sm resa-text-muted-foreground"
-								style={{ margin: 0 }}
-							>
-								{__('Leads diesen Monat', 'resa')}
-							</p>
-							<p className="resa-font-medium" style={{ margin: 0 }}>
-								24 / 50
-							</p>
-						</div>
-					</div>
-				</div>
-			</CardContent>
-		</Card>
-	);
-}
-
 /**
  * GDPR Tab — placeholder for privacy settings.
  */
