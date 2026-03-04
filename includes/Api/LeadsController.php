@@ -505,6 +505,9 @@ final class LeadsController extends RestController {
 
 	/**
 	 * GET /admin/leads/export — CSV export (Pro feature).
+	 *
+	 * Exports all lead data including decoded inputs (Immobilientyp, Wohnfläche, etc.)
+	 * with UTF-8 BOM for correct Umlaut display in Excel.
 	 */
 	public function adminExport( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
 		// Check feature gate.
@@ -527,48 +530,215 @@ final class LeadsController extends RestController {
 			'search'      => $request->get_param( 'search' ),
 			'date_from'   => $request->get_param( 'dateFrom' ),
 			'date_to'     => $request->get_param( 'dateTo' ),
-			'per_page'    => 10000, // Export all matching.
+			'per_page'    => 50000,
+			'export'      => true,
 		];
 
 		$result = Lead::getAll( $filters );
 
-		// Build CSV.
+		// Known input keys in display order.
+		$input_keys = [
+			'property_type',
+			'size',
+			'rooms',
+			'year_built',
+			'condition',
+			'location_rating',
+			'city_name',
+			'address',
+			'address_lat',
+			'address_lng',
+			'features',
+			'additional_features',
+		];
+
+		$input_labels = [
+			'property_type'       => 'Immobilientyp',
+			'size'                => 'Wohnfläche',
+			'rooms'               => 'Zimmer',
+			'year_built'          => 'Baujahr',
+			'condition'           => 'Zustand',
+			'location_rating'     => 'Lage-Bewertung',
+			'city_name'           => 'Stadt',
+			'address'             => 'Adresse',
+			'address_lat'         => 'Breitengrad',
+			'address_lng'         => 'Längengrad',
+			'features'            => 'Ausstattung',
+			'additional_features' => 'Zusatzausstattung',
+		];
+
+		$module_names = [
+			'rent-calculator'  => 'Mietpreis-Kalkulator',
+			'value-calculator' => 'Immobilienwert-Rechner',
+			'purchase-costs'   => 'Kaufnebenkosten-Rechner',
+			'budget-calculator' => 'Budgetrechner',
+			'roi-calculator'   => 'Renditerechner',
+			'energy-check'     => 'Energieeffizienz-Check',
+			'seller-checklist' => 'Verkäufer-Checkliste',
+			'buyer-checklist'  => 'Käufer-Checkliste',
+		];
+
+		$status_labels = [
+			'new'       => 'Neu',
+			'contacted' => 'Kontaktiert',
+			'qualified' => 'Qualifiziert',
+			'completed' => 'Abgeschlossen',
+			'lost'      => 'Verloren',
+		];
+
+		// Build header.
+		$headers = [ 'ID', 'Anrede', 'Vorname', 'Nachname', 'E-Mail', 'Telefon', 'Firma', 'Nachricht', 'Modul', 'Standort', 'Status' ];
+		foreach ( $input_keys as $key ) {
+			$headers[] = $input_labels[ $key ];
+		}
+		$headers[] = 'Weitere Eingaben';
+		$headers[] = 'Ergebnis';
+		$headers[] = 'Notizen';
+		$headers[] = 'Erstellt';
+
+		// Build CSV rows.
 		$csv_lines   = [];
-		$csv_lines[] = implode( ';', [
-			'ID',
-			'Vorname',
-			'Nachname',
-			'E-Mail',
-			'Telefon',
-			'Firma',
-			'Modul',
-			'Standort',
-			'Status',
-			'Erstellt',
-			'Notizen',
-		] );
+		$csv_lines[] = implode( ';', array_map( [ self::class, 'escapeCsvField' ], $headers ) );
 
 		foreach ( $result['items'] as $lead ) {
-			$csv_lines[] = implode( ';', [
-				$lead->id,
-				'"' . str_replace( '"', '""', $lead->first_name ?? '' ) . '"',
-				'"' . str_replace( '"', '""', $lead->last_name ?? '' ) . '"',
+			$inputs = json_decode( $lead->inputs ?? '{}', true ) ?: [];
+
+			$row = [
+				(string) $lead->id,
+				$lead->salutation ?? '',
+				$lead->first_name ?? '',
+				$lead->last_name ?? '',
 				$lead->email ?? '',
 				$lead->phone ?? '',
-				'"' . str_replace( '"', '""', $lead->company ?? '' ) . '"',
-				$lead->asset_type ?? '',
-				'"' . str_replace( '"', '""', $lead->location_name ?? '' ) . '"',
-				$lead->status ?? '',
-				$lead->created_at ?? '',
-				'"' . str_replace( '"', '""', $lead->notes ?? '' ) . '"',
-			] );
+				$lead->company ?? '',
+				$lead->message ?? '',
+				$module_names[ $lead->asset_type ] ?? $lead->asset_type ?? '',
+				$lead->location_name ?? '',
+				$status_labels[ $lead->status ] ?? $lead->status ?? '',
+			];
+
+			// Add known input columns.
+			$remaining_inputs = $inputs;
+			foreach ( $input_keys as $key ) {
+				$value = $inputs[ $key ] ?? '';
+				$row[] = self::formatInputForCsv( $key, $value );
+				unset( $remaining_inputs[ $key ] );
+			}
+
+			// Remove internal input keys from remaining.
+			unset( $remaining_inputs['city_id'], $remaining_inputs['city_slug'] );
+
+			// Weitere Eingaben: any remaining input keys as JSON.
+			$row[] = ! empty( $remaining_inputs )
+				? (string) wp_json_encode( $remaining_inputs, JSON_UNESCAPED_UNICODE )
+				: '';
+
+			// Ergebnis as JSON.
+			$result_data = json_decode( $lead->result ?? 'null', true );
+			$row[]       = $result_data !== null
+				? (string) wp_json_encode( $result_data, JSON_UNESCAPED_UNICODE )
+				: '';
+
+			// Notizen & Erstellt.
+			$row[] = $lead->notes ?? '';
+			$row[] = $lead->created_at ?? '';
+
+			$csv_lines[] = implode( ';', array_map( [ self::class, 'escapeCsvField' ], $row ) );
 		}
 
+		// UTF-8 BOM + CSV content (BOM ensures correct Umlaut display in Excel).
+		$csv = "\xEF\xBB\xBF" . implode( "\n", $csv_lines );
+
 		return $this->success( [
-			'csv'      => implode( "\n", $csv_lines ),
+			'csv'      => $csv,
 			'filename' => 'resa-leads-' . gmdate( 'Y-m-d' ) . '.csv',
 			'total'    => $result['total'],
 		] );
+	}
+
+	/**
+	 * Escape a value for CSV (semicolon-delimited).
+	 *
+	 * @param string $value Raw value.
+	 * @return string Escaped value wrapped in double quotes.
+	 */
+	private static function escapeCsvField( string $value ): string {
+		if ( $value === '' ) {
+			return '';
+		}
+		return '"' . str_replace( '"', '""', $value ) . '"';
+	}
+
+	/**
+	 * Format an input value for CSV display.
+	 *
+	 * Mirrors the frontend formatInputValue() logic so that exported data
+	 * matches the Lead detail view (translated labels, units, etc.).
+	 *
+	 * @param string $key   Input key.
+	 * @param mixed  $value Input value.
+	 * @return string Formatted string.
+	 */
+	private static function formatInputForCsv( string $key, mixed $value ): string {
+		if ( $value === '' || $value === null ) {
+			return '';
+		}
+
+		$feature_labels = [
+			'garage'         => 'Garage',
+			'parking'        => 'Stellplatz',
+			'balcony'        => 'Balkon',
+			'terrace'        => 'Terrasse',
+			'garden'         => 'Garten',
+			'elevator'       => 'Aufzug',
+			'cellar'         => 'Keller',
+			'fitted_kitchen' => 'Einbauküche',
+			'guest_wc'       => 'Gäste-WC',
+			'guest_toilet'   => 'Gäste-WC',
+			'floor_heating'  => 'Fußbodenheizung',
+			'Smart Home'     => 'Smart Home',
+			'Heliport'       => 'Heliport',
+		];
+
+		// Arrays (features, additional_features).
+		if ( is_array( $value ) ) {
+			return implode( ', ', array_map(
+				fn( $v ) => $feature_labels[ (string) $v ] ?? (string) $v,
+				$value
+			) );
+		}
+
+		// Comma-separated feature strings.
+		if ( ( $key === 'features' || $key === 'additional_features' ) && is_string( $value ) ) {
+			return implode( ', ', array_map(
+				fn( $v ) => $feature_labels[ trim( $v ) ] ?? trim( $v ),
+				explode( ',', $value )
+			) );
+		}
+
+		// Property type.
+		if ( $key === 'property_type' ) {
+			$types = [ 'apartment' => 'Wohnung', 'house' => 'Haus' ];
+			return $types[ (string) $value ] ?? (string) $value;
+		}
+
+		// Condition.
+		if ( $key === 'condition' ) {
+			$conditions = [
+				'new'              => 'Neubau',
+				'renovated'        => 'Renoviert',
+				'good'             => 'Gut',
+				'needs_renovation' => 'Renovierungsbedürftig',
+			];
+			return $conditions[ (string) $value ] ?? (string) $value;
+		}
+
+		// Size with unit.
+		if ( $key === 'size' ) {
+			return $value . ' m²';
+		}
+
+		return (string) $value;
 	}
 
 	// ─── Formatters ─────────────────────────────────────────

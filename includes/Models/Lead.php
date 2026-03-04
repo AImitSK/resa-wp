@@ -221,8 +221,9 @@ final class Lead {
 		$locations_table = $wpdb->prefix . 'resa_locations';
 
 		// Defaults.
-		$page     = max( 1, absint( $filters['page'] ?? 1 ) );
-		$per_page = max( 1, min( 100, absint( $filters['per_page'] ?? 25 ) ) );
+		$page        = max( 1, absint( $filters['page'] ?? 1 ) );
+		$max_per_page = ! empty( $filters['export'] ) ? 50000 : 100;
+		$per_page     = max( 1, min( $max_per_page, absint( $filters['per_page'] ?? 25 ) ) );
 		$orderby  = sanitize_key( $filters['orderby'] ?? 'created_at' );
 		$order    = strtoupper( $filters['order'] ?? 'DESC' ) === 'ASC' ? 'ASC' : 'DESC';
 
