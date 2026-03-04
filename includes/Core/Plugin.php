@@ -19,11 +19,13 @@ use Resa\Api\PdfSettingsController;
 use Resa\Api\TrackingController;
 use Resa\Api\ApiKeysController;
 use Resa\Api\ExternalController;
+use Resa\Api\MessengersController;
 use Resa\Api\WebhooksController;
 use Resa\Database\Schema;
 use Resa\Services\Auth\ApiKeyAuth;
 use Resa\Core\ModuleRegistry;
 use Resa\Freemius\FeatureGate;
+use Resa\Services\Integration\MessengerDispatcher;
 use Resa\Services\Integration\WebhookDispatcher;
 use Resa\Shortcode\ResaShortcode;
 
@@ -134,8 +136,12 @@ final class Plugin {
 		$shortcode->register();
 
 		// Webhook dispatcher — fires on lead creation.
-		$dispatcher = new WebhookDispatcher();
-		add_action( 'resa_lead_created', [ $dispatcher, 'onLeadCreated' ] );
+		$webhookDispatcher = new WebhookDispatcher();
+		add_action( 'resa_lead_created', [ $webhookDispatcher, 'onLeadCreated' ] );
+
+		// Messenger dispatcher — fires on lead creation (Slack, Teams, Discord).
+		$messengerDispatcher = new MessengerDispatcher();
+		add_action( 'resa_lead_created', [ $messengerDispatcher, 'onLeadCreated' ] );
 	}
 
 	/**
@@ -159,6 +165,7 @@ final class Plugin {
 			new PdfSettingsController(),
 			new TrackingController(),
 			new WebhooksController(),
+			new MessengersController(),
 			new ApiKeysController(),
 			new ExternalController(),
 		];

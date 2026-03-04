@@ -195,6 +195,13 @@ class FeatureGate {
 		return $this->isPremium();
 	}
 
+	/**
+	 * Whether messenger notifications (Slack, Teams, Discord) are available.
+	 */
+	public function canUseMessenger(): bool {
+		return $this->isPremium();
+	}
+
 	// ─── Summary ────────────────────────────────────────────
 
 	/**
@@ -215,6 +222,7 @@ class FeatureGate {
 			'can_remove_branding'  => $this->canRemoveBranding(),
 			'can_use_webhooks'     => $this->canUseWebhooks(),
 			'can_use_api_keys'     => $this->canUseApiKeys(),
+			'can_use_messenger'    => $this->canUseMessenger(),
 		];
 	}
 }

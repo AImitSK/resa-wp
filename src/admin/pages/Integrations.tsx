@@ -6,11 +6,12 @@
 
 import { useState } from 'react';
 import { __ } from '@wordpress/i18n';
-import { MessageSquare, Puzzle } from 'lucide-react';
+import { Puzzle } from 'lucide-react';
 import { AdminPageLayout } from '../components/AdminPageLayout';
 import { useIsPremium } from '../hooks/useFeatures';
 import { WebhooksTab } from '../components/integrations/WebhooksTab';
 import { ApiKeysTab } from '../components/integrations/ApiKeysTab';
+import { MessengerTab } from '../components/integrations/MessengerTab';
 import type { IntegrationTab } from '../types';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -140,30 +141,6 @@ function UpgradeNotice() {
 				</div>
 			</AlertDescription>
 		</Alert>
-	);
-}
-
-/**
- * Messenger tab — placeholder.
- */
-function MessengerTab() {
-	return (
-		<Card>
-			<CardHeader>
-				<CardTitle className="resa-flex resa-items-center resa-gap-2">
-					<MessageSquare className="resa-h-5 resa-w-5" />
-					{__('Messenger', 'resa')}
-				</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<p className="resa-text-sm resa-text-muted-foreground">
-					{__(
-						'Messenger-Benachrichtigungen (Slack, Teams, etc.) werden hier implementiert.',
-						'resa',
-					)}
-				</p>
-			</CardContent>
-		</Card>
 	);
 }
 

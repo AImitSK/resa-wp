@@ -13,6 +13,7 @@ export interface FeatureGate {
 	can_remove_branding: boolean;
 	can_use_webhooks: boolean;
 	can_use_api_keys: boolean;
+	can_use_messenger: boolean;
 }
 
 /**
@@ -102,6 +103,43 @@ export interface ApiKeyConfig {
  */
 export interface ApiKeyCreateResponse extends ApiKeyConfig {
 	key: string;
+}
+
+/**
+ * Supported messenger platforms.
+ */
+export type MessengerPlatform = 'slack' | 'teams' | 'discord';
+
+/**
+ * Messenger connection configuration from the REST API.
+ */
+export interface MessengerConfig {
+	id: number;
+	name: string;
+	platform: MessengerPlatform;
+	webhookUrl: string;
+	isActive: boolean;
+	createdAt: string;
+	updatedAt: string;
+}
+
+/**
+ * Data for creating/updating a messenger connection.
+ */
+export interface MessengerFormData {
+	name: string;
+	platform: MessengerPlatform;
+	webhookUrl: string;
+	isActive: boolean;
+}
+
+/**
+ * Result from a messenger test send.
+ */
+export interface MessengerTestResult {
+	success: boolean;
+	statusCode?: number;
+	error?: string;
 }
 
 /**

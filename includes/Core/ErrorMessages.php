@@ -35,6 +35,9 @@ final class ErrorMessages {
 	public const WEBHOOK_INVALID_URL   = 'resa_webhook_invalid_url';
 	public const API_KEY_NOT_FOUND     = 'resa_api_key_not_found';
 	public const API_KEY_LIMIT         = 'resa_api_key_limit';
+	public const MESSENGER_NOT_FOUND   = 'resa_messenger_not_found';
+	public const MESSENGER_LIMIT       = 'resa_messenger_limit';
+	public const MESSENGER_INVALID_URL = 'resa_messenger_invalid_url';
 
 	/**
 	 * Get error message by code.
@@ -61,6 +64,9 @@ final class ErrorMessages {
 			self::WEBHOOK_INVALID_URL   => __( 'Bitte geben Sie eine gültige URL ein.', 'resa' ),
 			self::API_KEY_NOT_FOUND     => __( 'API-Schlüssel nicht gefunden.', 'resa' ),
 			self::API_KEY_LIMIT         => __( 'Maximal 5 API-Schlüssel erlaubt.', 'resa' ),
+			self::MESSENGER_NOT_FOUND   => __( 'Messenger-Verbindung nicht gefunden.', 'resa' ),
+			self::MESSENGER_LIMIT       => __( 'Maximal 5 Messenger-Verbindungen erlaubt.', 'resa' ),
+			self::MESSENGER_INVALID_URL => __( 'Ungültige Webhook-URL für die gewählte Plattform.', 'resa' ),
 			default                      => __( 'Ein Fehler ist aufgetreten.', 'resa' ),
 		};
 	}

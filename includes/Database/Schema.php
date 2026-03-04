@@ -15,7 +15,7 @@ final class Schema {
 	/**
 	 * Current schema version.
 	 */
-	public const VERSION = '0.7.0';
+	public const VERSION = '0.8.0';
 
 	/**
 	 * Run migrations from the given version to current.
@@ -51,6 +51,10 @@ final class Schema {
 
 		if ( version_compare( $fromVersion, '0.7.0', '<' ) ) {
 			self::migrateToV070();
+		}
+
+		if ( version_compare( $fromVersion, '0.8.0', '<' ) ) {
+			self::migrateToV080();
 		}
 
 		update_option( 'resa_db_version', self::VERSION );
@@ -93,6 +97,7 @@ final class Schema {
 			$wpdb->prefix . 'resa_module_settings',
 			$wpdb->prefix . 'resa_webhooks',
 			$wpdb->prefix . 'resa_api_keys',
+			$wpdb->prefix . 'resa_messengers',
 		];
 	}
 
@@ -408,6 +413,33 @@ CREATE TABLE {$prefix}resa_agent_locations (
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY  (id),
   UNIQUE KEY idx_key_hash (key_hash),
+  KEY idx_active (is_active)
+) {$charset};";
+
+		dbDelta( $sql );
+	}
+
+	/**
+	 * v0.8.0 — Add messengers table.
+	 *
+	 * Stores messenger webhook configurations for lead notifications
+	 * via Slack, Microsoft Teams, and Discord.
+	 */
+	private static function migrateToV080(): void {
+		global $wpdb;
+
+		$charset = $wpdb->get_charset_collate();
+		$prefix  = $wpdb->prefix;
+
+		$sql = "CREATE TABLE {$prefix}resa_messengers (
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  name varchar(255) NOT NULL,
+  platform varchar(20) NOT NULL,
+  webhook_url varchar(500) NOT NULL,
+  is_active tinyint(1) NOT NULL DEFAULT 1,
+  created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY  (id),
   KEY idx_active (is_active)
 ) {$charset};";
 

@@ -18,6 +18,7 @@ const defaultFeatures: FeatureGate = {
 	can_remove_branding: false,
 	can_use_webhooks: false,
 	can_use_api_keys: false,
+	can_use_messenger: false,
 };
 
 /**
