@@ -7,7 +7,17 @@
 
 import { useState } from 'react';
 import { __ } from '@wordpress/i18n';
-import { Key, Plus, Trash2, Copy, Check, BookOpen, AlertTriangle } from 'lucide-react';
+import {
+	Key,
+	Plus,
+	Trash2,
+	Copy,
+	Check,
+	BookOpen,
+	AlertTriangle,
+	ChevronDown,
+	Code,
+} from 'lucide-react';
 
 import {
 	useApiKeys,
@@ -364,87 +374,263 @@ export function ApiKeysTab() {
 }
 
 /**
- * Endpoint documentation section.
+ * Endpoint documentation section with quick-start example and per-endpoint details.
  */
 function EndpointDocs() {
 	const restUrl = window.resaAdmin?.restUrl ?? '/wp-json/resa/v1/';
-	const [copiedEndpoint, setCopiedEndpoint] = useState<string | null>(null);
+	const baseUrl = `${window.location.origin}${restUrl}`;
+	const [copiedId, setCopiedId] = useState<string | null>(null);
+	const [expandedEndpoint, setExpandedEndpoint] = useState<string | null>(null);
+
+	const copyText = (text: string, id: string) => {
+		navigator.clipboard.writeText(text);
+		setCopiedId(id);
+		setTimeout(() => setCopiedId(null), 2000);
+	};
+
+	const toggleEndpoint = (path: string) => {
+		setExpandedEndpoint((prev) => (prev === path ? null : path));
+	};
+
+	const quickStartCode = `fetch("${baseUrl}external/leads", {
+  headers: {
+    "Authorization": "Bearer resa_YOUR_API_KEY"
+  }
+})
+.then(res => res.json())
+.then(data => console.log(data.items));`;
 
 	const endpoints = [
 		{
 			method: 'GET',
 			path: 'external/leads',
 			description: __(
-				'Paginierte Lead-Liste (Query: page, perPage, status, assetType)',
+				'Paginierte Lead-Liste. Query-Parameter: page, perPage, status, assetType.',
 				'resa',
 			),
+			curl: `curl -H "Authorization: Bearer resa_YOUR_KEY" \\\n  "${baseUrl}external/leads?page=1&perPage=25"`,
+			response: `{
+  "items": [
+    {
+      "id": 1,
+      "assetType": "rent-calculator",
+      "status": "new",
+      "firstName": "Maria",
+      "lastName": "Schmidt",
+      "email": "maria@example.com",
+      "phone": "+49 123 456789",
+      "locationId": 1,
+      "locationName": "Berlin",
+      "createdAt": "2025-06-01 10:30:00",
+      "completedAt": "2025-06-01 10:32:00"
+    }
+  ],
+  "total": 42,
+  "page": 1,
+  "perPage": 25,
+  "totalPages": 2
+}`,
 		},
 		{
 			method: 'GET',
 			path: 'external/leads/{id}',
-			description: __('Lead-Detail (ohne interne Felder)', 'resa'),
+			description: __(
+				'Einzelner Lead mit Eingaben und Ergebnis. Ohne interne Felder (notes, meta, consent_text).',
+				'resa',
+			),
+			curl: `curl -H "Authorization: Bearer resa_YOUR_KEY" \\\n  "${baseUrl}external/leads/1"`,
+			response: `{
+  "id": 1,
+  "sessionId": "a1b2c3d4-...",
+  "assetType": "rent-calculator",
+  "status": "new",
+  "firstName": "Maria",
+  "lastName": "Schmidt",
+  "email": "maria@example.com",
+  "phone": "+49 123 456789",
+  "company": null,
+  "salutation": "Frau",
+  "message": null,
+  "locationId": 1,
+  "agentId": null,
+  "inputs": { "propertyType": "apartment", "areaSqm": 75 },
+  "result": { "rentMin": 562.5, "rentMax": 735.0 },
+  "consentGiven": true,
+  "pdfSent": false,
+  "createdAt": "2025-06-01 10:30:00",
+  "updatedAt": "2025-06-01 10:32:00",
+  "completedAt": "2025-06-01 10:32:00"
+}`,
 		},
 		{
 			method: 'GET',
 			path: 'external/locations',
-			description: __('Alle aktiven Standorte', 'resa'),
+			description: __('Alle aktiven Standorte mit Koordinaten.', 'resa'),
+			curl: `curl -H "Authorization: Bearer resa_YOUR_KEY" \\\n  "${baseUrl}external/locations"`,
+			response: `[
+  {
+    "id": 1,
+    "slug": "berlin",
+    "name": "Berlin",
+    "country": "DE",
+    "bundesland": "Berlin",
+    "regionType": "city",
+    "latitude": 52.52,
+    "longitude": 13.405,
+    "isActive": true
+  }
+]`,
 		},
 	];
-
-	const copyCurl = (path: string) => {
-		const url = `${window.location.origin}${restUrl}${path}`;
-		const curl = `curl -H "Authorization: Bearer resa_YOUR_KEY" "${url}"`;
-		navigator.clipboard.writeText(curl);
-		setCopiedEndpoint(path);
-		setTimeout(() => setCopiedEndpoint(null), 2000);
-	};
 
 	return (
 		<Card className="resa-mt-4">
 			<CardHeader>
 				<CardTitle className="resa-flex resa-items-center resa-gap-2">
 					<BookOpen className="resa-h-5 resa-w-5" />
-					{__('API-Endpunkte', 'resa')}
+					{__('API-Dokumentation', 'resa')}
 				</CardTitle>
 				<p className="resa-text-sm resa-text-muted-foreground">
-					{__('Authentifizierung via Bearer-Token im Authorization-Header.', 'resa')}
+					{__(
+						'Read-only Zugriff auf Leads und Standorte via Bearer-Token im Authorization-Header.',
+						'resa',
+					)}
 				</p>
 			</CardHeader>
-			<CardContent>
-				<div className="resa-space-y-3">
-					{endpoints.map((endpoint) => (
-						<div
-							key={endpoint.path}
-							className="resa-flex resa-items-center resa-justify-between resa-gap-4"
+			<CardContent className="resa-space-y-6">
+				{/* Quick Start */}
+				<div>
+					<div className="resa-flex resa-items-center resa-justify-between resa-mb-2">
+						<h4 className="resa-text-sm resa-font-medium resa-flex resa-items-center resa-gap-1.5">
+							<Code className="resa-h-4 resa-w-4" />
+							{__('Quick Start', 'resa')}
+						</h4>
+						<Button
+							variant="ghost"
+							size="sm"
+							onClick={() => copyText(quickStartCode, 'quickstart')}
+							title={__('Kopieren', 'resa')}
 						>
-							<div className="resa-flex resa-items-center resa-gap-2 resa-flex-1 resa-min-w-0">
-								<Badge variant="secondary" className="resa-shrink-0">
-									{endpoint.method}
-								</Badge>
-								<code className="resa-text-xs resa-font-mono resa-truncate">
-									{restUrl}
-									{endpoint.path}
-								</code>
-							</div>
-							<div className="resa-flex resa-items-center resa-gap-2 resa-shrink-0">
-								<span className="resa-text-xs resa-text-muted-foreground resa-hidden sm:resa-inline">
-									{endpoint.description}
-								</span>
-								<Button
-									variant="ghost"
-									size="sm"
-									onClick={() => copyCurl(endpoint.path)}
-									title={__('curl kopieren', 'resa')}
+							{copiedId === 'quickstart' ? (
+								<Check className="resa-h-4 resa-w-4" />
+							) : (
+								<Copy className="resa-h-4 resa-w-4" />
+							)}
+						</Button>
+					</div>
+					<pre className="resa-bg-muted resa-rounded-md resa-p-3 resa-text-xs resa-font-mono resa-overflow-x-auto resa-whitespace-pre">
+						{quickStartCode}
+					</pre>
+				</div>
+
+				<Separator />
+
+				{/* Endpoints */}
+				<div className="resa-space-y-2">
+					<h4 className="resa-text-sm resa-font-medium resa-mb-3">
+						{__('Endpunkte', 'resa')}
+					</h4>
+					{endpoints.map((endpoint) => {
+						const isExpanded = expandedEndpoint === endpoint.path;
+						return (
+							<div
+								key={endpoint.path}
+								className="resa-border resa-rounded-md resa-overflow-hidden"
+							>
+								{/* Endpoint header (clickable) */}
+								<button
+									type="button"
+									className="resa-flex resa-items-center resa-justify-between resa-gap-3 resa-w-full resa-px-3 resa-py-2.5 resa-text-left hover:resa-bg-muted/50 resa-transition-colors"
+									onClick={() => toggleEndpoint(endpoint.path)}
 								>
-									{copiedEndpoint === endpoint.path ? (
-										<Check className="resa-h-4 resa-w-4" />
-									) : (
-										<Copy className="resa-h-4 resa-w-4" />
-									)}
-								</Button>
+									<div className="resa-flex resa-items-center resa-gap-2 resa-min-w-0">
+										<Badge
+											variant="secondary"
+											className="resa-shrink-0 resa-text-xs"
+										>
+											{endpoint.method}
+										</Badge>
+										<code className="resa-text-xs resa-font-mono resa-truncate">
+											{restUrl}
+											{endpoint.path}
+										</code>
+									</div>
+									<ChevronDown
+										className={`resa-h-4 resa-w-4 resa-shrink-0 resa-text-muted-foreground resa-transition-transform ${isExpanded ? 'resa-rotate-180' : ''}`}
+									/>
+								</button>
+
+								{/* Expanded details */}
+								{isExpanded && (
+									<div className="resa-border-t resa-px-3 resa-py-3 resa-space-y-3 resa-bg-muted/30">
+										<p className="resa-text-xs resa-text-muted-foreground">
+											{endpoint.description}
+										</p>
+
+										{/* curl example */}
+										<div>
+											<div className="resa-flex resa-items-center resa-justify-between resa-mb-1">
+												<span className="resa-text-xs resa-font-medium">
+													curl
+												</span>
+												<Button
+													variant="ghost"
+													size="sm"
+													className="resa-h-6 resa-px-1.5"
+													onClick={(e) => {
+														e.stopPropagation();
+														copyText(
+															endpoint.curl,
+															`curl-${endpoint.path}`,
+														);
+													}}
+												>
+													{copiedId === `curl-${endpoint.path}` ? (
+														<Check className="resa-h-3.5 resa-w-3.5" />
+													) : (
+														<Copy className="resa-h-3.5 resa-w-3.5" />
+													)}
+												</Button>
+											</div>
+											<pre className="resa-bg-muted resa-rounded resa-p-2 resa-text-xs resa-font-mono resa-overflow-x-auto resa-whitespace-pre">
+												{endpoint.curl}
+											</pre>
+										</div>
+
+										{/* Example response */}
+										<div>
+											<div className="resa-flex resa-items-center resa-justify-between resa-mb-1">
+												<span className="resa-text-xs resa-font-medium">
+													{__('Beispiel-Response', 'resa')}
+												</span>
+												<Button
+													variant="ghost"
+													size="sm"
+													className="resa-h-6 resa-px-1.5"
+													onClick={(e) => {
+														e.stopPropagation();
+														copyText(
+															endpoint.response,
+															`resp-${endpoint.path}`,
+														);
+													}}
+												>
+													{copiedId === `resp-${endpoint.path}` ? (
+														<Check className="resa-h-3.5 resa-w-3.5" />
+													) : (
+														<Copy className="resa-h-3.5 resa-w-3.5" />
+													)}
+												</Button>
+											</div>
+											<pre className="resa-bg-muted resa-rounded resa-p-2 resa-text-xs resa-font-mono resa-overflow-x-auto resa-whitespace-pre resa-max-h-64 resa-overflow-y-auto">
+												{endpoint.response}
+											</pre>
+										</div>
+									</div>
+								)}
 							</div>
-						</div>
-					))}
+						);
+					})}
 				</div>
 			</CardContent>
 		</Card>
