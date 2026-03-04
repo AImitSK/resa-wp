@@ -6,6 +6,7 @@ namespace Resa\Shortcode;
 
 use Resa\Api\PrivacySettingsController;
 use Resa\Core\Vite;
+use Resa\Security\SpamGuard;
 
 /**
  * [resa] shortcode handler.
@@ -85,6 +86,8 @@ final class ResaShortcode {
 
 		$frontendData = [
 			'restUrl'        => esc_url_raw( rest_url( 'resa/v1/' ) ),
+			'nonce'          => SpamGuard::createNonce(),
+			'ts'             => SpamGuard::timestamp(),
 			'module'         => $module,
 			'version'        => RESA_VERSION,
 			'trackingConfig' => self::getTrackingConfig(),

@@ -63,6 +63,28 @@ export function LeadForm({
 				</p>
 			</div>
 
+			{/* Honeypot — invisible to real users, bots fill it */}
+			<div
+				style={{
+					position: 'absolute',
+					left: '-9999px',
+					top: '-9999px',
+					height: 0,
+					width: 0,
+					overflow: 'hidden',
+				}}
+				aria-hidden="true"
+			>
+				<label htmlFor="resa-website">Website</label>
+				<input
+					id="resa-website"
+					type="text"
+					name="website"
+					tabIndex={-1}
+					autoComplete="off"
+				/>
+			</div>
+
 			{/* Input fields */}
 			<div className="resa-space-y-3">
 				{inputFields.map((field) => (

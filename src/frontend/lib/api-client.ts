@@ -1,13 +1,21 @@
 /**
  * Public REST API client for the frontend widget.
  *
- * Unlike the admin client, this does NOT send a nonce —
- * public endpoints are accessible without authentication.
- * Reads base URL from window.resaFrontend (injected by shortcode).
+ * Sends WordPress nonce (CSRF), honeypot field, and server timestamp
+ * with every POST request for spam protection.
+ * Reads config from window.resaFrontend (injected by shortcode).
  */
 
 function getRestUrl(): string {
 	return window.resaFrontend?.restUrl ?? '/wp-json/resa/v1/';
+}
+
+function getNonce(): string {
+	return window.resaFrontend?.nonce ?? '';
+}
+
+function getTimestamp(): number {
+	return window.resaFrontend?.ts ?? 0;
 }
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -18,6 +26,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 		...options,
 		headers: {
 			'Content-Type': 'application/json',
+			'X-WP-Nonce': getNonce(),
 			...options.headers,
 		},
 	});
@@ -36,6 +45,10 @@ export const api = {
 	post: <T>(endpoint: string, data: unknown) =>
 		request<T>(endpoint, {
 			method: 'POST',
-			body: JSON.stringify(data),
+			body: JSON.stringify({
+				...(data as Record<string, unknown>),
+				_hp: '',
+				_ts: getTimestamp(),
+			}),
 		}),
 };

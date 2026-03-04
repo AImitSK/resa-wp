@@ -12,6 +12,7 @@ use Resa\Services\Email\EmailLogger;
 use Resa\Services\Email\EmailService;
 use Resa\Services\Notifications\LeadNotificationService;
 use Resa\Services\Pdf\LeadPdfService;
+use Resa\Security\SpamGuard;
 use Resa\Services\Pdf\PdfGenerator;
 
 /**
@@ -157,6 +158,11 @@ final class LeadsController extends RestController {
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public function createPartial( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$spam = SpamGuard::check( $request );
+		if ( is_wp_error( $spam ) ) {
+			return $spam;
+		}
+
 		$sessionId = $this->requiredString( $request, 'sessionId' );
 		if ( is_wp_error( $sessionId ) ) {
 			return $sessionId;
@@ -205,6 +211,11 @@ final class LeadsController extends RestController {
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public function completeLead( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$spam = SpamGuard::check( $request );
+		if ( is_wp_error( $spam ) ) {
+			return $spam;
+		}
+
 		// DEBUG: Log all received parameters.
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		error_log( 'RESA DEBUG leads/complete: ' . wp_json_encode( $request->get_params() ) );

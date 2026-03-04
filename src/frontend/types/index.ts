@@ -8,6 +8,10 @@
 export interface ResaFrontendContext {
 	/** REST API base URL, e.g. "https://example.com/wp-json/resa/v1/" */
 	restUrl: string;
+	/** WordPress nonce for spam protection (CSRF token). */
+	nonce: string;
+	/** Server timestamp for spam time-check. */
+	ts: number;
 	/** Module slug from shortcode attribute, e.g. "rent-calculator" */
 	module: string;
 	/** Pre-selected location slug (optional, from shortcode city attribute) */

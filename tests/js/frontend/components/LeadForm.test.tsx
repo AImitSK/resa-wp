@@ -135,4 +135,14 @@ describe('LeadForm', () => {
 		expect(screen.getByLabelText(/Vorname/)).toBeInTheDocument();
 		expect(screen.getByPlaceholderText('max@beispiel.de')).toBeInTheDocument();
 	});
+
+	it('rendert Honeypot-Feld unsichtbar', () => {
+		const { container } = render(<LeadForm config={MINIMAL_CONFIG} onSubmit={vi.fn()} />);
+
+		const honeypot = container.querySelector('#resa-website') as HTMLInputElement;
+		expect(honeypot).toBeInTheDocument();
+		expect(honeypot).toHaveAttribute('tabindex', '-1');
+		expect(honeypot).toHaveAttribute('autocomplete', 'off');
+		expect(honeypot.closest('[aria-hidden="true"]')).toBeTruthy();
+	});
 });
