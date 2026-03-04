@@ -144,6 +144,18 @@ export interface MessengerTestResult {
 }
 
 /**
+ * Privacy / GDPR settings from the REST API.
+ */
+export interface PrivacySettings {
+	privacy_url: string;
+	consent_text: string;
+	newsletter_text: string;
+	lead_retention_days: number;
+	email_log_retention_days: number;
+	anonymize_instead_of_delete: boolean;
+}
+
+/**
  * Tracking settings from the REST API.
  */
 export interface TrackingSettings {

@@ -59,6 +59,9 @@ export interface LeadFormData {
  * Returns "Balanced" preset — used on free plan.
  */
 export function getDefaultFields(): FieldConfig[] {
+	const privacyConfig =
+		typeof window !== 'undefined' ? window.resaFrontend?.privacyConfig : undefined;
+
 	return [
 		{
 			slug: 'firstName',
@@ -97,17 +100,21 @@ export function getDefaultFields(): FieldConfig[] {
 		{
 			slug: 'newsletter',
 			type: 'checkbox',
-			label: __('Ja, ich möchte Markt-Updates per E-Mail erhalten.', 'resa'),
+			label:
+				privacyConfig?.newsletterText ||
+				__('Ja, ich möchte Markt-Updates per E-Mail erhalten.', 'resa'),
 			status: 'optional',
 			order: 90,
 		},
 		{
 			slug: 'consent',
 			type: 'checkbox',
-			label: __(
-				'Ich stimme der Verarbeitung meiner Daten gemäß der [Datenschutzerklärung] zu.',
-				'resa',
-			),
+			label:
+				privacyConfig?.consentText ||
+				__(
+					'Ich stimme der Verarbeitung meiner Daten gemäß der [Datenschutzerklärung] zu.',
+					'resa',
+				),
 			status: 'required',
 			order: 99,
 		},
@@ -124,14 +131,19 @@ export const DEFAULT_FIELDS: FieldConfig[] = getDefaultFields();
  * Get default lead form config with translated labels.
  */
 export function getDefaultLeadFormConfig(): LeadFormConfig {
+	const privacyConfig =
+		typeof window !== 'undefined' ? window.resaFrontend?.privacyConfig : undefined;
+
 	return {
 		fields: getDefaultFields(),
 		buttonText: __('Ergebnis anzeigen', 'resa'),
-		privacyUrl: '/datenschutz',
-		consentLabel: __(
-			'Ich stimme der Verarbeitung meiner Daten gemäß der Datenschutzerklärung zu.',
-			'resa',
-		),
+		privacyUrl: privacyConfig?.privacyUrl || '/datenschutz',
+		consentLabel:
+			privacyConfig?.consentText ||
+			__(
+				'Ich stimme der Verarbeitung meiner Daten gemäß der Datenschutzerklärung zu.',
+				'resa',
+			),
 		trustBadgeText: __(
 			'Ihre Daten sind sicher und werden nicht an Dritte weitergegeben.',
 			'resa',

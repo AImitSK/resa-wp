@@ -14,6 +14,12 @@ export interface ResaFrontendContext {
 	city?: string;
 	/** Plugin version for cache-busting */
 	version: string;
+	/** Privacy configuration from admin settings. */
+	privacyConfig?: {
+		privacyUrl: string;
+		consentText: string;
+		newsletterText: string;
+	};
 	/** Tracking configuration from admin settings. */
 	trackingConfig?: {
 		datalayer_enabled: boolean;

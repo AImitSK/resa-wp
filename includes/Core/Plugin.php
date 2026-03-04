@@ -18,11 +18,15 @@ use Resa\Api\ModuleSettingsController;
 use Resa\Api\PdfSettingsController;
 use Resa\Api\TrackingController;
 use Resa\Api\TrackingSettingsController;
+use Resa\Api\PrivacySettingsController;
 use Resa\Api\ApiKeysController;
 use Resa\Api\ExternalController;
 use Resa\Api\MessengersController;
 use Resa\Api\WebhooksController;
 use Resa\Cron\PartialLeadCleanup;
+use Resa\Cron\DataRetentionCleanup;
+use Resa\Privacy\PersonalDataExporter;
+use Resa\Privacy\PersonalDataEraser;
 use Resa\Database\Schema;
 use Resa\Services\Auth\ApiKeyAuth;
 use Resa\Core\ModuleRegistry;
@@ -140,6 +144,13 @@ final class Plugin {
 		// Partial lead cleanup cron job.
 		PartialLeadCleanup::register();
 
+		// Data retention cleanup cron job (GDPR retention periods).
+		DataRetentionCleanup::register();
+
+		// WordPress Privacy Tools integration (GDPR Art. 15/17/20).
+		PersonalDataExporter::register();
+		PersonalDataEraser::register();
+
 		// Webhook dispatcher — fires on lead creation.
 		$webhookDispatcher = new WebhookDispatcher();
 		add_action( 'resa_lead_created', [ $webhookDispatcher, 'onLeadCreated' ] );
@@ -170,6 +181,7 @@ final class Plugin {
 			new PdfSettingsController(),
 			new TrackingController(),
 			new TrackingSettingsController(),
+			new PrivacySettingsController(),
 			new WebhooksController(),
 			new MessengersController(),
 			new ApiKeysController(),

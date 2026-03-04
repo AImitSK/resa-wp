@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 import { __ } from '@wordpress/i18n';
-import { User, Users, X, Image, Plus, Pencil, Trash2, MapPin, Shield } from 'lucide-react';
+import { User, Users, X, Image, Plus, Pencil, Trash2, MapPin } from 'lucide-react';
 import { AdminPageLayout } from '../components/AdminPageLayout';
 import { useAgentData, useSaveAgentData, type AgentData } from '../hooks/useAgentData';
 import { useBranding, useSaveBranding, type BrandingSettings } from '../hooks/useBranding';
@@ -25,6 +25,7 @@ import {
 } from '../hooks/useTeam';
 import { useLocations, type LocationAdmin } from '../hooks/useLocations';
 import { TrackingTab } from '../components/settings/TrackingTab';
+import { GdprTab } from '../components/settings/GdprTab';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -1767,56 +1768,5 @@ function MapsForm({ initialData }: { initialData: MapSettings | undefined }) {
 				</Button>
 			</div>
 		</form>
-	);
-}
-
-/**
- * License Tab — shows current plan info with placeholder for account management.
- */
-/**
- * GDPR Tab — placeholder for privacy settings.
- */
-function GdprTab() {
-	return (
-		<Card>
-			<CardContent style={{ padding: '20px' }}>
-				<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-					<h3 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#1e303a' }}>
-						{__('Datenschutz (DSGVO)', 'resa')}
-					</h3>
-					<div className="resa-py-12 resa-text-center">
-						<div
-							style={{
-								width: '48px',
-								height: '48px',
-								margin: '0 auto 16px',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								borderRadius: '50%',
-								backgroundColor: 'hsl(210 40% 96.1%)',
-							}}
-						>
-							<Shield
-								style={{
-									width: '24px',
-									height: '24px',
-									color: 'hsl(215.4 16.3% 46.9%)',
-								}}
-							/>
-						</div>
-						<h3 style={{ fontWeight: 600, marginBottom: '8px', color: '#1e303a' }}>
-							{__('Kommt bald', 'resa')}
-						</h3>
-						<p style={{ color: 'hsl(215.4 16.3% 46.9%)', margin: 0 }}>
-							{__(
-								'Datenschutz-Einstellungen werden in einer zukünftigen Version verfügbar sein.',
-								'resa',
-							)}
-						</p>
-					</div>
-				</div>
-			</CardContent>
-		</Card>
 	);
 }

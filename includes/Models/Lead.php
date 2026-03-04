@@ -4,6 +4,8 @@ declare( strict_types=1 );
 
 namespace Resa\Models;
 
+use Resa\Services\Email\EmailLogger;
+
 /**
  * Lead model — CRUD operations for the resa_leads table.
  *
@@ -237,9 +239,10 @@ final class Lead {
 		$where   = [ '1=1' ];
 		$prepare = [];
 
-		// Exclude partial leads from admin view by default.
-		$where[]   = 'l.status != %s';
+		// Exclude partial and anonymized leads from admin view by default.
+		$where[]   = 'l.status NOT IN (%s, %s)';
 		$prepare[] = 'partial';
+		$prepare[] = 'anonymized';
 
 		if ( ! empty( $filters['status'] ) ) {
 			$where[]   = 'l.status = %s';
@@ -328,7 +331,7 @@ final class Lead {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$results = $wpdb->get_results(
-			"SELECT status, COUNT(*) as count FROM {$table} WHERE status != 'partial' GROUP BY status"
+			"SELECT status, COUNT(*) as count FROM {$table} WHERE status NOT IN ('partial', 'anonymized') GROUP BY status"
 		);
 
 		$stats = [
@@ -408,11 +411,16 @@ final class Lead {
 	/**
 	 * Delete a lead (hard delete for GDPR compliance).
 	 *
+	 * Cascades: also deletes associated email log entries.
+	 *
 	 * @param int $id Lead ID.
 	 * @return bool True on success.
 	 */
 	public static function delete( int $id ): bool {
 		global $wpdb;
+
+		// Cascade: delete email logs first.
+		EmailLogger::deleteByLead( $id );
 
 		$result = $wpdb->delete(
 			self::table(),
@@ -424,7 +432,104 @@ final class Lead {
 	}
 
 	/**
-	 * Count all complete leads (excluding partial).
+	 * Anonymize a lead — remove PII but keep statistical data.
+	 *
+	 * Sets status to 'anonymized', nulls personal fields, keeps
+	 * inputs/result/meta/asset_type for analytics.
+	 *
+	 * @param int $id Lead ID.
+	 * @return bool True on success.
+	 */
+	public static function anonymize( int $id ): bool {
+		global $wpdb;
+
+		// Delete email logs (contain PII).
+		EmailLogger::deleteByLead( $id );
+
+		$result = $wpdb->update(
+			self::table(),
+			[
+				'status'       => 'anonymized',
+				'first_name'   => null,
+				'last_name'    => null,
+				'email'        => null,
+				'phone'        => null,
+				'company'      => null,
+				'salutation'   => null,
+				'message'      => null,
+				'gclid'        => null,
+				'fbclid'       => null,
+				'consent_given' => 0,
+				'consent_text' => null,
+				'consent_date' => null,
+				'updated_at'   => current_time( 'mysql' ),
+			],
+			[ 'id' => $id ],
+			[
+				'%s',
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				'%d',
+				null,
+				null,
+				'%s',
+			],
+			[ '%d' ]
+		);
+
+		return $result !== false;
+	}
+
+	/**
+	 * Find leads by email address (for WordPress Privacy Tools).
+	 *
+	 * Excludes partial leads. Paginates 10 per page.
+	 *
+	 * @param string $email Email address.
+	 * @param int    $page  Page number (1-based).
+	 * @return array{items: object[], done: bool}
+	 */
+	public static function findByEmail( string $email, int $page = 1 ): array {
+		global $wpdb;
+
+		$table    = self::table();
+		$per_page = 10;
+		$offset   = ( max( 1, $page ) - 1 ) * $per_page;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$items = $wpdb->get_results(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT * FROM {$table} WHERE email = %s AND status != %s ORDER BY id ASC LIMIT %d OFFSET %d",
+				$email,
+				'partial',
+				$per_page + 1,
+				$offset
+			)
+		);
+
+		$items = is_array( $items ) ? $items : [];
+		$done  = count( $items ) <= $per_page;
+
+		if ( ! $done ) {
+			array_pop( $items );
+		}
+
+		return [
+			'items' => $items,
+			'done'  => $done,
+		];
+	}
+
+	/**
+	 * Count all complete leads (excluding partial and anonymized).
 	 *
 	 * @return int Total count.
 	 */
@@ -433,13 +538,9 @@ final class Lead {
 
 		$table = self::table();
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		return (int) $wpdb->get_var(
-			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"SELECT COUNT(*) FROM {$table} WHERE status != %s",
-				'partial'
-			)
+			"SELECT COUNT(*) FROM {$table} WHERE status NOT IN ('partial', 'anonymized')"
 		);
 	}
 }

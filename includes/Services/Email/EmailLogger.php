@@ -120,6 +120,50 @@ final class EmailLogger {
 	}
 
 	/**
+	 * Delete all log entries for a lead (cascade on lead delete).
+	 *
+	 * @param int $leadId Lead ID.
+	 * @return int Number of deleted rows.
+	 */
+	public static function deleteByLead( int $leadId ): int {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $wpdb->delete(
+			self::table(),
+			[ 'lead_id' => $leadId ],
+			[ '%d' ]
+		);
+
+		return $result !== false ? $result : 0;
+	}
+
+	/**
+	 * Delete log entries older than a given number of days.
+	 *
+	 * @param int $days    Number of days.
+	 * @param int $limit   Max rows per batch (default 500).
+	 * @return int Number of deleted rows.
+	 */
+	public static function deleteOlderThan( int $days, int $limit = 500 ): int {
+		global $wpdb;
+
+		$table = self::table();
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$deleted = $wpdb->query(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"DELETE FROM {$table} WHERE sent_at < DATE_SUB(NOW(), INTERVAL %d DAY) LIMIT %d",
+				$days,
+				$limit
+			)
+		);
+
+		return $deleted !== false ? (int) $deleted : 0;
+	}
+
+	/**
 	 * Count emails by status.
 	 *
 	 * @param string $status Status filter.

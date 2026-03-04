@@ -4,6 +4,7 @@ declare( strict_types=1 );
 
 namespace Resa\Shortcode;
 
+use Resa\Api\PrivacySettingsController;
 use Resa\Core\Vite;
 
 /**
@@ -87,6 +88,7 @@ final class ResaShortcode {
 			'module'         => $module,
 			'version'        => RESA_VERSION,
 			'trackingConfig' => self::getTrackingConfig(),
+			'privacyConfig'  => self::getPrivacyConfig(),
 		];
 
 		if ( $city !== '' ) {
@@ -136,6 +138,24 @@ final class ResaShortcode {
 			'enhanced_conversions' => (bool) $settings['enhanced_conversions_enabled'],
 			'gclid_capture'        => (bool) $settings['gclid_capture_enabled'],
 			'utm_capture'          => (bool) $settings['utm_capture_enabled'],
+		];
+	}
+
+	/**
+	 * Get privacy configuration for the frontend widget.
+	 *
+	 * Provides privacy URL, consent text, and newsletter text
+	 * from central privacy settings for use in LeadForm.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function getPrivacyConfig(): array {
+		$settings = PrivacySettingsController::get();
+
+		return [
+			'privacyUrl'     => PrivacySettingsController::getPrivacyUrl(),
+			'consentText'    => $settings['consent_text'],
+			'newsletterText' => $settings['newsletter_text'],
 		];
 	}
 

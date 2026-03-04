@@ -4,6 +4,8 @@ declare( strict_types=1 );
 
 namespace Resa\Core;
 
+use Resa\Cron\DataRetentionCleanup;
+
 /**
  * Handles plugin deactivation.
  *
@@ -21,6 +23,7 @@ final class Deactivator {
 
 		// Remove scheduled events.
 		wp_clear_scheduled_hook( 'resa_daily_cleanup' );
+		DataRetentionCleanup::unschedule();
 
 		// Flush rewrite rules.
 		flush_rewrite_rules();
