@@ -87,6 +87,7 @@ final class ResaShortcode {
 		$frontendData = [
 			'restUrl'        => esc_url_raw( rest_url( 'resa/v1/' ) ),
 			'nonce'          => SpamGuard::createNonce(),
+			'wpNonce'        => wp_create_nonce( 'wp_rest' ),
 			'ts'             => SpamGuard::timestamp(),
 			'module'         => $module,
 			'version'        => RESA_VERSION,

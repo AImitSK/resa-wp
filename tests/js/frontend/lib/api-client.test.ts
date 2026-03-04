@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 const mockFrontend = {
 	restUrl: 'https://example.com/wp-json/resa/v1/',
 	nonce: 'test_nonce_abc123',
+	wpNonce: 'wp_rest_nonce_xyz',
 	ts: 1709500000,
 	module: 'rent-calculator',
 	version: '1.0.0',
@@ -18,7 +19,7 @@ afterEach(() => {
 });
 
 describe('api-client', () => {
-	it('sendet X-WP-Nonce Header bei postLead', async () => {
+	it('sendet X-Resa-Nonce und X-WP-Nonce Header bei postLead', async () => {
 		const fetchSpy = vi
 			.spyOn(globalThis, 'fetch')
 			.mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
@@ -29,6 +30,7 @@ describe('api-client', () => {
 		const [, options] = fetchSpy.mock.calls[0];
 		const headers = options?.headers as Record<string, string>;
 		expect(headers['X-Resa-Nonce']).toBe('test_nonce_abc123');
+		expect(headers['X-WP-Nonce']).toBe('wp_rest_nonce_xyz');
 	});
 
 	it('sendet keinen X-Resa-Nonce Header bei GET', async () => {

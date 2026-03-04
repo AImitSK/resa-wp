@@ -15,6 +15,10 @@ function getNonce(): string {
 	return window.resaFrontend?.nonce ?? '';
 }
 
+function getWpNonce(): string {
+	return window.resaFrontend?.wpNonce ?? '';
+}
+
 function getTimestamp(): number {
 	return window.resaFrontend?.ts ?? 0;
 }
@@ -61,6 +65,7 @@ export const api = {
 				_ts: getTimestamp(),
 			}),
 			headers: {
+				'X-WP-Nonce': getWpNonce(),
 				'X-Resa-Nonce': getNonce(),
 			},
 		}),
