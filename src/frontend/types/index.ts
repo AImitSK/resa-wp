@@ -26,6 +26,8 @@ export interface ResaFrontendContext {
 		consentText: string;
 		newsletterText: string;
 	};
+	/** reCAPTCHA v3 site key (only present when enabled). */
+	recaptchaSiteKey?: string;
 	/** Tracking configuration from admin settings. */
 	trackingConfig?: {
 		datalayer_enabled: boolean;
@@ -42,6 +44,10 @@ export interface ResaFrontendContext {
 declare global {
 	interface Window {
 		resaFrontend: ResaFrontendContext;
+		grecaptcha?: {
+			ready: (callback: () => void) => void;
+			execute: (siteKey: string, options: { action: string }) => Promise<string>;
+		};
 	}
 }
 

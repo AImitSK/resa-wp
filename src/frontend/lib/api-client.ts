@@ -23,6 +23,29 @@ function getTimestamp(): number {
 	return window.resaFrontend?.ts ?? 0;
 }
 
+function getRecaptchaSiteKey(): string {
+	return window.resaFrontend?.recaptchaSiteKey ?? '';
+}
+
+/**
+ * Get a reCAPTCHA v3 token if enabled, otherwise return empty string.
+ */
+async function getRecaptchaToken(): Promise<string> {
+	const siteKey = getRecaptchaSiteKey();
+	if (!siteKey || !window.grecaptcha) {
+		return '';
+	}
+
+	return new Promise<string>((resolve) => {
+		window.grecaptcha!.ready(() => {
+			window
+				.grecaptcha!.execute(siteKey, { action: 'submit' })
+				.then(resolve)
+				.catch(() => resolve(''));
+		});
+	});
+}
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
 	const baseUrl = getRestUrl();
 	const url = `${baseUrl}${endpoint}`;
@@ -53,20 +76,24 @@ export const api = {
 		}),
 
 	/**
-	 * POST with spam guard fields (nonce, honeypot, timestamp).
+	 * POST with spam guard fields (nonce, honeypot, timestamp, reCAPTCHA).
 	 * Use ONLY for lead endpoints (leads/partial, leads/complete).
 	 */
-	postLead: <T>(endpoint: string, data: unknown) =>
-		request<T>(endpoint, {
+	postLead: async <T>(endpoint: string, data: unknown): Promise<T> => {
+		const recaptchaToken = await getRecaptchaToken();
+
+		return request<T>(endpoint, {
 			method: 'POST',
 			body: JSON.stringify({
 				...(data as Record<string, unknown>),
 				_hp: '',
 				_ts: getTimestamp(),
+				...(recaptchaToken ? { _recaptcha: recaptchaToken } : {}),
 			}),
 			headers: {
 				'X-WP-Nonce': getWpNonce(),
 				'X-Resa-Nonce': getNonce(),
 			},
-		}),
+		});
+	},
 };

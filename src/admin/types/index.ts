@@ -156,6 +156,16 @@ export interface PrivacySettings {
 }
 
 /**
+ * reCAPTCHA v3 settings from the REST API.
+ */
+export interface RecaptchaSettings {
+	enabled: boolean;
+	site_key: string;
+	secret_key: string;
+	threshold: number;
+}
+
+/**
  * Tracking settings from the REST API.
  */
 export interface TrackingSettings {

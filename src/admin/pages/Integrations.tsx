@@ -12,6 +12,7 @@ import { useIsPremium } from '../hooks/useFeatures';
 import { WebhooksTab } from '../components/integrations/WebhooksTab';
 import { ApiKeysTab } from '../components/integrations/ApiKeysTab';
 import { MessengerTab } from '../components/integrations/MessengerTab';
+import { RecaptchaTab } from '../components/integrations/RecaptchaTab';
 import type { IntegrationTab } from '../types';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +20,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-type FixedTab = 'webhooks' | 'api' | 'messenger';
+type FixedTab = 'webhooks' | 'api' | 'messenger' | 'recaptcha';
 type IntegrationsTab = FixedTab | string;
 
 export function Integrations() {
@@ -46,6 +47,11 @@ export function Integrations() {
 	});
 
 	const renderTabContent = () => {
+		// reCAPTCHA is available for both Free and Pro users.
+		if (activeTab === 'recaptcha') {
+			return <RecaptchaTab />;
+		}
+
 		if (!isPremium) {
 			return <UpgradeNotice />;
 		}
@@ -94,6 +100,9 @@ export function Integrations() {
 					</TabsTrigger>
 					<TabsTrigger value="messenger" style={tabStyle(activeTab === 'messenger')}>
 						{__('Messenger', 'resa')}
+					</TabsTrigger>
+					<TabsTrigger value="recaptcha" style={tabStyle(activeTab === 'recaptcha')}>
+						{__('reCAPTCHA', 'resa')}
 					</TabsTrigger>
 					{addonTabs.map((tab) => (
 						<TabsTrigger

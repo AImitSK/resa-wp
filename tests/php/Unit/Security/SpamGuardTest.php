@@ -29,9 +29,10 @@ class SpamGuardTest extends TestCase {
 
 	private function makeRequest( array $overrides = [] ): \WP_REST_Request {
 		$defaults = [
-			'nonce' => 'valid_nonce',
-			'_hp'   => '',
-			'_ts'   => time() - 10,
+			'nonce'      => 'valid_nonce',
+			'_hp'        => '',
+			'_ts'        => time() - 10,
+			'_recaptcha' => null,
 		];
 
 		$params = array_merge( $defaults, $overrides );
@@ -46,6 +47,9 @@ class SpamGuardTest extends TestCase {
 		$request->shouldReceive( 'get_param' )
 			->with( '_ts' )
 			->andReturn( $params['_ts'] );
+		$request->shouldReceive( 'get_param' )
+			->with( '_recaptcha' )
+			->andReturn( $params['_recaptcha'] );
 
 		return $request;
 	}
@@ -162,5 +166,42 @@ class SpamGuardTest extends TestCase {
 	public function test_timestamp_gibt_aktuelle_zeit_zurueck(): void {
 		$ts = SpamGuard::timestamp();
 		$this->assertEqualsWithDelta( time(), $ts, 1 );
+	}
+
+	public function test_check_lehnt_ab_wenn_recaptcha_aktiv_und_token_fehlt(): void {
+		Functions\expect( 'wp_verify_nonce' )->andReturn( 1 );
+		Functions\when( '__' )->returnArg();
+		Functions\when( 'sanitize_text_field' )->returnArg();
+		Functions\when( 'wp_unslash' )->returnArg();
+		Functions\when( 'get_transient' )->justReturn( false );
+		Functions\when( 'set_transient' )->justReturn( true );
+		// reCAPTCHA is enabled.
+		Functions\expect( 'get_option' )
+			->with( 'resa_recaptcha_settings', [] )
+			->andReturn( [
+				'enabled'    => true,
+				'site_key'   => '6Lc_site',
+				'secret_key' => '6Lc_secret',
+				'threshold'  => 0.5,
+			] );
+
+		$request = $this->makeRequest( [ '_recaptcha' => null ] );
+		$result  = SpamGuard::check( $request );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'resa_spam_detected', $result->get_error_code() );
+	}
+
+	public function test_check_akzeptiert_request_wenn_recaptcha_deaktiviert(): void {
+		$this->mockPassingChecks();
+		// reCAPTCHA is disabled.
+		Functions\expect( 'get_option' )
+			->with( 'resa_recaptcha_settings', [] )
+			->andReturn( [ 'enabled' => false ] );
+
+		$request = $this->makeRequest();
+		$result  = SpamGuard::check( $request );
+
+		$this->assertTrue( $result );
 	}
 }

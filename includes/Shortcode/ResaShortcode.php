@@ -5,6 +5,7 @@ declare( strict_types=1 );
 namespace Resa\Shortcode;
 
 use Resa\Api\PrivacySettingsController;
+use Resa\Api\RecaptchaSettingsController;
 use Resa\Core\Vite;
 use Resa\Security\SpamGuard;
 
@@ -97,6 +98,22 @@ final class ResaShortcode {
 
 		if ( $city !== '' ) {
 			$frontendData['city'] = $city;
+		}
+
+		// reCAPTCHA v3: pass site key and enqueue Google script when enabled.
+		if ( RecaptchaSettingsController::isEnabled() ) {
+			$recaptchaSettings = RecaptchaSettingsController::get();
+			$siteKey           = $recaptchaSettings['site_key'];
+
+			$frontendData['recaptchaSiteKey'] = $siteKey;
+
+			wp_enqueue_script(
+				'google-recaptcha',
+				'https://www.google.com/recaptcha/api.js?render=' . urlencode( $siteKey ),
+				[],
+				null,
+				true
+			);
 		}
 
 		wp_localize_script( 'resa-frontend', 'resaFrontend', $frontendData );

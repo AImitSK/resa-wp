@@ -4,6 +4,8 @@ declare( strict_types=1 );
 
 namespace Resa\Security;
 
+use Resa\Api\RecaptchaSettingsController;
+
 /**
  * Central spam guard for public lead endpoints.
  *
@@ -12,6 +14,7 @@ namespace Resa\Security;
  * 2. Honeypot field (must be empty)
  * 3. Time check (form submitted too fast = bot)
  * 4. Rate limiting (IP-based)
+ * 5. reCAPTCHA v3 (if enabled — score-based, fail-open)
  *
  * All checks return the same generic error to prevent enumeration.
  */
@@ -52,6 +55,14 @@ final class SpamGuard {
 		// 4. Rate limiting.
 		if ( ! RateLimiter::check() ) {
 			return self::reject();
+		}
+
+		// 5. reCAPTCHA v3 (only when enabled).
+		if ( RecaptchaSettingsController::isEnabled() ) {
+			$token = $request->get_param( '_recaptcha' );
+			if ( ! is_string( $token ) || ! RecaptchaVerifier::verify( $token ) ) {
+				return self::reject();
+			}
 		}
 
 		return true;

@@ -101,4 +101,44 @@ describe('api-client', () => {
 		const body = JSON.parse(options?.body as string);
 		expect(body._hp).toBe('');
 	});
+
+	it('fuegt _recaptcha in postLead-Body ein wenn reCAPTCHA aktiv', async () => {
+		// Setup grecaptcha mock.
+		const mockToken = 'recaptcha-test-token-abc';
+		(window as unknown as Record<string, unknown>).resaFrontend = {
+			...mockFrontend,
+			recaptchaSiteKey: '6Lc_test_site_key',
+		};
+		(window as unknown as Record<string, unknown>).grecaptcha = {
+			ready: (cb: () => void) => cb(),
+			execute: () => Promise.resolve(mockToken),
+		};
+
+		const fetchSpy = vi
+			.spyOn(globalThis, 'fetch')
+			.mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+
+		const { api } = await import('@frontend/lib/api-client');
+		await api.postLead('leads/complete', { sessionId: 'abc' });
+
+		const [, options] = fetchSpy.mock.calls[0];
+		const body = JSON.parse(options?.body as string);
+		expect(body._recaptcha).toBe(mockToken);
+
+		// Cleanup.
+		delete (window as unknown as Record<string, unknown>).grecaptcha;
+	});
+
+	it('fuegt kein _recaptcha ein wenn kein siteKey gesetzt', async () => {
+		const fetchSpy = vi
+			.spyOn(globalThis, 'fetch')
+			.mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+
+		const { api } = await import('@frontend/lib/api-client');
+		await api.postLead('leads/partial', { sessionId: 'xyz' });
+
+		const [, options] = fetchSpy.mock.calls[0];
+		const body = JSON.parse(options?.body as string);
+		expect(body._recaptcha).toBeUndefined();
+	});
 });

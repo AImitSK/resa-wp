@@ -16,6 +16,7 @@ use Resa\Api\MapSettingsController;
 use Resa\Api\ModulesController;
 use Resa\Api\ModuleSettingsController;
 use Resa\Api\PdfSettingsController;
+use Resa\Api\RecaptchaSettingsController;
 use Resa\Api\TrackingController;
 use Resa\Api\TrackingSettingsController;
 use Resa\Api\PrivacySettingsController;
@@ -179,6 +180,7 @@ final class Plugin {
 			new ModulesController(),
 			new ModuleSettingsController(),
 			new PdfSettingsController(),
+			new RecaptchaSettingsController(),
 			new TrackingController(),
 			new TrackingSettingsController(),
 			new PrivacySettingsController(),
