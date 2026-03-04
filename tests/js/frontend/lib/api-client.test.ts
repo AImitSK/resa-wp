@@ -18,13 +18,13 @@ afterEach(() => {
 });
 
 describe('api-client', () => {
-	it('sendet X-WP-Nonce Header bei POST', async () => {
+	it('sendet X-WP-Nonce Header bei postLead', async () => {
 		const fetchSpy = vi
 			.spyOn(globalThis, 'fetch')
 			.mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
 
 		const { api } = await import('@frontend/lib/api-client');
-		await api.post('leads/partial', { sessionId: 'abc' });
+		await api.postLead('leads/partial', { sessionId: 'abc' });
 
 		const [, options] = fetchSpy.mock.calls[0];
 		const headers = options?.headers as Record<string, string>;
@@ -44,13 +44,26 @@ describe('api-client', () => {
 		expect(headers['X-WP-Nonce']).toBeUndefined();
 	});
 
-	it('fuegt _hp und _ts in POST-Body ein', async () => {
+	it('sendet keinen X-WP-Nonce Header bei post', async () => {
 		const fetchSpy = vi
 			.spyOn(globalThis, 'fetch')
 			.mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
 
 		const { api } = await import('@frontend/lib/api-client');
-		await api.post('leads/complete', { sessionId: 'xyz', firstName: 'Max' });
+		await api.post('tracking', { event: 'page_view' });
+
+		const [, options] = fetchSpy.mock.calls[0];
+		const headers = options?.headers as Record<string, string>;
+		expect(headers['X-WP-Nonce']).toBeUndefined();
+	});
+
+	it('fuegt _hp und _ts in postLead-Body ein', async () => {
+		const fetchSpy = vi
+			.spyOn(globalThis, 'fetch')
+			.mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+
+		const { api } = await import('@frontend/lib/api-client');
+		await api.postLead('leads/complete', { sessionId: 'xyz', firstName: 'Max' });
 
 		const [, options] = fetchSpy.mock.calls[0];
 		const body = JSON.parse(options?.body as string);
@@ -60,13 +73,27 @@ describe('api-client', () => {
 		expect(body.firstName).toBe('Max');
 	});
 
-	it('Honeypot _hp ist immer leer', async () => {
+	it('fuegt keine _hp/_ts in normalen post-Body ein', async () => {
 		const fetchSpy = vi
 			.spyOn(globalThis, 'fetch')
 			.mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
 
 		const { api } = await import('@frontend/lib/api-client');
-		await api.post('leads/partial', { _hp: 'should-be-overwritten' });
+		await api.post('tracking', { event: 'page_view' });
+
+		const [, options] = fetchSpy.mock.calls[0];
+		const body = JSON.parse(options?.body as string);
+		expect(body._hp).toBeUndefined();
+		expect(body._ts).toBeUndefined();
+	});
+
+	it('Honeypot _hp ist immer leer bei postLead', async () => {
+		const fetchSpy = vi
+			.spyOn(globalThis, 'fetch')
+			.mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+
+		const { api } = await import('@frontend/lib/api-client');
+		await api.postLead('leads/partial', { _hp: 'should-be-overwritten' });
 
 		const [, options] = fetchSpy.mock.calls[0];
 		const body = JSON.parse(options?.body as string);

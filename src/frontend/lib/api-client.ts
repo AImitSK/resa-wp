@@ -1,8 +1,9 @@
 /**
  * Public REST API client for the frontend widget.
  *
- * Sends WordPress nonce (CSRF), honeypot field, and server timestamp
- * with every POST request for spam protection.
+ * `post()` — plain POST without spam guard (for tracking, config, etc.)
+ * `postLead()` — POST with spam guard (nonce, honeypot, timestamp) for lead endpoints.
+ *
  * Reads config from window.resaFrontend (injected by shortcode).
  */
 
@@ -42,6 +43,16 @@ export const api = {
 	get: <T>(endpoint: string) => request<T>(endpoint),
 
 	post: <T>(endpoint: string, data: unknown) =>
+		request<T>(endpoint, {
+			method: 'POST',
+			body: JSON.stringify(data),
+		}),
+
+	/**
+	 * POST with spam guard fields (nonce, honeypot, timestamp).
+	 * Use ONLY for lead endpoints (leads/partial, leads/complete).
+	 */
+	postLead: <T>(endpoint: string, data: unknown) =>
 		request<T>(endpoint, {
 			method: 'POST',
 			body: JSON.stringify({

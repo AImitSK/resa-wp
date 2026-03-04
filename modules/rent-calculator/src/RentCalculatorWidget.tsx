@@ -221,7 +221,7 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 			// Create partial lead with captured URL parameters.
 			const sessionId = getSessionId();
 			const urlParams = getCapturedParams();
-			await api.post('leads/partial', {
+			await api.postLead('leads/partial', {
 				sessionId,
 				assetType: 'rent-calculator',
 				locationId: formData.city_id ?? 0,
@@ -259,7 +259,7 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 
 			try {
 				const sessionId = getSessionId();
-				await api.post('leads/complete', {
+				await api.postLead('leads/complete', {
 					sessionId,
 					...formData,
 				});
