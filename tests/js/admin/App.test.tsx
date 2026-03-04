@@ -48,12 +48,6 @@ describe('Admin App', () => {
 		expect(screen.getByRole('heading', { level: 2, name: 'Analytics' })).toBeInTheDocument();
 	});
 
-	it('rendert die Vorlagen-Seite wenn page=resa-templates', () => {
-		window.resaAdmin.page = 'resa-templates';
-		render(<App />);
-		expect(screen.getByRole('heading', { level: 2, name: 'Vorlagen' })).toBeInTheDocument();
-	});
-
 	it('rendert die Integrationen-Seite wenn page=resa-integrations', () => {
 		window.resaAdmin.page = 'resa-integrations';
 		render(<App />);

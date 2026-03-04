@@ -1,7 +1,9 @@
 /**
- * Settings page — agent data, branding, license, GDPR.
+ * Settings page — agent data, templates, tracking, GDPR.
  *
  * Tab-based navigation with Maklerdaten form as first active tab.
+ * Branding (logo, colors, powered-by) is integrated into the agent data tab.
+ * PDF and email templates are available as dedicated tabs.
  */
 
 import { useState } from 'react';
@@ -26,6 +28,10 @@ import {
 import { useLocations, type LocationAdmin } from '../hooks/useLocations';
 import { TrackingTab } from '../components/settings/TrackingTab';
 import { GdprTab } from '../components/settings/GdprTab';
+import { TemplatesTab } from '../components/communication/TemplatesTab';
+import { TemplateEditor } from '../components/communication/TemplateEditor';
+import { BaseLayoutTab } from './PdfTemplates';
+import { usePdfSettings } from '../hooks/usePdfSettings';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -40,10 +46,21 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 
-type SettingsTab = 'agent' | 'team' | 'branding' | 'maps' | 'tracking' | 'gdpr';
+type SettingsTab = 'agent' | 'team' | 'maps' | 'tracking' | 'gdpr' | 'pdf' | 'email';
 
 export function Settings() {
 	const [activeTab, setActiveTab] = useState<SettingsTab>('agent');
+	const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
+
+	// Editor view replaces the entire page.
+	if (editingTemplateId) {
+		return (
+			<TemplateEditor
+				templateId={editingTemplateId}
+				onBack={() => setEditingTemplateId(null)}
+			/>
+		);
+	}
 
 	const tabStyle = (isActive: boolean): React.CSSProperties => ({
 		display: 'inline-flex',
@@ -66,10 +83,7 @@ export function Settings() {
 		<AdminPageLayout
 			variant="overview"
 			title={__('Einstellungen', 'resa')}
-			description={__(
-				'Maklerdaten, Branding, Tracking und Datenschutz-Einstellungen.',
-				'resa',
-			)}
+			description={__('Maklerdaten, Vorlagen, Tracking und weitere Einstellungen.', 'resa')}
 		>
 			{/* Tab Navigation */}
 			<Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as SettingsTab)}>
@@ -90,9 +104,6 @@ export function Settings() {
 					<TabsTrigger value="team" style={tabStyle(activeTab === 'team')}>
 						{__('Team', 'resa')}
 					</TabsTrigger>
-					<TabsTrigger value="branding" style={tabStyle(activeTab === 'branding')}>
-						{__('Branding', 'resa')}
-					</TabsTrigger>
 					<TabsTrigger value="maps" style={tabStyle(activeTab === 'maps')}>
 						{__('Karten', 'resa')}
 					</TabsTrigger>
@@ -102,16 +113,23 @@ export function Settings() {
 					<TabsTrigger value="gdpr" style={tabStyle(activeTab === 'gdpr')}>
 						{__('Datenschutz', 'resa')}
 					</TabsTrigger>
+					<TabsTrigger value="pdf" style={tabStyle(activeTab === 'pdf')}>
+						{__('PDF-Vorlagen', 'resa')}
+					</TabsTrigger>
+					<TabsTrigger value="email" style={tabStyle(activeTab === 'email')}>
+						{__('E-Mail-Vorlagen', 'resa')}
+					</TabsTrigger>
 				</TabsList>
 			</Tabs>
 
 			{/* Tab Content */}
 			{activeTab === 'agent' && <AgentDataTab />}
 			{activeTab === 'team' && <TeamTab />}
-			{activeTab === 'branding' && <BrandingTab />}
 			{activeTab === 'maps' && <MapsTab />}
 			{activeTab === 'tracking' && <TrackingTab />}
 			{activeTab === 'gdpr' && <GdprTab />}
+			{activeTab === 'pdf' && <PdfTab />}
+			{activeTab === 'email' && <EmailTab onEditTemplate={setEditingTemplateId} />}
 		</AdminPageLayout>
 	);
 }
@@ -149,6 +167,8 @@ function AgentDataTab() {
 
 function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) {
 	const saveMutation = useSaveAgentData();
+	const { data: brandingData } = useBranding();
+	const saveBrandingMutation = useSaveBranding();
 
 	const [form, setForm] = useState<AgentData>(
 		initialData ?? {
@@ -163,30 +183,98 @@ function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) 
 			photoUrl: null,
 		},
 	);
-	const [isDirty, setIsDirty] = useState(false);
+
+	const [branding, setBranding] = useState<BrandingSettings>(
+		brandingData ?? {
+			logoUrl: '',
+			logoId: 0,
+			primaryColor: '#a9e43f',
+			secondaryColor: '#1e303a',
+			showPoweredBy: true,
+		},
+	);
+
+	// Sync branding state when data loads.
+	const [brandingSynced, setBrandingSynced] = useState(false);
+	if (brandingData && !brandingSynced) {
+		setBranding(brandingData);
+		setBrandingSynced(true);
+	}
+
+	const [agentDirty, setAgentDirty] = useState(false);
+	const [brandingDirty, setBrandingDirty] = useState(false);
+	const isDirty = agentDirty || brandingDirty;
+
+	// Free plan cannot disable "Powered by RESA".
+	const isPremium = window.resaAdmin?.features?.plan !== 'free';
 
 	const updateField = <K extends keyof AgentData>(key: K, value: AgentData[K]) => {
 		setForm((prev) => ({ ...prev, [key]: value }));
-		setIsDirty(true);
+		setAgentDirty(true);
+	};
+
+	const updateBrandingField = <K extends keyof BrandingSettings>(
+		key: K,
+		value: BrandingSettings[K],
+	) => {
+		setBranding((prev) => ({ ...prev, [key]: value }));
+		setBrandingDirty(true);
+	};
+
+	const handleSelectLogo = async () => {
+		const result = await openMediaLibrary(
+			__('Logo auswählen', 'resa'),
+			__('Als Logo verwenden', 'resa'),
+		);
+		if (result) {
+			setBranding((prev) => ({ ...prev, logoUrl: result.url, logoId: result.id }));
+			setBrandingDirty(true);
+		}
+	};
+
+	const handleRemoveLogo = () => {
+		setBranding((prev) => ({ ...prev, logoUrl: '', logoId: 0 }));
+		setBrandingDirty(true);
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
-		await saveMutation.mutateAsync({
-			name: form.name,
-			email: form.email,
-			phone: form.phone,
-			company: form.company,
-			address: form.address,
-			website: form.website,
-			imprint_url: form.imprintUrl,
-		});
+		const promises: Promise<unknown>[] = [];
 
-		setIsDirty(false);
+		if (agentDirty) {
+			promises.push(
+				saveMutation.mutateAsync({
+					name: form.name,
+					email: form.email,
+					phone: form.phone,
+					company: form.company,
+					address: form.address,
+					website: form.website,
+					imprint_url: form.imprintUrl,
+				}),
+			);
+		}
+
+		if (brandingDirty) {
+			promises.push(
+				saveBrandingMutation.mutateAsync({
+					logoUrl: branding.logoUrl,
+					logoId: branding.logoId,
+					primaryColor: branding.primaryColor,
+					secondaryColor: branding.secondaryColor,
+					showPoweredBy: branding.showPoweredBy,
+				}),
+			);
+		}
+
+		await Promise.all(promises);
+		setAgentDirty(false);
+		setBrandingDirty(false);
 	};
 
 	const isValid = form.name.trim() !== '' && form.email.trim() !== '';
+	const isSaving = saveMutation.isPending || saveBrandingMutation.isPending;
 
 	return (
 		<form
@@ -323,6 +411,270 @@ function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) 
 				</CardContent>
 			</Card>
 
+			{/* Logo */}
+			<Card>
+				<CardContent style={{ padding: '20px' }}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+						<h3
+							style={{
+								margin: 0,
+								fontSize: '14px',
+								fontWeight: 600,
+								color: '#1e303a',
+							}}
+						>
+							{__('Logo', 'resa')}
+						</h3>
+
+						{branding.logoUrl ? (
+							<div className="resa-flex resa-items-start resa-gap-4">
+								<div
+									style={{
+										width: '120px',
+										height: '80px',
+										borderRadius: '8px',
+										border: '1px solid hsl(214.3 31.8% 91.4%)',
+										backgroundColor: '#fff',
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										overflow: 'hidden',
+									}}
+								>
+									<img
+										src={branding.logoUrl}
+										alt={__('Logo', 'resa')}
+										style={{
+											maxWidth: '100%',
+											maxHeight: '100%',
+											objectFit: 'contain',
+										}}
+									/>
+								</div>
+								<div className="resa-flex resa-gap-2">
+									<Button
+										type="button"
+										variant="outline"
+										size="sm"
+										onClick={handleSelectLogo}
+									>
+										{__('Ändern', 'resa')}
+									</Button>
+									<Button
+										type="button"
+										variant="outline"
+										size="sm"
+										onClick={handleRemoveLogo}
+										style={{ color: 'hsl(0 84.2% 60.2%)' }}
+									>
+										<X
+											style={{
+												width: '14px',
+												height: '14px',
+												marginRight: '4px',
+											}}
+										/>
+										{__('Entfernen', 'resa')}
+									</Button>
+								</div>
+							</div>
+						) : (
+							<button
+								type="button"
+								onClick={handleSelectLogo}
+								style={{
+									width: '100%',
+									maxWidth: '400px',
+									padding: '24px',
+									border: '2px dashed hsl(214.3 31.8% 91.4%)',
+									borderRadius: '8px',
+									backgroundColor: 'hsl(210 40% 98%)',
+									cursor: 'pointer',
+									display: 'flex',
+									flexDirection: 'column',
+									alignItems: 'center',
+									gap: '8px',
+									transition: 'border-color 150ms',
+								}}
+								onMouseEnter={(e) =>
+									(e.currentTarget.style.borderColor = 'hsl(215.4 16.3% 46.9%)')
+								}
+								onMouseLeave={(e) =>
+									(e.currentTarget.style.borderColor = 'hsl(214.3 31.8% 91.4%)')
+								}
+							>
+								<div
+									style={{
+										width: '40px',
+										height: '40px',
+										borderRadius: '50%',
+										backgroundColor: 'hsl(210 40% 96.1%)',
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+									}}
+								>
+									<Image
+										style={{
+											width: '20px',
+											height: '20px',
+											color: 'hsl(215.4 16.3% 46.9%)',
+										}}
+									/>
+								</div>
+								<span style={{ fontWeight: 500, color: '#1e303a' }}>
+									{__('Logo auswählen', 'resa')}
+								</span>
+								<span style={{ fontSize: '12px', color: 'hsl(215.4 16.3% 46.9%)' }}>
+									{__('PNG, JPG oder SVG empfohlen', 'resa')}
+								</span>
+							</button>
+						)}
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Farben */}
+			<Card>
+				<CardContent style={{ padding: '20px' }}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+						<h3
+							style={{
+								margin: 0,
+								fontSize: '14px',
+								fontWeight: 600,
+								color: '#1e303a',
+							}}
+						>
+							{__('Farben', 'resa')}
+						</h3>
+						<div
+							className="resa-grid resa-grid-cols-2 resa-gap-4"
+							style={{ maxWidth: '400px' }}
+						>
+							<div className="resa-space-y-2">
+								<Label htmlFor="primary-color">{__('Primärfarbe', 'resa')}</Label>
+								<div className="resa-flex resa-items-center resa-gap-2">
+									<input
+										id="primary-color"
+										type="color"
+										value={branding.primaryColor}
+										onChange={(e) =>
+											updateBrandingField('primaryColor', e.target.value)
+										}
+										style={{
+											width: '40px',
+											height: '40px',
+											padding: 0,
+											border: '1px solid hsl(214.3 31.8% 91.4%)',
+											borderRadius: '6px',
+											cursor: 'pointer',
+											backgroundColor: 'transparent',
+										}}
+									/>
+									<Input
+										type="text"
+										value={branding.primaryColor}
+										onChange={(e) =>
+											updateBrandingField('primaryColor', e.target.value)
+										}
+										style={{ width: '100px', fontFamily: 'monospace' }}
+										maxLength={7}
+									/>
+								</div>
+								<p
+									className="resa-text-xs resa-text-muted-foreground"
+									style={{ margin: 0 }}
+								>
+									{__('Buttons, Akzente, Progress-Bar', 'resa')}
+								</p>
+							</div>
+							<div className="resa-space-y-2">
+								<Label htmlFor="secondary-color">
+									{__('Sekundärfarbe', 'resa')}
+								</Label>
+								<div className="resa-flex resa-items-center resa-gap-2">
+									<input
+										id="secondary-color"
+										type="color"
+										value={branding.secondaryColor}
+										onChange={(e) =>
+											updateBrandingField('secondaryColor', e.target.value)
+										}
+										style={{
+											width: '40px',
+											height: '40px',
+											padding: 0,
+											border: '1px solid hsl(214.3 31.8% 91.4%)',
+											borderRadius: '6px',
+											cursor: 'pointer',
+											backgroundColor: 'transparent',
+										}}
+									/>
+									<Input
+										type="text"
+										value={branding.secondaryColor}
+										onChange={(e) =>
+											updateBrandingField('secondaryColor', e.target.value)
+										}
+										style={{ width: '100px', fontFamily: 'monospace' }}
+										maxLength={7}
+									/>
+								</div>
+								<p
+									className="resa-text-xs resa-text-muted-foreground"
+									style={{ margin: 0 }}
+								>
+									{__('Texte, Hover-States', 'resa')}
+								</p>
+							</div>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Powered By */}
+			<Card>
+				<CardContent style={{ padding: '20px' }}>
+					<div className="resa-flex resa-items-center resa-justify-between">
+						<div>
+							<h3
+								style={{
+									margin: 0,
+									fontSize: '14px',
+									fontWeight: 600,
+									color: '#1e303a',
+								}}
+							>
+								{__('"Powered by RESA" anzeigen', 'resa')}
+							</h3>
+							<p
+								className="resa-text-sm resa-text-muted-foreground"
+								style={{ margin: 0, marginTop: '2px' }}
+							>
+								{isPremium
+									? __('Zeigt den RESA-Hinweis in deinen Smart Assets.', 'resa')
+									: __('Im Free-Plan ist der Hinweis immer sichtbar.', 'resa')}
+							</p>
+						</div>
+						<div className="resa-flex resa-items-center resa-gap-2">
+							{!isPremium && (
+								<Badge variant="secondary" style={{ fontSize: '10px' }}>
+									PRO
+								</Badge>
+							)}
+							<Switch
+								checked={branding.showPoweredBy}
+								onCheckedChange={(checked) =>
+									updateBrandingField('showPoweredBy', checked)
+								}
+								disabled={!isPremium}
+							/>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+
 			{/* Info + Save */}
 			<div
 				style={{
@@ -339,7 +691,7 @@ function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) 
 				</p>
 				<Button
 					type="submit"
-					disabled={!isDirty || !isValid || saveMutation.isPending}
+					disabled={!isDirty || !isValid || isSaving}
 					style={{
 						backgroundColor: isDirty && isValid ? '#a9e43f' : 'hsl(210 40% 96.1%)',
 						color: '#1e303a',
@@ -982,37 +1334,6 @@ function TeamMemberForm({
 }
 
 /**
- * Branding Tab — logo, colors, and powered-by toggle.
- */
-function BrandingTab() {
-	const { data: branding, isLoading, error } = useBranding();
-
-	if (isLoading) {
-		return (
-			<div className="resa-flex resa-items-center resa-justify-center resa-gap-2 resa-py-12">
-				<Spinner className="resa-size-5" />
-				<span className="resa-text-muted-foreground">
-					{__('Lade Branding-Einstellungen...', 'resa')}
-				</span>
-			</div>
-		);
-	}
-
-	if (error) {
-		return (
-			<Alert variant="destructive">
-				<AlertTitle>{__('Fehler beim Laden', 'resa')}</AlertTitle>
-				<AlertDescription>
-					{__('Die Branding-Einstellungen konnten nicht geladen werden.', 'resa')}
-				</AlertDescription>
-			</Alert>
-		);
-	}
-
-	return <BrandingForm initialData={branding} />;
-}
-
-/**
  * WordPress Media Library frame type.
  */
 interface WpMediaFrame {
@@ -1065,341 +1386,50 @@ function openMediaLibrary(
 	});
 }
 
-function BrandingForm({ initialData }: { initialData: BrandingSettings | undefined }) {
-	const saveMutation = useSaveBranding();
+/**
+ * PDF tab — loads settings and renders BaseLayoutTab.
+ */
+function PdfTab() {
+	const { data: pdfSettings, isLoading, error } = usePdfSettings();
+	const { data: brandingData } = useBranding();
+	const { data: teamMembers } = useTeamMembers();
 
-	const [form, setForm] = useState<BrandingSettings>(
-		initialData ?? {
-			logoUrl: '',
-			logoId: 0,
-			primaryColor: '#a9e43f',
-			secondaryColor: '#1e303a',
-			showPoweredBy: true,
-		},
-	);
-	const [isDirty, setIsDirty] = useState(false);
-
-	// Free plan cannot disable "Powered by RESA".
-	const isPremium = window.resaAdmin?.features?.plan !== 'free';
-
-	const updateField = <K extends keyof BrandingSettings>(key: K, value: BrandingSettings[K]) => {
-		setForm((prev) => ({ ...prev, [key]: value }));
-		setIsDirty(true);
-	};
-
-	const handleSelectLogo = async () => {
-		const result = await openMediaLibrary(
-			__('Logo auswählen', 'resa'),
-			__('Als Logo verwenden', 'resa'),
+	if (isLoading) {
+		return (
+			<div className="resa-flex resa-items-center resa-justify-center resa-gap-2 resa-py-12">
+				<Spinner className="resa-size-5" />
+				<span className="resa-text-muted-foreground">
+					{__('Lade PDF-Einstellungen...', 'resa')}
+				</span>
+			</div>
 		);
-		if (result) {
-			setForm((prev) => ({ ...prev, logoUrl: result.url, logoId: result.id }));
-			setIsDirty(true);
-		}
-	};
+	}
 
-	const handleRemoveLogo = () => {
-		setForm((prev) => ({ ...prev, logoUrl: '', logoId: 0 }));
-		setIsDirty(true);
-	};
-
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-
-		await saveMutation.mutateAsync({
-			logoUrl: form.logoUrl,
-			logoId: form.logoId,
-			primaryColor: form.primaryColor,
-			secondaryColor: form.secondaryColor,
-			showPoweredBy: form.showPoweredBy,
-		});
-
-		setIsDirty(false);
-	};
+	if (error) {
+		return (
+			<Alert variant="destructive">
+				<AlertTitle>{__('Fehler beim Laden', 'resa')}</AlertTitle>
+				<AlertDescription>
+					{__('Die PDF-Einstellungen konnten nicht geladen werden.', 'resa')}
+				</AlertDescription>
+			</Alert>
+		);
+	}
 
 	return (
-		<form
-			onSubmit={handleSubmit}
-			style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
-		>
-			{/* Logo Card */}
-			<Card>
-				<CardContent style={{ padding: '20px' }}>
-					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-						<h3
-							style={{
-								margin: 0,
-								fontSize: '14px',
-								fontWeight: 600,
-								color: '#1e303a',
-							}}
-						>
-							{__('Logo', 'resa')}
-						</h3>
-
-						{form.logoUrl ? (
-							<div className="resa-flex resa-items-start resa-gap-4">
-								<div
-									style={{
-										width: '120px',
-										height: '80px',
-										borderRadius: '8px',
-										border: '1px solid hsl(214.3 31.8% 91.4%)',
-										backgroundColor: '#fff',
-										display: 'flex',
-										alignItems: 'center',
-										justifyContent: 'center',
-										overflow: 'hidden',
-									}}
-								>
-									<img
-										src={form.logoUrl}
-										alt={__('Logo', 'resa')}
-										style={{
-											maxWidth: '100%',
-											maxHeight: '100%',
-											objectFit: 'contain',
-										}}
-									/>
-								</div>
-								<div className="resa-flex resa-gap-2">
-									<Button
-										type="button"
-										variant="outline"
-										size="sm"
-										onClick={handleSelectLogo}
-									>
-										{__('Ändern', 'resa')}
-									</Button>
-									<Button
-										type="button"
-										variant="outline"
-										size="sm"
-										onClick={handleRemoveLogo}
-										style={{ color: 'hsl(0 84.2% 60.2%)' }}
-									>
-										<X
-											style={{
-												width: '14px',
-												height: '14px',
-												marginRight: '4px',
-											}}
-										/>
-										{__('Entfernen', 'resa')}
-									</Button>
-								</div>
-							</div>
-						) : (
-							<button
-								type="button"
-								onClick={handleSelectLogo}
-								style={{
-									width: '100%',
-									maxWidth: '400px',
-									padding: '24px',
-									border: '2px dashed hsl(214.3 31.8% 91.4%)',
-									borderRadius: '8px',
-									backgroundColor: 'hsl(210 40% 98%)',
-									cursor: 'pointer',
-									display: 'flex',
-									flexDirection: 'column',
-									alignItems: 'center',
-									gap: '8px',
-									transition: 'border-color 150ms',
-								}}
-								onMouseEnter={(e) =>
-									(e.currentTarget.style.borderColor = 'hsl(215.4 16.3% 46.9%)')
-								}
-								onMouseLeave={(e) =>
-									(e.currentTarget.style.borderColor = 'hsl(214.3 31.8% 91.4%)')
-								}
-							>
-								<div
-									style={{
-										width: '40px',
-										height: '40px',
-										borderRadius: '50%',
-										backgroundColor: 'hsl(210 40% 96.1%)',
-										display: 'flex',
-										alignItems: 'center',
-										justifyContent: 'center',
-									}}
-								>
-									<Image
-										style={{
-											width: '20px',
-											height: '20px',
-											color: 'hsl(215.4 16.3% 46.9%)',
-										}}
-									/>
-								</div>
-								<span style={{ fontWeight: 500, color: '#1e303a' }}>
-									{__('Logo auswählen', 'resa')}
-								</span>
-								<span style={{ fontSize: '12px', color: 'hsl(215.4 16.3% 46.9%)' }}>
-									{__('PNG, JPG oder SVG empfohlen', 'resa')}
-								</span>
-							</button>
-						)}
-					</div>
-				</CardContent>
-			</Card>
-
-			{/* Farben Card */}
-			<Card>
-				<CardContent style={{ padding: '20px' }}>
-					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-						<h3
-							style={{
-								margin: 0,
-								fontSize: '14px',
-								fontWeight: 600,
-								color: '#1e303a',
-							}}
-						>
-							{__('Farben', 'resa')}
-						</h3>
-						<div
-							className="resa-grid resa-grid-cols-2 resa-gap-4"
-							style={{ maxWidth: '400px' }}
-						>
-							<div className="resa-space-y-2">
-								<Label htmlFor="primary-color">{__('Primärfarbe', 'resa')}</Label>
-								<div className="resa-flex resa-items-center resa-gap-2">
-									<input
-										id="primary-color"
-										type="color"
-										value={form.primaryColor}
-										onChange={(e) =>
-											updateField('primaryColor', e.target.value)
-										}
-										style={{
-											width: '40px',
-											height: '40px',
-											padding: 0,
-											border: '1px solid hsl(214.3 31.8% 91.4%)',
-											borderRadius: '6px',
-											cursor: 'pointer',
-											backgroundColor: 'transparent',
-										}}
-									/>
-									<Input
-										type="text"
-										value={form.primaryColor}
-										onChange={(e) =>
-											updateField('primaryColor', e.target.value)
-										}
-										style={{ width: '100px', fontFamily: 'monospace' }}
-										maxLength={7}
-									/>
-								</div>
-								<p
-									className="resa-text-xs resa-text-muted-foreground"
-									style={{ margin: 0 }}
-								>
-									{__('Buttons, Akzente, Progress-Bar', 'resa')}
-								</p>
-							</div>
-							<div className="resa-space-y-2">
-								<Label htmlFor="secondary-color">
-									{__('Sekundärfarbe', 'resa')}
-								</Label>
-								<div className="resa-flex resa-items-center resa-gap-2">
-									<input
-										id="secondary-color"
-										type="color"
-										value={form.secondaryColor}
-										onChange={(e) =>
-											updateField('secondaryColor', e.target.value)
-										}
-										style={{
-											width: '40px',
-											height: '40px',
-											padding: 0,
-											border: '1px solid hsl(214.3 31.8% 91.4%)',
-											borderRadius: '6px',
-											cursor: 'pointer',
-											backgroundColor: 'transparent',
-										}}
-									/>
-									<Input
-										type="text"
-										value={form.secondaryColor}
-										onChange={(e) =>
-											updateField('secondaryColor', e.target.value)
-										}
-										style={{ width: '100px', fontFamily: 'monospace' }}
-										maxLength={7}
-									/>
-								</div>
-								<p
-									className="resa-text-xs resa-text-muted-foreground"
-									style={{ margin: 0 }}
-								>
-									{__('Texte, Hover-States', 'resa')}
-								</p>
-							</div>
-						</div>
-					</div>
-				</CardContent>
-			</Card>
-
-			{/* Branding-Hinweis Card */}
-			<Card>
-				<CardContent style={{ padding: '20px' }}>
-					<div className="resa-flex resa-items-center resa-justify-between">
-						<div>
-							<h3
-								style={{
-									margin: 0,
-									fontSize: '14px',
-									fontWeight: 600,
-									color: '#1e303a',
-								}}
-							>
-								{__('"Powered by RESA" anzeigen', 'resa')}
-							</h3>
-							<p
-								className="resa-text-sm resa-text-muted-foreground"
-								style={{ margin: 0, marginTop: '2px' }}
-							>
-								{isPremium
-									? __('Zeigt den RESA-Hinweis in deinen Smart Assets.', 'resa')
-									: __('Im Free-Plan ist der Hinweis immer sichtbar.', 'resa')}
-							</p>
-						</div>
-						<div className="resa-flex resa-items-center resa-gap-2">
-							{!isPremium && (
-								<Badge variant="secondary" style={{ fontSize: '10px' }}>
-									PRO
-								</Badge>
-							)}
-							<Switch
-								checked={form.showPoweredBy}
-								onCheckedChange={(checked) => updateField('showPoweredBy', checked)}
-								disabled={!isPremium}
-							/>
-						</div>
-					</div>
-				</CardContent>
-			</Card>
-
-			{/* Save Button */}
-			<div className="resa-flex resa-justify-end">
-				<Button
-					type="submit"
-					disabled={!isDirty || saveMutation.isPending}
-					style={{
-						backgroundColor: isDirty ? '#a9e43f' : 'hsl(210 40% 96.1%)',
-						color: '#1e303a',
-						border: 'none',
-					}}
-				>
-					{__('Speichern', 'resa')}
-				</Button>
-			</div>
-		</form>
+		<BaseLayoutTab
+			initialData={pdfSettings}
+			logoUrl={brandingData?.logoUrl}
+			teamMembers={teamMembers ?? []}
+		/>
 	);
+}
+
+/**
+ * Email tab — template list with editor view.
+ */
+function EmailTab({ onEditTemplate }: { onEditTemplate: (id: string) => void }) {
+	return <TemplatesTab onEdit={onEditTemplate} />;
 }
 
 /**

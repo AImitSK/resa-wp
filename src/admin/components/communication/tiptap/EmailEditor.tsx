@@ -46,6 +46,7 @@ export function EmailEditor({
 			StarterKit.configure({
 				code: false,
 				codeBlock: false,
+				link: false,
 			}),
 			Link.configure({
 				openOnClick: false,
