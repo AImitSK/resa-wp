@@ -102,6 +102,14 @@ final class Vite {
 
 		wp_enqueue_script( $handle, $jsUrl, $deps, RESA_VERSION, $footer );
 
+		// Set Vite runtime base URL for dynamic chunk loading (lazy imports).
+		$distUrl = esc_url_raw( RESA_PLUGIN_URL . 'dist/' );
+		wp_add_inline_script(
+			$handle,
+			'window.__RESA_DIST_URL__ = ' . wp_json_encode( $distUrl ) . ';',
+			'before'
+		);
+
 		// ES module attribute.
 		add_filter(
 			'script_loader_tag',

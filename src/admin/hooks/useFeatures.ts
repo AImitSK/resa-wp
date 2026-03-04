@@ -19,6 +19,7 @@ const defaultFeatures: FeatureGate = {
 	can_use_webhooks: false,
 	can_use_api_keys: false,
 	can_use_messenger: false,
+	can_use_advanced_tracking: false,
 };
 
 /**

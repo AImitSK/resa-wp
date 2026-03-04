@@ -24,6 +24,7 @@ import {
 	type TeamMember,
 } from '../hooks/useTeam';
 import { useLocations, type LocationAdmin } from '../hooks/useLocations';
+import { TrackingTab } from '../components/settings/TrackingTab';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -38,7 +39,7 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 
-type SettingsTab = 'agent' | 'team' | 'branding' | 'maps' | 'license' | 'gdpr';
+type SettingsTab = 'agent' | 'team' | 'branding' | 'maps' | 'tracking' | 'license' | 'gdpr';
 
 export function Settings() {
 	const [activeTab, setActiveTab] = useState<SettingsTab>('agent');
@@ -91,6 +92,9 @@ export function Settings() {
 					<TabsTrigger value="maps" style={tabStyle(activeTab === 'maps')}>
 						{__('Karten', 'resa')}
 					</TabsTrigger>
+					<TabsTrigger value="tracking" style={tabStyle(activeTab === 'tracking')}>
+						{__('Tracking', 'resa')}
+					</TabsTrigger>
 					<TabsTrigger value="license" style={tabStyle(activeTab === 'license')}>
 						{__('Lizenz', 'resa')}
 					</TabsTrigger>
@@ -105,6 +109,7 @@ export function Settings() {
 			{activeTab === 'team' && <TeamTab />}
 			{activeTab === 'branding' && <BrandingTab />}
 			{activeTab === 'maps' && <MapsTab />}
+			{activeTab === 'tracking' && <TrackingTab />}
 			{activeTab === 'license' && <LicenseTab />}
 			{activeTab === 'gdpr' && <GdprTab />}
 		</AdminPageLayout>

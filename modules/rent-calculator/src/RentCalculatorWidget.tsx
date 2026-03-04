@@ -23,6 +23,7 @@ import type { StepConfig, WizardData } from '@frontend/types/wizard';
 import { api } from '@frontend/lib/api-client';
 import { getSessionId, resetSession } from '@frontend/lib/session';
 import { trackEvent } from '@frontend/lib/tracking';
+import { captureUrlParams, getCapturedParams } from '@frontend/lib/url-params';
 
 import { PropertyTypeStep } from './steps/PropertyTypeStep';
 import { PropertyDetailsStep } from './steps/PropertyDetailsStep';
@@ -67,6 +68,11 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 	const [result, setResult] = useState<RentCalculationResult | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [errorMessage, setErrorMessage] = useState('');
+
+	// Capture URL parameters (GCLID, UTM, etc.) on mount.
+	useEffect(() => {
+		captureUrlParams();
+	}, []);
 
 	// Load module config on mount.
 	useEffect(() => {
@@ -212,14 +218,25 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 			);
 			setResult(calcResult);
 
-			// Create partial lead.
+			// Create partial lead with captured URL parameters.
 			const sessionId = getSessionId();
+			const urlParams = getCapturedParams();
 			await api.post('leads/partial', {
 				sessionId,
 				assetType: 'rent-calculator',
 				locationId: formData.city_id ?? 0,
 				inputs: formData,
 				result: calcResult,
+				gclid: urlParams.gclid,
+				fbclid: urlParams.fbclid,
+				msclkid: urlParams.msclkid,
+				meta: {
+					utm_source: urlParams.utm_source,
+					utm_medium: urlParams.utm_medium,
+					utm_campaign: urlParams.utm_campaign,
+					utm_content: urlParams.utm_content,
+					utm_term: urlParams.utm_term,
+				},
 			});
 
 			trackEvent('form_view', 'rent-calculator', {

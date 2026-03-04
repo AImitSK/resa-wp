@@ -17,6 +17,7 @@ import { Locations } from './pages/Locations';
 import { Templates } from './pages/Templates';
 import { Integrations } from './pages/Integrations';
 import { Settings } from './pages/Settings';
+import { Analytics } from './pages/Analytics';
 
 const queryClient = new QueryClient({
 	defaultOptions: {
@@ -32,6 +33,7 @@ const queryClient = new QueryClient({
  */
 const PAGE_ROUTES: Record<string, string> = {
 	resa: '/',
+	'resa-analytics': '/analytics',
 	'resa-leads': '/leads',
 	'resa-modules': '/modules',
 	'resa-locations': '/locations',
@@ -52,6 +54,7 @@ export function App() {
 				<Routes>
 					<Route element={<Layout />}>
 						<Route index element={<Dashboard />} />
+						<Route path="analytics" element={<Analytics />} />
 						<Route path="leads" element={<Leads />} />
 						<Route path="modules" element={<ModuleStore />} />
 						<Route path="modules/:slug/settings" element={<ModuleSettings />} />

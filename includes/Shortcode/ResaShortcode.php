@@ -83,9 +83,10 @@ final class ResaShortcode {
 		$this->vite->enqueue( 'src/frontend/main.tsx', 'resa-frontend', [ 'wp-i18n' ] );
 
 		$frontendData = [
-			'restUrl' => esc_url_raw( rest_url( 'resa/v1/' ) ),
-			'module'  => $module,
-			'version' => RESA_VERSION,
+			'restUrl'        => esc_url_raw( rest_url( 'resa/v1/' ) ),
+			'module'         => $module,
+			'version'        => RESA_VERSION,
+			'trackingConfig' => self::getTrackingConfig(),
 		];
 
 		if ( $city !== '' ) {
@@ -95,6 +96,47 @@ final class ResaShortcode {
 		wp_localize_script( 'resa-frontend', 'resaFrontend', $frontendData );
 
 		$this->enqueued = true;
+	}
+
+	/**
+	 * Get tracking configuration for the frontend widget.
+	 *
+	 * Merges stored settings with defaults. Used by wp_localize_script
+	 * to expose config as `window.resaFrontend.trackingConfig`.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function getTrackingConfig(): array {
+		$defaults = [
+			'datalayer_enabled'           => false,
+			'google_ads_fv_id'            => '',
+			'google_ads_fv_label'         => '',
+			'google_ads_fs_id'            => '',
+			'google_ads_fs_label'         => '',
+			'enhanced_conversions_enabled' => false,
+			'gclid_capture_enabled'       => true,
+			'utm_capture_enabled'         => true,
+		];
+
+		$stored   = get_option( 'resa_tracking_settings', [] );
+		$settings = is_array( $stored ) ? array_merge( $defaults, $stored ) : $defaults;
+
+		return [
+			'datalayer_enabled'   => (bool) $settings['datalayer_enabled'],
+			'google_ads'          => [
+				'form_view'  => [
+					'id'    => sanitize_text_field( $settings['google_ads_fv_id'] ),
+					'label' => sanitize_text_field( $settings['google_ads_fv_label'] ),
+				],
+				'form_submit' => [
+					'id'    => sanitize_text_field( $settings['google_ads_fs_id'] ),
+					'label' => sanitize_text_field( $settings['google_ads_fs_label'] ),
+				],
+			],
+			'enhanced_conversions' => (bool) $settings['enhanced_conversions_enabled'],
+			'gclid_capture'        => (bool) $settings['gclid_capture_enabled'],
+			'utm_capture'          => (bool) $settings['utm_capture_enabled'],
+		];
 	}
 
 	/**

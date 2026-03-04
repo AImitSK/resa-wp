@@ -14,6 +14,7 @@ export interface FeatureGate {
 	can_use_webhooks: boolean;
 	can_use_api_keys: boolean;
 	can_use_messenger: boolean;
+	can_use_advanced_tracking: boolean;
 }
 
 /**
@@ -140,6 +141,63 @@ export interface MessengerTestResult {
 	success: boolean;
 	statusCode?: number;
 	error?: string;
+}
+
+/**
+ * Tracking settings from the REST API.
+ */
+export interface TrackingSettings {
+	funnel_tracking_enabled: boolean;
+	partial_leads_enabled: boolean;
+	partial_lead_ttl_days: number;
+	datalayer_enabled: boolean;
+	google_ads_fv_id: string;
+	google_ads_fv_label: string;
+	google_ads_fs_id: string;
+	google_ads_fs_label: string;
+	enhanced_conversions_enabled: boolean;
+	gclid_capture_enabled: boolean;
+	utm_capture_enabled: boolean;
+}
+
+/**
+ * Funnel summary data from the analytics endpoint.
+ */
+export interface FunnelSummary {
+	views: number;
+	starts: number;
+	form_views: number;
+	form_submits: number;
+	result_views: number;
+	start_rate: number;
+	completion_rate: number;
+	conversion_rate: number;
+}
+
+/**
+ * Daily funnel breakdown for trend charts.
+ */
+export interface FunnelDaily {
+	date: string;
+	views: number;
+	starts: number;
+	form_views: number;
+	form_submits: number;
+	result_views: number;
+}
+
+/**
+ * Combined funnel response from GET /analytics/funnel.
+ */
+export interface FunnelData {
+	summary: FunnelSummary;
+	daily: FunnelDaily[];
+	filters: {
+		dateFrom: string;
+		dateTo: string;
+		assetType: string;
+		locationId: number | null;
+	};
 }
 
 /**

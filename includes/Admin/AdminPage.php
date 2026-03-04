@@ -31,6 +31,7 @@ final class AdminPage {
 	private function getSubmenus(): array {
 		return [
 			'resa'               => __( 'Dashboard', 'resa' ),
+			'resa-analytics'     => __( 'Analytics', 'resa' ),
 			'resa-leads'         => __( 'Leads', 'resa' ),
 			'resa-modules'       => __( 'Smart Assets', 'resa' ),
 			'resa-locations'     => __( 'Standorte', 'resa' ),

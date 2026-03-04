@@ -139,6 +139,22 @@ export default defineConfig({
 		},
 	},
 
+	// WordPress serves plugin assets from a dynamic base URL that varies by
+	// install. Vite's default `/` base breaks dynamic imports (lazy chunks).
+	// renderBuiltUrl resolves chunk/asset URLs via a runtime global
+	// (`window.__RESA_DIST_URL__`) that PHP injects before the bundle loads.
+	experimental: {
+		renderBuiltUrl(filename, { hostType }) {
+			if (hostType === 'js') {
+				return {
+					runtime: `(window.__RESA_DIST_URL__ || "/wp-content/plugins/resa/dist/") + ${JSON.stringify(filename)}`,
+				};
+			}
+			// CSS and HTML assets use relative paths (they're loaded via PHP).
+			return filename;
+		},
+	},
+
 	resolve: {
 		alias: {
 			'@': resolve(__dirname, 'src'),

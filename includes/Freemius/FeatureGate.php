@@ -202,6 +202,16 @@ class FeatureGate {
 		return $this->isPremium();
 	}
 
+	/**
+	 * Whether advanced tracking features are available.
+	 *
+	 * Premium-only: Enhanced Conversions, GCLID capture, UTM capture,
+	 * partial lead management, funnel charts.
+	 */
+	public function canUseAdvancedTracking(): bool {
+		return $this->isPremium();
+	}
+
 	// ─── Summary ────────────────────────────────────────────
 
 	/**
@@ -222,7 +232,8 @@ class FeatureGate {
 			'can_remove_branding'  => $this->canRemoveBranding(),
 			'can_use_webhooks'     => $this->canUseWebhooks(),
 			'can_use_api_keys'     => $this->canUseApiKeys(),
-			'can_use_messenger'    => $this->canUseMessenger(),
+			'can_use_messenger'          => $this->canUseMessenger(),
+			'can_use_advanced_tracking'  => $this->canUseAdvancedTracking(),
 		];
 	}
 }

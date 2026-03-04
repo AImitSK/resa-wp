@@ -17,10 +17,12 @@ use Resa\Api\ModulesController;
 use Resa\Api\ModuleSettingsController;
 use Resa\Api\PdfSettingsController;
 use Resa\Api\TrackingController;
+use Resa\Api\TrackingSettingsController;
 use Resa\Api\ApiKeysController;
 use Resa\Api\ExternalController;
 use Resa\Api\MessengersController;
 use Resa\Api\WebhooksController;
+use Resa\Cron\PartialLeadCleanup;
 use Resa\Database\Schema;
 use Resa\Services\Auth\ApiKeyAuth;
 use Resa\Core\ModuleRegistry;
@@ -135,6 +137,9 @@ final class Plugin {
 		$shortcode = new ResaShortcode( $this->vite );
 		$shortcode->register();
 
+		// Partial lead cleanup cron job.
+		PartialLeadCleanup::register();
+
 		// Webhook dispatcher — fires on lead creation.
 		$webhookDispatcher = new WebhookDispatcher();
 		add_action( 'resa_lead_created', [ $webhookDispatcher, 'onLeadCreated' ] );
@@ -164,6 +169,7 @@ final class Plugin {
 			new ModuleSettingsController(),
 			new PdfSettingsController(),
 			new TrackingController(),
+			new TrackingSettingsController(),
 			new WebhooksController(),
 			new MessengersController(),
 			new ApiKeysController(),

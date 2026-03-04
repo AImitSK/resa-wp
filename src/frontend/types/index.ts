@@ -14,6 +14,17 @@ export interface ResaFrontendContext {
 	city?: string;
 	/** Plugin version for cache-busting */
 	version: string;
+	/** Tracking configuration from admin settings. */
+	trackingConfig?: {
+		datalayer_enabled: boolean;
+		google_ads: {
+			form_view: { id: string; label: string };
+			form_submit: { id: string; label: string };
+		};
+		enhanced_conversions: boolean;
+		gclid_capture: boolean;
+		utm_capture: boolean;
+	};
 }
 
 declare global {
