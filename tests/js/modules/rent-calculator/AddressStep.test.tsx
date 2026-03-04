@@ -67,10 +67,10 @@ describe('AddressStep', () => {
 		render(<AddressStep {...defaultProps} />);
 
 		expect(screen.getByRole('heading')).toHaveTextContent('Wo befindet sich die Immobilie?');
-		expect(screen.getByText(/Adresse der Immobilie/)).toBeInTheDocument();
+		expect(screen.getByText(/Optional: Für eine genauere Bewertung/)).toBeInTheDocument();
 	});
 
-	it('zeigt stadtspezifische Beschreibung wenn cityBounds angegeben', () => {
+	it('zeigt stadtspezifischen Placeholder wenn cityBounds angegeben', () => {
 		render(
 			<AddressStep
 				{...defaultProps}
@@ -78,7 +78,7 @@ describe('AddressStep', () => {
 			/>,
 		);
 
-		expect(screen.getByText(/Adresse in München/)).toBeInTheDocument();
+		expect(screen.getByPlaceholderText(/Musterstraße 1, München/)).toBeInTheDocument();
 	});
 
 	it('rendert AddressInput Komponente', () => {
@@ -138,10 +138,10 @@ describe('AddressStep', () => {
 		);
 	});
 
-	it('zeigt Hinweis zum Überspringen', () => {
+	it('zeigt dass Adresse optional ist', () => {
 		render(<AddressStep {...defaultProps} />);
 
-		expect(screen.getByText(/können diesen Schritt überspringen/)).toBeInTheDocument();
+		expect(screen.getByText(/Optional/)).toBeInTheDocument();
 	});
 
 	it('ruft updateData mit undefined Werten auf bei Löschen', () => {
