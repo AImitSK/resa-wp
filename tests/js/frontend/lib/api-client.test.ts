@@ -31,7 +31,7 @@ describe('api-client', () => {
 		expect(headers['X-WP-Nonce']).toBe('test_nonce_abc123');
 	});
 
-	it('sendet X-WP-Nonce Header bei GET', async () => {
+	it('sendet keinen X-WP-Nonce Header bei GET', async () => {
 		const fetchSpy = vi
 			.spyOn(globalThis, 'fetch')
 			.mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
@@ -41,7 +41,7 @@ describe('api-client', () => {
 
 		const [, options] = fetchSpy.mock.calls[0];
 		const headers = options?.headers as Record<string, string>;
-		expect(headers['X-WP-Nonce']).toBe('test_nonce_abc123');
+		expect(headers['X-WP-Nonce']).toBeUndefined();
 	});
 
 	it('fuegt _hp und _ts in POST-Body ein', async () => {

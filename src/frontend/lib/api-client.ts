@@ -26,7 +26,6 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 		...options,
 		headers: {
 			'Content-Type': 'application/json',
-			'X-WP-Nonce': getNonce(),
 			...options.headers,
 		},
 	});
@@ -50,5 +49,8 @@ export const api = {
 				_hp: '',
 				_ts: getTimestamp(),
 			}),
+			headers: {
+				'X-WP-Nonce': getNonce(),
+			},
 		}),
 };
