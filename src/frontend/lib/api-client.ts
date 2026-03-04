@@ -61,7 +61,7 @@ export const api = {
 				_ts: getTimestamp(),
 			}),
 			headers: {
-				'X-WP-Nonce': getNonce(),
+				'X-Resa-Nonce': getNonce(),
 			},
 		}),
 };

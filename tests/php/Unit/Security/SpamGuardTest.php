@@ -38,7 +38,7 @@ class SpamGuardTest extends TestCase {
 
 		$request = Mockery::mock( 'WP_REST_Request' );
 		$request->shouldReceive( 'get_header' )
-			->with( 'X-WP-Nonce' )
+			->with( 'X-Resa-Nonce' )
 			->andReturn( $params['nonce'] );
 		$request->shouldReceive( 'get_param' )
 			->with( '_hp' )

@@ -28,10 +28,10 @@ describe('api-client', () => {
 
 		const [, options] = fetchSpy.mock.calls[0];
 		const headers = options?.headers as Record<string, string>;
-		expect(headers['X-WP-Nonce']).toBe('test_nonce_abc123');
+		expect(headers['X-Resa-Nonce']).toBe('test_nonce_abc123');
 	});
 
-	it('sendet keinen X-WP-Nonce Header bei GET', async () => {
+	it('sendet keinen X-Resa-Nonce Header bei GET', async () => {
 		const fetchSpy = vi
 			.spyOn(globalThis, 'fetch')
 			.mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
@@ -41,10 +41,10 @@ describe('api-client', () => {
 
 		const [, options] = fetchSpy.mock.calls[0];
 		const headers = options?.headers as Record<string, string>;
-		expect(headers['X-WP-Nonce']).toBeUndefined();
+		expect(headers['X-Resa-Nonce']).toBeUndefined();
 	});
 
-	it('sendet keinen X-WP-Nonce Header bei post', async () => {
+	it('sendet keinen X-Resa-Nonce Header bei post', async () => {
 		const fetchSpy = vi
 			.spyOn(globalThis, 'fetch')
 			.mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
@@ -54,7 +54,7 @@ describe('api-client', () => {
 
 		const [, options] = fetchSpy.mock.calls[0];
 		const headers = options?.headers as Record<string, string>;
-		expect(headers['X-WP-Nonce']).toBeUndefined();
+		expect(headers['X-Resa-Nonce']).toBeUndefined();
 	});
 
 	it('fuegt _hp und _ts in postLead-Body ein', async () => {

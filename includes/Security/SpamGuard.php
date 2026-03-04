@@ -29,7 +29,7 @@ final class SpamGuard {
 	 */
 	public static function check( \WP_REST_Request $request ): \WP_Error|bool {
 		// 1. Nonce.
-		$nonce = $request->get_header( 'X-WP-Nonce' );
+		$nonce = $request->get_header( 'X-Resa-Nonce' );
 		if ( ! $nonce || ! wp_verify_nonce( $nonce, self::NONCE_ACTION ) ) {
 			return self::reject();
 		}

@@ -32,7 +32,7 @@ class LeadsControllerTest extends TestCase {
 	 */
 	private function mockSpamGuardPass( $request ): void {
 		$request->shouldReceive( 'get_header' )
-			->with( 'X-WP-Nonce' )
+			->with( 'X-Resa-Nonce' )
 			->andReturn( 'valid_nonce' );
 		$request->shouldReceive( 'get_param' )
 			->with( '_hp' )
@@ -89,7 +89,7 @@ class LeadsControllerTest extends TestCase {
 
 		$request = Mockery::mock( 'WP_REST_Request' );
 		$request->shouldReceive( 'get_header' )
-			->with( 'X-WP-Nonce' )
+			->with( 'X-Resa-Nonce' )
 			->andReturn( 'bad_nonce' );
 
 		$controller = new LeadsController();
@@ -159,7 +159,7 @@ class LeadsControllerTest extends TestCase {
 
 		$request = Mockery::mock( 'WP_REST_Request' );
 		$request->shouldReceive( 'get_header' )
-			->with( 'X-WP-Nonce' )
+			->with( 'X-Resa-Nonce' )
 			->andReturn( 'bad_nonce' );
 
 		$controller = new LeadsController();
