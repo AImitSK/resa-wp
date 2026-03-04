@@ -33,6 +33,8 @@ final class ErrorMessages {
 	public const WEBHOOK_NOT_FOUND     = 'resa_webhook_not_found';
 	public const WEBHOOK_LIMIT         = 'resa_webhook_limit';
 	public const WEBHOOK_INVALID_URL   = 'resa_webhook_invalid_url';
+	public const API_KEY_NOT_FOUND     = 'resa_api_key_not_found';
+	public const API_KEY_LIMIT         = 'resa_api_key_limit';
 
 	/**
 	 * Get error message by code.
@@ -57,6 +59,8 @@ final class ErrorMessages {
 			self::WEBHOOK_NOT_FOUND     => __( 'Webhook nicht gefunden.', 'resa' ),
 			self::WEBHOOK_LIMIT         => __( 'Maximal 5 Webhooks erlaubt.', 'resa' ),
 			self::WEBHOOK_INVALID_URL   => __( 'Bitte geben Sie eine gültige URL ein.', 'resa' ),
+			self::API_KEY_NOT_FOUND     => __( 'API-Schlüssel nicht gefunden.', 'resa' ),
+			self::API_KEY_LIMIT         => __( 'Maximal 5 API-Schlüssel erlaubt.', 'resa' ),
 			default                      => __( 'Ein Fehler ist aufgetreten.', 'resa' ),
 		};
 	}

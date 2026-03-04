@@ -17,8 +17,11 @@ use Resa\Api\ModulesController;
 use Resa\Api\ModuleSettingsController;
 use Resa\Api\PdfSettingsController;
 use Resa\Api\TrackingController;
+use Resa\Api\ApiKeysController;
+use Resa\Api\ExternalController;
 use Resa\Api\WebhooksController;
 use Resa\Database\Schema;
+use Resa\Services\Auth\ApiKeyAuth;
 use Resa\Core\ModuleRegistry;
 use Resa\Freemius\FeatureGate;
 use Resa\Services\Integration\WebhookDispatcher;
@@ -114,6 +117,9 @@ final class Plugin {
 			Schema::migrate( $dbVersion );
 		}
 
+		// API key authentication for external endpoints.
+		ApiKeyAuth::register();
+
 		// Admin pages.
 		if ( is_admin() ) {
 			$adminPage = new AdminPage( $this->vite );
@@ -153,6 +159,8 @@ final class Plugin {
 			new PdfSettingsController(),
 			new TrackingController(),
 			new WebhooksController(),
+			new ApiKeysController(),
+			new ExternalController(),
 		];
 
 		foreach ( $controllers as $controller ) {

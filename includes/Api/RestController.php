@@ -100,6 +100,19 @@ abstract class RestController {
 	}
 
 	/**
+	 * Permission callback: API key (Bearer) or admin access.
+	 *
+	 * Used for external read-only endpoints.
+	 */
+	public function apiKeyAccess(): bool {
+		if ( current_user_can( 'manage_options' ) ) {
+			return true;
+		}
+
+		return \Resa\Services\Auth\ApiKeyAuth::isAuthenticated();
+	}
+
+	/**
 	 * Get a required string parameter or return a validation error.
 	 *
 	 * @param \WP_REST_Request $request REST request.

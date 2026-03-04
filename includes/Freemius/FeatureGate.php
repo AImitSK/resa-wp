@@ -188,6 +188,13 @@ class FeatureGate {
 		return $this->isPremium();
 	}
 
+	/**
+	 * Whether API keys for external access are available.
+	 */
+	public function canUseApiKeys(): bool {
+		return $this->isPremium();
+	}
+
 	// ─── Summary ────────────────────────────────────────────
 
 	/**
@@ -207,6 +214,7 @@ class FeatureGate {
 			'can_use_smtp'         => $this->canUseSmtp(),
 			'can_remove_branding'  => $this->canRemoveBranding(),
 			'can_use_webhooks'     => $this->canUseWebhooks(),
+			'can_use_api_keys'     => $this->canUseApiKeys(),
 		];
 	}
 }

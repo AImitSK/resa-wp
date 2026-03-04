@@ -17,6 +17,7 @@ const defaultFeatures: FeatureGate = {
 	can_use_smtp: false,
 	can_remove_branding: false,
 	can_use_webhooks: false,
+	can_use_api_keys: false,
 };
 
 /**

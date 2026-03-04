@@ -15,7 +15,7 @@ final class Schema {
 	/**
 	 * Current schema version.
 	 */
-	public const VERSION = '0.6.0';
+	public const VERSION = '0.7.0';
 
 	/**
 	 * Run migrations from the given version to current.
@@ -47,6 +47,10 @@ final class Schema {
 
 		if ( version_compare( $fromVersion, '0.6.0', '<' ) ) {
 			self::migrateToV060();
+		}
+
+		if ( version_compare( $fromVersion, '0.7.0', '<' ) ) {
+			self::migrateToV070();
 		}
 
 		update_option( 'resa_db_version', self::VERSION );
@@ -88,6 +92,7 @@ final class Schema {
 			$wpdb->prefix . 'resa_agent_locations',
 			$wpdb->prefix . 'resa_module_settings',
 			$wpdb->prefix . 'resa_webhooks',
+			$wpdb->prefix . 'resa_api_keys',
 		];
 	}
 
@@ -376,6 +381,33 @@ CREATE TABLE {$prefix}resa_agent_locations (
   created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY  (id),
+  KEY idx_active (is_active)
+) {$charset};";
+
+		dbDelta( $sql );
+	}
+
+	/**
+	 * v0.7.0 — Add API keys table.
+	 *
+	 * Stores hashed API keys for external read-only access.
+	 */
+	private static function migrateToV070(): void {
+		global $wpdb;
+
+		$charset = $wpdb->get_charset_collate();
+		$prefix  = $wpdb->prefix;
+
+		$sql = "CREATE TABLE {$prefix}resa_api_keys (
+  id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  name varchar(255) NOT NULL,
+  key_prefix varchar(13) NOT NULL,
+  key_hash varchar(64) NOT NULL,
+  is_active tinyint(1) NOT NULL DEFAULT 1,
+  last_used_at datetime DEFAULT NULL,
+  created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY  (id),
+  UNIQUE KEY idx_key_hash (key_hash),
   KEY idx_active (is_active)
 ) {$charset};";
 

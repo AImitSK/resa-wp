@@ -12,6 +12,7 @@ export interface FeatureGate {
 	can_use_smtp: boolean;
 	can_remove_branding: boolean;
 	can_use_webhooks: boolean;
+	can_use_api_keys: boolean;
 }
 
 /**
@@ -82,6 +83,25 @@ export interface WebhookConfig {
 	isActive: boolean;
 	createdAt: string;
 	updatedAt: string;
+}
+
+/**
+ * API key configuration from the REST API (never contains plain key).
+ */
+export interface ApiKeyConfig {
+	id: number;
+	name: string;
+	keyPrefix: string;
+	isActive: boolean;
+	lastUsedAt: string | null;
+	createdAt: string;
+}
+
+/**
+ * API key creation response (includes plain key once).
+ */
+export interface ApiKeyCreateResponse extends ApiKeyConfig {
+	key: string;
 }
 
 /**

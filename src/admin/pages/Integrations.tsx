@@ -6,10 +6,11 @@
 
 import { useState } from 'react';
 import { __ } from '@wordpress/i18n';
-import { Key, MessageSquare, Puzzle } from 'lucide-react';
+import { MessageSquare, Puzzle } from 'lucide-react';
 import { AdminPageLayout } from '../components/AdminPageLayout';
 import { useIsPremium } from '../hooks/useFeatures';
 import { WebhooksTab } from '../components/integrations/WebhooksTab';
+import { ApiKeysTab } from '../components/integrations/ApiKeysTab';
 import type { IntegrationTab } from '../types';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,7 +53,7 @@ export function Integrations() {
 			case 'webhooks':
 				return <WebhooksTab />;
 			case 'api':
-				return <ApiTab />;
+				return <ApiKeysTab />;
 			case 'slack-teams':
 				return <SlackTeamsTab />;
 			default: {
@@ -139,27 +140,6 @@ function UpgradeNotice() {
 				</div>
 			</AlertDescription>
 		</Alert>
-	);
-}
-
-/**
- * API tab — placeholder.
- */
-function ApiTab() {
-	return (
-		<Card>
-			<CardHeader>
-				<CardTitle className="resa-flex resa-items-center resa-gap-2">
-					<Key className="resa-h-5 resa-w-5" />
-					{__('API', 'resa')}
-				</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<p className="resa-text-sm resa-text-muted-foreground">
-					{__('API-Key-Verwaltung wird hier implementiert.', 'resa')}
-				</p>
-			</CardContent>
-		</Card>
 	);
 }
 
