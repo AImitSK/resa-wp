@@ -110,11 +110,16 @@ export function PropstackTab() {
 
 	const isConnected = connectionStatus === 'connected';
 
-	// Fetch dropdown data only wenn connected
-	const { data: brokers, isLoading: brokersLoading } = usePropstackBrokers(isConnected);
+	// Only fetch dropdown data if API key is saved in settings (not just entered)
+	const hasApiKeySaved = Boolean(settings?.api_key || settings?.api_key_masked);
+	const shouldFetchDropdowns = isConnected && hasApiKeySaved;
+
+	// Fetch dropdown data only wenn connected AND API key is saved
+	const { data: brokers, isLoading: brokersLoading } = usePropstackBrokers(shouldFetchDropdowns);
 	const { data: contactSources, isLoading: sourcesLoading } =
-		usePropstackContactSources(isConnected);
-	const { data: activityTypes, isLoading: typesLoading } = usePropstackActivityTypes(isConnected);
+		usePropstackContactSources(shouldFetchDropdowns);
+	const { data: activityTypes, isLoading: typesLoading } =
+		usePropstackActivityTypes(shouldFetchDropdowns);
 
 	const updateField = <K extends keyof PropstackSettings>(
 		key: K,
