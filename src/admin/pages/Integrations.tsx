@@ -119,7 +119,29 @@ export function Integrations() {
 							value={tab.slug}
 							style={tabStyle(activeTab === tab.slug)}
 						>
-							{tab.label}
+							<span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+								{tab.label}
+								<span
+									style={{
+										fontSize: '10px',
+										fontWeight: 600,
+										padding: '2px 6px',
+										borderRadius: '4px',
+										backgroundColor:
+											activeTab === tab.slug
+												? 'hsl(210 40% 96.1%)'
+												: 'hsl(215.4 16.3% 46.9%)',
+										color:
+											activeTab === tab.slug
+												? 'hsl(215.4 16.3% 46.9%)'
+												: 'white',
+										textTransform: 'uppercase',
+										letterSpacing: '0.5px',
+									}}
+								>
+									Add-on
+								</span>
+							</span>
 						</TabsTrigger>
 					))}
 				</TabsList>
