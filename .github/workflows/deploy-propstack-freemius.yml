@@ -1,0 +1,85 @@
+name: Deploy Propstack Add-on to Freemius
+
+on:
+  push:
+    tags:
+      - 'propstack-v*'
+
+jobs:
+  deploy:
+    name: Build & Deploy to Freemius
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer:v2
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/propstack-v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Deploying version: $VERSION"
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install add-on dependencies
+        working-directory: addons/resa-propstack
+        run: |
+          npm install
+          composer install --no-dev --optimize-autoloader --no-interaction
+
+      - name: Generate i18n files
+        working-directory: addons/resa-propstack
+        run: |
+          mkdir -p languages
+          echo "i18n generation placeholder (implement if needed)"
+
+      - name: Create distribution ZIP
+        working-directory: addons/resa-propstack
+        run: npm run zip
+
+      - name: Verify ZIP exists
+        working-directory: addons/resa-propstack
+        run: |
+          ls -lh resa-propstack-*.zip
+          echo "ZIP created successfully"
+
+      - name: Deploy to Freemius
+        env:
+          FREEMIUS_TOKEN: ${{ secrets.FREEMIUS_PROPSTACK_TOKEN }}
+          PRODUCT_ID: '99999' # PLACEHOLDER - nach Freemius-Setup ersetzen
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer $FREEMIUS_TOKEN" \
+            -F "file=@addons/resa-propstack/resa-propstack-${{ steps.version.outputs.version }}.zip" \
+            "https://api.freemius.com/v1/products/$PRODUCT_ID/tags.json"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: addons/resa-propstack/resa-propstack-*.zip
+          body: |
+            Propstack CRM Integration Add-on v${{ steps.version.outputs.version }}
+
+            **Changelog:** See readme.txt
+
+            **Installation:**
+            1. RESA Premium erforderlich
+            2. ZIP hochladen und aktivieren
+            3. Unter RESA → Integrationen → Propstack konfigurieren
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
