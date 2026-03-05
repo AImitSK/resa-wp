@@ -104,6 +104,6 @@ export function usePropstackActivityTypes(enabled: boolean) {
  */
 export function useManualPropstackSync() {
 	return useMutation({
-		mutationFn: (leadId: number) => apiClient.post(`admin/propstack/sync/${leadId}`),
+		mutationFn: (leadId: number) => apiClient.post(`admin/propstack/sync/${leadId}`, {}),
 	});
 }
