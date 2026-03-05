@@ -13,6 +13,7 @@ import { WebhooksTab } from '../components/integrations/WebhooksTab';
 import { ApiKeysTab } from '../components/integrations/ApiKeysTab';
 import { MessengerTab } from '../components/integrations/MessengerTab';
 import { RecaptchaTab } from '../components/integrations/RecaptchaTab';
+import { PropstackTab } from '../components/integrations/PropstackTab';
 import type { IntegrationTab } from '../types';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,7 +66,15 @@ export function Integrations() {
 				return <MessengerTab />;
 			default: {
 				const addon = addonTabs.find((t) => t.slug === activeTab);
-				return addon ? <AddonTab name={addon.label} /> : null;
+				if (!addon) return null;
+
+				// Special handling für Propstack Add-on
+				if (addon.slug === 'propstack') {
+					return <PropstackTab />;
+				}
+
+				// Generic fallback für andere Add-ons
+				return <AddonTab name={addon.label} />;
 			}
 		}
 	};

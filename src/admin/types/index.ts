@@ -241,3 +241,57 @@ export interface WebhookTestResult {
 	statusCode?: number;
 	error?: string;
 }
+
+/**
+ * Propstack CRM integration settings.
+ */
+export interface PropstackSettings {
+	enabled: boolean;
+	api_key: string;
+	api_key_masked?: string;
+	city_broker_mapping: Record<number, number>;
+	default_broker_id: number | null;
+	contact_source_id: number | null;
+	activity_enabled: boolean;
+	activity_type_id: number | null;
+	activity_create_task: boolean;
+	activity_task_due_days: number;
+	sync_newsletter_only: boolean;
+	newsletter_broker_id: number | null;
+}
+
+/**
+ * Propstack broker (Makler).
+ */
+export interface PropstackBroker {
+	id: number;
+	name: string;
+	email: string;
+	phone?: string;
+}
+
+/**
+ * Propstack contact source (Kontaktquelle).
+ */
+export interface PropstackContactSource {
+	id: number;
+	name: string;
+}
+
+/**
+ * Propstack activity type.
+ */
+export interface PropstackActivityType {
+	id: number;
+	name: string;
+	category?: string;
+}
+
+/**
+ * Result from Propstack connection test.
+ */
+export interface PropstackTestResult {
+	success: boolean;
+	broker_count?: number;
+	error?: string;
+}
