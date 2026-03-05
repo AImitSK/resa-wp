@@ -1,0 +1,12 @@
+{
+	"name": "resa-propstack",
+	"version": "1.0.0",
+	"description": "Propstack CRM Integration for RESA",
+	"private": true,
+	"scripts": {
+		"zip": "node scripts/create-zip.js"
+	},
+	"devDependencies": {
+		"adm-zip": "^0.5.10"
+	}
+}
