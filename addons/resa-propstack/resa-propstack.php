@@ -70,10 +70,10 @@ function resa_propstack_fs(): ?\Freemius {
 		}
 
 		$resa_propstack_fs = fs_dynamic_init([
-			'id'             => '99999',                    // PLACEHOLDER - nach Freemius-Setup ersetzen
+			'id'             => '25414',
 			'slug'           => 'resa-propstack',
 			'type'           => 'plugin',
-			'public_key'     => 'pk_PLACEHOLDER',          // PLACEHOLDER - nach Freemius-Setup ersetzen
+			'public_key'     => 'pk_ce5e549b2fea1003af9197abb34d5',
 			'is_premium'     => true,
 			'has_paid_plans' => true,
 			'parent'         => [

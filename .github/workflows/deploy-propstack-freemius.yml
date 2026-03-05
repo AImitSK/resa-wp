@@ -61,7 +61,7 @@ jobs:
       - name: Deploy to Freemius
         env:
           FREEMIUS_TOKEN: ${{ secrets.FREEMIUS_PROPSTACK_TOKEN }}
-          PRODUCT_ID: '99999' # PLACEHOLDER - nach Freemius-Setup ersetzen
+          PRODUCT_ID: '25414'
         run: |
           curl -X POST \
             -H "Authorization: Bearer $FREEMIUS_TOKEN" \
