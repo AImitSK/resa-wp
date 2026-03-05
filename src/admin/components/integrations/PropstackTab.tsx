@@ -103,10 +103,15 @@ export function PropstackTab() {
 	// Update form when settings load (initial only)
 	useEffect(() => {
 		if (settings) {
-			setForm(settings);
+			// Preserve locally entered API key if it exists
+			setForm((prev) => ({
+				...settings,
+				// Don't overwrite api_key if user has entered one locally
+				api_key: prev.api_key || settings.api_key || '',
+			}));
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [settings?.enabled, settings?.api_key]);
+	}, [settings?.enabled, settings?.api_key_masked]);
 
 	const isConnected = connectionStatus === 'connected';
 
