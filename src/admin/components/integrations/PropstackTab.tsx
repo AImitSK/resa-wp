@@ -386,13 +386,13 @@ export function PropstackTab() {
 																value={
 																	form.city_broker_mapping[
 																		location.id
-																	]?.toString() || ''
+																	]?.toString() || '__none__'
 																}
 																onValueChange={(val) => {
 																	const mapping = {
 																		...form.city_broker_mapping,
 																	};
-																	if (val) {
+																	if (val && val !== '__none__') {
 																		mapping[location.id] =
 																			parseInt(val, 10);
 																	} else {
@@ -413,7 +413,7 @@ export function PropstackTab() {
 																	/>
 																</SelectTrigger>
 																<SelectContent>
-																	<SelectItem value="">
+																	<SelectItem value="__none__">
 																		{__(
 																			'Standard verwenden',
 																			'resa-propstack',
