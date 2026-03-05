@@ -37,6 +37,12 @@ export interface LeadDetail extends LeadAdmin {
 	consentDate: string | null;
 	updatedAt: string;
 	completedAt: string | null;
+	propstack?: {
+		synced: boolean;
+		propstackId: number | null;
+		error: string | null;
+		syncedAt: string | null;
+	};
 }
 
 export interface LeadsFilter {

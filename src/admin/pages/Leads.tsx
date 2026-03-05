@@ -47,6 +47,7 @@ import { useFeatures } from '../hooks/useFeatures';
 import { AdminPageLayout } from '../components/AdminPageLayout';
 import { LeadEmailLogSection } from '../components/leads/LeadEmailLogSection';
 import { LeafletMapWrapper } from '../components/map/LeafletMapWrapper';
+import { useManualPropstackSync } from '../hooks/usePropstack';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -169,6 +170,7 @@ export function Leads() {
 	const updateMutation = useUpdateLead();
 	const deleteMutation = useDeleteLead();
 	const exportMutation = useExportLeads();
+	const propstackSyncMutation = useManualPropstackSync();
 
 	const isPremium = features.plan === 'premium';
 	const canExport = features.can_export_leads;
@@ -1069,6 +1071,134 @@ export function Leads() {
 									</Table>
 								</div>
 							) : null}
+
+							{/* Propstack Sync Status */}
+							{selectedLead.propstack && (
+								<div
+									style={{
+										borderRadius: '8px',
+										border: '1px solid hsl(214.3 31.8% 91.4%)',
+										overflow: 'hidden',
+									}}
+								>
+									<div
+										style={{
+											padding: '12px 16px',
+											backgroundColor: 'hsl(210 40% 96.1%)',
+											borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+										}}
+									>
+										<span style={{ fontWeight: 600, color: '#1e303a' }}>
+											{__('Propstack CRM Sync', 'resa')}
+										</span>
+									</div>
+									<div style={{ padding: '16px' }}>
+										<div
+											style={{
+												display: 'flex',
+												flexDirection: 'column',
+												gap: '12px',
+											}}
+										>
+											{/* Sync Status Badge */}
+											<div
+												style={{
+													display: 'flex',
+													alignItems: 'center',
+													gap: '10px',
+												}}
+											>
+												{selectedLead.propstack.synced ? (
+													<Badge
+														variant="default"
+														style={{ backgroundColor: '#22c55e' }}
+													>
+														✓ {__('Synchronisiert', 'resa')}
+													</Badge>
+												) : (
+													<Badge variant="secondary">
+														⏳ {__('Ausstehend', 'resa')}
+													</Badge>
+												)}
+												{selectedLead.propstack.syncedAt && (
+													<span
+														style={{
+															fontSize: '13px',
+															color: 'hsl(215.4 16.3% 46.9%)',
+														}}
+													>
+														{formatDateTime(
+															selectedLead.propstack.syncedAt,
+														)}
+													</span>
+												)}
+											</div>
+
+											{/* Propstack Contact ID */}
+											{selectedLead.propstack.propstackId && (
+												<div
+													style={{
+														fontSize: '13px',
+														color: '#1e303a',
+													}}
+												>
+													<strong>
+														{__('Propstack Kontakt-ID:', 'resa')}
+													</strong>{' '}
+													{selectedLead.propstack.propstackId}
+												</div>
+											)}
+
+											{/* Error Message */}
+											{selectedLead.propstack.error && (
+												<div
+													style={{
+														padding: '10px 12px',
+														backgroundColor: '#fef2f2',
+														border: '1px solid #fee2e2',
+														borderRadius: '6px',
+														fontSize: '13px',
+														color: '#991b1b',
+													}}
+												>
+													<strong>{__('Fehler:', 'resa')}</strong>{' '}
+													{selectedLead.propstack.error}
+												</div>
+											)}
+
+											{/* Re-sync Button */}
+											<div>
+												<Button
+													type="button"
+													variant="outline"
+													size="sm"
+													onClick={() =>
+														selectedLeadId &&
+														propstackSyncMutation.mutate(selectedLeadId)
+													}
+													disabled={propstackSyncMutation.isPending}
+												>
+													{propstackSyncMutation.isPending && (
+														<div
+															style={{
+																marginRight: '8px',
+																width: '14px',
+																height: '14px',
+																border: '2px solid currentColor',
+																borderTopColor: 'transparent',
+																borderRadius: '50%',
+																animation:
+																	'spin 0.6s linear infinite',
+															}}
+														/>
+													)}
+													{__('Erneut synchronisieren', 'resa')}
+												</Button>
+											</div>
+										</div>
+									</div>
+								</div>
+							)}
 
 							{/* Email Log */}
 							<LeadEmailLogSection leadId={selectedLead.id} />
