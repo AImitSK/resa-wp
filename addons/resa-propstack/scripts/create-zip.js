@@ -19,18 +19,20 @@ console.log(`Creating ZIP: ${zipName}`);
 // Create new ZIP
 const zip = new AdmZip();
 
-// Include files
+// Plugin folder name in ZIP (WordPress requirement)
+const pluginFolder = 'resa-propstack';
+
+// Include files (added to plugin folder)
 const filesToInclude = [
 	'resa-propstack.php',
 	'readme.txt',
-	'composer.json',
 ];
 
 filesToInclude.forEach((file) => {
 	const filePath = path.join(rootDir, file);
 	if (fs.existsSync(filePath)) {
-		zip.addLocalFile(filePath);
-		console.log(`✓ Added ${file}`);
+		zip.addLocalFile(filePath, pluginFolder);
+		console.log(`✓ Added ${pluginFolder}/${file}`);
 	} else {
 		console.warn(`⚠ File not found: ${file}`);
 	}
@@ -38,9 +40,9 @@ filesToInclude.forEach((file) => {
 
 // Include directories
 const dirsToInclude = [
-	{ local: 'includes', zip: 'resa-propstack/includes' },
-	{ local: 'vendor', zip: 'resa-propstack/vendor' },
-	{ local: 'languages', zip: 'resa-propstack/languages' },
+	{ local: 'includes', zip: `${pluginFolder}/includes` },
+	{ local: 'vendor', zip: `${pluginFolder}/vendor` },
+	{ local: 'languages', zip: `${pluginFolder}/languages` },
 ];
 
 dirsToInclude.forEach((dir) => {
