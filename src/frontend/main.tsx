@@ -10,10 +10,12 @@ import './styles/frontend.css';
 import './types/index'; // Window augmentation
 
 import { RentCalculatorWidget } from '@modules/rent-calculator/src/RentCalculatorWidget';
+import { ValueCalculatorWidget } from '@modules/value-calculator/src/ValueCalculatorWidget';
 
 /** Map of module slug → React component. */
 const modules: Record<string, React.ComponentType<{ presetCity?: string }>> = {
 	'rent-calculator': RentCalculatorWidget,
+	'value-calculator': ValueCalculatorWidget,
 };
 
 document.querySelectorAll<HTMLElement>('.resa-widget-root').forEach((container) => {

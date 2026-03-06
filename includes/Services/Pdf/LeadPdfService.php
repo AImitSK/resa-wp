@@ -198,10 +198,20 @@ final class LeadPdfService {
 
 		// Extract result values - handle nested monthly_rent structure.
 		$monthlyRent   = $result['monthly_rent'] ?? [];
-		$estimatedRent = (float) ( $monthlyRent['estimate'] ?? $result['estimatedRent'] ?? 0 );
+		$estimatedRent = (float) ( $monthlyRent['estimate'] ?? $result['estimatedRent'] ?? $result['monthly_rent'] ?? 0 );
 		$rentMin       = (float) ( $monthlyRent['low'] ?? $result['rentMin'] ?? 0 );
 		$rentMax       = (float) ( $monthlyRent['high'] ?? $result['rentMax'] ?? 0 );
 		$pricePerSqm   = (float) ( $result['price_per_sqm'] ?? $result['pricePerSqm'] ?? 0 );
+
+		// Property value fields (for value-calculator).
+		$propertyValue    = $result['property_value'] ?? [];
+		$propertyValueEst = (float) ( $propertyValue['estimate'] ?? $result['propertyValue'] ?? 0 );
+		$propertyValueMin = (float) ( $propertyValue['low'] ?? 0 );
+		$propertyValueMax = (float) ( $propertyValue['high'] ?? 0 );
+		$saleFactor       = (float) ( $result['sale_factor'] ?? 25 );
+		$averageValue     = (float) ( $result['average_value'] ?? 0 );
+		$comparisonPercent = (float) ( $result['comparison_percent'] ?? 0 );
+		$annualRent       = (float) ( $result['annual_rent'] ?? 0 );
 
 		// City averages from result or city data.
 		$cityData      = $result['city'] ?? [];
@@ -258,10 +268,18 @@ final class LeadPdfService {
 			'estimated_rent'    => $estimatedRent,
 			'rent_min'          => $rentMin,
 			'rent_max'          => $rentMax,
+			'annual_rent'       => $annualRent,
 			'price_per_sqm'     => $pricePerSqm,
 			'city_average'      => $cityAverage,
 			'county_average'    => $countyAverage,
 			'market_position'   => $result['market_position']['label'] ?? $this->determineMarketPosition( $pricePerSqm, $cityAverage ),
+			// Property value fields (for value-calculator).
+			'property_value'      => $propertyValueEst,
+			'property_value_min'  => $propertyValueMin,
+			'property_value_max'  => $propertyValueMax,
+			'sale_factor'         => $saleFactor,
+			'average_value'       => $averageValue,
+			'comparison_percent'  => $comparisonPercent,
 			'factors'           => $factors,
 			'location_name'     => $cityName ?: __( 'Nicht zugewiesen', 'resa' ),
 			// Legacy single-agent fields (backwards compat for existing templates).
