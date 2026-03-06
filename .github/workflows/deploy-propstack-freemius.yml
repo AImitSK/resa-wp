@@ -66,10 +66,30 @@ jobs:
           FREEMIUS_TOKEN: ${{ secrets.FREEMIUS_PROPSTACK_TOKEN }}
           PRODUCT_ID: '25414'
         run: |
-          curl -X POST \
-            -H "Authorization: Bearer $FREEMIUS_TOKEN" \
-            -F "file=@addons/resa-propstack/resa-propstack-${{ steps.version.outputs.version }}.zip" \
-            "https://api.freemius.com/v1/products/$PRODUCT_ID/tags.json"
+          VERSION="${{ steps.version.outputs.version }}"
+          ZIP="addons/resa-propstack/resa-propstack-${VERSION}.zip"
+
+          echo "Deploying $ZIP to Freemius (Product ID: $PRODUCT_ID)..."
+          echo "ZIP file size: $(du -h $ZIP | cut -f1)"
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${FREEMIUS_TOKEN}" \
+            -F "file=@${ZIP}" \
+            "https://api.freemius.com/v1/products/${PRODUCT_ID}/tags.json")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $BODY"
+
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "::error::Freemius API returned HTTP $HTTP_CODE"
+            exit 1
+          fi
+
+          echo "✓ Successfully deployed to Freemius"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
