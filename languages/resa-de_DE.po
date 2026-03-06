@@ -1,0 +1,1562 @@
+# Copyright (C) 2026 resa-wt.com
+# This file is distributed under the Proprietary.
+msgid ""
+msgstr ""
+"Project-Id-Version: RESA — Real Estate Smart Assets 0.4.1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/resa\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-03-06T17:17:11+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: resa\n"
+
+#. Plugin Name of the plugin
+#: resa.php
+msgid "RESA — Real Estate Smart Assets"
+msgstr ""
+
+#. Plugin URI of the plugin
+#. Author URI of the plugin
+#: resa.php
+msgid "https://resa-wt.com"
+msgstr ""
+
+#. Description of the plugin
+#: resa.php
+msgid "Interaktive, leadgenerierende Rechner und Tools für Immobilienmakler im DACH-Raum."
+msgstr ""
+
+#. Author of the plugin
+#: resa.php
+msgid "resa-wt.com"
+msgstr ""
+
+#: includes/Admin/AdminPage.php:33
+msgid "Dashboard"
+msgstr ""
+
+#: includes/Admin/AdminPage.php:34
+msgid "Analytics"
+msgstr ""
+
+#: includes/Admin/AdminPage.php:35
+msgid "Leads"
+msgstr ""
+
+#: includes/Admin/AdminPage.php:36
+msgid "Smart Assets"
+msgstr ""
+
+#: includes/Admin/AdminPage.php:37
+msgid "Standorte"
+msgstr ""
+
+#: includes/Admin/AdminPage.php:38
+msgid "Integrationen"
+msgstr ""
+
+#: includes/Admin/AdminPage.php:39
+msgid "Einstellungen"
+msgstr ""
+
+#: includes/Admin/AdminPage.php:61
+msgid "RESA Dashboard"
+msgstr ""
+
+#. translators: %s: submenu page title
+#: includes/Admin/AdminPage.php:76
+#, php-format
+msgid "RESA — %s"
+msgstr ""
+
+#: includes/Api/AgentsController.php:94
+#: includes/Api/AgentsController.php:238
+msgid "Name ist erforderlich."
+msgstr ""
+
+#: includes/Api/AgentsController.php:100
+#: includes/Api/AgentsController.php:242
+msgid "Gültige E-Mail-Adresse erforderlich."
+msgstr ""
+
+#: includes/Api/AgentsController.php:124
+msgid "Maklerdaten konnten nicht gespeichert werden."
+msgstr ""
+
+#: includes/Api/AgentsController.php:161
+msgid "Ansprechpartner konnte nicht erstellt werden."
+msgstr ""
+
+#: includes/Api/AgentsController.php:188
+#: includes/Api/AgentsController.php:220
+msgid "Ansprechpartner nicht gefunden."
+msgstr ""
+
+#: includes/Api/AgentsController.php:248
+#: includes/Core/ErrorMessages.php:51
+msgid "Validierungsfehler."
+msgstr ""
+
+#: includes/Api/ApiKeysController.php:119
+msgid "API-Schlüssel konnte nicht erstellt werden."
+msgstr ""
+
+#: includes/Api/ApiKeysController.php:169
+msgid "API-Schlüssel konnte nicht aktualisiert werden."
+msgstr ""
+
+#: includes/Api/ApiKeysController.php:204
+msgid "API-Schlüssel konnte nicht gelöscht werden."
+msgstr ""
+
+#: includes/Api/ApiKeysController.php:222
+msgid "API-Schlüssel sind nur mit Premium verfügbar."
+msgstr ""
+
+#: includes/Api/BrandingController.php:68
+#: includes/Api/BrandingController.php:74
+msgid "Ungültiger Hex-Farbwert."
+msgstr ""
+
+#: includes/Api/BrandingController.php:83
+msgid "Ungültige Medien-ID."
+msgstr ""
+
+#: includes/Api/EmailTemplatesController.php:112
+#: includes/Api/EmailTemplatesController.php:126
+#: includes/Api/EmailTemplatesController.php:169
+#: includes/Api/EmailTemplatesController.php:187
+#: includes/Api/EmailTemplatesController.php:246
+msgid "Vorlage nicht gefunden."
+msgstr ""
+
+#: includes/Api/EmailTemplatesController.php:147
+msgid "Keine Daten zum Speichern."
+msgstr ""
+
+#: includes/Api/EmailTemplatesController.php:153
+msgid "Vorlage konnte nicht gespeichert werden."
+msgstr ""
+
+#: includes/Api/EmailTemplatesController.php:192
+msgid "Bitte eine gültige E-Mail-Adresse angeben."
+msgstr ""
+
+#. translators: %s: Recipient email address
+#: includes/Api/EmailTemplatesController.php:220
+#, php-format
+msgid "Test-Mail wurde an %s gesendet."
+msgstr ""
+
+#: includes/Api/EmailTemplatesController.php:226
+msgid "Test-Mail konnte nicht gesendet werden."
+msgstr ""
+
+#: includes/Api/GeocodingController.php:45
+msgid "Suchbegriff für Adresssuche (min. 2 Zeichen)"
+msgstr ""
+
+#: includes/Api/GeocodingController.php:52
+msgid "Bounding Box als minLng,minLat,maxLng,maxLat"
+msgstr ""
+
+#: includes/Api/GeocodingController.php:58
+msgid "Ergebnisse auf Viewbox beschränken"
+msgstr ""
+
+#: includes/Api/GeocodingController.php:67
+msgid "Maximale Anzahl Ergebnisse"
+msgstr ""
+
+#: includes/Api/GeocodingController.php:146
+msgid "Geocoding-Dienst ist nicht verfügbar."
+msgstr ""
+
+#: includes/Api/LeadsController.php:417
+#: includes/Api/LeadsController.php:448
+#: includes/Api/LeadsController.php:462
+#: includes/Api/LeadsController.php:510
+msgid "Lead nicht gefunden."
+msgstr ""
+
+#: includes/Api/LeadsController.php:492
+msgid "Lead konnte nicht aktualisiert werden."
+msgstr ""
+
+#: includes/Api/LeadsController.php:518
+msgid "Lead konnte nicht gelöscht werden."
+msgstr ""
+
+#: includes/Api/LeadsController.php:540
+msgid "CSV-Export ist nur mit Premium verfügbar."
+msgstr ""
+
+#: includes/Api/LocationsController.php:136
+#: includes/Api/LocationsController.php:250
+#: includes/Api/LocationsController.php:311
+msgid "Location nicht gefunden."
+msgstr ""
+
+#: includes/Api/LocationsController.php:176
+msgid "Standort-Limit erreicht. Upgrade auf Premium für unbegrenzte Standorte."
+msgstr ""
+
+#: includes/Api/LocationsController.php:196
+msgid "Eine Location mit diesem Slug existiert bereits."
+msgstr ""
+
+#: includes/Api/LocationsController.php:232
+msgid "Location konnte nicht erstellt werden."
+msgstr ""
+
+#: includes/Api/LocationsController.php:293
+msgid "Location konnte nicht aktualisiert werden."
+msgstr ""
+
+#: includes/Api/LocationsController.php:319
+msgid "Location konnte nicht gelöscht werden."
+msgstr ""
+
+#: includes/Api/MapSettingsController.php:81
+msgid "Ungültiger Kartenanbieter."
+msgstr ""
+
+#: includes/Api/MapSettingsController.php:88
+msgid "Google Maps ist nur im Premium-Plan verfügbar."
+msgstr ""
+
+#: includes/Api/MapSettingsController.php:97
+msgid "Ungültiger Kartenstil."
+msgstr ""
+
+#: includes/Api/MapSettingsController.php:104
+msgid "Kartenstil-Auswahl ist nur im Premium-Plan verfügbar."
+msgstr ""
+
+#: includes/Api/MapSettingsController.php:114
+msgid "Zoom-Level muss zwischen 1 und 20 liegen."
+msgstr ""
+
+#: includes/Api/MessengersController.php:145
+msgid "Ungültige Plattform. Erlaubt: slack, teams, discord."
+msgstr ""
+
+#: includes/Api/MessengersController.php:178
+msgid "Messenger-Verbindung konnte nicht erstellt werden."
+msgstr ""
+
+#: includes/Api/MessengersController.php:247
+msgid "Messenger-Verbindung konnte nicht aktualisiert werden."
+msgstr ""
+
+#: includes/Api/MessengersController.php:282
+msgid "Messenger-Verbindung konnte nicht gelöscht werden."
+msgstr ""
+
+#: includes/Api/MessengersController.php:341
+msgid "Messenger-Benachrichtigungen sind nur mit Premium verfügbar."
+msgstr ""
+
+#: includes/Api/ModulesController.php:67
+#: includes/Api/ModulesController.php:97
+msgid "Plugin nicht initialisiert."
+msgstr ""
+
+#: includes/Api/ModulesController.php:123
+msgid "Dieses Modul erfordert ein Premium-Upgrade."
+msgstr ""
+
+#: includes/Api/ModulesController.php:130
+msgid "Modul-Limit erreicht. Deaktiviere ein anderes Modul oder upgrade auf Premium."
+msgstr ""
+
+#: includes/Api/ModuleSettingsController.php:311
+msgid "Standort-Werte konnten nicht gespeichert werden."
+msgstr ""
+
+#: includes/Api/ModuleSettingsController.php:339
+msgid "Standort-Werte konnten nicht gelöscht werden."
+msgstr ""
+
+#: includes/Api/ModuleSettingsController.php:450
+#: modules/rent-calculator/RentCalculatorService.php:282
+msgid "Ländlich"
+msgstr ""
+
+#: includes/Api/ModuleSettingsController.php:451
+#: modules/rent-calculator/RentCalculatorService.php:292
+msgid "Kleinstadt / Stadtrand"
+msgstr ""
+
+#: includes/Api/ModuleSettingsController.php:452
+#: modules/rent-calculator/RentCalculatorService.php:302
+msgid "Mittelstadt"
+msgstr ""
+
+#: includes/Api/ModuleSettingsController.php:453
+#: modules/rent-calculator/RentCalculatorService.php:312
+msgid "Großstadt / Zentrum"
+msgstr ""
+
+#: includes/Api/PrivacySettingsController.php:87
+msgid "Der Einwilligungstext muss den Platzhalter [Datenschutzerklärung] enthalten."
+msgstr ""
+
+#: includes/Api/PrivacySettingsController.php:95
+msgid "Ungültiger Wert für die Lead-Aufbewahrungsfrist."
+msgstr ""
+
+#: includes/Api/PrivacySettingsController.php:103
+msgid "Ungültiger Wert für die E-Mail-Log-Aufbewahrungsfrist."
+msgstr ""
+
+#: includes/Api/TrackingController.php:62
+msgid "Ungültiger Event-Typ."
+msgstr ""
+
+#: includes/Api/TrackingController.php:77
+msgid "Tracking-Event konnte nicht aufgezeichnet werden."
+msgstr ""
+
+#: includes/Api/TrackingSettingsController.php:79
+msgid "Ungültiges Format. Erwartet: AW-XXXXXXXXX"
+msgstr ""
+
+#: includes/Api/TrackingSettingsController.php:88
+msgid "TTL muss zwischen 7 und 365 Tagen liegen."
+msgstr ""
+
+#: includes/Api/WebhooksController.php:157
+msgid "Webhook konnte nicht erstellt werden."
+msgstr ""
+
+#: includes/Api/WebhooksController.php:219
+msgid "Webhook konnte nicht aktualisiert werden."
+msgstr ""
+
+#: includes/Api/WebhooksController.php:254
+msgid "Webhook konnte nicht gelöscht werden."
+msgstr ""
+
+#: includes/Api/WebhooksController.php:298
+msgid "Webhooks sind nur mit Premium verfügbar."
+msgstr ""
+
+#: includes/Core/Activator.php:26
+msgid "RESA benötigt mindestens PHP 8.1."
+msgstr ""
+
+#: includes/Core/Activator.php:27
+msgid "Plugin-Aktivierung fehlgeschlagen"
+msgstr ""
+
+#: includes/Core/ErrorMessages.php:50
+msgid "Ressource nicht gefunden."
+msgstr ""
+
+#: includes/Core/ErrorMessages.php:52
+msgid "Lead konnte nicht erstellt werden."
+msgstr ""
+
+#: includes/Core/ErrorMessages.php:53
+msgid "Lead konnte nicht abgeschlossen werden."
+msgstr ""
+
+#: includes/Core/ErrorMessages.php:54
+msgid "Dieser Lead wurde bereits abgeschlossen."
+msgstr ""
+
+#: includes/Core/ErrorMessages.php:55
+msgid "Kein passender Lead für diese Session gefunden."
+msgstr ""
+
+#: includes/Core/ErrorMessages.php:56
+msgid "Das Modul konnte nicht gefunden werden."
+msgstr ""
+
+#: includes/Core/ErrorMessages.php:57
+msgid "Einstellungen konnten nicht gespeichert werden."
+msgstr ""
+
+#: includes/Core/ErrorMessages.php:58
+msgid "Bitte geben Sie eine gültige E-Mail-Adresse ein."
+msgstr ""
+
+#: includes/Core/ErrorMessages.php:59
+msgid "Die Datenschutz-Einwilligung ist erforderlich."
+msgstr ""
+
+#: includes/Core/ErrorMessages.php:60
+msgid "Dieses Feld ist erforderlich."
+msgstr ""
+
+#: includes/Core/ErrorMessages.php:61
+msgid "Sie haben keine Berechtigung für diese Aktion."
+msgstr ""
+
+#: includes/Core/ErrorMessages.php:62
+msgid "Webhook nicht gefunden."
+msgstr ""
+
+#: includes/Core/ErrorMessages.php:63
+msgid "Maximal 5 Webhooks erlaubt."
+msgstr ""
+
+#: includes/Core/ErrorMessages.php:64
+msgid "Bitte geben Sie eine gültige URL ein."
+msgstr ""
+
+#: includes/Core/ErrorMessages.php:65
+msgid "API-Schlüssel nicht gefunden."
+msgstr ""
+
+#: includes/Core/ErrorMessages.php:66
+msgid "Maximal 5 API-Schlüssel erlaubt."
+msgstr ""
+
+#: includes/Core/ErrorMessages.php:67
+msgid "Messenger-Verbindung nicht gefunden."
+msgstr ""
+
+#: includes/Core/ErrorMessages.php:68
+msgid "Maximal 5 Messenger-Verbindungen erlaubt."
+msgstr ""
+
+#: includes/Core/ErrorMessages.php:69
+msgid "Ungültige Webhook-URL für die gewählte Plattform."
+msgstr ""
+
+#: includes/Core/ErrorMessages.php:70
+msgid "Ein Fehler ist aufgetreten."
+msgstr ""
+
+#. translators: %s: Module slug
+#: includes/Core/ErrorMessages.php:85
+#, php-format
+msgid "Modul \"%s\" nicht gefunden."
+msgstr ""
+
+#. translators: %s: Field name
+#: includes/Core/ErrorMessages.php:90
+#, php-format
+msgid "%s ist erforderlich."
+msgstr ""
+
+#. translators: %s: Field name
+#: includes/Core/ErrorMessages.php:95
+#, php-format
+msgid "Ungültiger Wert für %s."
+msgstr ""
+
+#: includes/Freemius/FreemiusInit.php:60
+msgid "RESA: Freemius SDK nicht gefunden. Das Plugin läuft im Free-Modus."
+msgstr ""
+
+#: includes/Freemius/FreemiusInit.php:69
+msgid "RESA: Freemius SDK ist beschädigt. Das Plugin läuft im Free-Modus."
+msgstr ""
+
+#: includes/Privacy/PersonalDataEraser.php:36
+#: includes/Privacy/PersonalDataExporter.php:34
+#: includes/Privacy/PersonalDataExporter.php:155
+msgid "RESA Lead-Daten"
+msgstr ""
+
+#. translators: %d: number of anonymized leads
+#: includes/Privacy/PersonalDataEraser.php:90
+#, php-format
+msgid "%d RESA-Lead(s) wurden anonymisiert (Statistik-Daten bleiben erhalten)."
+msgstr ""
+
+#: includes/Privacy/PersonalDataExporter.php:66
+msgid "Vorname"
+msgstr ""
+
+#: includes/Privacy/PersonalDataExporter.php:70
+msgid "Nachname"
+msgstr ""
+
+#: includes/Privacy/PersonalDataExporter.php:74
+#: includes/Services/Email/Templates/lead-notification.php:94
+#: includes/Services/Notifications/LeadNotificationService.php:397
+msgid "E-Mail"
+msgstr ""
+
+#: includes/Privacy/PersonalDataExporter.php:78
+#: includes/Services/Email/Templates/lead-notification.php:101
+#: includes/Services/Notifications/LeadNotificationService.php:400
+msgid "Telefon"
+msgstr ""
+
+#: includes/Privacy/PersonalDataExporter.php:82
+#: includes/Services/Email/Templates/lead-notification.php:109
+msgid "Unternehmen"
+msgstr ""
+
+#: includes/Privacy/PersonalDataExporter.php:86
+msgid "Anrede"
+msgstr ""
+
+#: includes/Privacy/PersonalDataExporter.php:90
+msgid "Nachricht"
+msgstr ""
+
+#: includes/Privacy/PersonalDataExporter.php:96
+msgid "Tool-Typ"
+msgstr ""
+
+#: includes/Privacy/PersonalDataExporter.php:100
+msgid "Status"
+msgstr ""
+
+#: includes/Privacy/PersonalDataExporter.php:106
+msgid "Einwilligung erteilt"
+msgstr ""
+
+#: includes/Privacy/PersonalDataExporter.php:107
+msgid "Ja"
+msgstr ""
+
+#: includes/Privacy/PersonalDataExporter.php:107
+msgid "Nein"
+msgstr ""
+
+#: includes/Privacy/PersonalDataExporter.php:110
+msgid "Einwilligungstext"
+msgstr ""
+
+#: includes/Privacy/PersonalDataExporter.php:114
+msgid "Einwilligungsdatum"
+msgstr ""
+
+#: includes/Privacy/PersonalDataExporter.php:120
+msgid "Berechnungseingaben"
+msgstr ""
+
+#: includes/Privacy/PersonalDataExporter.php:124
+#: includes/Services/Email/Templates/lead-notification.php:132
+msgid "Berechnungsergebnis"
+msgstr ""
+
+#: includes/Privacy/PersonalDataExporter.php:130
+msgid "Erstellt am"
+msgstr ""
+
+#: includes/Privacy/PersonalDataExporter.php:148
+msgid "E-Mail-Protokoll"
+msgstr ""
+
+#: includes/Security/SpamGuard.php:91
+msgid "Anfrage konnte nicht verarbeitet werden. Bitte versuchen Sie es erneut."
+msgstr ""
+
+#: includes/Services/Auth/ApiKeyAuth.php:64
+msgid "Ungültiges API-Key-Format."
+msgstr ""
+
+#: includes/Services/Auth/ApiKeyAuth.php:75
+msgid "Ungültiger oder deaktivierter API-Schlüssel."
+msgstr ""
+
+#: includes/Services/Email/EmailService.php:154
+#: includes/Services/Email/Templates/lead-notification.php:186
+msgid "Diese E-Mail wurde automatisch von RESA gesendet."
+msgstr ""
+
+#: includes/Services/Email/SmtpTransport.php:47
+msgid "SMTP ist nicht konfiguriert."
+msgstr ""
+
+#: includes/Services/Email/SmtpTransport.php:86
+msgid "SMTP-Versand fehlgeschlagen."
+msgstr ""
+
+#: includes/Services/Email/Templates/lead-notification.php:31
+msgid "Neuer Lead"
+msgstr ""
+
+#: includes/Services/Email/Templates/lead-notification.php:43
+#: includes/Services/Notifications/LeadNotificationService.php:395
+msgid "Neuer Lead eingegangen"
+msgstr ""
+
+#. translators: %s: Agent name
+#: includes/Services/Email/Templates/lead-notification.php:57
+#, php-format
+msgid "Hallo %s,"
+msgstr ""
+
+#: includes/Services/Email/Templates/lead-notification.php:61
+msgid "ein neuer Lead hat soeben das Formular ausgefüllt. Hier sind die Details:"
+msgstr ""
+
+#: includes/Services/Email/Templates/lead-notification.php:88
+#: includes/Services/Notifications/LeadNotificationService.php:396
+msgid "Name"
+msgstr ""
+
+#: includes/Services/Email/Templates/lead-notification.php:116
+#: includes/Services/Notifications/LeadNotificationService.php:404
+#: modules/rent-calculator/RentCalculatorModule.php:78
+#: modules/value-calculator/ValueCalculatorModule.php:78
+msgid "Standort"
+msgstr ""
+
+#: includes/Services/Email/Templates/lead-notification.php:150
+msgid "Nachricht des Leads"
+msgstr ""
+
+#: includes/Services/Email/Templates/lead-notification.php:165
+#: includes/Services/Notifications/LeadNotificationService.php:406
+msgid "Lead im Admin ansehen"
+msgstr ""
+
+#. translators: %s: Formatted date and time
+#: includes/Services/Email/Templates/lead-notification.php:176
+#, php-format
+msgid "Eingegangen am %s"
+msgstr ""
+
+#: includes/Services/Email/Templates/lead-notification.php:188
+msgid "Benachrichtigungseinstellungen anpassen"
+msgstr ""
+
+#: includes/Services/Email/Templates/lead-result.php:29
+msgid "Ihre Analyse"
+msgstr ""
+
+#: includes/Services/Email/Templates/lead-result.php:41
+#: includes/Services/Pdf/LeadPdfService.php:823
+msgid "Ihre Analyse ist fertig"
+msgstr ""
+
+#. translators: %s: Lead name with optional salutation
+#. translators: %s: Lead name
+#: includes/Services/Email/Templates/lead-result.php:56
+#: includes/Services/Pdf/LeadPdfService.php:826
+#: includes/Services/Pdf/Templates/rent-analysis.php:216
+#: includes/Services/Pdf/Templates/value-analysis.php:229
+#, php-format
+msgid "Guten Tag %s,"
+msgstr ""
+
+#: includes/Services/Email/Templates/lead-result.php:60
+msgid "vielen Dank für Ihr Interesse! Wir haben Ihre Angaben ausgewertet und Ihre persönliche Analyse erstellt."
+msgstr ""
+
+#: includes/Services/Email/Templates/lead-result.php:72
+msgid "Ihr Ergebnis auf einen Blick"
+msgstr ""
+
+#: includes/Services/Email/Templates/lead-result.php:101
+msgid "PDF-Analyse im Anhang"
+msgstr ""
+
+#: includes/Services/Email/Templates/lead-result.php:104
+msgid "Die vollständige Analyse mit allen Details finden Sie als PDF im Anhang dieser E-Mail."
+msgstr ""
+
+#: includes/Services/Email/Templates/lead-result.php:120
+#: includes/Services/Pdf/Templates/rent-analysis.php:364
+#: includes/Services/Pdf/Templates/value-analysis.php:418
+msgid "Ihr Ansprechpartner"
+msgstr ""
+
+#: includes/Services/Email/Templates/lead-result.php:139
+msgid "Tel.:"
+msgstr ""
+
+#: includes/Services/Email/Templates/lead-result.php:166
+msgid "Haben Sie Fragen zu Ihrer Analyse?"
+msgstr ""
+
+#: includes/Services/Email/Templates/lead-result.php:169
+msgid "Jetzt anrufen"
+msgstr ""
+
+#. translators: %s: Site name
+#: includes/Services/Email/Templates/lead-result.php:181
+#, php-format
+msgid "Diese E-Mail wurde automatisch von %s gesendet."
+msgstr ""
+
+#. translators: %s: Location name
+#: includes/Services/Email/Templates/lead-result.php:187
+#, php-format
+msgid "Standort: %s"
+msgstr ""
+
+#. translators: %s: error message
+#: includes/Services/Geocoding/NominatimGeocoder.php:104
+#, php-format
+msgid "Geocoding-Anfrage fehlgeschlagen: %s"
+msgstr ""
+
+#. translators: %d: HTTP status code
+#: includes/Services/Geocoding/NominatimGeocoder.php:116
+#, php-format
+msgid "Geocoding-Server antwortete mit Status %d"
+msgstr ""
+
+#: includes/Services/Geocoding/NominatimGeocoder.php:127
+msgid "Ungültige Antwort vom Geocoding-Server"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:189
+msgid "Team"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:203
+#: includes/Services/Notifications/LeadNotificationService.php:252
+#: includes/Services/Pdf/LeadPdfService.php:487
+msgid "Unbekannt"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:208
+#, php-format
+msgid "Neuer Lead: %1$s von %2$s"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:255
+#: includes/Services/Pdf/LeadPdfService.php:284
+#: includes/Services/Pdf/LeadPdfService.php:715
+msgid "Nicht zugewiesen"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:285
+#: modules/rent-calculator/RentCalculatorModule.php:29
+msgid "Mietpreis-Kalkulator"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:286
+#: modules/value-calculator/ValueCalculatorModule.php:29
+msgid "Immobilienwert-Rechner"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:287
+msgid "Kaufnebenkosten-Rechner"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:288
+msgid "Budgetrechner"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:289
+msgid "Renditerechner"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:290
+#: includes/Services/Pdf/LeadPdfService.php:746
+msgid "Energieeffizienz-Check"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:291
+msgid "Verkäufer-Checkliste"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:292
+msgid "Käufer-Checkliste"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:308
+msgid "Keine Ergebnisdaten verfügbar"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:315
+msgid "Geschätzte Miete"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:316
+msgid "Geschätzter Wert"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:317
+msgid "Kaufnebenkosten"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:318
+msgid "Gesamtbudget"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:319
+msgid "Rendite"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:320
+msgid "Energieklasse"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:321
+msgid "Monatliche Miete"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:322
+msgid "Preis pro m²"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:403
+msgid "Tool"
+msgstr ""
+
+#: includes/Services/Notifications/LeadNotificationService.php:405
+msgid "Ergebnis"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:323
+msgid "Ihr Objekt"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:331
+msgid "Stadt"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:339
+msgid "Landkreis"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:372
+#: modules/rent-calculator/RentCalculatorModule.php:80
+#: modules/value-calculator/ValueCalculatorModule.php:80
+msgid "Lage"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:376
+#: modules/rent-calculator/RentCalculatorModule.php:79
+#: modules/value-calculator/ValueCalculatorModule.php:79
+msgid "Zustand"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:380
+msgid "Baujahr"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:384
+#: modules/rent-calculator/RentCalculatorModule.php:81
+#: modules/value-calculator/ValueCalculatorModule.php:81
+msgid "Ausstattung"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:388
+msgid "Wohnfläche"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:431
+msgid "Neu"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:432
+msgid "Gut"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:433
+#: includes/Services/Pdf/LeadPdfService.php:503
+msgid "Mittel"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:434
+#: includes/Services/Pdf/LeadPdfService.php:504
+#: includes/Services/Pdf/LeadPdfService.php:505
+#: modules/rent-calculator/RentCalculatorModule.php:124
+#: modules/value-calculator/ValueCalculatorModule.php:131
+msgid "Renovierungsbedürftig"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:435
+#: includes/Services/Pdf/LeadPdfService.php:547
+msgid "Einfach"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:436
+#: includes/Services/Pdf/LeadPdfService.php:548
+msgid "Standard"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:437
+#: includes/Services/Pdf/LeadPdfService.php:549
+msgid "Gehoben"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:438
+#: includes/Services/Pdf/LeadPdfService.php:550
+msgid "Luxus"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:439
+msgid "Sehr gut"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:453
+#: modules/rent-calculator/RentCalculatorModule.php:131
+#: modules/value-calculator/ValueCalculatorModule.php:138
+msgid "Wohnung"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:454
+#: modules/rent-calculator/RentCalculatorModule.php:132
+#: modules/value-calculator/ValueCalculatorModule.php:139
+msgid "Haus"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:455
+msgid "Villa"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:456
+msgid "Penthouse"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:457
+msgid "Maisonette"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:458
+msgid "Studio"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:459
+msgid "Loft"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:460
+msgid "Reihenhaus"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:461
+msgid "Doppelhaushälfte"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:462
+msgid "Einfamilienhaus"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:463
+msgid "Bungalow"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:464
+msgid "Bauernhaus"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:465
+msgid "Neubau"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:466
+msgid "Altbau"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:480
+#: modules/rent-calculator/RentCalculatorModule.php:110
+#: modules/value-calculator/ValueCalculatorModule.php:117
+msgid "Einfache Lage"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:481
+msgid "Durchschnittliche Lage"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:482
+#: modules/rent-calculator/RentCalculatorModule.php:112
+#: modules/value-calculator/ValueCalculatorModule.php:119
+msgid "Gute Lage"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:483
+#: modules/rent-calculator/RentCalculatorModule.php:113
+#: modules/value-calculator/ValueCalculatorModule.php:120
+msgid "Sehr gute Lage"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:484
+msgid "Top-Lage"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:498
+msgid "Neubau / Kernsaniert"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:499
+msgid "Neuwertig"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:500
+msgid "Kürzlich renoviert"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:501
+msgid "Gepflegt"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:502
+#: modules/rent-calculator/RentCalculatorModule.php:123
+#: modules/value-calculator/ValueCalculatorModule.php:130
+msgid "Guter Zustand"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:552
+#: modules/rent-calculator/RentCalculatorController.php:177
+#: modules/rent-calculator/RentCalculatorModule.php:139
+#: modules/value-calculator/ValueCalculatorController.php:186
+#: modules/value-calculator/ValueCalculatorModule.php:146
+msgid "Balkon"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:553
+#: modules/rent-calculator/RentCalculatorController.php:178
+#: modules/rent-calculator/RentCalculatorModule.php:140
+#: modules/value-calculator/ValueCalculatorController.php:187
+#: modules/value-calculator/ValueCalculatorModule.php:147
+msgid "Terrasse"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:554
+#: modules/rent-calculator/RentCalculatorController.php:179
+#: modules/rent-calculator/RentCalculatorModule.php:141
+#: modules/value-calculator/ValueCalculatorController.php:188
+#: modules/value-calculator/ValueCalculatorModule.php:148
+msgid "Garten"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:555
+#: modules/rent-calculator/RentCalculatorController.php:181
+#: modules/rent-calculator/RentCalculatorModule.php:143
+#: modules/value-calculator/ValueCalculatorController.php:190
+#: modules/value-calculator/ValueCalculatorModule.php:150
+msgid "Stellplatz"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:556
+#: modules/rent-calculator/RentCalculatorController.php:182
+#: modules/rent-calculator/RentCalculatorModule.php:144
+#: modules/value-calculator/ValueCalculatorController.php:191
+#: modules/value-calculator/ValueCalculatorModule.php:151
+msgid "Garage"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:557
+#: modules/rent-calculator/RentCalculatorController.php:180
+#: modules/rent-calculator/RentCalculatorModule.php:142
+#: modules/value-calculator/ValueCalculatorController.php:189
+#: modules/value-calculator/ValueCalculatorModule.php:149
+msgid "Aufzug"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:558
+#: modules/rent-calculator/RentCalculatorController.php:183
+#: modules/rent-calculator/RentCalculatorModule.php:145
+#: modules/value-calculator/ValueCalculatorController.php:192
+#: modules/value-calculator/ValueCalculatorModule.php:152
+msgid "Keller"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:559
+#: modules/rent-calculator/RentCalculatorController.php:184
+#: modules/rent-calculator/RentCalculatorModule.php:146
+#: modules/value-calculator/ValueCalculatorController.php:193
+#: modules/value-calculator/ValueCalculatorModule.php:153
+msgid "Einbauküche"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:560
+#: modules/rent-calculator/RentCalculatorController.php:185
+#: modules/rent-calculator/RentCalculatorModule.php:147
+#: modules/value-calculator/ValueCalculatorController.php:194
+#: modules/value-calculator/ValueCalculatorModule.php:154
+msgid "Fußbodenheizung"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:561
+msgid "Klimaanlage"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:562
+msgid "Kamin"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:563
+msgid "Sauna"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:564
+msgid "Pool"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:565
+msgid "Solaranlage"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:566
+#: modules/rent-calculator/RentCalculatorController.php:187
+#: modules/rent-calculator/RentCalculatorModule.php:149
+#: modules/value-calculator/ValueCalculatorController.php:196
+#: modules/value-calculator/ValueCalculatorModule.php:156
+msgid "Barrierefrei"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:567
+msgid "Möbliert"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:568
+#: includes/Services/Pdf/LeadPdfService.php:569
+#: modules/rent-calculator/RentCalculatorController.php:186
+#: modules/rent-calculator/RentCalculatorModule.php:148
+#: modules/value-calculator/ValueCalculatorController.php:195
+#: modules/value-calculator/ValueCalculatorModule.php:155
+msgid "Gäste-WC"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:590
+msgid "Über Durchschnitt"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:594
+msgid "Unter Durchschnitt"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:597
+msgid "Im Durchschnitt"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:707
+msgid "Interessent"
+msgstr ""
+
+#. translators: %s: Asset type (e.g. "Mietpreis-Analyse")
+#: includes/Services/Pdf/LeadPdfService.php:730
+#, php-format
+msgid "Ihre %s ist fertig"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:741
+#: includes/Services/Pdf/Templates/rent-analysis.php:125
+msgid "Mietpreis-Analyse"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:742
+#: includes/Services/Pdf/Templates/value-analysis.php:143
+msgid "Immobilienwert-Analyse"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:743
+msgid "Kaufnebenkosten-Berechnung"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:744
+msgid "Budget-Analyse"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:745
+msgid "Rendite-Analyse"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:749
+msgid "Analyse"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:762
+#: includes/Services/Pdf/LeadPdfService.php:787
+msgid "Ihre detaillierte Analyse finden Sie im PDF."
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:772
+#, php-format
+msgid "Geschätzte Miete: %s/Monat"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:781
+#, php-format
+msgid "Preis pro m²: %s"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:829
+msgid "vielen Dank für Ihr Interesse. Die vollständige Analyse finden Sie im PDF-Anhang dieser E-Mail."
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:830
+msgid "Zusammenfassung:"
+msgstr ""
+
+#: includes/Services/Pdf/LeadPdfService.php:833
+msgid "Ihr Ansprechpartner:"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/base-layout.php:313
+#: includes/Services/Pdf/Templates/rent-analysis.php:364
+#: includes/Services/Pdf/Templates/value-analysis.php:418
+msgid "Ihre Ansprechpartner"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:169
+msgid "RESA — Mietpreis-Analyse"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:210
+msgid "Ihre Mietpreis-Analyse"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:218
+msgid "vielen Dank für Ihr Interesse. Hier ist Ihre persönliche Mietpreis-Analyse:"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:231
+msgid "Monat"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:235
+#: includes/Services/Pdf/Templates/value-analysis.php:248
+#, php-format
+msgid "Spanne: %1$s – %2$s"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:239
+msgid "Geschätzte marktübliche Kaltmiete"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:278
+msgid "IHR OBJEKT"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:286
+msgid "LANDKREIS"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:291
+#: includes/Services/Pdf/Templates/value-analysis.php:345
+msgid "Objektdaten"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:294
+#: includes/Services/Pdf/Templates/value-analysis.php:348
+msgid "OBJEKTTYP"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:297
+#: includes/Services/Pdf/Templates/value-analysis.php:351
+msgid "LAGE"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:300
+#: includes/Services/Pdf/Templates/value-analysis.php:354
+msgid "WOHNFLÄCHE"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:303
+#: includes/Services/Pdf/Templates/value-analysis.php:357
+msgid "ZIMMER"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:306
+#: includes/Services/Pdf/Templates/value-analysis.php:360
+msgid "BAUJAHR"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:309
+#: includes/Services/Pdf/Templates/value-analysis.php:363
+msgid "ZUSTAND"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:312
+#: includes/Services/Pdf/Templates/value-analysis.php:366
+msgid "AUSSTATTUNG"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:315
+#: includes/Services/Pdf/Templates/value-analysis.php:369
+msgid "ZUSATZAUSSTATTUNG"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:417
+#: includes/Services/Pdf/Templates/value-analysis.php:471
+msgid "Marktvergleich"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:419
+#: includes/Services/Pdf/Templates/value-analysis.php:473
+msgid "Vergleich Ihres geschätzten Mietpreises mit regionalen Durchschnittswerten (€/m²)"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:439
+#: includes/Services/Pdf/Templates/value-analysis.php:493
+msgid "Einflussfaktoren"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:441
+msgid "Diese Faktoren beeinflussen den geschätzten Mietpreis Ihres Objekts:"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:446
+#: includes/Services/Pdf/Templates/value-analysis.php:500
+msgid "FAKTOR"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:447
+#: includes/Services/Pdf/Templates/value-analysis.php:501
+msgid "WERT"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:448
+#: includes/Services/Pdf/Templates/value-analysis.php:502
+msgid "EINFLUSS"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:472
+#: includes/Services/Pdf/Templates/value-analysis.php:526
+msgid "Hinweis:"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:473
+msgid "Diese Analyse basiert auf statistischen Durchschnittswerten und dient der Orientierung. Der tatsächliche Mietpreis kann je nach Marktlage, Ausstattungsdetails und Verhandlung abweichen. Für eine präzise Bewertung empfehlen wir eine persönliche Beratung."
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:493
+#: includes/Services/Pdf/Templates/value-analysis.php:547
+msgid "Interesse an einer persönlichen Beratung?"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/rent-analysis.php:496
+#: includes/Services/Pdf/Templates/value-analysis.php:550
+#, php-format
+msgid "Kontaktieren Sie %s für eine unverbindliche Einschätzung."
+msgstr ""
+
+#: includes/Services/Pdf/Templates/value-analysis.php:182
+msgid "RESA — Immobilienwert-Analyse"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/value-analysis.php:223
+msgid "Ihre Immobilienwert-Analyse"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/value-analysis.php:231
+msgid "vielen Dank für Ihr Interesse. Hier ist Ihre persönliche Immobilienwert-Analyse:"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/value-analysis.php:252
+msgid "Geschätzter Marktwert Ihrer Immobilie"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/value-analysis.php:294
+msgid "Vergleich zum Durchschnitt"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/value-analysis.php:296
+msgid "Durchschnittswert:"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/value-analysis.php:307
+msgid "über dem Durchschnitt"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/value-analysis.php:309
+msgid "unter dem Durchschnitt"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/value-analysis.php:311
+msgid "im Durchschnitt"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/value-analysis.php:328
+msgid "PREIS PRO M²"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/value-analysis.php:332
+msgid "VERVIELFÄLTIGER"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/value-analysis.php:336
+msgid "MONATSMIETE"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/value-analysis.php:340
+msgid "JAHRESMIETE"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/value-analysis.php:495
+msgid "Diese Faktoren beeinflussen den geschätzten Immobilienwert:"
+msgstr ""
+
+#: includes/Services/Pdf/Templates/value-analysis.php:527
+msgid "Diese Analyse basiert auf statistischen Durchschnittswerten und dient der Orientierung. Der tatsächliche Verkaufswert kann je nach Marktlage, Ausstattungsdetails und Verhandlung abweichen. Für eine präzise Bewertung empfehlen wir eine persönliche Beratung."
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorController.php:56
+#: modules/value-calculator/ValueCalculatorController.php:57
+msgid "city_id ist erforderlich."
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorController.php:63
+#: modules/value-calculator/ValueCalculatorController.php:64
+msgid "Wohnfläche ist erforderlich."
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorController.php:69
+#: modules/value-calculator/ValueCalculatorController.php:70
+msgid "Wohnfläche muss zwischen 10 und 10.000 m² liegen."
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorController.php:77
+#: modules/value-calculator/ValueCalculatorController.php:78
+msgid "Ungültiger Immobilientyp."
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorController.php:85
+#: modules/value-calculator/ValueCalculatorController.php:86
+msgid "Ungültiger Zustand."
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorController.php:93
+#: modules/value-calculator/ValueCalculatorController.php:94
+msgid "Lage-Bewertung muss zwischen 1 und 5 liegen."
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorController.php:124
+#: modules/value-calculator/ValueCalculatorController.php:130
+msgid "Location nicht gefunden oder nicht aktiv."
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:36
+msgid "Schätzt die monatliche Miete basierend auf Lage, Zustand und Ausstattung."
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:76
+#: modules/value-calculator/ValueCalculatorModule.php:76
+msgid "Immobilienart"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:77
+#: modules/value-calculator/ValueCalculatorModule.php:77
+msgid "Grunddaten"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:98
+#: modules/rent-calculator/RentCalculatorModule.php:169
+#: modules/value-calculator/ValueCalculatorModule.php:100
+#: modules/value-calculator/ValueCalculatorModule.php:176
+msgid "Basismietpreis EUR/m²"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:103
+#: modules/value-calculator/ValueCalculatorModule.php:110
+msgid "Größendegression"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:108
+#: modules/value-calculator/ValueCalculatorModule.php:115
+msgid "Lage-Faktoren"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:111
+#: modules/value-calculator/ValueCalculatorModule.php:118
+msgid "Normale Lage"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:114
+#: modules/value-calculator/ValueCalculatorModule.php:121
+msgid "Premium-Lage"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:119
+#: modules/value-calculator/ValueCalculatorModule.php:126
+msgid "Zustands-Faktoren"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:121
+#: modules/value-calculator/ValueCalculatorModule.php:128
+msgid "Neubau/Kernsaniert"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:122
+#: modules/value-calculator/ValueCalculatorModule.php:129
+msgid "Renoviert"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:129
+#: modules/value-calculator/ValueCalculatorModule.php:136
+msgid "Immobilientyp-Faktoren"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:137
+#: modules/value-calculator/ValueCalculatorModule.php:144
+msgid "Ausstattungs-Zuschläge EUR/m²"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:154
+#: modules/value-calculator/ValueCalculatorModule.php:161
+msgid "Alter-Faktoren"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:156
+#: modules/value-calculator/ValueCalculatorModule.php:163
+msgid "Altbau (bis 1945)"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:157
+#: modules/value-calculator/ValueCalculatorModule.php:164
+msgid "Nachkriegsbau (1946-1959)"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:158
+#: modules/value-calculator/ValueCalculatorModule.php:165
+msgid "60er/70er Jahre"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:159
+#: modules/value-calculator/ValueCalculatorModule.php:166
+msgid "80er Jahre"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:160
+#: modules/value-calculator/ValueCalculatorModule.php:167
+msgid "90er Jahre"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:161
+#: modules/value-calculator/ValueCalculatorModule.php:168
+msgid "2000er Jahre"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:162
+#: modules/value-calculator/ValueCalculatorModule.php:169
+msgid "Neubau (ab 2015)"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:174
+#: modules/value-calculator/ValueCalculatorModule.php:186
+msgid "Minimum EUR/m²"
+msgstr ""
+
+#: modules/rent-calculator/RentCalculatorModule.php:179
+#: modules/value-calculator/ValueCalculatorModule.php:191
+msgid "Maximum EUR/m²"
+msgstr ""
+
+#: modules/value-calculator/ValueCalculatorModule.php:36
+msgid "Schätzt den Verkaufswert basierend auf Mietpotenzial und Vervielfältiger."
+msgstr ""
+
+#: modules/value-calculator/ValueCalculatorModule.php:82
+msgid "Adresse"
+msgstr ""
+
+#: modules/value-calculator/ValueCalculatorModule.php:105
+msgid "Vervielfältiger (Jahresmiete × Faktor = Wert)"
+msgstr ""
+
+#: modules/value-calculator/ValueCalculatorModule.php:181
+msgid "Vervielfältiger"
+msgstr ""
+
+#. translators: %s: Required PHP version
+#: resa.php:35
+#, php-format
+msgid "RESA benötigt mindestens PHP %s. Bitte aktualisieren Sie Ihre PHP-Version."
+msgstr ""
+
+#: resa.php:52
+msgid "RESA: Composer-Abhängigkeiten fehlen. Bitte \"composer install\" ausführen."
+msgstr ""
