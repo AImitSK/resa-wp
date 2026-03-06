@@ -127,14 +127,8 @@ export function Integrations() {
 										fontWeight: 600,
 										padding: '2px 6px',
 										borderRadius: '4px',
-										backgroundColor:
-											activeTab === tab.slug
-												? 'hsl(210 40% 96.1%)'
-												: 'hsl(215.4 16.3% 46.9%)',
-										color:
-											activeTab === tab.slug
-												? 'hsl(215.4 16.3% 46.9%)'
-												: 'white',
+										backgroundColor: '#1e303a',
+										color: '#ffffff',
 										textTransform: 'uppercase',
 										letterSpacing: '0.5px',
 									}}

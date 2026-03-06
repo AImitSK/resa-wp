@@ -254,8 +254,8 @@ export function LocationMapPicker({
 				{/* Search Results Dropdown */}
 				{showResults && debouncedQuery.length >= 2 && (
 					<div
-						className="resa-absolute resa-z-50 resa-w-full resa-mt-1 resa-bg-background resa-border resa-border-input resa-rounded-md resa-shadow-lg resa-max-h-60 resa-overflow-auto"
-						style={{ top: '100%' }}
+						className="resa-absolute resa-w-full resa-mt-1 resa-bg-background resa-border resa-border-input resa-rounded-md resa-shadow-lg resa-max-h-60 resa-overflow-auto"
+						style={{ top: '100%', zIndex: 10000 }}
 					>
 						{isSearching ? (
 							<div className="resa-p-3 resa-text-sm resa-text-muted-foreground resa-text-center">

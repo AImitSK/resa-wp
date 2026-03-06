@@ -46,17 +46,24 @@ class PropstackService {
 	 */
 	public function testConnection(): array {
 		try {
-			$result = $this->request('GET', '/brokers', ['limit' => 1]);
+			$result = $this->request('GET', '/brokers', ['limit' => 100]);
+
+			error_log('[RESA Propstack] testConnection raw result: ' . print_r($result, true));
 
 			if ($result['success']) {
+				// Brokers returns direct array: [{broker1}, {broker2}, ...]
+				$brokers = is_array($result['data']) ? $result['data'] : [];
+				error_log('[RESA Propstack] testConnection broker count: ' . count($brokers));
 				return [
 					'success'      => true,
-					'broker_count' => $result['data']['meta']['total'] ?? 0,
+					'broker_count' => count($brokers),
 				];
 			}
 
+			error_log('[RESA Propstack] testConnection failed, returning error result');
 			return $result;
 		} catch (Exception $e) {
+			error_log('[RESA Propstack] testConnection exception: ' . $e->getMessage());
 			return [
 				'success' => false,
 				'error'   => $e->getMessage(),
@@ -79,7 +86,7 @@ class PropstackService {
 	 * @return array Contact sources list.
 	 */
 	public function getContactSources(): array {
-		return $this->request('GET', '/contact-sources', ['limit' => 100]);
+		return $this->request('GET', '/contact_sources', ['limit' => 100]);
 	}
 
 	/**
@@ -88,7 +95,7 @@ class PropstackService {
 	 * @return array Activity types list.
 	 */
 	public function getActivityTypes(): array {
-		return $this->request('GET', '/activity-types', ['limit' => 100]);
+		return $this->request('GET', '/activity_types', ['limit' => 100]);
 	}
 
 	/**
@@ -206,6 +213,9 @@ class PropstackService {
 		$status_code = wp_remote_retrieve_response_code($response);
 		$body        = wp_remote_retrieve_body($response);
 		$decoded     = json_decode($body, true);
+
+		// Log response
+		error_log(sprintf('[RESA Propstack] Response status: %d, body length: %d bytes', $status_code, strlen($body)));
 
 		// Check status code
 		if ($status_code < 200 || $status_code >= 300) {

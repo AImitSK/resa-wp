@@ -120,9 +120,9 @@
 	--resa-popover: 0 0% 100%;
 	--resa-popover-foreground: 203 35% 17%; /* #1e303a */
 
-	/* Borders & Inputs */
-	--resa-border: 214.3 31.8% 91.4%;
-	--resa-input: 214.3 31.8% 91.4%;
+	/* Borders & Inputs — sichtbare Rahmen */
+	--resa-border: 214.3 31.8% 82%;
+	--resa-input: 214.3 31.8% 78%;
 	--resa-ring: 81.5 75.4% 57.1%; /* RESA Grün */
 
 	/* Radius */

@@ -248,7 +248,6 @@ export interface WebhookTestResult {
 export interface PropstackSettings {
 	enabled: boolean;
 	api_key: string;
-	api_key_masked?: string;
 	city_broker_mapping: Record<number, number>;
 	default_broker_id: number | null;
 	contact_source_id: number | null;

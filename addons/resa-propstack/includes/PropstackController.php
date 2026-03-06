@@ -96,13 +96,6 @@ class PropstackController {
 	 */
 	public static function getSettings(): WP_REST_Response {
 		$settings = PropstackSettings::get();
-
-		// Mask API key for security
-		if (!empty($settings['api_key'])) {
-			$settings['api_key_masked'] = PropstackSettings::maskApiKey($settings['api_key']);
-			$settings['api_key'] = ''; // Don't send full key to frontend
-		}
-
 		return new WP_REST_Response($settings, 200);
 	}
 
@@ -115,22 +108,30 @@ class PropstackController {
 	public static function updateSettings(WP_REST_Request $request): WP_REST_Response {
 		$data = $request->get_json_params();
 
+		// Debug logging
+		error_log('[RESA Propstack] updateSettings called with data: ' . print_r($data, true));
+
+		// Ensure we have an array (JSON decode can return null)
+		if (!is_array($data)) {
+			error_log('[RESA Propstack] Data is not an array: ' . gettype($data));
+			return new WP_REST_Response(
+				['error' => __('Ungültige Daten.', 'resa-propstack')],
+				400
+			);
+		}
+
 		// Clear caches when API key changes
 		if (isset($data['api_key'])) {
 			PropstackSettings::clearCaches();
 		}
 
 		// Update settings
-		$success = PropstackSettings::update($data);
+		// Note: update_option() returns false if value didn't change, which is OK
+		PropstackSettings::update($data);
 
-		if (!$success) {
-			return new WP_REST_Response(
-				['error' => __('Einstellungen konnten nicht gespeichert werden.', 'resa-propstack')],
-				500
-			);
-		}
+		error_log('[RESA Propstack] Settings saved');
 
-		// Return updated settings (masked)
+		// Return updated settings
 		return self::getSettings();
 	}
 
@@ -143,6 +144,8 @@ class PropstackController {
 	public static function testConnection(WP_REST_Request $request): WP_REST_Response {
 		$data = $request->get_json_params();
 		$apiKey = $data['api_key'] ?? PropstackSettings::getApiKey();
+
+		error_log('[RESA Propstack] testConnection called with API key: ' . (empty($apiKey) ? 'empty' : 'present'));
 
 		if (empty($apiKey)) {
 			return new WP_REST_Response(
@@ -157,6 +160,8 @@ class PropstackController {
 		$service = new PropstackService($apiKey);
 		$result = $service->testConnection();
 
+		error_log('[RESA Propstack] testConnection result: ' . print_r($result, true));
+
 		return new WP_REST_Response($result, $result['success'] ? 200 : 400);
 	}
 
@@ -168,7 +173,7 @@ class PropstackController {
 	public static function getBrokers(): WP_REST_Response {
 		$cached = get_transient('resa_propstack_brokers');
 		if ($cached !== false) {
-			return new WP_REST_Response($cached, 200);
+			return new WP_REST_Response(is_array($cached) ? $cached : [], 200);
 		}
 
 		$apiKey = PropstackSettings::getApiKey();
@@ -186,7 +191,8 @@ class PropstackController {
 			return new WP_REST_Response($result, 400);
 		}
 
-		$brokers = $result['data']['data'] ?? [];
+		// Brokers returns direct array: [{broker1}, {broker2}, ...]
+		$brokers = is_array($result['data']) ? $result['data'] : [];
 
 		// Cache for 5 minutes
 		set_transient('resa_propstack_brokers', $brokers, self::CACHE_TTL);
@@ -202,7 +208,7 @@ class PropstackController {
 	public static function getContactSources(): WP_REST_Response {
 		$cached = get_transient('resa_propstack_contact_sources');
 		if ($cached !== false) {
-			return new WP_REST_Response($cached, 200);
+			return new WP_REST_Response(is_array($cached) ? $cached : [], 200);
 		}
 
 		$apiKey = PropstackSettings::getApiKey();
@@ -217,10 +223,12 @@ class PropstackController {
 		$result = $service->getContactSources();
 
 		if (!$result['success']) {
-			return new WP_REST_Response($result, 400);
+			// Return empty array instead of error (contact sources might not be available for all API keys)
+			error_log('[RESA Propstack] Contact sources not available: ' . ($result['error'] ?? 'Unknown error'));
+			return new WP_REST_Response([], 200);
 		}
 
-		$sources = $result['data']['data'] ?? [];
+		$sources = is_array($result['data']) ? $result['data'] : [];
 
 		// Cache for 5 minutes
 		set_transient('resa_propstack_contact_sources', $sources, self::CACHE_TTL);
@@ -236,7 +244,7 @@ class PropstackController {
 	public static function getActivityTypes(): WP_REST_Response {
 		$cached = get_transient('resa_propstack_activity_types');
 		if ($cached !== false) {
-			return new WP_REST_Response($cached, 200);
+			return new WP_REST_Response(is_array($cached) ? $cached : [], 200);
 		}
 
 		$apiKey = PropstackSettings::getApiKey();
@@ -254,7 +262,11 @@ class PropstackController {
 			return new WP_REST_Response($result, 400);
 		}
 
+		// Activity types returns wrapped structure: {"data": [{type1}, {type2}, ...]}
 		$types = $result['data']['data'] ?? [];
+		if (!is_array($types)) {
+			$types = [];
+		}
 
 		// Cache for 5 minutes
 		set_transient('resa_propstack_activity_types', $types, self::CACHE_TTL);

@@ -1,20 +1,19 @@
 /**
  * Propstack CRM Integration Tab
  *
- * 4 Cards: Verbindung, Makler-Zuweisung, Aktivitäten, Newsletter
- * Conditional rendering: Cards 2-4 only visible wenn API verbunden
+ * Follows the inline-styles pattern from RecaptchaTab and Analytics.
+ * Concrete color values instead of Tailwind classes for WordPress compatibility.
  */
 
 import { useState, useEffect } from 'react';
 import { __ } from '@wordpress/i18n';
+import { Eye, EyeOff, CheckCircle2, XCircle, Info } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Spinner } from '@/components/ui/spinner';
-import { Badge } from '@/components/ui/badge';
-import { Alert } from '@/components/ui/alert';
 import {
 	Select,
 	SelectContent,
@@ -23,51 +22,167 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from '@/components/ui/table';
-import {
 	usePropstackSettings,
 	useSavePropstackSettings,
 	useTestPropstackConnection,
 	usePropstackBrokers,
-	usePropstackContactSources,
 	usePropstackActivityTypes,
 } from '../../hooks/usePropstack';
 import { useLocations } from '../../hooks/useLocations';
 import type { PropstackSettings } from '../../types';
 
-// ─── Styles ─────────────────────────────────────────────
+// ─── Design Tokens (concrete values) ─────────────────────
 
+const colors = {
+	primary: '#a9e43f',
+	primaryForeground: '#1e303a',
+	text: '#1e303a',
+	textMuted: 'hsl(215.4 16.3% 46.9%)',
+	border: 'hsl(214.3 31.8% 78%)',
+	borderLight: 'hsl(214.3 31.8% 91.4%)',
+	background: 'white',
+	backgroundMuted: 'hsl(210 40% 96.1%)',
+	error: '#ef4444',
+	info: '#3b82f6',
+};
+
+// ─── Styles ──────────────────────────────────────────────
+
+// H2 - Card headers
 const sectionTitleStyles: React.CSSProperties = {
 	margin: 0,
-	fontSize: '14px',
+	fontSize: '16px',
 	fontWeight: 600,
-	color: '#1e303a',
+	color: colors.text,
+};
+
+// Bold text - Element titles in boxes
+const elementTitleStyles: React.CSSProperties = {
+	margin: 0,
+	fontSize: '14px',
+	fontWeight: 500,
+	color: colors.text,
 };
 
 const sectionDescStyles: React.CSSProperties = {
-	margin: 0,
+	margin: '4px 0 0 0',
 	fontSize: '13px',
-	color: 'hsl(215.4 16.3% 46.9%)',
-	marginBottom: '16px',
-};
-
-const switchRowStyles: React.CSSProperties = {
-	display: 'flex',
-	alignItems: 'center',
-	justifyContent: 'space-between',
-	gap: '16px',
+	color: colors.textMuted,
 };
 
 const fieldGroupStyles: React.CSSProperties = {
 	display: 'flex',
 	flexDirection: 'column',
-	gap: '8px',
+	gap: '6px',
+};
+
+const fieldDescStyles: React.CSSProperties = {
+	margin: 0,
+	fontSize: '12px',
+	color: colors.textMuted,
+};
+
+const inputStyles: React.CSSProperties = {
+	height: '36px',
+	padding: '0 12px',
+	fontSize: '14px',
+	border: `1px solid ${colors.border}`,
+	borderRadius: '6px',
+	backgroundColor: colors.background,
+	color: colors.text,
+};
+
+const selectTriggerStyles: React.CSSProperties = {
+	width: '100%',
+	height: '36px',
+	backgroundColor: colors.background,
+	border: `1px solid ${colors.border}`,
+	borderRadius: '6px',
+	fontSize: '14px',
+};
+
+const badgeStyles: React.CSSProperties = {
+	display: 'inline-flex',
+	alignItems: 'center',
+	gap: '6px',
+	padding: '6px 12px',
+	fontSize: '13px',
+	fontWeight: 500,
+	borderRadius: '6px',
+};
+
+const successBadgeStyles: React.CSSProperties = {
+	...badgeStyles,
+	backgroundColor: colors.primary,
+	color: colors.primaryForeground,
+};
+
+const errorBadgeStyles: React.CSSProperties = {
+	...badgeStyles,
+	backgroundColor: colors.error,
+	color: 'white',
+};
+
+const infoBoxStyles: React.CSSProperties = {
+	display: 'flex',
+	gap: '12px',
+	padding: '16px',
+	backgroundColor: 'hsl(210 100% 97%)',
+	border: '1px solid hsl(210 100% 90%)',
+	borderRadius: '8px',
+	fontSize: '13px',
+	color: 'hsl(210 100% 30%)',
+};
+
+const toggleBoxStyles: React.CSSProperties = {
+	display: 'flex',
+	alignItems: 'center',
+	justifyContent: 'space-between',
+	padding: '16px',
+	border: `1px solid ${colors.borderLight}`,
+	borderRadius: '8px',
+	backgroundColor: colors.backgroundMuted,
+};
+
+const selectBoxStyles: React.CSSProperties = {
+	display: 'flex',
+	flexDirection: 'column',
+	gap: '12px',
+	padding: '16px',
+	border: `1px solid ${colors.borderLight}`,
+	borderRadius: '8px',
+	backgroundColor: colors.backgroundMuted,
+};
+
+const tableStyles: React.CSSProperties = {
+	width: '100%',
+	borderCollapse: 'collapse',
+	border: `1px solid ${colors.border}`,
+	borderRadius: '8px',
+	overflow: 'hidden',
+};
+
+const tableHeaderStyles: React.CSSProperties = {
+	backgroundColor: colors.backgroundMuted,
+	textAlign: 'left',
+	padding: '12px 16px',
+	fontSize: '13px',
+	fontWeight: 500,
+	color: colors.textMuted,
+	borderBottom: `1px solid ${colors.border}`,
+};
+
+const tableCellStyles: React.CSSProperties = {
+	padding: '12px 16px',
+	fontSize: '14px',
+	color: colors.text,
+	borderBottom: `1px solid ${colors.borderLight}`,
+};
+
+const separatorStyles: React.CSSProperties = {
+	height: '1px',
+	backgroundColor: colors.borderLight,
+	margin: '16px 0',
 };
 
 // ─── Component ──────────────────────────────────────────
@@ -92,37 +207,35 @@ export function PropstackTab() {
 		newsletter_broker_id: null,
 	};
 
-	const [form, setForm] = useState<PropstackSettings>(defaults);
+	// Initialize form with settings or defaults
+	const initialForm = settings ?? defaults;
+	const initialConnectionStatus = settings?.api_key ? 'connected' : 'unknown';
+
+	const [form, setForm] = useState<PropstackSettings>(initialForm);
 	const [isDirty, setIsDirty] = useState(false);
 	const [showApiKey, setShowApiKey] = useState(false);
 	const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'connected' | 'error'>(
-		'unknown',
+		initialConnectionStatus,
 	);
 	const [testError, setTestError] = useState<string>('');
 
-	// Update form when settings load (initial only)
+	// Sync form when settings change (e.g., after refetch)
+	// This is intentional: we need to sync server state to local form state
+	const settingsKey = settings ? JSON.stringify(settings) : null;
 	useEffect(() => {
-		if (settings) {
-			// Preserve locally entered API key if it exists
-			setForm((prev) => ({
-				...settings,
-				// Don't overwrite api_key if user has entered one locally
-				api_key: prev.api_key || settings.api_key || '',
-			}));
+		if (settings && !isDirty) {
+			setForm(settings);
+			if (settings.api_key) {
+				setConnectionStatus('connected');
+			}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [settings?.enabled, settings?.api_key_masked]);
+	}, [settingsKey]);
 
 	const isConnected = connectionStatus === 'connected';
+	const shouldFetchDropdowns = isConnected;
 
-	// Only fetch dropdown data if API key is saved in settings (not just entered)
-	const hasApiKeySaved = Boolean(settings?.api_key || settings?.api_key_masked);
-	const shouldFetchDropdowns = isConnected && hasApiKeySaved;
-
-	// Fetch dropdown data only wenn connected AND API key is saved
 	const { data: brokers, isLoading: brokersLoading } = usePropstackBrokers(shouldFetchDropdowns);
-	const { data: contactSources, isLoading: sourcesLoading } =
-		usePropstackContactSources(shouldFetchDropdowns);
 	const { data: activityTypes, isLoading: typesLoading } =
 		usePropstackActivityTypes(shouldFetchDropdowns);
 
@@ -143,7 +256,6 @@ export function PropstackTab() {
 
 		try {
 			const result = await testMutation.mutateAsync(form.api_key);
-
 			if (result.success) {
 				setConnectionStatus('connected');
 				setTestError('');
@@ -161,15 +273,26 @@ export function PropstackTab() {
 		saveMutation.mutate(form, {
 			onSuccess: () => {
 				setIsDirty(false);
+				if (form.api_key) {
+					setConnectionStatus('connected');
+				}
 			},
 		});
 	};
 
 	if (isLoading) {
 		return (
-			<div className="resa-flex resa-items-center resa-justify-center resa-gap-2 resa-py-12">
-				<Spinner className="resa-size-5" />
-				<span className="resa-text-muted-foreground">
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+					gap: '8px',
+					padding: '48px',
+				}}
+			>
+				<Spinner style={{ width: '20px', height: '20px' }} />
+				<span style={{ color: colors.textMuted }}>
 					{__('Lade Propstack-Einstellungen...', 'resa-propstack')}
 				</span>
 			</div>
@@ -182,15 +305,26 @@ export function PropstackTab() {
 			<Card>
 				<CardContent style={{ padding: '20px' }}>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-						{/* Header + Switch */}
-						<div style={switchRowStyles}>
+						{/* Card Header */}
+						<div>
+							<h2 style={sectionTitleStyles}>{__('Verbindung', 'resa-propstack')}</h2>
+							<p style={sectionDescStyles}>
+								{__(
+									'Verbinde RESA mit deinem Propstack CRM-Account.',
+									'resa-propstack',
+								)}
+							</p>
+						</div>
+
+						{/* Enable Switch */}
+						<div style={toggleBoxStyles}>
 							<div>
-								<h3 style={sectionTitleStyles}>
-									{__('Propstack-Integration', 'resa-propstack')}
-								</h3>
-								<p style={sectionDescStyles}>
+								<p style={elementTitleStyles}>
+									{__('Integration aktivieren', 'resa-propstack')}
+								</p>
+								<p style={{ ...fieldDescStyles, marginTop: '2px' }}>
 									{__(
-										'Synchronisiert Leads automatisch zu Propstack CRM.',
+										'Synchronisiert Leads automatisch zu Propstack.',
 										'resa-propstack',
 									)}
 								</p>
@@ -201,95 +335,150 @@ export function PropstackTab() {
 							/>
 						</div>
 
-						{/* API Key Field */}
-						<div style={fieldGroupStyles}>
-							<Label htmlFor="propstack-api-key">
-								{__('API-Key', 'resa-propstack')}
-							</Label>
-							<div className="resa-flex resa-gap-2">
-								<Input
-									id="propstack-api-key"
-									type={showApiKey ? 'text' : 'password'}
-									value={form.api_key}
-									onChange={(e) => updateField('api_key', e.target.value)}
-									placeholder={
-										settings?.api_key_masked ||
-										__('Propstack API-Key eingeben', 'resa-propstack')
-									}
-								/>
-								<Button
-									type="button"
-									variant="outline"
-									size="icon"
-									onClick={() => setShowApiKey(!showApiKey)}
-								>
-									{showApiKey ? '👁️' : '👁️‍🗨️'}
-								</Button>
-							</div>
-						</div>
+						{/* API Key - nur wenn enabled */}
+						{form.enabled && (
+							<>
+								<div style={fieldGroupStyles}>
+									<Label htmlFor="propstack-api-key">
+										{__('API-Key', 'resa-propstack')}
+									</Label>
+									<div style={{ display: 'flex', gap: '8px' }}>
+										<Input
+											id="propstack-api-key"
+											type={showApiKey ? 'text' : 'password'}
+											value={form.api_key}
+											onChange={(e) => updateField('api_key', e.target.value)}
+											placeholder={__(
+												'Propstack API-Key eingeben',
+												'resa-propstack',
+											)}
+											style={{
+												...inputStyles,
+												flex: 1,
+												fontFamily: 'monospace',
+											}}
+										/>
+										<Button
+											type="button"
+											variant="outline"
+											onClick={() => setShowApiKey(!showApiKey)}
+											style={{
+												width: '36px',
+												height: '36px',
+												padding: 0,
+												border: `1px solid ${colors.border}`,
+											}}
+										>
+											{showApiKey ? (
+												<EyeOff style={{ width: '16px', height: '16px' }} />
+											) : (
+												<Eye style={{ width: '16px', height: '16px' }} />
+											)}
+										</Button>
+									</div>
+									<p style={fieldDescStyles}>
+										{__(
+											'Den API-Key findest du in Propstack unter Einstellungen → API.',
+											'resa-propstack',
+										)}
+									</p>
+								</div>
 
-						{/* Test Connection Button + Status */}
-						<div className="resa-flex resa-items-center resa-gap-3">
-							<Button
-								type="button"
-								variant="outline"
-								onClick={handleTestConnection}
-								disabled={testMutation.isPending}
-							>
-								{testMutation.isPending && (
-									<Spinner className="resa-mr-2 resa-size-4" />
+								{/* Test Connection */}
+								<div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+									<Button
+										type="button"
+										variant="outline"
+										onClick={handleTestConnection}
+										disabled={testMutation.isPending || !form.api_key}
+										style={{
+											border: `1px solid ${colors.border}`,
+											backgroundColor: colors.background,
+										}}
+									>
+										{testMutation.isPending && (
+											<Spinner
+												style={{
+													width: '14px',
+													height: '14px',
+													marginRight: '8px',
+												}}
+											/>
+										)}
+										{__('Verbindung testen', 'resa-propstack')}
+									</Button>
+
+									{connectionStatus === 'connected' && (
+										<span style={successBadgeStyles}>
+											<CheckCircle2
+												style={{ width: '14px', height: '14px' }}
+											/>
+											{__('Verbunden', 'resa-propstack')}
+											{brokers && ` (${brokers.length} Makler)`}
+										</span>
+									)}
+
+									{connectionStatus === 'error' && (
+										<span style={errorBadgeStyles}>
+											<XCircle style={{ width: '14px', height: '14px' }} />
+											{__('Nicht verbunden', 'resa-propstack')}
+										</span>
+									)}
+								</div>
+
+								{/* Error */}
+								{testError && (
+									<div
+										style={{
+											padding: '12px 16px',
+											backgroundColor: 'hsl(0 100% 97%)',
+											border: '1px solid hsl(0 100% 90%)',
+											borderRadius: '6px',
+											color: colors.error,
+											fontSize: '13px',
+										}}
+									>
+										{testError}
+									</div>
 								)}
-								{__('Verbindung testen', 'resa-propstack')}
-							</Button>
-
-							{connectionStatus === 'connected' && (
-								<Badge variant="default" className="resa-bg-green-600">
-									✓ {__('Verbunden', 'resa-propstack')}
-									{brokers && ` (${brokers.length} Makler)`}
-								</Badge>
-							)}
-
-							{connectionStatus === 'error' && (
-								<Badge variant="destructive">
-									✗ {__('Nicht verbunden', 'resa-propstack')}
-								</Badge>
-							)}
-						</div>
-
-						{/* Error Alert */}
-						{testError && (
-							<Alert variant="destructive">
-								<p className="resa-text-sm">{testError}</p>
-							</Alert>
+							</>
 						)}
 					</div>
 				</CardContent>
 			</Card>
 
-			{/* Cards 2-4: Nur wenn verbunden */}
-			{isConnected && (
+			{/* Cards 2-4: Nur wenn aktiviert UND verbunden */}
+			{form.enabled && isConnected && (
 				<>
 					{/* Card 2: Makler-Zuweisung */}
 					<Card>
 						<CardContent style={{ padding: '20px' }}>
 							<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 								<div>
-									<h3 style={sectionTitleStyles}>
+									<h2 style={sectionTitleStyles}>
 										{__('Makler-Zuweisung', 'resa-propstack')}
-									</h3>
+									</h2>
 									<p style={sectionDescStyles}>
 										{__(
-											'Ordnen Sie Standorten einen Propstack-Makler zu.',
+											'Lege fest, welcher Propstack-Makler die Leads erhält.',
 											'resa-propstack',
 										)}
 									</p>
 								</div>
 
-								{/* Default Broker */}
-								<div style={fieldGroupStyles}>
-									<Label htmlFor="default-broker">
-										{__('Standard-Makler (Fallback)', 'resa-propstack')}
-									</Label>
+								{/* Standard-Makler */}
+								<div style={selectBoxStyles}>
+									<div>
+										<p style={elementTitleStyles}>
+											{__('Standard-Makler', 'resa-propstack')}
+										</p>
+										<p style={{ ...fieldDescStyles, marginTop: '2px' }}>
+											{__(
+												'Dieser Makler erhält alle Leads, für die kein spezifischer Makler zugewiesen ist.',
+												'resa-propstack',
+											)}
+										</p>
+									</div>
 									<Select
 										value={form.default_broker_id?.toString() || ''}
 										onValueChange={(val) =>
@@ -299,18 +488,24 @@ export function PropstackTab() {
 											)
 										}
 									>
-										<SelectTrigger id="default-broker">
+										<SelectTrigger
+											style={{ ...selectTriggerStyles, maxWidth: '300px' }}
+										>
 											<SelectValue
 												placeholder={__(
-													'Makler auswählen',
+													'Makler auswählen...',
 													'resa-propstack',
 												)}
 											/>
 										</SelectTrigger>
 										<SelectContent>
 											{brokersLoading && (
-												<div className="resa-p-2 resa-text-center">
-													<Spinner className="resa-size-4" />
+												<div
+													style={{ padding: '8px', textAlign: 'center' }}
+												>
+													<Spinner
+														style={{ width: '16px', height: '16px' }}
+													/>
 												</div>
 											)}
 											{brokers?.map((broker) => (
@@ -325,126 +520,122 @@ export function PropstackTab() {
 									</Select>
 								</div>
 
-								{/* Contact Source */}
-								<div style={fieldGroupStyles}>
-									<Label htmlFor="contact-source">
-										{__('Kontaktquelle', 'resa-propstack')}
-									</Label>
-									<Select
-										value={form.contact_source_id?.toString() || ''}
-										onValueChange={(val) =>
-											updateField(
-												'contact_source_id',
-												val ? parseInt(val, 10) : null,
-											)
-										}
-									>
-										<SelectTrigger id="contact-source">
-											<SelectValue
-												placeholder={__(
-													'Optional: Quelle auswählen',
+								{/* Makler pro Standort */}
+								{locations && locations.length > 0 && (
+									<>
+										<div style={separatorStyles} />
+
+										<div style={fieldGroupStyles}>
+											<Label>
+												{__('Makler pro Standort', 'resa-propstack')}
+											</Label>
+											<p style={{ ...fieldDescStyles, marginBottom: '8px' }}>
+												{__(
+													'Optional: Weise einzelnen Standorten einen spezifischen Makler zu.',
 													'resa-propstack',
 												)}
-											/>
-										</SelectTrigger>
-										<SelectContent>
-											{sourcesLoading && (
-												<div className="resa-p-2 resa-text-center">
-													<Spinner className="resa-size-4" />
-												</div>
-											)}
-											{contactSources?.map((source) => (
-												<SelectItem
-													key={source.id}
-													value={source.id.toString()}
-												>
-													{source.name}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								</div>
+											</p>
 
-								{/* Location-Broker Mapping Table */}
-								{locations && locations.length > 0 && (
-									<div>
-										<Label className="resa-mb-2 resa-block">
-											{__('Makler pro Standort', 'resa-propstack')}
-										</Label>
-										<Table>
-											<TableHeader>
-												<TableRow>
-													<TableHead>
-														{__('Standort', 'resa-propstack')}
-													</TableHead>
-													<TableHead>
-														{__(
-															'Zugewiesener Makler',
-															'resa-propstack',
-														)}
-													</TableHead>
-												</TableRow>
-											</TableHeader>
-											<TableBody>
-												{locations.map((location) => (
-													<TableRow key={location.id}>
-														<TableCell className="resa-font-medium">
-															{location.name}
-														</TableCell>
-														<TableCell>
-															<Select
-																value={
-																	form.city_broker_mapping[
-																		location.id
-																	]?.toString() || '__none__'
-																}
-																onValueChange={(val) => {
-																	const mapping = {
-																		...form.city_broker_mapping,
-																	};
-																	if (val && val !== '__none__') {
-																		mapping[location.id] =
-																			parseInt(val, 10);
-																	} else {
-																		delete mapping[location.id];
-																	}
-																	updateField(
-																		'city_broker_mapping',
-																		mapping,
-																	);
+											<table style={tableStyles}>
+												<thead>
+													<tr>
+														<th style={tableHeaderStyles}>
+															{__('Standort', 'resa-propstack')}
+														</th>
+														<th style={tableHeaderStyles}>
+															{__(
+																'Zugewiesener Makler',
+																'resa-propstack',
+															)}
+														</th>
+													</tr>
+												</thead>
+												<tbody>
+													{locations.map((location, idx) => (
+														<tr key={location.id}>
+															<td
+																style={{
+																	...tableCellStyles,
+																	fontWeight: 500,
+																	borderBottom:
+																		idx === locations.length - 1
+																			? 'none'
+																			: tableCellStyles.borderBottom,
 																}}
 															>
-																<SelectTrigger>
-																	<SelectValue
-																		placeholder={__(
-																			'Standard verwenden',
-																			'resa-propstack',
-																		)}
-																	/>
-																</SelectTrigger>
-																<SelectContent>
-																	<SelectItem value="__none__">
-																		{__(
-																			'Standard verwenden',
-																			'resa-propstack',
-																		)}
-																	</SelectItem>
-																	{brokers?.map((broker) => (
-																		<SelectItem
-																			key={broker.id}
-																			value={broker.id.toString()}
-																		>
-																			{broker.name}
+																{location.name}
+															</td>
+															<td
+																style={{
+																	...tableCellStyles,
+																	borderBottom:
+																		idx === locations.length - 1
+																			? 'none'
+																			: tableCellStyles.borderBottom,
+																}}
+															>
+																<Select
+																	value={
+																		form.city_broker_mapping[
+																			location.id
+																		]?.toString() || '__none__'
+																	}
+																	onValueChange={(val) => {
+																		const mapping = {
+																			...form.city_broker_mapping,
+																		};
+																		if (
+																			val &&
+																			val !== '__none__'
+																		) {
+																			mapping[location.id] =
+																				parseInt(val, 10);
+																		} else {
+																			delete mapping[
+																				location.id
+																			];
+																		}
+																		updateField(
+																			'city_broker_mapping',
+																			mapping,
+																		);
+																	}}
+																>
+																	<SelectTrigger
+																		style={selectTriggerStyles}
+																	>
+																		<SelectValue />
+																	</SelectTrigger>
+																	<SelectContent>
+																		<SelectItem value="__none__">
+																			<span
+																				style={{
+																					color: colors.textMuted,
+																				}}
+																			>
+																				{__(
+																					'Standard verwenden',
+																					'resa-propstack',
+																				)}
+																			</span>
 																		</SelectItem>
-																	))}
-																</SelectContent>
-															</Select>
-														</TableCell>
-													</TableRow>
-												))}
-											</TableBody>
-										</Table>
-									</div>
+																		{brokers?.map((broker) => (
+																			<SelectItem
+																				key={broker.id}
+																				value={broker.id.toString()}
+																			>
+																				{broker.name}
+																			</SelectItem>
+																		))}
+																	</SelectContent>
+																</Select>
+															</td>
+														</tr>
+													))}
+												</tbody>
+											</table>
+										</div>
+									</>
 								)}
 							</div>
 						</CardContent>
@@ -454,15 +645,28 @@ export function PropstackTab() {
 					<Card>
 						<CardContent style={{ padding: '20px' }}>
 							<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-								{/* Header + Switch */}
-								<div style={switchRowStyles}>
+								{/* Card Header */}
+								<div>
+									<h2 style={sectionTitleStyles}>
+										{__('Aktivitäten', 'resa-propstack')}
+									</h2>
+									<p style={sectionDescStyles}>
+										{__(
+											'Erstelle automatisch Aktivitäten und Aufgaben in Propstack.',
+											'resa-propstack',
+										)}
+									</p>
+								</div>
+
+								{/* Enable Switch */}
+								<div style={toggleBoxStyles}>
 									<div>
-										<h3 style={sectionTitleStyles}>
+										<p style={elementTitleStyles}>
 											{__('Aktivitäten erstellen', 'resa-propstack')}
-										</h3>
-										<p style={sectionDescStyles}>
+										</p>
+										<p style={{ ...fieldDescStyles, marginTop: '2px' }}>
 											{__(
-												'Erstellt automatisch eine Aktivität pro Lead.',
+												'Erstellt automatisch eine Aktivität für jeden neuen Lead.',
 												'resa-propstack',
 											)}
 										</p>
@@ -475,13 +679,11 @@ export function PropstackTab() {
 									/>
 								</div>
 
-								{/* Activity Type */}
+								{/* Activity Settings */}
 								{form.activity_enabled && (
 									<>
 										<div style={fieldGroupStyles}>
-											<Label htmlFor="activity-type">
-												{__('Aktivitäts-Typ', 'resa-propstack')}
-											</Label>
+											<Label>{__('Aktivitäts-Typ', 'resa-propstack')}</Label>
 											<Select
 												value={form.activity_type_id?.toString() || ''}
 												onValueChange={(val) =>
@@ -491,18 +693,33 @@ export function PropstackTab() {
 													)
 												}
 											>
-												<SelectTrigger id="activity-type">
+												<SelectTrigger
+													style={{
+														...selectTriggerStyles,
+														maxWidth: '300px',
+													}}
+												>
 													<SelectValue
 														placeholder={__(
-															'Typ auswählen',
+															'Typ auswählen...',
 															'resa-propstack',
 														)}
 													/>
 												</SelectTrigger>
 												<SelectContent>
 													{typesLoading && (
-														<div className="resa-p-2 resa-text-center">
-															<Spinner className="resa-size-4" />
+														<div
+															style={{
+																padding: '8px',
+																textAlign: 'center',
+															}}
+														>
+															<Spinner
+																style={{
+																	width: '16px',
+																	height: '16px',
+																}}
+															/>
 														</div>
 													)}
 													{activityTypes?.map((type) => (
@@ -515,35 +732,44 @@ export function PropstackTab() {
 													))}
 												</SelectContent>
 											</Select>
+											<p style={fieldDescStyles}>
+												{__(
+													'Wähle den Typ der Aktivität, die in Propstack erstellt wird.',
+													'resa-propstack',
+												)}
+											</p>
 										</div>
 
-										{/* Create Task Checkbox */}
-										<div className="resa-flex resa-items-center resa-gap-3">
+										<div style={separatorStyles} />
+
+										{/* Create Task Toggle */}
+										<div style={toggleBoxStyles}>
+											<div>
+												<p style={elementTitleStyles}>
+													{__('Als Aufgabe erstellen', 'resa-propstack')}
+												</p>
+												<p style={{ ...fieldDescStyles, marginTop: '2px' }}>
+													{__(
+														'Erstellt die Aktivität als Aufgabe mit Fälligkeitsdatum.',
+														'resa-propstack',
+													)}
+												</p>
+											</div>
 											<Switch
 												checked={form.activity_create_task}
 												onCheckedChange={(checked) =>
 													updateField('activity_create_task', checked)
 												}
 											/>
-											<Label
-												htmlFor="create-task"
-												className="resa-cursor-pointer"
-											>
-												{__(
-													'Als Aufgabe (Task) mit Fälligkeit erstellen',
-													'resa-propstack',
-												)}
-											</Label>
 										</div>
 
 										{/* Task Due Days */}
 										{form.activity_create_task && (
 											<div style={fieldGroupStyles}>
-												<Label htmlFor="task-due-days">
+												<Label>
 													{__('Fälligkeit (Werktage)', 'resa-propstack')}
 												</Label>
 												<Input
-													id="task-due-days"
 													type="number"
 													min="1"
 													max="30"
@@ -554,7 +780,14 @@ export function PropstackTab() {
 															parseInt(e.target.value, 10) || 3,
 														)
 													}
+													style={{ ...inputStyles, width: '100px' }}
 												/>
+												<p style={fieldDescStyles}>
+													{__(
+														'Anzahl der Werktage bis zur Fälligkeit der Aufgabe.',
+														'resa-propstack',
+													)}
+												</p>
 											</div>
 										)}
 									</>
@@ -568,39 +801,55 @@ export function PropstackTab() {
 						<CardContent style={{ padding: '20px' }}>
 							<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 								<div>
-									<h3 style={sectionTitleStyles}>
-										{__('Newsletter-DOI', 'resa-propstack')}
-									</h3>
+									<h2 style={sectionTitleStyles}>
+										{__('Newsletter-Einstellungen', 'resa-propstack')}
+									</h2>
 									<p style={sectionDescStyles}>
 										{__(
-											'Newsletter Double-Opt-In E-Mail über Propstack versenden.',
+											'Konfiguriere die Newsletter Double-Opt-In Synchronisation.',
 											'resa-propstack',
 										)}
 									</p>
 								</div>
 
-								{/* Newsletter-Only Mode */}
-								<div className="resa-flex resa-items-center resa-gap-3">
+								{/* Newsletter-Only Toggle */}
+								<div style={toggleBoxStyles}>
+									<div>
+										<p style={elementTitleStyles}>
+											{__(
+												'Nur Newsletter-DOI synchronisieren',
+												'resa-propstack',
+											)}
+										</p>
+										<p style={{ ...fieldDescStyles, marginTop: '2px' }}>
+											{__(
+												'Synchronisiert nur den Newsletter-Status, keine Kontaktdaten.',
+												'resa-propstack',
+											)}
+										</p>
+									</div>
 									<Switch
 										checked={form.sync_newsletter_only}
 										onCheckedChange={(checked) =>
 											updateField('sync_newsletter_only', checked)
 										}
 									/>
-									<Label className="resa-cursor-pointer">
-										{__(
-											'Nur Newsletter-DOI synchronisieren (keine Kontakt-Daten)',
-											'resa-propstack',
-										)}
-									</Label>
 								</div>
 
 								{/* Newsletter Broker */}
 								{form.sync_newsletter_only && (
-									<div style={fieldGroupStyles}>
-										<Label htmlFor="newsletter-broker">
-											{__('Newsletter-Makler', 'resa-propstack')}
-										</Label>
+									<div style={selectBoxStyles}>
+										<div>
+											<p style={elementTitleStyles}>
+												{__('Newsletter-Makler', 'resa-propstack')}
+											</p>
+											<p style={{ ...fieldDescStyles, marginTop: '2px' }}>
+												{__(
+													'Makler, der die Newsletter-Anmeldungen verwaltet.',
+													'resa-propstack',
+												)}
+											</p>
+										</div>
 										<Select
 											value={form.newsletter_broker_id?.toString() || ''}
 											onValueChange={(val) =>
@@ -610,10 +859,15 @@ export function PropstackTab() {
 												)
 											}
 										>
-											<SelectTrigger id="newsletter-broker">
+											<SelectTrigger
+												style={{
+													...selectTriggerStyles,
+													maxWidth: '300px',
+												}}
+											>
 												<SelectValue
 													placeholder={__(
-														'Makler auswählen',
+														'Makler auswählen...',
 														'resa-propstack',
 													)}
 												/>
@@ -631,32 +885,65 @@ export function PropstackTab() {
 										</Select>
 									</div>
 								)}
+
+								{/* Info Box */}
+								<div style={infoBoxStyles}>
+									<Info
+										style={{
+											width: '20px',
+											height: '20px',
+											flexShrink: 0,
+											marginTop: '1px',
+										}}
+									/>
+									<p style={{ margin: 0 }}>
+										{__(
+											'Newsletter-Anmeldungen werden über die Propstack E-Mail-Workflows versendet. Stelle sicher, dass in Propstack ein entsprechender Workflow eingerichtet ist.',
+											'resa-propstack',
+										)}
+									</p>
+								</div>
 							</div>
 						</CardContent>
 					</Card>
 				</>
 			)}
 
-			{/* Save Button */}
-			<div className="resa-flex resa-justify-end">
+			{/* Save Footer */}
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'space-between',
+				}}
+			>
+				<p
+					style={{
+						margin: 0,
+						fontSize: '13px',
+						color: colors.primary,
+						fontWeight: 500,
+					}}
+				>
+					{saveMutation.isSuccess &&
+						!isDirty &&
+						__('Einstellungen gespeichert.', 'resa-propstack')}
+				</p>
 				<Button
-					type="button"
 					onClick={handleSave}
 					disabled={!isDirty || saveMutation.isPending}
+					style={{
+						backgroundColor: isDirty ? colors.primary : colors.backgroundMuted,
+						color: colors.primaryForeground,
+						border: 'none',
+					}}
 				>
-					{saveMutation.isPending && <Spinner className="resa-mr-2 resa-size-4" />}
-					{__('Einstellungen speichern', 'resa-propstack')}
+					{saveMutation.isPending && (
+						<Spinner style={{ width: '14px', height: '14px', marginRight: '8px' }} />
+					)}
+					{__('Speichern', 'resa-propstack')}
 				</Button>
 			</div>
-
-			{/* Success Message */}
-			{saveMutation.isSuccess && !isDirty && (
-				<Alert className="resa-bg-green-50 resa-border-green-200">
-					<p className="resa-text-sm resa-text-green-800">
-						✓ {__('Einstellungen gespeichert.', 'resa-propstack')}
-					</p>
-				</Alert>
-			)}
 		</div>
 	);
 }
