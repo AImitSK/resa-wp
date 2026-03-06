@@ -5,6 +5,9 @@ on:
     tags:
       - 'propstack-v*'
 
+permissions:
+  contents: write
+
 jobs:
   deploy:
     name: Build & Deploy to Freemius
