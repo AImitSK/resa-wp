@@ -3,7 +3,7 @@
  * Plugin Name:       RESA für Propstack
  * Plugin URI:        https://resa-wt.com/propstack
  * Description:       Propstack-CRM-Integration für RESA — synchronisiert Leads automatisch.
- * Version:           1.0.6
+ * Version:           1.0.7
  * Requires at least: 6.4
  * Requires PHP:      8.1
  * Author:            resa-wt.com
@@ -17,7 +17,7 @@ namespace Resa\Propstack;
 defined('ABSPATH') || exit;
 
 // Plugin constants
-define('RESA_PROPSTACK_VERSION', '1.0.6');
+define('RESA_PROPSTACK_VERSION', '1.0.7');
 define('RESA_PROPSTACK_FILE', __FILE__);
 define('RESA_PROPSTACK_DIR', plugin_dir_path(__FILE__));
 define('RESA_PROPSTACK_URL', plugin_dir_url(__FILE__));
@@ -70,15 +70,18 @@ function resa_propstack_fs(): ?\Freemius {
 		}
 
 		$resa_propstack_fs = fs_dynamic_init([
-			'id'             => '25414',
-			'slug'           => 'resa-propstack',
-			'type'           => 'plugin',
-			'public_key'     => 'pk_ce5e549b2fea1003af9197abb34d5',
-			'is_premium'     => true,
-			'has_paid_plans' => true,
-			'parent'         => [
-				'id'   => '24963',                         // RESA Core Product-ID
-				'slug' => 'resa',
+			'id'              => '25414',
+			'slug'            => 'resa-propstack',
+			'type'            => 'plugin',
+			'public_key'      => 'pk_ce5e549b2fea1003af9197abb34d5',
+			'is_premium'      => true,
+			'is_premium_only' => true,
+			'has_paid_plans'  => true,
+			'parent'          => [
+				'id'         => '24963',
+				'slug'       => 'resa',
+				'public_key' => 'pk_c94f0ca40759e42eadb8bb19e2bd5',
+				'name'       => 'RESA',
 			],
 		]);
 	}
