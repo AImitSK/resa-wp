@@ -63,7 +63,7 @@ jobs:
 
       - name: Deploy to Freemius
         env:
-          FREEMIUS_TOKEN: ${{ secrets.FREEMIUS_PROPSTACK_TOKEN }}
+          FREEMIUS_TOKEN: ${{ secrets.FREEMIUS_BEARER_TOKEN }}
           PRODUCT_ID: '25414'
         run: |
           VERSION="${{ steps.version.outputs.version }}"
