@@ -3,7 +3,7 @@
  * Plugin Name:       RESA für Propstack
  * Plugin URI:        https://resa-wt.com/propstack
  * Description:       Propstack-CRM-Integration für RESA — synchronisiert Leads automatisch.
- * Version:           1.0.7
+ * Version:           1.0.8
  * Requires at least: 6.4
  * Requires PHP:      8.1
  * Author:            resa-wt.com

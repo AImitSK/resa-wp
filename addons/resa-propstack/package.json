@@ -1,6 +1,6 @@
 {
 	"name": "resa-propstack",
-	"version": "1.0.7",
+	"version": "1.0.8",
 	"description": "Propstack CRM Integration for RESA",
 	"private": true,
 	"scripts": {
