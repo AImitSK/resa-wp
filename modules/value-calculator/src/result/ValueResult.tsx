@@ -10,6 +10,7 @@ import { __ } from '@wordpress/i18n';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ResaMap } from '@frontend/components/map';
+import { ComparisonBarChart } from '@frontend/components/charts';
 import { MarketPositionGauge } from './MarketPositionGauge';
 import type { ValueCalculationResult, ValueCalculatorData } from '../types';
 
@@ -73,6 +74,8 @@ export function ValueResult({ result, inputs }: ValueResultProps) {
 		market_position,
 		average_value,
 		comparison_percent,
+		city_average,
+		county_average,
 	} = result;
 
 	const propertyTypeLabels = getPropertyTypeLabels();
@@ -202,6 +205,25 @@ export function ValueResult({ result, inputs }: ValueResultProps) {
 					/>
 				</CardContent>
 			</Card>
+
+			{/* Market comparison chart */}
+			{(city_average > 0 || county_average > 0) && (
+				<Card>
+					<CardContent className="resa-p-4">
+						<div className="resa-text-xs resa-font-medium resa-text-muted-foreground resa-mb-3">
+							{__('Marktvergleich (€/m²)', 'resa')}
+						</div>
+						<ComparisonBarChart
+							propertyValue={price_per_sqm}
+							cityAverage={city_average}
+							cityName={inputs.city_name}
+							countyAverage={county_average}
+							unit="€/m²"
+							height={140}
+						/>
+					</CardContent>
+				</Card>
+			)}
 
 			{/* Input summary */}
 			<Card>

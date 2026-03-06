@@ -8,6 +8,7 @@
 import { __ } from '@wordpress/i18n';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ResaMap } from '@frontend/components/map';
+import { ComparisonBarChart } from '@frontend/components/charts';
 import { MarketPositionGauge } from './MarketPositionGauge';
 import type { RentCalculationResult, RentCalculatorData } from '../types';
 
@@ -62,7 +63,14 @@ const getFeatureLabels = (): Record<string, string> => ({
 });
 
 export function RentResult({ result, inputs }: RentResultProps) {
-	const { monthly_rent, annual_rent, price_per_sqm, market_position } = result;
+	const {
+		monthly_rent,
+		annual_rent,
+		price_per_sqm,
+		market_position,
+		city_average,
+		county_average,
+	} = result;
 	const propertyTypeLabels = getPropertyTypeLabels();
 	const conditionLabels = getConditionLabels();
 	const featureLabels = getFeatureLabels();
@@ -122,6 +130,25 @@ export function RentResult({ result, inputs }: RentResultProps) {
 					/>
 				</CardContent>
 			</Card>
+
+			{/* Market comparison chart */}
+			{(city_average > 0 || county_average > 0) && (
+				<Card>
+					<CardContent className="resa-p-4">
+						<div className="resa-text-xs resa-font-medium resa-text-muted-foreground resa-mb-3">
+							{__('Marktvergleich (€/m²)', 'resa')}
+						</div>
+						<ComparisonBarChart
+							propertyValue={price_per_sqm}
+							cityAverage={city_average}
+							cityName={inputs.city_name}
+							countyAverage={county_average}
+							unit="€/m²"
+							height={140}
+						/>
+					</CardContent>
+				</Card>
+			)}
 
 			{/* Input summary */}
 			<Card>
