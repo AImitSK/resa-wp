@@ -774,7 +774,7 @@ final class LeadsController extends RestController {
 			return [];
 		}
 
-		return [
+		$formatted = [
 			'id'           => (int) $lead->id,
 			'sessionId'    => $lead->session_id,
 			'firstName'    => $lead->first_name,
@@ -788,6 +788,15 @@ final class LeadsController extends RestController {
 			'createdAt'    => $lead->created_at,
 			'result'       => json_decode( $lead->result ?? 'null', true ),
 		];
+
+		// Add Propstack sync status if add-on is active.
+		if ( class_exists( '\Resa\Propstack\PropstackSettings' ) ) {
+			$formatted['propstackSynced'] = isset( $lead->propstack_synced ) ? (bool) $lead->propstack_synced : null;
+			$formatted['propstackError']  = $lead->propstack_error ?? null;
+			$formatted['propstackSyncedAt'] = $lead->propstack_synced_at ?? null;
+		}
+
+		return $formatted;
 	}
 
 	/**

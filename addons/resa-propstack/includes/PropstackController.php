@@ -78,6 +78,20 @@ class PropstackController {
 			'callback'            => [self::class, 'manualSync'],
 			'permission_callback' => [self::class, 'adminAccess'],
 		]);
+
+		// POST retry-all (retry all failed syncs)
+		register_rest_route(self::NAMESPACE, '/admin/propstack/retry-all', [
+			'methods'             => 'POST',
+			'callback'            => [self::class, 'retryAll'],
+			'permission_callback' => [self::class, 'adminAccess'],
+		]);
+
+		// GET retry-stats (get retry queue statistics)
+		register_rest_route(self::NAMESPACE, '/admin/propstack/retry-stats', [
+			'methods'             => 'GET',
+			'callback'            => [self::class, 'getRetryStats'],
+			'permission_callback' => [self::class, 'adminAccess'],
+		]);
 	}
 
 	/**
@@ -290,12 +304,60 @@ class PropstackController {
 			);
 		}
 
-		// Trigger sync
+		// Reset retry count for manual sync
+		RetryQueue::resetRetryCount($leadId);
+
+		// Trigger sync via retrySync (includes DSGVO check)
 		$sync = new PropstackSync();
-		$sync->onLeadCreated($leadId);
+		$result = $sync->retrySync($leadId);
+
+		if (!$result) {
+			return new WP_REST_Response(
+				['success' => false, 'message' => __('Lead konnte nicht synchronisiert werden. Prüfen Sie den DSGVO-Consent.', 'resa-propstack')],
+				400
+			);
+		}
 
 		return new WP_REST_Response(
 			['success' => true, 'message' => __('Lead wurde erneut synchronisiert.', 'resa-propstack')],
+			200
+		);
+	}
+
+	/**
+	 * POST retry-all - Retry all failed syncs
+	 *
+	 * @return WP_REST_Response Retry results.
+	 */
+	public static function retryAll(): WP_REST_Response {
+		$result = RetryQueue::retryAll();
+
+		return new WP_REST_Response(
+			[
+				'success'   => true,
+				'processed' => $result['processed'],
+				'failed'    => $result['failed'],
+				'message'   => sprintf(
+					/* translators: 1: number of processed leads, 2: number of failed leads */
+					__('%1$d Leads verarbeitet, %2$d fehlgeschlagen.', 'resa-propstack'),
+					$result['processed'],
+					$result['failed']
+				),
+			],
+			200
+		);
+	}
+
+	/**
+	 * GET retry-stats - Get retry queue statistics
+	 *
+	 * @return WP_REST_Response Retry statistics.
+	 */
+	public static function getRetryStats(): WP_REST_Response {
+		return new WP_REST_Response(
+			[
+				'pending_count' => RetryQueue::getPendingCount(),
+			],
 			200
 		);
 	}

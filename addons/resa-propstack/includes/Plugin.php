@@ -28,6 +28,18 @@ class Plugin {
 
 		// Register Propstack tab in integrations page
 		add_filter('resa_integration_tabs', [self::class, 'registerTab']);
+
+		// Register retry queue cron
+		RetryQueue::register();
+	}
+
+	/**
+	 * Unregister hooks on plugin deactivation
+	 *
+	 * @return void
+	 */
+	public static function unregister(): void {
+		RetryQueue::unregister();
 	}
 
 	/**

@@ -29,6 +29,8 @@ import {
 	Calculator,
 	CheckCircle2,
 	XCircle,
+	RefreshCw,
+	Clock,
 } from 'lucide-react';
 
 import {
@@ -1698,6 +1700,22 @@ export function Leads() {
 									>
 										{__('Status', 'resa')}
 									</TableHead>
+									{/* CRM column - only show if Propstack add-on is active */}
+									{window.resaAdmin?.integrationTabs?.some(
+										(tab) => tab.slug === 'propstack',
+									) && (
+										<TableHead
+											style={{
+												paddingTop: '12px',
+												paddingBottom: '12px',
+												borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+												width: '60px',
+												textAlign: 'center',
+											}}
+										>
+											{__('CRM', 'resa')}
+										</TableHead>
+									)}
 									<TableHead
 										style={{
 											paddingTop: '12px',
@@ -1825,6 +1843,68 @@ export function Leads() {
 													{statusConfig.label}
 												</Badge>
 											</TableCell>
+											{/* CRM sync status cell */}
+											{window.resaAdmin?.integrationTabs?.some(
+												(tab) => tab.slug === 'propstack',
+											) && (
+												<TableCell
+													style={{
+														paddingTop: '12px',
+														paddingBottom: '12px',
+														borderBottom:
+															'1px solid hsl(214.3 31.8% 91.4%)',
+														textAlign: 'center',
+													}}
+													title={
+														lead.propstackSynced === true
+															? sprintf(
+																	__(
+																		'Synchronisiert: %s',
+																		'resa',
+																	),
+																	lead.propstackSyncedAt
+																		? formatDateTime(
+																				lead.propstackSyncedAt,
+																			)
+																		: '',
+																)
+															: lead.propstackSynced === false &&
+																  lead.propstackError
+																? lead.propstackError
+																: __(
+																		'Noch nicht synchronisiert',
+																		'resa',
+																	)
+													}
+												>
+													{lead.propstackSynced === true ? (
+														<CheckCircle2
+															style={{
+																width: '16px',
+																height: '16px',
+																color: '#22c55e',
+															}}
+														/>
+													) : lead.propstackSynced === false &&
+													  lead.propstackError ? (
+														<XCircle
+															style={{
+																width: '16px',
+																height: '16px',
+																color: '#ef4444',
+															}}
+														/>
+													) : (
+														<Clock
+															style={{
+																width: '16px',
+																height: '16px',
+																color: 'hsl(215.4 16.3% 46.9%)',
+															}}
+														/>
+													)}
+												</TableCell>
+											)}
 											<TableCell
 												style={{
 													color: 'hsl(215.4 16.3% 46.9%)',
@@ -1898,6 +1978,35 @@ export function Leads() {
 															/>
 															{__('E-Mail senden', 'resa')}
 														</DropdownMenuItem>
+														{/* Re-sync to Propstack - show if add-on active and sync failed or pending */}
+														{window.resaAdmin?.integrationTabs?.some(
+															(tab) => tab.slug === 'propstack',
+														) &&
+															(lead.propstackSynced === false ||
+																lead.propstackSynced === null) && (
+																<DropdownMenuItem
+																	onClick={() =>
+																		propstackSyncMutation.mutate(
+																			lead.id,
+																		)
+																	}
+																	disabled={
+																		propstackSyncMutation.isPending
+																	}
+																>
+																	<RefreshCw
+																		style={{
+																			width: '14px',
+																			height: '14px',
+																			marginRight: '8px',
+																		}}
+																	/>
+																	{__(
+																		'CRM-Sync wiederholen',
+																		'resa',
+																	)}
+																</DropdownMenuItem>
+															)}
 														<DropdownMenuSeparator />
 														<DropdownMenuItem
 															onClick={() =>

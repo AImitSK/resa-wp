@@ -37,6 +37,12 @@ class PropstackSync {
 			return;
 		}
 
+		// DSGVO: Consent prüfen vor externem Datentransfer
+		if (empty($lead->consent_given)) {
+			$this->markSkipped($leadId, __('Kein DSGVO-Consent vorhanden.', 'resa-propstack'));
+			return;
+		}
+
 		// Skip if already synced
 		if (!empty($lead->propstack_synced)) {
 			return;
@@ -44,6 +50,53 @@ class PropstackSync {
 
 		// Sync asynchronously (non-blocking)
 		$this->syncLead($lead);
+	}
+
+	/**
+	 * Retry sync for a lead (used by RetryQueue and manual re-sync)
+	 *
+	 * @param int $leadId Lead ID.
+	 * @return bool True if sync was attempted.
+	 */
+	public function retrySync(int $leadId): bool {
+		// Check if integration is enabled
+		if (!PropstackSettings::isEnabled()) {
+			return false;
+		}
+
+		// Load lead data
+		global $wpdb;
+		$table = $wpdb->prefix . 'resa_leads';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$lead = $wpdb->get_row(
+			$wpdb->prepare("SELECT * FROM {$table} WHERE id = %d", $leadId)
+		);
+
+		if (!$lead || empty($lead->email)) {
+			return false;
+		}
+
+		// DSGVO: Consent prüfen vor externem Datentransfer
+		if (empty($lead->consent_given)) {
+			$this->markSkipped($leadId, __('Kein DSGVO-Consent vorhanden.', 'resa-propstack'));
+			return false;
+		}
+
+		// Reset sync status for retry
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$wpdb->update(
+			$table,
+			[
+				'propstack_synced' => null,
+				'propstack_error'  => null,
+			],
+			['id' => $leadId],
+			['%s', '%s'],
+			['%d']
+		);
+
+		$this->syncLead($lead);
+		return true;
 	}
 
 	/**
@@ -299,6 +352,9 @@ class PropstackSync {
 			['%d', '%d', '%s', '%s'],
 			['%d']
 		);
+
+		// Reset retry counter on success
+		RetryQueue::resetRetryCount($leadId);
 	}
 
 	/**
@@ -323,5 +379,47 @@ class PropstackSync {
 			['%d', '%s'],
 			['%d']
 		);
+	}
+
+	/**
+	 * Mark lead as skipped (permanent error, no retry)
+	 *
+	 * @param int    $leadId Lead ID.
+	 * @param string $reason Reason for skipping.
+	 * @return void
+	 */
+	private function markSkipped(int $leadId, string $reason): void {
+		global $wpdb;
+		$table = $wpdb->prefix . 'resa_leads';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$wpdb->update(
+			$table,
+			[
+				'propstack_synced' => 0,
+				'propstack_error'  => $reason,
+			],
+			['id' => $leadId],
+			['%d', '%s'],
+			['%d']
+		);
+
+		error_log(sprintf(
+			'[RESA Propstack] Sync skipped for lead #%d: %s',
+			$leadId,
+			$reason
+		));
+	}
+
+	/**
+	 * Get list of permanent error messages that should not be retried
+	 *
+	 * @return array<string> List of error messages.
+	 */
+	public static function getPermanentErrors(): array {
+		return [
+			__('Kein DSGVO-Consent vorhanden.', 'resa-propstack'),
+			__('Kein Makler konfiguriert.', 'resa-propstack'),
+		];
 	}
 }

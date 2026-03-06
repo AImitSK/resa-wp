@@ -120,3 +120,13 @@ register_activation_hook(__FILE__, function() {
 		Migration::run();
 	}
 });
+
+/**
+ * Deactivation hook
+ */
+register_deactivation_hook(__FILE__, function() {
+	// Unregister cron jobs
+	if (class_exists('Resa\Propstack\Plugin')) {
+		Plugin::unregister();
+	}
+});

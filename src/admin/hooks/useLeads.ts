@@ -22,6 +22,10 @@ export interface LeadAdmin {
 	status: LeadStatus;
 	createdAt: string;
 	result: Record<string, unknown> | null;
+	// Propstack sync status (only present if add-on is active)
+	propstackSynced?: boolean | null;
+	propstackError?: string | null;
+	propstackSyncedAt?: string | null;
 }
 
 export interface LeadDetail extends LeadAdmin {
