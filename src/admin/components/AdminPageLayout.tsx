@@ -6,13 +6,40 @@
  * - "detail": Breadcrumb bar with back button, content area, footer
  */
 
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { __ } from '@wordpress/i18n';
 import { ArrowLeft } from 'lucide-react';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+
+// ─── Styled Button Components ────────────────────────────
+
+function GhostButton({ children, onClick }: { children: ReactNode; onClick?: () => void }) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type="button"
+			onClick={onClick}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: isHovered ? 'hsl(210 40% 88%)' : 'transparent',
+				color: '#1e303a',
+				border: 'none',
+				boxShadow: 'none',
+				gap: '6px',
+				height: '32px',
+				padding: '0 12px',
+				fontSize: '13px',
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
 
 interface BreadcrumbItem {
 	label: string;
@@ -225,10 +252,10 @@ function DetailHeader({
 				</ol>
 			</nav>
 			{onBack && (
-				<Button variant="ghost" size="sm" onClick={onBack} style={{ gap: '6px' }}>
+				<GhostButton onClick={onBack}>
 					<ArrowLeft style={{ width: '16px', height: '16px' }} />
 					{__('Zurück', 'resa')}
-				</Button>
+				</GhostButton>
 			)}
 		</div>
 	);

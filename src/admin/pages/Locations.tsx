@@ -51,6 +51,76 @@ const REGION_TYPE_LABELS: Record<string, string> = {
 	large_city: __('Großstadt', 'resa'),
 };
 
+// ─── Styled Button Components ────────────────────────────
+
+function PrimaryButton({
+	children,
+	onClick,
+	disabled,
+	type = 'button',
+}: {
+	children: React.ReactNode;
+	onClick?: () => void;
+	disabled?: boolean;
+	type?: 'button' | 'submit';
+}) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type={type}
+			onClick={onClick}
+			disabled={disabled}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: disabled
+					? 'hsl(210 40% 96.1%)'
+					: isHovered
+						? '#98d438'
+						: '#a9e43f',
+				color: disabled ? 'hsl(215.4 16.3% 46.9%)' : '#1e303a',
+				border: 'none',
+				cursor: disabled ? 'not-allowed' : 'pointer',
+				opacity: 1,
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
+
+function OutlineButton({
+	children,
+	onClick,
+	disabled,
+}: {
+	children: React.ReactNode;
+	onClick?: () => void;
+	disabled?: boolean;
+}) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type="button"
+			onClick={onClick}
+			disabled={disabled}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: isHovered ? 'hsl(210 40% 96.1%)' : 'white',
+				color: '#1e303a',
+				border: '1px solid #e8e8e8',
+				boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+				cursor: disabled ? 'not-allowed' : 'pointer',
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
+
 export function Locations() {
 	const [view, setView] = useState<View>('list');
 	const [editingId, setEditingId] = useState<number | null>(null);
@@ -203,20 +273,13 @@ export function Locations() {
 						)}
 					</p>
 					<div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-						<Button variant="outline" onClick={handleBack}>
-							{__('Zurück', 'resa')}
-						</Button>
-						<Button
-							style={{
-								backgroundColor: '#a9e43f',
-								color: '#1e303a',
-								border: 'none',
-							}}
+						<OutlineButton onClick={handleBack}>{__('Zurück', 'resa')}</OutlineButton>
+						<PrimaryButton
 							onClick={() => window.open('https://resa-wp.com/pricing', '_blank')}
 						>
 							<Crown style={{ width: '16px', height: '16px', marginRight: '6px' }} />
 							{__('Auf Premium upgraden', 'resa')}
-						</Button>
+						</PrimaryButton>
 					</div>
 				</div>
 			</AdminPageLayout>
@@ -328,25 +391,17 @@ export function Locations() {
 					justifyContent: 'space-between',
 				}}
 			>
-				<div style={{ fontSize: '14px', color: 'hsl(215.4 16.3% 46.9%)' }}>
+				<div style={{ fontSize: '14px', color: '#1e303a' }}>
 					{locations &&
 						sprintf(
 							_n('%d Standort', '%d Standorte', locations.length, 'resa'),
 							locations.length,
 						)}
 				</div>
-				<Button
-					onClick={() => setView('create')}
-					disabled={!canAddLocation}
-					style={
-						!canAddLocation
-							? { opacity: 0.5, cursor: 'not-allowed' }
-							: { backgroundColor: '#a9e43f', color: '#1e303a', border: 'none' }
-					}
-				>
+				<PrimaryButton onClick={() => setView('create')} disabled={!canAddLocation}>
 					<Plus style={{ width: '16px', height: '16px', marginRight: '6px' }} />
 					{__('Neuer Standort', 'resa')}
-				</Button>
+				</PrimaryButton>
 			</div>
 
 			{/* Loading state */}
@@ -411,17 +466,10 @@ export function Locations() {
 					>
 						{__('Erstelle deinen ersten Standort, um loszulegen.', 'resa')}
 					</p>
-					<Button
-						onClick={() => setView('create')}
-						style={{
-							backgroundColor: '#a9e43f',
-							color: '#1e303a',
-							border: 'none',
-						}}
-					>
+					<PrimaryButton onClick={() => setView('create')}>
 						<Plus style={{ width: '16px', height: '16px', marginRight: '6px' }} />
 						{__('Ersten Standort anlegen', 'resa')}
-					</Button>
+					</PrimaryButton>
 				</div>
 			)}
 

@@ -126,6 +126,98 @@ KPI-Karte für Dashboard-Metriken mit Titel, Wert, Trend und optionaler Aktion.
 
 ---
 
-## Weitere Varianten
+## Content Box
 
-TODO: Content Card, List Card
+Box mit farbigem Header und Content-Bereich. Für Detailseiten und Formularbereiche.
+
+### Spezifikation Container
+
+| Eigenschaft       | Wert                               |
+| ----------------- | ---------------------------------- |
+| **Border**        | `1px solid hsl(214.3 31.8% 91.4%)` |
+| **Border Radius** | `8px`                              |
+| **Overflow**      | `hidden`                           |
+
+### Spezifikation Header
+
+| Eigenschaft       | Wert                               |
+| ----------------- | ---------------------------------- |
+| **Padding**       | `12px 16px`                        |
+| **Background**    | `hsl(210 40% 96.1%)`               |
+| **Border Bottom** | `1px solid hsl(214.3 31.8% 91.4%)` |
+| **Title Weight**  | `600`                              |
+| **Title Color**   | `#1e303a`                          |
+
+### Spezifikation Content
+
+| Eigenschaft    | Wert      |
+| -------------- | --------- |
+| **Padding**    | `16px`    |
+| **Text Color** | `#1e303a` |
+
+### Code
+
+```tsx
+<div
+	style={{
+		borderRadius: '8px',
+		border: '1px solid hsl(214.3 31.8% 91.4%)',
+		overflow: 'hidden',
+	}}
+>
+	<div
+		style={{
+			padding: '12px 16px',
+			backgroundColor: 'hsl(210 40% 96.1%)',
+			borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+		}}
+	>
+		<span style={{ fontWeight: 600, color: '#1e303a' }}>{__('Titel', 'resa')}</span>
+	</div>
+	<div style={{ padding: '16px' }}>{/* Content */}</div>
+</div>
+```
+
+### Variante: Mit Tabelle
+
+Für Key-Value Daten wie Kontaktdaten, Eingabedaten.
+
+```tsx
+<div
+	style={{
+		borderRadius: '8px',
+		border: '1px solid hsl(214.3 31.8% 91.4%)',
+		overflow: 'hidden',
+	}}
+>
+	<div
+		style={{
+			padding: '12px 16px',
+			backgroundColor: 'hsl(210 40% 96.1%)',
+			borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+		}}
+	>
+		<span style={{ fontWeight: 600, color: '#1e303a' }}>{__('Kontaktdaten', 'resa')}</span>
+	</div>
+	<Table>
+		<TableBody>
+			<TableRow>
+				<TableCell style={{ padding: '12px 16px', width: '140px', color: '#1e303a' }}>
+					<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+						<Mail style={{ width: '14px', height: '14px' }} />
+						{__('E-Mail', 'resa')}
+					</div>
+				</TableCell>
+				<TableCell style={{ padding: '12px 16px', fontWeight: 500 }}>{value}</TableCell>
+			</TableRow>
+		</TableBody>
+	</Table>
+</div>
+```
+
+### Verwendung
+
+- Lead-Detailseite: Kontaktdaten, Nachricht, Datenschutz, Notizen
+- Eingabedaten-Anzeige
+- Propstack Sync Status
+- Überall wo strukturierte Informationen gruppiert werden

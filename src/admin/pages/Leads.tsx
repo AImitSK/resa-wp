@@ -83,6 +83,107 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+// ─── Styled Button Components ────────────────────────────
+
+function OutlineButton({
+	children,
+	onClick,
+	disabled,
+}: {
+	children: React.ReactNode;
+	onClick?: () => void;
+	disabled?: boolean;
+}) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type="button"
+			onClick={onClick}
+			disabled={disabled}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: disabled
+					? 'hsl(210 40% 96.1%)'
+					: isHovered
+						? 'hsl(210 40% 96.1%)'
+						: 'white',
+				color: disabled ? '#1e303a' : '#1e303a',
+				border: '1px solid #e8e8e8',
+				boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+				cursor: disabled ? 'not-allowed' : 'pointer',
+				opacity: disabled ? 0.6 : 1,
+				gap: '6px',
+				height: '36px',
+				padding: '0 12px',
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
+
+function GhostButton({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type="button"
+			onClick={onClick}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: isHovered ? 'hsl(210 40% 88%)' : 'transparent',
+				color: '#1e303a',
+				border: 'none',
+				boxShadow: 'none',
+				gap: '6px',
+				height: '32px',
+				padding: '0 12px',
+				fontSize: '13px',
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
+
+function PrimaryButton({
+	children,
+	onClick,
+	disabled,
+}: {
+	children: React.ReactNode;
+	onClick?: () => void;
+	disabled?: boolean;
+}) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type="button"
+			onClick={onClick}
+			disabled={disabled}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: disabled
+					? 'hsl(210 40% 96.1%)'
+					: isHovered
+						? '#98d438'
+						: '#a9e43f',
+				color: disabled ? '#1e303a' : '#1e303a',
+				border: 'none',
+				cursor: disabled ? 'not-allowed' : 'pointer',
+				opacity: disabled ? 0.6 : 1,
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
+
 // ─── Types ──────────────────────────────────────────────
 
 type View = 'list' | 'detail';
@@ -120,7 +221,7 @@ const counterBadgeStyle: React.CSSProperties = {
 	marginLeft: '6px',
 	borderRadius: '9999px',
 	backgroundColor: 'hsl(210 40% 90%)',
-	color: 'hsl(215.4 16.3% 46.9%)',
+	color: '#1e303a',
 	fontSize: '11px',
 	fontFamily: 'ui-monospace, monospace',
 	fontWeight: 500,
@@ -368,9 +469,7 @@ export function Leads() {
 						}}
 					>
 						<Spinner style={{ width: '20px', height: '20px' }} />
-						<span style={{ color: 'hsl(215.4 16.3% 46.9%)' }}>
-							{__('Lade Lead...', 'resa')}
-						</span>
+						<span style={{ color: '#1e303a' }}>{__('Lade Lead...', 'resa')}</span>
 					</div>
 				</AdminPageLayout>
 			);
@@ -389,10 +488,10 @@ export function Leads() {
 							{__('Der angeforderte Lead konnte nicht gefunden werden.', 'resa')}
 						</AlertDescription>
 					</Alert>
-					<Button variant="link" onClick={handleBackToList} style={{ marginTop: '16px' }}>
+					<GhostButton onClick={handleBackToList}>
 						<ArrowLeft style={{ width: '16px', height: '16px', marginRight: '4px' }} />
 						{__('Zurück zur Liste', 'resa')}
-					</Button>
+					</GhostButton>
 				</AdminPageLayout>
 			);
 		}
@@ -543,7 +642,7 @@ export function Leads() {
 											alignItems: 'center',
 											gap: '4px',
 											fontSize: '13px',
-											color: 'hsl(215.4 16.3% 46.9%)',
+											color: '#1e303a',
 										}}
 									>
 										<Calculator style={{ width: '14px', height: '14px' }} />
@@ -555,7 +654,7 @@ export function Leads() {
 											alignItems: 'center',
 											gap: '4px',
 											fontSize: '13px',
-											color: 'hsl(215.4 16.3% 46.9%)',
+											color: '#1e303a',
 										}}
 									>
 										<MapPin style={{ width: '14px', height: '14px' }} />
@@ -567,7 +666,7 @@ export function Leads() {
 											alignItems: 'center',
 											gap: '4px',
 											fontSize: '13px',
-											color: 'hsl(215.4 16.3% 46.9%)',
+											color: '#1e303a',
 										}}
 									>
 										<Calendar style={{ width: '14px', height: '14px' }} />
@@ -649,7 +748,7 @@ export function Leads() {
 												style={{
 													padding: '12px 16px',
 													width: '140px',
-													color: 'hsl(215.4 16.3% 46.9%)',
+													color: '#1e303a',
 													borderBottom:
 														'1px solid hsl(214.3 31.8% 91.4%)',
 												}}
@@ -691,7 +790,7 @@ export function Leads() {
 												<TableCell
 													style={{
 														padding: '12px 16px',
-														color: 'hsl(215.4 16.3% 46.9%)',
+														color: '#1e303a',
 														borderBottom:
 															'1px solid hsl(214.3 31.8% 91.4%)',
 													}}
@@ -737,7 +836,7 @@ export function Leads() {
 												<TableCell
 													style={{
 														padding: '12px 16px',
-														color: 'hsl(215.4 16.3% 46.9%)',
+														color: '#1e303a',
 														borderBottom:
 															'1px solid hsl(214.3 31.8% 91.4%)',
 													}}
@@ -863,7 +962,7 @@ export function Leads() {
 												<div
 													style={{
 														fontSize: '13px',
-														color: 'hsl(215.4 16.3% 46.9%)',
+														color: '#1e303a',
 													}}
 												>
 													{formatDateTime(selectedLead.consentDate)}
@@ -926,7 +1025,7 @@ export function Leads() {
 												style={{
 													width: '14px',
 													height: '14px',
-													color: 'hsl(215.4 16.3% 46.9%)',
+													color: '#1e303a',
 												}}
 											/>
 											{String(selectedLead.inputs.address)}
@@ -980,16 +1079,9 @@ export function Leads() {
 											marginTop: '12px',
 										}}
 									>
-										<Button
+										<PrimaryButton
 											onClick={handleSaveNotes}
 											disabled={!notesChanged || updateMutation.isPending}
-											style={{
-												backgroundColor: notesChanged
-													? '#a9e43f'
-													: 'hsl(210 40% 96.1%)',
-												color: '#1e303a',
-												border: 'none',
-											}}
 										>
 											{updateMutation.isPending && (
 												<Spinner
@@ -1001,7 +1093,7 @@ export function Leads() {
 												/>
 											)}
 											{__('Speichern', 'resa')}
-										</Button>
+										</PrimaryButton>
 									</div>
 								</div>
 							</div>
@@ -1042,7 +1134,7 @@ export function Leads() {
 															style={{
 																padding: '10px 16px',
 																width: '160px',
-																color: 'hsl(215.4 16.3% 46.9%)',
+																color: '#1e303a',
 																fontSize: '13px',
 																borderBottom:
 																	index < arr.length - 1
@@ -1125,7 +1217,7 @@ export function Leads() {
 													<span
 														style={{
 															fontSize: '13px',
-															color: 'hsl(215.4 16.3% 46.9%)',
+															color: '#1e303a',
 														}}
 													>
 														{formatDateTime(
@@ -1169,10 +1261,7 @@ export function Leads() {
 
 											{/* Re-sync Button */}
 											<div>
-												<Button
-													type="button"
-													variant="outline"
-													size="sm"
+												<OutlineButton
 													onClick={() =>
 														selectedLeadId &&
 														propstackSyncMutation.mutate(selectedLeadId)
@@ -1180,21 +1269,16 @@ export function Leads() {
 													disabled={propstackSyncMutation.isPending}
 												>
 													{propstackSyncMutation.isPending && (
-														<div
+														<Spinner
 															style={{
-																marginRight: '8px',
 																width: '14px',
 																height: '14px',
-																border: '2px solid currentColor',
-																borderTopColor: 'transparent',
-																borderRadius: '50%',
-																animation:
-																	'spin 0.6s linear infinite',
+																marginRight: '6px',
 															}}
 														/>
 													)}
 													{__('Erneut synchronisieren', 'resa')}
-												</Button>
+												</OutlineButton>
 											</div>
 										</div>
 									</div>
@@ -1241,7 +1325,7 @@ export function Leads() {
 									stats.all,
 								)}
 							</div>
-							<div style={{ fontSize: '13px', color: 'hsl(215.4 16.3% 46.9%)' }}>
+							<div style={{ fontSize: '13px', color: '#1e303a' }}>
 								{__(
 									'Upgrade auf Premium für unbegrenzte Leads und CSV-Export',
 									'resa',
@@ -1350,8 +1434,7 @@ export function Leads() {
 								fontWeight: 500,
 								transition: 'all 150ms',
 								backgroundColor: statusFilter === 'all' ? 'white' : 'transparent',
-								color:
-									statusFilter === 'all' ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
+								color: statusFilter === 'all' ? '#1e303a' : '#1e303a',
 								boxShadow:
 									statusFilter === 'all'
 										? '0 1px 2px 0 rgb(0 0 0 / 0.05)'
@@ -1374,8 +1457,7 @@ export function Leads() {
 								fontWeight: 500,
 								transition: 'all 150ms',
 								backgroundColor: statusFilter === 'new' ? 'white' : 'transparent',
-								color:
-									statusFilter === 'new' ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
+								color: statusFilter === 'new' ? '#1e303a' : '#1e303a',
 								boxShadow:
 									statusFilter === 'new'
 										? '0 1px 2px 0 rgb(0 0 0 / 0.05)'
@@ -1399,10 +1481,7 @@ export function Leads() {
 								transition: 'all 150ms',
 								backgroundColor:
 									statusFilter === 'contacted' ? 'white' : 'transparent',
-								color:
-									statusFilter === 'contacted'
-										? '#1e303a'
-										: 'hsl(215.4 16.3% 46.9%)',
+								color: statusFilter === 'contacted' ? '#1e303a' : '#1e303a',
 								boxShadow:
 									statusFilter === 'contacted'
 										? '0 1px 2px 0 rgb(0 0 0 / 0.05)'
@@ -1426,10 +1505,7 @@ export function Leads() {
 								transition: 'all 150ms',
 								backgroundColor:
 									statusFilter === 'qualified' ? 'white' : 'transparent',
-								color:
-									statusFilter === 'qualified'
-										? '#1e303a'
-										: 'hsl(215.4 16.3% 46.9%)',
+								color: statusFilter === 'qualified' ? '#1e303a' : '#1e303a',
 								boxShadow:
 									statusFilter === 'qualified'
 										? '0 1px 2px 0 rgb(0 0 0 / 0.05)'
@@ -1452,7 +1528,7 @@ export function Leads() {
 							transform: 'translateY(-50%)',
 							width: '16px',
 							height: '16px',
-							color: 'hsl(215.4 16.3% 46.9%)',
+							color: '#1e303a',
 						}}
 					/>
 					<Input
@@ -1528,39 +1604,19 @@ export function Leads() {
 				{/* Export button */}
 				<div style={{ marginLeft: 'auto' }}>
 					{canExport ? (
-						<Button
-							variant="outline"
-							onClick={handleExport}
-							disabled={exportMutation.isPending}
-							style={{
-								gap: '6px',
-								height: '36px',
-								paddingLeft: '12px',
-								paddingRight: '12px',
-							}}
-						>
+						<OutlineButton onClick={handleExport} disabled={exportMutation.isPending}>
 							{exportMutation.isPending ? (
 								<Spinner style={{ width: '14px', height: '14px' }} />
 							) : (
 								<Download style={{ width: '14px', height: '14px' }} />
 							)}
 							{__('CSV Export', 'resa')}
-						</Button>
+						</OutlineButton>
 					) : (
-						<Button
-							variant="outline"
-							disabled
-							title={__('CSV-Export ist nur mit Premium verfügbar', 'resa')}
-							style={{
-								gap: '6px',
-								height: '36px',
-								paddingLeft: '12px',
-								paddingRight: '12px',
-							}}
-						>
+						<OutlineButton disabled>
 							<Crown style={{ width: '14px', height: '14px' }} />
 							{__('CSV Export', 'resa')}
-						</Button>
+						</OutlineButton>
 					)}
 				</div>
 			</div>
@@ -1604,7 +1660,7 @@ export function Leads() {
 							style={{
 								width: '24px',
 								height: '24px',
-								color: 'hsl(215.4 16.3% 46.9%)',
+								color: '#1e303a',
 							}}
 						/>
 					</div>
@@ -1613,7 +1669,7 @@ export function Leads() {
 							? __('Keine passenden Leads', 'resa')
 							: __('Noch keine Leads', 'resa')}
 					</h3>
-					<p style={{ color: 'hsl(215.4 16.3% 46.9%)' }}>
+					<p style={{ color: '#1e303a' }}>
 						{filters.search || filters.status || filters.locationId || filters.assetType
 							? __('Versuche andere Filterkriterien.', 'resa')
 							: __(
@@ -1793,7 +1849,7 @@ export function Leads() {
 											</TableCell>
 											<TableCell
 												style={{
-													color: 'hsl(215.4 16.3% 46.9%)',
+													color: '#1e303a',
 													paddingTop: '12px',
 													paddingBottom: '12px',
 													borderBottom:
@@ -1814,7 +1870,7 @@ export function Leads() {
 											</TableCell>
 											<TableCell
 												style={{
-													color: 'hsl(215.4 16.3% 46.9%)',
+													color: '#1e303a',
 													paddingTop: '12px',
 													paddingBottom: '12px',
 													borderBottom:
@@ -1898,7 +1954,7 @@ export function Leads() {
 															style={{
 																width: '16px',
 																height: '16px',
-																color: 'hsl(215.4 16.3% 46.9%)',
+																color: '#1e303a',
 															}}
 														/>
 													)}
@@ -1906,7 +1962,7 @@ export function Leads() {
 											)}
 											<TableCell
 												style={{
-													color: 'hsl(215.4 16.3% 46.9%)',
+													color: '#1e303a',
 													paddingTop: '12px',
 													paddingBottom: '12px',
 													borderBottom:
@@ -2041,7 +2097,7 @@ export function Leads() {
 							paddingTop: '16px',
 						}}
 					>
-						<p style={{ fontSize: '13px', color: 'hsl(215.4 16.3% 46.9%)' }}>
+						<p style={{ fontSize: '13px', color: '#1e303a' }}>
 							{selectedRows.size > 0
 								? sprintf(
 										_n(
@@ -2064,7 +2120,7 @@ export function Leads() {
 									)}
 						</p>
 						<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-							<p style={{ fontSize: '13px', color: 'hsl(215.4 16.3% 46.9%)' }}>
+							<p style={{ fontSize: '13px', color: '#1e303a' }}>
 								{sprintf(
 									__('Seite %1$d von %2$d', 'resa'),
 									leadsData.page,

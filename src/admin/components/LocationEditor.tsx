@@ -6,10 +6,82 @@
  * Now includes map picker for setting coordinates.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, type ReactNode } from 'react';
 import { __ } from '@wordpress/i18n';
 
 import { Button } from '@/components/ui/button';
+
+// ─── Styled Button Components ────────────────────────────
+
+function PrimaryButton({
+	children,
+	onClick,
+	disabled,
+	type = 'button',
+}: {
+	children: ReactNode;
+	onClick?: () => void;
+	disabled?: boolean;
+	type?: 'button' | 'submit';
+}) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type={type}
+			onClick={onClick}
+			disabled={disabled}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: disabled
+					? 'hsl(210 40% 96.1%)'
+					: isHovered
+						? '#98d438'
+						: '#a9e43f',
+				color: disabled ? 'hsl(215.4 16.3% 46.9%)' : '#1e303a',
+				border: 'none',
+				cursor: disabled ? 'not-allowed' : 'pointer',
+				opacity: 1,
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
+
+function OutlineButton({
+	children,
+	onClick,
+	disabled,
+	type = 'button',
+}: {
+	children: ReactNode;
+	onClick?: () => void;
+	disabled?: boolean;
+	type?: 'button' | 'submit';
+}) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type={type}
+			onClick={onClick}
+			disabled={disabled}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: isHovered ? 'hsl(210 40% 96.1%)' : 'white',
+				color: '#1e303a',
+				border: '1px solid #e8e8e8',
+				boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+				cursor: disabled ? 'not-allowed' : 'pointer',
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
@@ -256,13 +328,11 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 
 			{/* Actions */}
 			<div className="resa-flex resa-gap-3 resa-justify-end resa-pt-4">
-				<Button type="button" variant="outline" onClick={onCancel}>
-					{__('Abbrechen', 'resa')}
-				</Button>
-				<Button type="submit" disabled={isSaving || !form.name}>
+				<OutlineButton onClick={onCancel}>{__('Abbrechen', 'resa')}</OutlineButton>
+				<PrimaryButton type="submit" disabled={isSaving || !form.name}>
 					{isSaving && <Spinner className="resa-mr-2" />}
 					{isSaving ? __('Speichern...', 'resa') : __('Speichern', 'resa')}
-				</Button>
+				</PrimaryButton>
 			</div>
 		</form>
 	);
