@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { __ } from '@wordpress/i18n';
-import { Calculator, Home, BarChart3, Zap, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { Calculator, BarChart3, Zap, CheckCircle2, ArrowLeft } from 'lucide-react';
 import {
 	useModuleSettings,
 	useModulePresets,
@@ -33,7 +33,6 @@ import { Spinner } from '@/components/ui/spinner';
 /** Module icons by slug */
 const MODULE_ICONS: Record<string, React.ElementType> = {
 	'rent-calculator': Calculator,
-	'value-calculator': Home,
 	'purchase-costs': BarChart3,
 	'budget-calculator': Calculator,
 	'roi-calculator': BarChart3,

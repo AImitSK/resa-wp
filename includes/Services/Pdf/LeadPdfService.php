@@ -173,7 +173,6 @@ final class LeadPdfService {
 	private function getTemplateForAssetType( string $assetType ): string {
 		$templates = [
 			'rent-calculator'   => 'rent-analysis',
-			'value-calculator'  => 'value-analysis',
 			'purchase-costs'    => 'purchase-costs',
 			'budget-calculator' => 'budget-analysis',
 			'roi-calculator'    => 'roi-analysis',
@@ -203,7 +202,7 @@ final class LeadPdfService {
 		$rentMax       = (float) ( $monthlyRent['high'] ?? $result['rentMax'] ?? 0 );
 		$pricePerSqm   = (float) ( $result['price_per_sqm'] ?? $result['pricePerSqm'] ?? 0 );
 
-		// Property value fields (for value-calculator).
+		// Property value fields (optional).
 		$propertyValue    = $result['property_value'] ?? [];
 		$propertyValueEst = (float) ( $propertyValue['estimate'] ?? $result['propertyValue'] ?? 0 );
 		$propertyValueMin = (float) ( $propertyValue['low'] ?? 0 );
@@ -273,7 +272,7 @@ final class LeadPdfService {
 			'city_average'      => $cityAverage,
 			'county_average'    => $countyAverage,
 			'market_position'   => $result['market_position']['label'] ?? $this->determineMarketPosition( $pricePerSqm, $cityAverage ),
-			// Property value fields (for value-calculator).
+			// Property value fields (optional).
 			'property_value'      => $propertyValueEst,
 			'property_value_min'  => $propertyValueMin,
 			'property_value_max'  => $propertyValueMax,
@@ -739,7 +738,6 @@ final class LeadPdfService {
 	private function getAssetTypeLabel( string $assetType ): string {
 		$labels = [
 			'rent-calculator'   => __( 'Mietpreis-Analyse', 'resa' ),
-			'value-calculator'  => __( 'Immobilienwert-Analyse', 'resa' ),
 			'purchase-costs'    => __( 'Kaufnebenkosten-Berechnung', 'resa' ),
 			'budget-calculator' => __( 'Budget-Analyse', 'resa' ),
 			'roi-calculator'    => __( 'Rendite-Analyse', 'resa' ),

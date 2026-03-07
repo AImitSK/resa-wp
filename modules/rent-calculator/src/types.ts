@@ -33,6 +33,10 @@ export interface RentCalculationResult {
 	price_per_sqm: number;
 	market_position: { percentile: number; label: string };
 	city: { id: number; name: string; slug: string };
+	/** City base price (€/m²) for comparison chart. */
+	city_average: number;
+	/** County average price (€/m²) for comparison chart. */
+	county_average: number;
 	factors: {
 		base_price: number;
 		size_factor: number;

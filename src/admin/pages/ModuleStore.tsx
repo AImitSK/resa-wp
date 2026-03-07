@@ -15,7 +15,6 @@ import {
 	Lock,
 	ChevronRight,
 	BarChart3,
-	Home,
 	Calculator,
 	CheckCircle2,
 } from 'lucide-react';
@@ -44,7 +43,6 @@ type FilterOption = 'all' | 'free' | 'premium';
 /** Module icons by slug */
 const MODULE_ICONS: Record<string, React.ElementType> = {
 	'rent-calculator': Calculator,
-	'value-calculator': Home,
 	'purchase-costs': BarChart3,
 	'budget-calculator': Calculator,
 	'roi-calculator': BarChart3,

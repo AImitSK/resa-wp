@@ -85,10 +85,6 @@ export function OverviewTab({ module }: OverviewTabProps) {
 			'Der Mietpreis-Kalkulator ermöglicht Immobilieninteressenten eine schnelle und präzise Einschätzung der ortsüblichen Miete für ihre Wunschimmobilie. Basierend auf Faktoren wie Lage, Wohnfläche, Ausstattung und Baujahr wird ein realistischer Mietpreis berechnet. Das Tool generiert qualifizierte Leads, indem Nutzer ihre Kontaktdaten hinterlassen, um eine detaillierte PDF-Auswertung zu erhalten. Ideal für Vermieter, die den Marktwert ihrer Immobilie ermitteln möchten, und für Makler zur Lead-Generierung.',
 			'resa',
 		),
-		'value-calculator': __(
-			'Der Immobilienwert-Kalkulator bietet eine fundierte Ersteinschätzung des Verkehrswerts einer Immobilie. Durch die Eingabe von Objektdaten wie Immobilientyp, Wohnfläche, Grundstücksgröße, Baujahr und Zustand wird ein marktgerechter Wertbereich ermittelt. Das Tool nutzt regionale Marktdaten und Vergleichswerte für eine realistische Bewertung. Perfekt für Eigentümer, die über einen Verkauf nachdenken, und für Makler zur Akquise von Verkaufsobjekten.',
-			'resa',
-		),
 		'purchase-costs': __(
 			'Der Kaufnebenkosten-Rechner zeigt Immobilienkäufern transparent alle anfallenden Nebenkosten beim Immobilienerwerb. Grunderwerbsteuer, Notarkosten, Grundbuchgebühren und Maklerprovision werden standortspezifisch berechnet. Nutzer erhalten einen vollständigen Überblick über die Gesamtinvestition und können ihr Budget entsprechend planen. Ein unverzichtbares Tool für die Kaufberatung.',
 			'resa',

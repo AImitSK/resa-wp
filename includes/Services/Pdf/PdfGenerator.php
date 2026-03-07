@@ -281,7 +281,6 @@ final class PdfGenerator {
 	private function resolveModuleSlug( string $template ): ?string {
 		$map = [
 			'rent-analysis'   => 'rent-calculator',
-			'value-analysis'  => 'value-calculator',
 			'purchase-costs'  => 'purchase-costs',
 			'budget-analysis' => 'budget-calculator',
 			'roi-analysis'    => 'roi-calculator',

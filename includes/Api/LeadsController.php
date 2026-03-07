@@ -589,7 +589,6 @@ final class LeadsController extends RestController {
 
 		$module_names = [
 			'rent-calculator'  => 'Mietpreis-Kalkulator',
-			'value-calculator' => 'Immobilienwert-Rechner',
 			'purchase-costs'   => 'Kaufnebenkosten-Rechner',
 			'budget-calculator' => 'Budgetrechner',
 			'roi-calculator'   => 'Renditerechner',

@@ -120,7 +120,6 @@ function formatDateToday(): string {
 
 const MODULE_NAMES: Record<string, string> = {
 	'rent-calculator': __('Mietpreis-Kalkulator', 'resa'),
-	'value-calculator': __('Immobilienwert-Rechner', 'resa'),
 	'purchase-costs': __('Kaufnebenkosten-Rechner', 'resa'),
 	'budget-calculator': __('Budgetrechner', 'resa'),
 };
