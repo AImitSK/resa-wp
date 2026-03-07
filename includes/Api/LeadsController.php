@@ -320,7 +320,12 @@ final class LeadsController extends RestController {
 			// Send PDF analysis to lead (non-blocking — errors are logged, not propagated).
 			try {
 				$pdfService = new LeadPdfService( new PdfGenerator(), $emailService );
-				$pdfService->generateAndSend( (int) $updatedLead->id );
+				$pdfSent    = $pdfService->generateAndSend( (int) $updatedLead->id );
+
+				// Update pdf_sent flag if successful.
+				if ( $pdfSent ) {
+					Lead::update( (int) $updatedLead->id, [ 'pdf_sent' => 1 ] );
+				}
 			} catch ( \Throwable $e ) {
 				// Log error but don't fail the lead completion.
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log

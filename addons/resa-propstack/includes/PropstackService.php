@@ -24,6 +24,16 @@ class PropstackService {
 	private const TIMEOUT = 10;
 
 	/**
+	 * Rate limit: max requests per minute
+	 */
+	private const RATE_LIMIT_MAX = 60;
+
+	/**
+	 * Rate limit window in seconds
+	 */
+	private const RATE_LIMIT_WINDOW = 60;
+
+	/**
 	 * API key
 	 *
 	 * @var string
@@ -161,6 +171,23 @@ class PropstackService {
 	}
 
 	/**
+	 * Check and update rate limit.
+	 *
+	 * @return bool True if request is allowed, false if rate limited.
+	 */
+	private function checkRateLimit(): bool {
+		$key   = 'resa_propstack_rate_' . gmdate( 'YmdHi' );
+		$count = (int) get_transient( $key );
+
+		if ( $count >= self::RATE_LIMIT_MAX ) {
+			return false;
+		}
+
+		set_transient( $key, $count + 1, self::RATE_LIMIT_WINDOW );
+		return true;
+	}
+
+	/**
 	 * Make HTTP request to Propstack API
 	 *
 	 * @param string $method   HTTP method (GET, POST, PUT, DELETE).
@@ -169,6 +196,15 @@ class PropstackService {
 	 * @return array Response with 'success', 'data', and optional 'error' keys.
 	 */
 	private function request(string $method, string $endpoint, array $data = []): array {
+		// Check rate limit.
+		if ( ! $this->checkRateLimit() ) {
+			error_log( '[RESA Propstack] Rate limit exceeded' );
+			return [
+				'success' => false,
+				'error'   => __( 'Rate Limit überschritten. Bitte warten Sie einen Moment.', 'resa-propstack' ),
+			];
+		}
+
 		$url = self::BASE_URL . $endpoint;
 
 		// Prepare request args
