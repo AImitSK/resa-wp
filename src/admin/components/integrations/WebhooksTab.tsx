@@ -5,9 +5,9 @@
  * Limited to 5 webhooks. Premium-only (gate is handled at page level).
  */
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { __ } from '@wordpress/i18n';
-import { Webhook, Plus, Pencil, Trash2, Send, Copy, Check, RefreshCw, Globe } from 'lucide-react';
+import { Plus, Pencil, Trash2, Send, Copy, Check, RefreshCw, MoreHorizontal } from 'lucide-react';
 
 import {
 	useWebhooks,
@@ -18,7 +18,6 @@ import {
 } from '../../hooks/useWebhooks';
 import type { WebhookConfig, WebhookFormData } from '../../types';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
 	Dialog,
 	DialogContent,
@@ -26,6 +25,21 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog';
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -33,7 +47,80 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
+
+// ─── Styled Button Components ────────────────────────────
+
+function PrimaryButton({
+	children,
+	onClick,
+	disabled,
+	type = 'button',
+}: {
+	children: ReactNode;
+	onClick?: () => void;
+	disabled?: boolean;
+	type?: 'button' | 'submit';
+}) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type={type}
+			size="sm"
+			onClick={onClick}
+			disabled={disabled}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: disabled
+					? 'hsl(210 40% 96.1%)'
+					: isHovered
+						? '#98d438'
+						: '#a9e43f',
+				color: disabled ? 'hsl(215.4 16.3% 46.9%)' : '#1e303a',
+				border: 'none',
+				cursor: disabled ? 'not-allowed' : 'pointer',
+				opacity: 1,
+				gap: '6px',
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
+
+function OutlineButton({
+	children,
+	onClick,
+	disabled,
+}: {
+	children: ReactNode;
+	onClick?: () => void;
+	disabled?: boolean;
+}) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type="button"
+			size="sm"
+			onClick={onClick}
+			disabled={disabled}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: isHovered ? 'hsl(210 40% 96.1%)' : 'white',
+				color: '#1e303a',
+				border: '1px solid #e8e8e8',
+				boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+				cursor: disabled ? 'not-allowed' : 'pointer',
+				gap: '6px',
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
 
 const MAX_WEBHOOKS = 5;
 
@@ -54,7 +141,6 @@ export function WebhooksTab() {
 
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [editingWebhook, setEditingWebhook] = useState<WebhookConfig | null>(null);
-	const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 	const [feedback, setFeedback] = useState<{
 		type: 'success' | 'error';
 		message: string;
@@ -143,7 +229,6 @@ export function WebhooksTab() {
 	const handleDelete = async (id: number) => {
 		try {
 			await deleteMutation.mutateAsync(id);
-			setDeleteConfirmId(null);
 			setFeedback({
 				type: 'success',
 				message: __('Webhook gelöscht.', 'resa'),
@@ -197,19 +282,36 @@ export function WebhooksTab() {
 	const count = webhooks?.length ?? 0;
 	const isAtLimit = count >= MAX_WEBHOOKS;
 
+	// Styles
+	const headerStyle: React.CSSProperties = {
+		display: 'flex',
+		alignItems: 'flex-start',
+		justifyContent: 'space-between',
+		marginBottom: '16px',
+	};
+
+	const headlineStyle: React.CSSProperties = {
+		fontSize: '15px',
+		fontWeight: 600,
+		color: '#1e303a',
+		margin: 0,
+	};
+
+	const sublineStyle: React.CSSProperties = {
+		fontSize: '13px',
+		color: '#1e303a',
+		margin: '4px 0 0 0',
+	};
+
 	// Loading state.
 	if (isLoading) {
 		return (
-			<Card>
-				<CardHeader>
-					<Skeleton className="resa-h-6 resa-w-32" />
-				</CardHeader>
-				<CardContent className="resa-space-y-3">
-					<Skeleton className="resa-h-10 resa-w-full" />
-					<Skeleton className="resa-h-10 resa-w-full" />
-					<Skeleton className="resa-h-10 resa-w-full" />
-				</CardContent>
-			</Card>
+			<div>
+				<Skeleton className="resa-h-6 resa-w-32 resa-mb-4" />
+				<Skeleton className="resa-h-10 resa-w-full resa-mb-2" />
+				<Skeleton className="resa-h-10 resa-w-full resa-mb-2" />
+				<Skeleton className="resa-h-10 resa-w-full" />
+			</div>
 		);
 	}
 
@@ -219,145 +321,311 @@ export function WebhooksTab() {
 			{feedback && (
 				<Alert
 					variant={feedback.type === 'error' ? 'destructive' : 'default'}
-					className="resa-mb-4"
+					style={{ marginBottom: '16px' }}
 				>
 					<AlertDescription>{feedback.message}</AlertDescription>
 				</Alert>
 			)}
 
-			<Card>
-				<CardHeader>
-					<div className="resa-flex resa-items-center resa-justify-between">
-						<CardTitle className="resa-flex resa-items-center resa-gap-2">
-							<Webhook className="resa-h-5 resa-w-5" />
-							{__('Webhooks', 'resa')}
-							{count > 0 && (
-								<Badge variant="secondary">
-									{count}/{MAX_WEBHOOKS}
-								</Badge>
-							)}
-						</CardTitle>
-						<Button size="sm" onClick={openCreateDialog} disabled={isAtLimit}>
-							<Plus className="resa-h-4 resa-w-4 resa-mr-1" />
-							{__('Webhook hinzufügen', 'resa')}
-						</Button>
-					</div>
-					{isAtLimit && (
-						<p className="resa-text-sm resa-text-muted-foreground">
-							{__('Maximal 5 Webhooks erlaubt.', 'resa')}
-						</p>
-					)}
-				</CardHeader>
+			{/* Header */}
+			<div style={headerStyle}>
+				<div>
+					<h4 style={headlineStyle}>{__('Webhooks', 'resa')}</h4>
+					<p style={sublineStyle}>
+						{__(
+							'Senden Sie automatisch Lead-Daten an Zapier, Make oder Ihre eigene API.',
+							'resa',
+						)}
+					</p>
+				</div>
+				<PrimaryButton onClick={openCreateDialog} disabled={isAtLimit}>
+					<Plus style={{ width: '16px', height: '16px' }} />
+					{__('Webhook hinzufügen', 'resa')}
+				</PrimaryButton>
+			</div>
 
-				<CardContent>
-					{/* Empty state */}
-					{(!webhooks || webhooks.length === 0) && (
-						<div className="resa-flex resa-flex-col resa-items-center resa-justify-center resa-py-12 resa-text-center">
-							<Globe className="resa-h-12 resa-w-12 resa-text-muted-foreground resa-mb-4" />
-							<p className="resa-text-lg resa-font-medium resa-mb-1">
-								{__('Noch keine Webhooks', 'resa')}
-							</p>
-							<p className="resa-text-sm resa-text-muted-foreground resa-mb-4">
-								{__(
-									'Senden Sie automatisch Lead-Daten an Zapier, Make oder Ihre eigene API.',
-									'resa',
-								)}
-							</p>
-							<Button size="sm" onClick={openCreateDialog}>
-								<Plus className="resa-h-4 resa-w-4 resa-mr-1" />
-								{__('Ersten Webhook erstellen', 'resa')}
-							</Button>
-						</div>
-					)}
+			{isAtLimit && (
+				<p style={{ fontSize: '13px', color: '#dc2626', margin: '0 0 16px 0' }}>
+					{__('Maximal 5 Webhooks erlaubt.', 'resa')}
+				</p>
+			)}
 
-					{/* Webhook list */}
-					{webhooks && webhooks.length > 0 && (
-						<div className="resa-space-y-3">
-							{webhooks.map((webhook, index) => (
-								<div key={webhook.id}>
-									{index > 0 && <Separator className="resa-mb-3" />}
-									<div className="resa-flex resa-items-center resa-justify-between resa-gap-4">
-										<div className="resa-flex-1 resa-min-w-0">
-											<div className="resa-flex resa-items-center resa-gap-2 resa-mb-1">
-												<span className="resa-font-medium resa-text-sm">
-													{webhook.name}
-												</span>
-												{webhook.events.map((event) => (
-													<Badge
-														key={event}
-														variant="outline"
-														className="resa-text-xs"
-													>
-														{event}
-													</Badge>
-												))}
-											</div>
-											<p
-												className="resa-text-xs resa-text-muted-foreground resa-truncate"
-												title={webhook.url}
-											>
-												{webhook.url}
-											</p>
+			{/* Empty state */}
+			{(!webhooks || webhooks.length === 0) && (
+				<div
+					style={{
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						justifyContent: 'center',
+						padding: '48px 24px',
+						textAlign: 'center',
+						border: '2px dashed hsl(214.3 31.8% 78%)',
+						borderRadius: '16px',
+					}}
+				>
+					<p
+						style={{
+							fontSize: '16px',
+							fontWeight: 500,
+							color: '#1e303a',
+							margin: '0 0 4px 0',
+						}}
+					>
+						{__('Noch keine Webhooks', 'resa')}
+					</p>
+					<p
+						style={{
+							fontSize: '14px',
+							color: '#1e303a',
+							margin: '0 0 16px 0',
+						}}
+					>
+						{__('Versenden Sie Lead-Daten in Echtzeit an externe Systeme.', 'resa')}
+					</p>
+					<OutlineButton onClick={openCreateDialog}>
+						<Plus style={{ width: '16px', height: '16px' }} />
+						{__('Ersten Webhook erstellen', 'resa')}
+					</OutlineButton>
+				</div>
+			)}
+
+			{/* Webhook Table */}
+			{webhooks && webhooks.length > 0 && (
+				<div
+					style={{
+						border: '1px solid hsl(214.3 31.8% 91.4%)',
+						borderRadius: '8px',
+						overflow: 'hidden',
+						backgroundColor: 'white',
+					}}
+				>
+					<Table>
+						<TableHeader>
+							<TableRow style={{ backgroundColor: 'hsl(210 40% 96.1%)' }}>
+								<TableHead
+									style={{
+										paddingTop: '12px',
+										paddingBottom: '12px',
+										paddingLeft: '16px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+										color: '#1e303a',
+										fontWeight: 500,
+									}}
+								>
+									{__('Name', 'resa')}
+								</TableHead>
+								<TableHead
+									style={{
+										paddingTop: '12px',
+										paddingBottom: '12px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+										color: '#1e303a',
+										fontWeight: 500,
+									}}
+								>
+									{__('URL', 'resa')}
+								</TableHead>
+								<TableHead
+									style={{
+										paddingTop: '12px',
+										paddingBottom: '12px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+										color: '#1e303a',
+										fontWeight: 500,
+									}}
+								>
+									{__('Events', 'resa')}
+								</TableHead>
+								<TableHead
+									style={{
+										paddingTop: '12px',
+										paddingBottom: '12px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+										color: '#1e303a',
+										fontWeight: 500,
+										textAlign: 'center',
+										width: '80px',
+									}}
+								>
+									{__('Aktiv', 'resa')}
+								</TableHead>
+								<TableHead
+									style={{
+										paddingTop: '12px',
+										paddingBottom: '12px',
+										paddingRight: '16px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+										width: '48px',
+									}}
+								>
+									<span className="resa-sr-only">{__('Aktionen', 'resa')}</span>
+								</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{webhooks.map((webhook, idx) => (
+								<TableRow key={webhook.id}>
+									<TableCell
+										style={{
+											paddingLeft: '16px',
+											paddingTop: '12px',
+											paddingBottom: '12px',
+											fontWeight: 500,
+											color: '#1e303a',
+											borderBottom:
+												idx === webhooks.length - 1
+													? 'none'
+													: '1px solid hsl(214.3 31.8% 91.4%)',
+										}}
+									>
+										{webhook.name}
+									</TableCell>
+									<TableCell
+										style={{
+											paddingTop: '12px',
+											paddingBottom: '12px',
+											color: '#1e303a',
+											fontSize: '13px',
+											maxWidth: '200px',
+											borderBottom:
+												idx === webhooks.length - 1
+													? 'none'
+													: '1px solid hsl(214.3 31.8% 91.4%)',
+										}}
+									>
+										<span
+											style={{
+												display: 'block',
+												overflow: 'hidden',
+												textOverflow: 'ellipsis',
+												whiteSpace: 'nowrap',
+											}}
+											title={webhook.url}
+										>
+											{webhook.url}
+										</span>
+									</TableCell>
+									<TableCell
+										style={{
+											paddingTop: '12px',
+											paddingBottom: '12px',
+											borderBottom:
+												idx === webhooks.length - 1
+													? 'none'
+													: '1px solid hsl(214.3 31.8% 91.4%)',
+										}}
+									>
+										<div style={{ display: 'flex', gap: '4px' }}>
+											{webhook.events.map((event) => (
+												<Badge
+													key={event}
+													variant="outline"
+													style={{ fontSize: '11px' }}
+												>
+													{event}
+												</Badge>
+											))}
 										</div>
-
-										<div className="resa-flex resa-items-center resa-gap-2 resa-shrink-0">
-											<Switch
-												checked={webhook.isActive}
-												onCheckedChange={() => handleToggle(webhook)}
-											/>
-											<Button
-												variant="ghost"
-												size="sm"
-												onClick={() => openEditDialog(webhook)}
-												title={__('Bearbeiten', 'resa')}
-											>
-												<Pencil className="resa-h-4 resa-w-4" />
-											</Button>
-											<Button
-												variant="ghost"
-												size="sm"
-												onClick={() => handleTest(webhook.id)}
-												disabled={testMutation.isPending}
-												title={__('Test senden', 'resa')}
-											>
-												<Send className="resa-h-4 resa-w-4" />
-											</Button>
-											{deleteConfirmId === webhook.id ? (
-												<div className="resa-flex resa-items-center resa-gap-1">
-													<Button
-														variant="destructive"
-														size="sm"
-														onClick={() => handleDelete(webhook.id)}
-														disabled={deleteMutation.isPending}
-													>
-														{__('Ja', 'resa')}
-													</Button>
-													<Button
-														variant="ghost"
-														size="sm"
-														onClick={() => setDeleteConfirmId(null)}
-													>
-														{__('Nein', 'resa')}
-													</Button>
-												</div>
-											) : (
+									</TableCell>
+									<TableCell
+										style={{
+											paddingTop: '12px',
+											paddingBottom: '12px',
+											textAlign: 'center',
+											borderBottom:
+												idx === webhooks.length - 1
+													? 'none'
+													: '1px solid hsl(214.3 31.8% 91.4%)',
+										}}
+									>
+										<Switch
+											checked={webhook.isActive}
+											onCheckedChange={() => handleToggle(webhook)}
+										/>
+									</TableCell>
+									<TableCell
+										style={{
+											paddingTop: '12px',
+											paddingBottom: '12px',
+											paddingRight: '16px',
+											borderBottom:
+												idx === webhooks.length - 1
+													? 'none'
+													: '1px solid hsl(214.3 31.8% 91.4%)',
+										}}
+									>
+										<DropdownMenu>
+											<DropdownMenuTrigger asChild>
 												<Button
 													variant="ghost"
 													size="sm"
-													onClick={() => setDeleteConfirmId(webhook.id)}
-													title={__('Löschen', 'resa')}
+													style={{ padding: '4px' }}
 												>
-													<Trash2 className="resa-h-4 resa-w-4" />
+													<MoreHorizontal
+														style={{ width: '16px', height: '16px' }}
+													/>
+													<span className="resa-sr-only">
+														{__('Menü öffnen', 'resa')}
+													</span>
 												</Button>
-											)}
-										</div>
-									</div>
-								</div>
+											</DropdownMenuTrigger>
+											<DropdownMenuContent
+												align="end"
+												style={{
+													backgroundColor: 'white',
+													padding: '4px',
+												}}
+											>
+												<DropdownMenuItem
+													onClick={() => openEditDialog(webhook)}
+												>
+													<Pencil
+														style={{
+															width: '14px',
+															height: '14px',
+															marginRight: '8px',
+														}}
+													/>
+													{__('Bearbeiten', 'resa')}
+												</DropdownMenuItem>
+												<DropdownMenuItem
+													onClick={() => handleTest(webhook.id)}
+													disabled={testMutation.isPending}
+												>
+													<Send
+														style={{
+															width: '14px',
+															height: '14px',
+															marginRight: '8px',
+														}}
+													/>
+													{__('Test senden', 'resa')}
+												</DropdownMenuItem>
+												<DropdownMenuSeparator />
+												<DropdownMenuItem
+													onClick={() => handleDelete(webhook.id)}
+													disabled={deleteMutation.isPending}
+													style={{ color: '#dc2626' }}
+												>
+													<Trash2
+														style={{
+															width: '14px',
+															height: '14px',
+															marginRight: '8px',
+														}}
+													/>
+													{__('Löschen', 'resa')}
+												</DropdownMenuItem>
+											</DropdownMenuContent>
+										</DropdownMenu>
+									</TableCell>
+								</TableRow>
 							))}
-						</div>
-					)}
-				</CardContent>
-			</Card>
+						</TableBody>
+					</Table>
+				</div>
+			)}
 
 			{/* Create / Edit Dialog */}
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -462,12 +730,12 @@ export function WebhooksTab() {
 					</div>
 
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setDialogOpen(false)}>
+						<OutlineButton onClick={() => setDialogOpen(false)}>
 							{__('Abbrechen', 'resa')}
-						</Button>
-						<Button onClick={handleSave} disabled={!isFormValid || isSaving}>
+						</OutlineButton>
+						<PrimaryButton onClick={handleSave} disabled={!isFormValid || isSaving}>
 							{isSaving ? __('Speichern...', 'resa') : __('Speichern', 'resa')}
-						</Button>
+						</PrimaryButton>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>

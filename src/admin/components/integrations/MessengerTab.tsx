@@ -6,9 +6,9 @@
  * Limited to 5 connections. Premium-only (gate is handled at page level).
  */
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { __ } from '@wordpress/i18n';
-import { MessageSquare, Plus, Pencil, Trash2, Send, Info } from 'lucide-react';
+import { Plus, Pencil, Trash2, Send, Info, MoreHorizontal } from 'lucide-react';
 
 import {
 	useMessengers,
@@ -27,6 +27,21 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog';
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -34,7 +49,68 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
+
+// ─── Styled Button Components ────────────────────────────
+
+function PrimaryButton({
+	children,
+	onClick,
+	disabled,
+}: {
+	children: ReactNode;
+	onClick?: () => void;
+	disabled?: boolean;
+}) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type="button"
+			size="sm"
+			onClick={onClick}
+			disabled={disabled}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: disabled
+					? 'hsl(210 40% 96.1%)'
+					: isHovered
+						? '#98d438'
+						: '#a9e43f',
+				color: disabled ? 'hsl(215.4 16.3% 46.9%)' : '#1e303a',
+				border: 'none',
+				cursor: disabled ? 'not-allowed' : 'pointer',
+				opacity: 1,
+				gap: '6px',
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
+
+function OutlineButton({ children, onClick }: { children: ReactNode; onClick?: () => void }) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type="button"
+			size="sm"
+			onClick={onClick}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: isHovered ? 'hsl(210 40% 96.1%)' : 'white',
+				color: '#1e303a',
+				border: '1px solid #e8e8e8',
+				boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+				gap: '6px',
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
 
 const MAX_MESSENGERS = 5;
 
@@ -77,7 +153,6 @@ export function MessengerTab() {
 
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [editingMessenger, setEditingMessenger] = useState<MessengerConfig | null>(null);
-	const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 	const [feedback, setFeedback] = useState<{
 		type: 'success' | 'error';
 		message: string;
@@ -167,7 +242,6 @@ export function MessengerTab() {
 	const handleDelete = async (id: number) => {
 		try {
 			await deleteMutation.mutateAsync(id);
-			setDeleteConfirmId(null);
 			setFeedback({
 				type: 'success',
 				message: __('Verbindung gelöscht.', 'resa'),
@@ -211,19 +285,36 @@ export function MessengerTab() {
 	const count = messengers?.length ?? 0;
 	const isAtLimit = count >= MAX_MESSENGERS;
 
+	// Styles
+	const headerStyle: React.CSSProperties = {
+		display: 'flex',
+		alignItems: 'flex-start',
+		justifyContent: 'space-between',
+		marginBottom: '16px',
+	};
+
+	const headlineStyle: React.CSSProperties = {
+		fontSize: '15px',
+		fontWeight: 600,
+		color: '#1e303a',
+		margin: 0,
+	};
+
+	const sublineStyle: React.CSSProperties = {
+		fontSize: '13px',
+		color: '#1e303a',
+		margin: '4px 0 0 0',
+	};
+
 	// Loading state.
 	if (isLoading) {
 		return (
-			<Card>
-				<CardHeader>
-					<Skeleton className="resa-h-6 resa-w-48" />
-				</CardHeader>
-				<CardContent className="resa-space-y-3">
-					<Skeleton className="resa-h-10 resa-w-full" />
-					<Skeleton className="resa-h-10 resa-w-full" />
-					<Skeleton className="resa-h-10 resa-w-full" />
-				</CardContent>
-			</Card>
+			<div>
+				<Skeleton className="resa-h-6 resa-w-48 resa-mb-4" />
+				<Skeleton className="resa-h-10 resa-w-full resa-mb-2" />
+				<Skeleton className="resa-h-10 resa-w-full resa-mb-2" />
+				<Skeleton className="resa-h-10 resa-w-full" />
+			</div>
 		);
 	}
 
@@ -233,152 +324,315 @@ export function MessengerTab() {
 			{feedback && (
 				<Alert
 					variant={feedback.type === 'error' ? 'destructive' : 'default'}
-					className="resa-mb-4"
+					style={{ marginBottom: '16px' }}
 				>
 					<AlertDescription>{feedback.message}</AlertDescription>
 				</Alert>
 			)}
 
-			{/* Connections Card */}
-			<Card>
-				<CardHeader>
-					<div className="resa-flex resa-items-center resa-justify-between">
-						<CardTitle className="resa-flex resa-items-center resa-gap-2">
-							<MessageSquare className="resa-h-5 resa-w-5" />
-							{__('Messenger-Benachrichtigungen', 'resa')}
-							{count > 0 && (
-								<Badge variant="secondary">
-									{count}/{MAX_MESSENGERS}
-								</Badge>
-							)}
-						</CardTitle>
-						<Button size="sm" onClick={openCreateDialog} disabled={isAtLimit}>
-							<Plus className="resa-h-4 resa-w-4 resa-mr-1" />
-							{__('Verbindung hinzufügen', 'resa')}
-						</Button>
-					</div>
-					{isAtLimit && (
-						<p className="resa-text-sm resa-text-muted-foreground">
-							{__('Maximal 5 Verbindungen erlaubt.', 'resa')}
-						</p>
-					)}
-				</CardHeader>
+			{/* Header */}
+			<div style={headerStyle}>
+				<div>
+					<h4 style={headlineStyle}>{__('Messenger-Benachrichtigungen', 'resa')}</h4>
+					<p style={sublineStyle}>
+						{__(
+							'Erhalten Sie sofortige Benachrichtigungen in Slack, Teams oder Discord.',
+							'resa',
+						)}
+					</p>
+				</div>
+				<PrimaryButton onClick={openCreateDialog} disabled={isAtLimit}>
+					<Plus style={{ width: '16px', height: '16px' }} />
+					{__('Verbindung hinzufügen', 'resa')}
+				</PrimaryButton>
+			</div>
 
-				<CardContent>
-					{/* Empty state */}
-					{(!messengers || messengers.length === 0) && (
-						<div className="resa-flex resa-flex-col resa-items-center resa-justify-center resa-py-12 resa-text-center">
-							<MessageSquare className="resa-h-12 resa-w-12 resa-text-muted-foreground resa-mb-4" />
-							<p className="resa-text-lg resa-font-medium resa-mb-1">
-								{__('Noch keine Messenger-Verbindungen', 'resa')}
-							</p>
-							<p className="resa-text-sm resa-text-muted-foreground resa-mb-4">
-								{__(
-									'Erhalten Sie sofortige Benachrichtigungen in Slack, Microsoft Teams oder Discord, wenn ein neuer Lead eingeht.',
-									'resa',
-								)}
-							</p>
-							<Button size="sm" onClick={openCreateDialog}>
-								<Plus className="resa-h-4 resa-w-4 resa-mr-1" />
-								{__('Erste Verbindung einrichten', 'resa')}
-							</Button>
-						</div>
-					)}
+			{isAtLimit && (
+				<p style={{ fontSize: '13px', color: '#dc2626', margin: '0 0 16px 0' }}>
+					{__('Maximal 5 Verbindungen erlaubt.', 'resa')}
+				</p>
+			)}
 
-					{/* Messenger list */}
-					{messengers && messengers.length > 0 && (
-						<div className="resa-space-y-3">
-							{messengers.map((messenger, index) => (
-								<div key={messenger.id}>
-									{index > 0 && <Separator className="resa-mb-3" />}
-									<div className="resa-flex resa-items-center resa-justify-between resa-gap-4">
-										<div className="resa-flex-1 resa-min-w-0">
-											<div className="resa-flex resa-items-center resa-gap-2 resa-mb-1">
-												<span className="resa-font-medium resa-text-sm">
-													{messenger.name}
-												</span>
-												<Badge
-													variant="outline"
-													className="resa-text-xs"
-													style={platformBadgeStyle(messenger.platform)}
-												>
-													{messenger.platform === 'teams'
-														? 'Teams'
-														: messenger.platform
-																.charAt(0)
-																.toUpperCase() +
-															messenger.platform.slice(1)}
-												</Badge>
-											</div>
-											<p
-												className="resa-text-xs resa-text-muted-foreground resa-truncate"
-												title={messenger.webhookUrl}
-											>
-												{messenger.webhookUrl}
-											</p>
-										</div>
+			{/* Empty state */}
+			{(!messengers || messengers.length === 0) && (
+				<div
+					style={{
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						justifyContent: 'center',
+						padding: '48px 24px',
+						textAlign: 'center',
+						border: '2px dashed hsl(214.3 31.8% 78%)',
+						borderRadius: '16px',
+					}}
+				>
+					<p
+						style={{
+							fontSize: '16px',
+							fontWeight: 500,
+							color: '#1e303a',
+							margin: '0 0 4px 0',
+						}}
+					>
+						{__('Noch keine Messenger-Verbindungen', 'resa')}
+					</p>
+					<p
+						style={{
+							fontSize: '14px',
+							color: '#1e303a',
+							margin: '0 0 16px 0',
+						}}
+					>
+						{__(
+							'Benachrichtigungen bei neuen Leads direkt in Ihrem Team-Chat.',
+							'resa',
+						)}
+					</p>
+					<OutlineButton onClick={openCreateDialog}>
+						<Plus style={{ width: '16px', height: '16px' }} />
+						{__('Erste Verbindung einrichten', 'resa')}
+					</OutlineButton>
+				</div>
+			)}
 
-										<div className="resa-flex resa-items-center resa-gap-2 resa-shrink-0">
-											<Switch
-												checked={messenger.isActive}
-												onCheckedChange={() => handleToggle(messenger)}
-											/>
-											<Button
-												variant="ghost"
-												size="sm"
-												onClick={() => openEditDialog(messenger)}
-												title={__('Bearbeiten', 'resa')}
-											>
-												<Pencil className="resa-h-4 resa-w-4" />
-											</Button>
-											<Button
-												variant="ghost"
-												size="sm"
-												onClick={() => handleTest(messenger.id)}
-												disabled={testMutation.isPending}
-												title={__('Test senden', 'resa')}
-											>
-												<Send className="resa-h-4 resa-w-4" />
-											</Button>
-											{deleteConfirmId === messenger.id ? (
-												<div className="resa-flex resa-items-center resa-gap-1">
-													<Button
-														variant="destructive"
-														size="sm"
-														onClick={() => handleDelete(messenger.id)}
-														disabled={deleteMutation.isPending}
-													>
-														{__('Ja', 'resa')}
-													</Button>
-													<Button
-														variant="ghost"
-														size="sm"
-														onClick={() => setDeleteConfirmId(null)}
-													>
-														{__('Nein', 'resa')}
-													</Button>
-												</div>
-											) : (
+			{/* Messenger Table */}
+			{messengers && messengers.length > 0 && (
+				<div
+					style={{
+						border: '1px solid hsl(214.3 31.8% 91.4%)',
+						borderRadius: '8px',
+						overflow: 'hidden',
+						backgroundColor: 'white',
+					}}
+				>
+					<Table>
+						<TableHeader>
+							<TableRow style={{ backgroundColor: 'hsl(210 40% 96.1%)' }}>
+								<TableHead
+									style={{
+										paddingTop: '12px',
+										paddingBottom: '12px',
+										paddingLeft: '16px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+										color: '#1e303a',
+										fontWeight: 500,
+									}}
+								>
+									{__('Name', 'resa')}
+								</TableHead>
+								<TableHead
+									style={{
+										paddingTop: '12px',
+										paddingBottom: '12px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+										color: '#1e303a',
+										fontWeight: 500,
+									}}
+								>
+									{__('Plattform', 'resa')}
+								</TableHead>
+								<TableHead
+									style={{
+										paddingTop: '12px',
+										paddingBottom: '12px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+										color: '#1e303a',
+										fontWeight: 500,
+									}}
+								>
+									{__('Webhook-URL', 'resa')}
+								</TableHead>
+								<TableHead
+									style={{
+										paddingTop: '12px',
+										paddingBottom: '12px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+										color: '#1e303a',
+										fontWeight: 500,
+										textAlign: 'center',
+										width: '80px',
+									}}
+								>
+									{__('Aktiv', 'resa')}
+								</TableHead>
+								<TableHead
+									style={{
+										paddingTop: '12px',
+										paddingBottom: '12px',
+										paddingRight: '16px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+										width: '48px',
+									}}
+								>
+									<span className="resa-sr-only">{__('Aktionen', 'resa')}</span>
+								</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{messengers.map((messenger, idx) => (
+								<TableRow key={messenger.id}>
+									<TableCell
+										style={{
+											paddingLeft: '16px',
+											paddingTop: '12px',
+											paddingBottom: '12px',
+											fontWeight: 500,
+											color: '#1e303a',
+											borderBottom:
+												idx === messengers.length - 1
+													? 'none'
+													: '1px solid hsl(214.3 31.8% 91.4%)',
+										}}
+									>
+										{messenger.name}
+									</TableCell>
+									<TableCell
+										style={{
+											paddingTop: '12px',
+											paddingBottom: '12px',
+											borderBottom:
+												idx === messengers.length - 1
+													? 'none'
+													: '1px solid hsl(214.3 31.8% 91.4%)',
+										}}
+									>
+										<Badge
+											variant="outline"
+											style={{
+												...platformBadgeStyle(messenger.platform),
+												fontSize: '11px',
+											}}
+										>
+											{messenger.platform === 'teams'
+												? 'Teams'
+												: messenger.platform.charAt(0).toUpperCase() +
+													messenger.platform.slice(1)}
+										</Badge>
+									</TableCell>
+									<TableCell
+										style={{
+											paddingTop: '12px',
+											paddingBottom: '12px',
+											color: '#1e303a',
+											fontSize: '13px',
+											maxWidth: '200px',
+											borderBottom:
+												idx === messengers.length - 1
+													? 'none'
+													: '1px solid hsl(214.3 31.8% 91.4%)',
+										}}
+									>
+										<span
+											style={{
+												display: 'block',
+												overflow: 'hidden',
+												textOverflow: 'ellipsis',
+												whiteSpace: 'nowrap',
+											}}
+											title={messenger.webhookUrl}
+										>
+											{messenger.webhookUrl}
+										</span>
+									</TableCell>
+									<TableCell
+										style={{
+											paddingTop: '12px',
+											paddingBottom: '12px',
+											textAlign: 'center',
+											borderBottom:
+												idx === messengers.length - 1
+													? 'none'
+													: '1px solid hsl(214.3 31.8% 91.4%)',
+										}}
+									>
+										<Switch
+											checked={messenger.isActive}
+											onCheckedChange={() => handleToggle(messenger)}
+										/>
+									</TableCell>
+									<TableCell
+										style={{
+											paddingTop: '12px',
+											paddingBottom: '12px',
+											paddingRight: '16px',
+											borderBottom:
+												idx === messengers.length - 1
+													? 'none'
+													: '1px solid hsl(214.3 31.8% 91.4%)',
+										}}
+									>
+										<DropdownMenu>
+											<DropdownMenuTrigger asChild>
 												<Button
 													variant="ghost"
 													size="sm"
-													onClick={() => setDeleteConfirmId(messenger.id)}
-													title={__('Löschen', 'resa')}
+													style={{ padding: '4px' }}
 												>
-													<Trash2 className="resa-h-4 resa-w-4" />
+													<MoreHorizontal
+														style={{ width: '16px', height: '16px' }}
+													/>
+													<span className="resa-sr-only">
+														{__('Menü öffnen', 'resa')}
+													</span>
 												</Button>
-											)}
-										</div>
-									</div>
-								</div>
+											</DropdownMenuTrigger>
+											<DropdownMenuContent
+												align="end"
+												style={{ backgroundColor: 'white', padding: '4px' }}
+											>
+												<DropdownMenuItem
+													onClick={() => openEditDialog(messenger)}
+												>
+													<Pencil
+														style={{
+															width: '14px',
+															height: '14px',
+															marginRight: '8px',
+														}}
+													/>
+													{__('Bearbeiten', 'resa')}
+												</DropdownMenuItem>
+												<DropdownMenuItem
+													onClick={() => handleTest(messenger.id)}
+													disabled={testMutation.isPending}
+												>
+													<Send
+														style={{
+															width: '14px',
+															height: '14px',
+															marginRight: '8px',
+														}}
+													/>
+													{__('Test senden', 'resa')}
+												</DropdownMenuItem>
+												<DropdownMenuSeparator />
+												<DropdownMenuItem
+													onClick={() => handleDelete(messenger.id)}
+													disabled={deleteMutation.isPending}
+													style={{ color: '#dc2626' }}
+												>
+													<Trash2
+														style={{
+															width: '14px',
+															height: '14px',
+															marginRight: '8px',
+														}}
+													/>
+													{__('Löschen', 'resa')}
+												</DropdownMenuItem>
+											</DropdownMenuContent>
+										</DropdownMenu>
+									</TableCell>
+								</TableRow>
 							))}
-						</div>
-					)}
-				</CardContent>
-			</Card>
+						</TableBody>
+					</Table>
+				</div>
+			)}
 
 			{/* Setup Help Card */}
-			<Card className="resa-mt-4">
+			<Card style={{ marginTop: '16px' }}>
 				<CardHeader>
 					<CardTitle className="resa-flex resa-items-center resa-gap-2 resa-text-base">
 						<Info className="resa-h-4 resa-w-4" />
@@ -510,12 +764,12 @@ export function MessengerTab() {
 					</div>
 
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setDialogOpen(false)}>
+						<OutlineButton onClick={() => setDialogOpen(false)}>
 							{__('Abbrechen', 'resa')}
-						</Button>
-						<Button onClick={handleSave} disabled={!isFormValid || isSaving}>
+						</OutlineButton>
+						<PrimaryButton onClick={handleSave} disabled={!isFormValid || isSaving}>
 							{isSaving ? __('Speichern...', 'resa') : __('Speichern', 'resa')}
-						</Button>
+						</PrimaryButton>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>

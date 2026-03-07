@@ -5,7 +5,7 @@
  * Follows the TrackingTab inline-styles + isDirty pattern.
  */
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { __ } from '@wordpress/i18n';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,45 @@ import { Switch } from '@/components/ui/switch';
 import { Spinner } from '@/components/ui/spinner';
 import { useRecaptchaSettings, useSaveRecaptchaSettings } from '../../hooks/useRecaptchaSettings';
 import type { RecaptchaSettings } from '../../types';
+
+// ─── Styled Button Components ────────────────────────────
+
+function PrimaryButton({
+	children,
+	onClick,
+	disabled,
+}: {
+	children: ReactNode;
+	onClick?: () => void;
+	disabled?: boolean;
+}) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type="button"
+			size="sm"
+			onClick={onClick}
+			disabled={disabled}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: disabled
+					? 'hsl(210 40% 96.1%)'
+					: isHovered
+						? '#98d438'
+						: '#a9e43f',
+				color: disabled ? 'hsl(215.4 16.3% 46.9%)' : '#1e303a',
+				border: 'none',
+				cursor: disabled ? 'not-allowed' : 'pointer',
+				opacity: 1,
+				gap: '6px',
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
 
 // ─── Styles ─────────────────────────────────────────────
 
@@ -122,6 +161,7 @@ export function RecaptchaTab() {
 									placeholder="6Lc..."
 									value={form.site_key}
 									onChange={(e) => updateField('site_key', e.target.value)}
+									style={{ backgroundColor: 'white' }}
 								/>
 							</div>
 							<div className="resa-space-y-2">
@@ -134,6 +174,7 @@ export function RecaptchaTab() {
 									placeholder="6Lc..."
 									value={form.secret_key}
 									onChange={(e) => updateField('secret_key', e.target.value)}
+									style={{ backgroundColor: 'white' }}
 								/>
 							</div>
 						</div>
@@ -157,9 +198,10 @@ export function RecaptchaTab() {
 									padding: '0 12px',
 									fontSize: '14px',
 									borderRadius: '6px',
-									border: '1px solid hsl(214.3 31.8% 91.4%)',
+									border: '1px solid hsl(214.3 31.8% 78%)',
 									backgroundColor: 'white',
 									color: '#1e303a',
+									boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
 								}}
 							>
 								{THRESHOLD_OPTIONS.map((opt) => (
@@ -232,20 +274,12 @@ export function RecaptchaTab() {
 				>
 					{saveMutation.isSuccess && __('reCAPTCHA-Einstellungen gespeichert.', 'resa')}
 				</p>
-				<Button
-					onClick={handleSave}
-					disabled={!isDirty || saveMutation.isPending}
-					style={{
-						backgroundColor: isDirty ? '#a9e43f' : 'hsl(210 40% 96.1%)',
-						color: '#1e303a',
-						border: 'none',
-					}}
-				>
+				<PrimaryButton onClick={handleSave} disabled={!isDirty || saveMutation.isPending}>
 					{saveMutation.isPending && (
 						<Spinner style={{ width: '14px', height: '14px', marginRight: '8px' }} />
 					)}
 					{__('Speichern', 'resa')}
-				</Button>
+				</PrimaryButton>
 			</div>
 		</div>
 	);

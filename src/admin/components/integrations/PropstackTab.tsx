@@ -5,7 +5,7 @@
  * Concrete color values instead of Tailwind classes for WordPress compatibility.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { __ } from '@wordpress/i18n';
 import { Eye, EyeOff, CheckCircle2, XCircle, Info } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -184,6 +184,45 @@ const separatorStyles: React.CSSProperties = {
 	backgroundColor: colors.borderLight,
 	margin: '16px 0',
 };
+
+// ─── Styled Button Components ────────────────────────────
+
+function PrimaryButton({
+	children,
+	onClick,
+	disabled,
+}: {
+	children: ReactNode;
+	onClick?: () => void;
+	disabled?: boolean;
+}) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type="button"
+			size="sm"
+			onClick={onClick}
+			disabled={disabled}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: disabled
+					? colors.backgroundMuted
+					: isHovered
+						? '#98d438'
+						: colors.primary,
+				color: disabled ? colors.textMuted : colors.primaryForeground,
+				border: 'none',
+				cursor: disabled ? 'not-allowed' : 'pointer',
+				opacity: 1,
+				gap: '6px',
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
 
 // ─── Component ──────────────────────────────────────────
 
@@ -929,20 +968,12 @@ export function PropstackTab() {
 						!isDirty &&
 						__('Einstellungen gespeichert.', 'resa-propstack')}
 				</p>
-				<Button
-					onClick={handleSave}
-					disabled={!isDirty || saveMutation.isPending}
-					style={{
-						backgroundColor: isDirty ? colors.primary : colors.backgroundMuted,
-						color: colors.primaryForeground,
-						border: 'none',
-					}}
-				>
+				<PrimaryButton onClick={handleSave} disabled={!isDirty || saveMutation.isPending}>
 					{saveMutation.isPending && (
 						<Spinner style={{ width: '14px', height: '14px', marginRight: '8px' }} />
 					)}
 					{__('Speichern', 'resa-propstack')}
-				</Button>
+				</PrimaryButton>
 			</div>
 		</div>
 	);
