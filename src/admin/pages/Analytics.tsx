@@ -17,6 +17,9 @@ import { Eye, TrendingUp, BarChart3, Users, Lock, Crown } from 'lucide-react';
 // the page itself (with React Query hooks) stays in the main bundle.
 const LazyBarChart = lazy(() => import('@nivo/bar').then((m) => ({ default: m.ResponsiveBar })));
 const LazyLineChart = lazy(() => import('@nivo/line').then((m) => ({ default: m.ResponsiveLine })));
+const LazyRadialBar = lazy(() =>
+	import('@nivo/radial-bar').then((m) => ({ default: m.ResponsiveRadialBar })),
+);
 
 import { AdminPageLayout } from '../components/AdminPageLayout';
 import { Card } from '@/components/ui/card';
@@ -51,8 +54,8 @@ const cardHeaderStyles: React.CSSProperties = {
 
 const cardTitleStyles: React.CSSProperties = {
 	fontSize: '14px',
-	fontWeight: 500,
-	color: 'hsl(215.4 16.3% 46.9%)',
+	fontWeight: 600,
+	color: '#1e303a',
 	margin: 0,
 };
 
@@ -67,7 +70,8 @@ const cardValueStyles: React.CSSProperties = {
 const cardFooterStyles: React.CSSProperties = {
 	marginTop: 'auto',
 	fontSize: '13px',
-	color: 'hsl(215.4 16.3% 46.9%)',
+	color: '#1e303a',
+	fontWeight: 400,
 };
 
 const filterBarStyles: React.CSSProperties = {
@@ -75,14 +79,14 @@ const filterBarStyles: React.CSSProperties = {
 	flexWrap: 'wrap',
 	alignItems: 'flex-end',
 	gap: '16px',
-	padding: '20px',
+	marginBottom: '24px',
 };
 
 const filterLabelStyles: React.CSSProperties = {
 	display: 'block',
 	fontSize: '13px',
 	fontWeight: 500,
-	color: 'hsl(215.4 16.3% 46.9%)',
+	color: '#1e303a',
 	marginBottom: '6px',
 };
 
@@ -97,6 +101,7 @@ const dateInputStyles: React.CSSProperties = {
 	borderRadius: '6px',
 	color: '#1e303a',
 	width: '160px',
+	accentColor: '#a9e43f',
 };
 
 const sectionTitleStyles: React.CSSProperties = {
@@ -146,6 +151,9 @@ export function Analytics() {
 	// Chart colors — concrete values (CSS variables don't work in D3/Nivo).
 	const chartColors = ['#a9e43f', '#1e303a', '#3b82f6'];
 
+	// Funnel colors — gradient from RESA blue to RESA green (bottom to top)
+	const funnelColors = ['#a9e43f', '#7ac043', '#4a9a4a', '#2d6e50', '#1e303a'];
+
 	// Funnel bar chart data — reversed so "Views" is at the top.
 	const funnelBarData = useMemo(() => {
 		if (!funnel?.summary) return [];
@@ -185,29 +193,54 @@ export function Analytics() {
 			description={__('Funnel-Tracking und Conversion-Daten deiner Smart Assets.', 'resa')}
 		>
 			{/* Filter Bar */}
-			<Card>
-				<div style={filterBarStyles}>
+			<div style={filterBarStyles}>
+				<div>
+					<span style={filterLabelStyles}>{__('Von', 'resa')}</span>
+					<input
+						type="date"
+						value={dateFrom}
+						onChange={(e) => setDateFrom(e.target.value)}
+						style={dateInputStyles}
+					/>
+				</div>
+				<div>
+					<span style={filterLabelStyles}>{__('Bis', 'resa')}</span>
+					<input
+						type="date"
+						value={dateTo}
+						onChange={(e) => setDateTo(e.target.value)}
+						style={dateInputStyles}
+					/>
+				</div>
+				<div>
+					<span style={filterLabelStyles}>{__('Smart Asset', 'resa')}</span>
+					<Select value={assetType} onValueChange={setAssetType}>
+						<SelectTrigger
+							style={{
+								width: '200px',
+								height: '36px',
+								backgroundColor: 'white',
+								border: '1px solid hsl(214.3 31.8% 91.4%)',
+								borderRadius: '6px',
+								fontSize: '13px',
+							}}
+						>
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="all">{__('Alle', 'resa')}</SelectItem>
+							{Object.entries(MODULE_NAMES).map(([slug, name]) => (
+								<SelectItem key={slug} value={slug}>
+									{name}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</div>
+				{locations && locations.length > 0 && (
 					<div>
-						<span style={filterLabelStyles}>{__('Von', 'resa')}</span>
-						<input
-							type="date"
-							value={dateFrom}
-							onChange={(e) => setDateFrom(e.target.value)}
-							style={dateInputStyles}
-						/>
-					</div>
-					<div>
-						<span style={filterLabelStyles}>{__('Bis', 'resa')}</span>
-						<input
-							type="date"
-							value={dateTo}
-							onChange={(e) => setDateTo(e.target.value)}
-							style={dateInputStyles}
-						/>
-					</div>
-					<div>
-						<span style={filterLabelStyles}>{__('Smart Asset', 'resa')}</span>
-						<Select value={assetType} onValueChange={setAssetType}>
+						<span style={filterLabelStyles}>{__('Standort', 'resa')}</span>
+						<Select value={locationId} onValueChange={setLocationId}>
 							<SelectTrigger
 								style={{
 									width: '200px',
@@ -222,43 +255,16 @@ export function Analytics() {
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="all">{__('Alle', 'resa')}</SelectItem>
-								{Object.entries(MODULE_NAMES).map(([slug, name]) => (
-									<SelectItem key={slug} value={slug}>
-										{name}
+								{locations.map((loc) => (
+									<SelectItem key={loc.id} value={String(loc.id)}>
+										{loc.name}
 									</SelectItem>
 								))}
 							</SelectContent>
 						</Select>
 					</div>
-					{locations && locations.length > 0 && (
-						<div>
-							<span style={filterLabelStyles}>{__('Standort', 'resa')}</span>
-							<Select value={locationId} onValueChange={setLocationId}>
-								<SelectTrigger
-									style={{
-										width: '200px',
-										height: '36px',
-										backgroundColor: 'white',
-										border: '1px solid hsl(214.3 31.8% 91.4%)',
-										borderRadius: '6px',
-										fontSize: '13px',
-									}}
-								>
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="all">{__('Alle', 'resa')}</SelectItem>
-									{locations.map((loc) => (
-										<SelectItem key={loc.id} value={String(loc.id)}>
-											{loc.name}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
-					)}
-				</div>
-			</Card>
+				)}
+			</div>
 
 			{/* Loading */}
 			{isLoading && (
@@ -272,7 +278,7 @@ export function Analytics() {
 					}}
 				>
 					<Spinner style={{ width: '20px', height: '20px' }} />
-					<span style={{ color: 'hsl(215.4 16.3% 46.9%)' }}>
+					<span style={{ color: '#1e303a' }}>
 						{__('Daten werden geladen...', 'resa')}
 					</span>
 				</div>
@@ -297,14 +303,14 @@ export function Analytics() {
 							style={{
 								width: '24px',
 								height: '24px',
-								color: 'hsl(215.4 16.3% 46.9%)',
+								color: '#1e303a',
 							}}
 						/>
 					</div>
 					<p style={{ fontWeight: 600, marginBottom: '4px' }}>
 						{__('Noch keine Tracking-Daten', 'resa')}
 					</p>
-					<p style={{ color: 'hsl(215.4 16.3% 46.9%)', fontSize: '14px' }}>
+					<p style={{ color: '#1e303a', fontSize: '14px' }}>
 						{__(
 							'Daten erscheinen hier, sobald Besucher deine Smart Assets nutzen.',
 							'resa',
@@ -324,7 +330,7 @@ export function Analytics() {
 								style={{
 									width: '16px',
 									height: '16px',
-									color: 'hsl(215.4 16.3% 46.9%)',
+									color: '#1e303a',
 								}}
 							/>
 						}
@@ -339,7 +345,7 @@ export function Analytics() {
 								style={{
 									width: '16px',
 									height: '16px',
-									color: 'hsl(215.4 16.3% 46.9%)',
+									color: '#1e303a',
 								}}
 							/>
 						}
@@ -354,7 +360,7 @@ export function Analytics() {
 								style={{
 									width: '16px',
 									height: '16px',
-									color: 'hsl(215.4 16.3% 46.9%)',
+									color: '#1e303a',
 								}}
 							/>
 						}
@@ -369,7 +375,7 @@ export function Analytics() {
 								style={{
 									width: '16px',
 									height: '16px',
-									color: 'hsl(215.4 16.3% 46.9%)',
+									color: '#1e303a',
 								}}
 							/>
 						}
@@ -379,7 +385,12 @@ export function Analytics() {
 
 			{/* Funnel Chart */}
 			{funnel?.summary && (
-				<Card>
+				<Card
+					style={{
+						border: '1px solid hsl(214.3 31.8% 91.4%)',
+						boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+					}}
+				>
 					<div style={{ padding: '20px' }}>
 						<h3 style={sectionTitleStyles}>{__('Funnel-Übersicht', 'resa')}</h3>
 						{isPremium ? (
@@ -393,7 +404,9 @@ export function Analytics() {
 											layout="horizontal"
 											margin={{ top: 0, right: 40, bottom: 30, left: 90 }}
 											padding={0.35}
-											colors={[chartColors[0]]}
+											colors={({ index }: { index: number }) =>
+												funnelColors[index]
+											}
 											borderRadius={4}
 											enableLabel
 											labelTextColor="#fff"
@@ -429,7 +442,12 @@ export function Analytics() {
 
 			{/* Trend Chart */}
 			{funnel?.daily && funnel.daily.length > 0 && (
-				<Card>
+				<Card
+					style={{
+						border: '1px solid hsl(214.3 31.8% 91.4%)',
+						boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+					}}
+				>
 					<div style={{ padding: '20px' }}>
 						<h3 style={sectionTitleStyles}>{__('Trend (täglich)', 'resa')}</h3>
 						{isPremium ? (
@@ -492,26 +510,54 @@ export function Analytics() {
 
 			{/* Conversion Rates */}
 			{funnel?.summary && (
-				<Card>
+				<Card
+					style={{
+						border: '1px solid hsl(214.3 31.8% 91.4%)',
+						boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+					}}
+				>
 					<div style={{ padding: '20px' }}>
 						<h3 style={sectionTitleStyles}>{__('Conversion-Rates', 'resa')}</h3>
-						<div className="resa-grid resa-grid-cols-1 md:resa-grid-cols-3 resa-gap-4">
-							<RateCard
-								label={__('Start-Rate', 'resa')}
-								description={__('Views → Starts', 'resa')}
-								rate={funnel.summary.start_rate}
-							/>
-							<RateCard
-								label={__('Completion-Rate', 'resa')}
-								description={__('Starts → Formular', 'resa')}
-								rate={funnel.summary.completion_rate}
-							/>
-							<RateCard
-								label={__('Conversion-Rate', 'resa')}
-								description={__('Formular → Lead', 'resa')}
-								rate={funnel.summary.conversion_rate}
-							/>
-						</div>
+						{isPremium ? (
+							<div className="resa-grid resa-grid-cols-1 md:resa-grid-cols-3 resa-gap-4">
+								<RateGauge
+									label={__('Start-Rate', 'resa')}
+									description={__('Views → Starts', 'resa')}
+									rate={funnel.summary.start_rate}
+									color="#a9e43f"
+								/>
+								<RateGauge
+									label={__('Completion-Rate', 'resa')}
+									description={__('Starts → Formular', 'resa')}
+									rate={funnel.summary.completion_rate}
+									color="#4a9a4a"
+								/>
+								<RateGauge
+									label={__('Conversion-Rate', 'resa')}
+									description={__('Formular → Lead', 'resa')}
+									rate={funnel.summary.conversion_rate}
+									color="#1e303a"
+								/>
+							</div>
+						) : (
+							<div className="resa-grid resa-grid-cols-1 md:resa-grid-cols-3 resa-gap-4">
+								<RateCard
+									label={__('Start-Rate', 'resa')}
+									description={__('Views → Starts', 'resa')}
+									rate={funnel.summary.start_rate}
+								/>
+								<RateCard
+									label={__('Completion-Rate', 'resa')}
+									description={__('Starts → Formular', 'resa')}
+									rate={funnel.summary.completion_rate}
+								/>
+								<RateCard
+									label={__('Conversion-Rate', 'resa')}
+									description={__('Formular → Lead', 'resa')}
+									rate={funnel.summary.conversion_rate}
+								/>
+							</div>
+						)}
 					</div>
 				</Card>
 			)}
@@ -533,7 +579,7 @@ function ChartPlaceholder() {
 			}}
 		>
 			<Spinner style={{ width: '20px', height: '20px' }} />
-			<span style={{ color: 'hsl(215.4 16.3% 46.9%)', fontSize: '13px' }}>
+			<span style={{ color: '#1e303a', fontSize: '13px' }}>
 				{__('Chart wird geladen...', 'resa')}
 			</span>
 		</div>
@@ -546,7 +592,7 @@ function EmptyChartMessage() {
 			style={{
 				textAlign: 'center',
 				padding: '32px 0',
-				color: 'hsl(215.4 16.3% 46.9%)',
+				color: '#1e303a',
 				fontSize: '14px',
 			}}
 		>
@@ -569,7 +615,12 @@ function KpiCard({
 	icon: React.ReactNode;
 }) {
 	return (
-		<Card>
+		<Card
+			style={{
+				border: '1px solid hsl(214.3 31.8% 91.4%)',
+				boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+			}}
+		>
 			<div style={cardStyles}>
 				<div style={cardHeaderStyles}>
 					<span style={cardTitleStyles}>{label}</span>
@@ -628,7 +679,97 @@ function RateCard({
 				style={{
 					marginTop: '2px',
 					fontSize: '13px',
-					color: 'hsl(215.4 16.3% 46.9%)',
+					color: '#1e303a',
+				}}
+			>
+				{description}
+			</div>
+		</div>
+	);
+}
+
+function RateGauge({
+	label,
+	description,
+	rate,
+	color,
+}: {
+	label: string;
+	description: string;
+	rate: number;
+	color: string;
+}) {
+	// RadialBar data format — single ring showing the rate percentage
+	const data = [
+		{
+			id: label,
+			data: [{ x: label, y: rate }],
+		},
+	];
+
+	return (
+		<div
+			style={{
+				border: '1px solid hsl(214.3 31.8% 91.4%)',
+				borderRadius: '8px',
+				padding: '20px',
+				textAlign: 'center',
+				position: 'relative',
+			}}
+		>
+			{/* Gauge Chart */}
+			<div style={{ height: 160, position: 'relative' }}>
+				<Suspense fallback={<ChartPlaceholder />}>
+					<LazyRadialBar
+						data={data}
+						maxValue={100}
+						startAngle={-90}
+						endAngle={90}
+						innerRadius={0.65}
+						padding={0.3}
+						cornerRadius={4}
+						colors={[color]}
+						enableTracks
+						tracksColor="hsl(214.3 31.8% 91.4%)"
+						enableRadialGrid={false}
+						enableCircularGrid={false}
+						radialAxisStart={null}
+						circularAxisOuter={null}
+						margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+					/>
+				</Suspense>
+				{/* Center Value */}
+				<div
+					style={{
+						position: 'absolute',
+						bottom: '10px',
+						left: '50%',
+						transform: 'translateX(-50%)',
+						fontSize: '24px',
+						fontWeight: 600,
+						color: '#1e303a',
+					}}
+				>
+					{rate.toFixed(1)}%
+				</div>
+			</div>
+			{/* Label */}
+			<div
+				style={{
+					marginTop: '0',
+					fontSize: '14px',
+					fontWeight: 500,
+					color: '#1e303a',
+				}}
+			>
+				{label}
+			</div>
+			{/* Description */}
+			<div
+				style={{
+					marginTop: '2px',
+					fontSize: '13px',
+					color: '#1e303a',
 				}}
 			>
 				{description}
@@ -653,11 +794,11 @@ function UpgradeCta() {
 				style={{
 					width: '16px',
 					height: '16px',
-					color: 'hsl(215.4 16.3% 46.9%)',
+					color: '#1e303a',
 					flexShrink: 0,
 				}}
 			/>
-			<span style={{ fontSize: '14px', color: 'hsl(215.4 16.3% 46.9%)' }}>
+			<span style={{ fontSize: '14px', color: '#1e303a' }}>
 				{__('Interaktive Charts sind nur im Pro-Plan verfügbar.', 'resa')}
 			</span>
 			<Button
