@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { __ } from '@wordpress/i18n';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, ArrowRight } from 'lucide-react';
 import type { ModuleInfo } from '../../hooks/useModuleSettings';
 import { useLocations } from '../../hooks/useLocations';
 
@@ -15,6 +15,9 @@ interface OverviewTabProps {
 export function OverviewTab({ module }: OverviewTabProps) {
 	const [copied, setCopied] = useState(false);
 	const [copiedExample, setCopiedExample] = useState(false);
+	const [copyHover, setCopyHover] = useState(false);
+	const [copyExampleHover, setCopyExampleHover] = useState(false);
+	const [docLinkHover, setDocLinkHover] = useState(false);
 	const { data: locations } = useLocations();
 	const shortcode = `[resa module="${module.slug}"]`;
 
@@ -155,9 +158,8 @@ export function OverviewTab({ module }: OverviewTabProps) {
 				{/* Module description */}
 				<div
 					style={{
-						backgroundColor: 'white',
+						backgroundColor: 'hsl(210 40% 96.1%)',
 						borderRadius: '8px',
-						border: '1px solid hsl(214.3 31.8% 91.4%)',
 						padding: '20px',
 					}}
 				>
@@ -180,9 +182,8 @@ export function OverviewTab({ module }: OverviewTabProps) {
 				{/* Documentation link */}
 				<div
 					style={{
-						backgroundColor: 'white',
+						backgroundColor: 'hsl(210 40% 96.1%)',
 						borderRadius: '8px',
-						border: '1px solid hsl(214.3 31.8% 91.4%)',
 						padding: '20px',
 						display: 'flex',
 						flexDirection: 'column',
@@ -194,7 +195,7 @@ export function OverviewTab({ module }: OverviewTabProps) {
 					<p
 						style={{
 							fontSize: '13px',
-							color: 'hsl(215.4 16.3% 46.9%)',
+							color: '#1e303a',
 							lineHeight: 1.6,
 							marginTop: '12px',
 							marginBottom: '16px',
@@ -210,17 +211,27 @@ export function OverviewTab({ module }: OverviewTabProps) {
 						href="https://www.resa-wp.com/docs"
 						target="_blank"
 						rel="noopener noreferrer"
+						onMouseEnter={() => setDocLinkHover(true)}
+						onMouseLeave={() => setDocLinkHover(false)}
 						style={{
 							display: 'inline-flex',
 							alignItems: 'center',
+							alignSelf: 'flex-start',
 							gap: '6px',
+							padding: '8px 14px',
+							borderRadius: '6px',
+							backgroundColor: docLinkHover ? 'hsl(210 40% 96.1%)' : 'white',
 							color: '#1e303a',
 							fontWeight: 500,
 							fontSize: '13px',
 							textDecoration: 'none',
+							border: '1px solid hsl(214.3 31.8% 91.4%)',
+							boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+							transition: 'background-color 150ms',
 						}}
 					>
-						{__('Zur Dokumentation', 'resa')} →
+						{__('Zur Dokumentation', 'resa')}
+						<ArrowRight style={{ width: '16px', height: '16px', strokeWidth: 1.5 }} />
 					</a>
 				</div>
 			</div>
@@ -240,7 +251,7 @@ export function OverviewTab({ module }: OverviewTabProps) {
 				<p
 					style={{
 						fontSize: '13px',
-						color: 'hsl(215.4 16.3% 46.9%)',
+						color: '#1e303a',
 						marginTop: '8px',
 						marginBottom: '12px',
 					}}
@@ -254,8 +265,9 @@ export function OverviewTab({ module }: OverviewTabProps) {
 					<code
 						style={{
 							display: 'inline-block',
-							backgroundColor: '#1e303a',
-							color: '#a9e43f',
+							backgroundColor: 'hsl(210 40% 96.1%)',
+							color: '#1e303a',
+							border: '1px solid hsl(214.3 31.8% 91.4%)',
 							padding: '8px 16px',
 							borderRadius: '6px',
 							fontSize: '13px',
@@ -266,6 +278,8 @@ export function OverviewTab({ module }: OverviewTabProps) {
 					</code>
 					<button
 						onClick={copyToClipboard}
+						onMouseEnter={() => setCopyHover(true)}
+						onMouseLeave={() => setCopyHover(false)}
 						style={{
 							display: 'inline-flex',
 							alignItems: 'center',
@@ -274,7 +288,7 @@ export function OverviewTab({ module }: OverviewTabProps) {
 							height: '32px',
 							borderRadius: '6px',
 							border: '1px solid hsl(214.3 31.8% 91.4%)',
-							backgroundColor: 'white',
+							backgroundColor: copyHover ? 'hsl(210 40% 96.1%)' : 'white',
 							cursor: 'pointer',
 							color: copied ? '#a9e43f' : '#1e303a',
 							transition: 'all 150ms',
@@ -290,7 +304,7 @@ export function OverviewTab({ module }: OverviewTabProps) {
 				</div>
 
 				{/* Shortcode Options Table */}
-				<div style={{ marginTop: '20px' }}>
+				<div style={{ marginTop: '25px' }}>
 					<h4
 						style={{
 							fontSize: '13px',
@@ -392,7 +406,7 @@ export function OverviewTab({ module }: OverviewTabProps) {
 									style={{
 										padding: '8px 12px',
 										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
-										color: 'hsl(215.4 16.3% 46.9%)',
+										color: '#1e303a',
 									}}
 								>
 									{__('Modul-Slug, das angezeigt werden soll.', 'resa')}
@@ -407,7 +421,7 @@ export function OverviewTab({ module }: OverviewTabProps) {
 										style={{
 											fontSize: '12px',
 											fontFamily: 'ui-monospace, monospace',
-											color: 'hsl(215.4 16.3% 46.9%)',
+											color: '#1e303a',
 										}}
 									>
 										{module.slug}
@@ -438,7 +452,7 @@ export function OverviewTab({ module }: OverviewTabProps) {
 									style={{
 										padding: '8px 12px',
 										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
-										color: 'hsl(215.4 16.3% 46.9%)',
+										color: '#1e303a',
 									}}
 								>
 									{__('Nein', 'resa')}
@@ -447,7 +461,7 @@ export function OverviewTab({ module }: OverviewTabProps) {
 									style={{
 										padding: '8px 12px',
 										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
-										color: 'hsl(215.4 16.3% 46.9%)',
+										color: '#1e303a',
 									}}
 								>
 									{__(
@@ -465,7 +479,7 @@ export function OverviewTab({ module }: OverviewTabProps) {
 										style={{
 											fontSize: '12px',
 											fontFamily: 'ui-monospace, monospace',
-											color: 'hsl(215.4 16.3% 46.9%)',
+											color: '#1e303a',
 										}}
 									>
 										{firstCity ?? 'muenchen'}
@@ -478,7 +492,7 @@ export function OverviewTab({ module }: OverviewTabProps) {
 
 				{/* Available locations */}
 				{locations && locations.length > 0 && (
-					<div style={{ marginTop: '16px' }}>
+					<div style={{ marginTop: '25px' }}>
 						<h4
 							style={{
 								fontSize: '13px',
@@ -519,7 +533,7 @@ export function OverviewTab({ module }: OverviewTabProps) {
 				)}
 
 				{/* Example with city */}
-				<div style={{ marginTop: '16px' }}>
+				<div style={{ marginTop: '25px' }}>
 					<h4
 						style={{
 							fontSize: '13px',
@@ -534,8 +548,9 @@ export function OverviewTab({ module }: OverviewTabProps) {
 						<code
 							style={{
 								display: 'inline-block',
-								backgroundColor: '#1e303a',
-								color: '#a9e43f',
+								backgroundColor: 'hsl(210 40% 96.1%)',
+								color: '#1e303a',
+								border: '1px solid hsl(214.3 31.8% 91.4%)',
 								padding: '8px 16px',
 								borderRadius: '6px',
 								fontSize: '13px',
@@ -546,6 +561,8 @@ export function OverviewTab({ module }: OverviewTabProps) {
 						</code>
 						<button
 							onClick={copyExample}
+							onMouseEnter={() => setCopyExampleHover(true)}
+							onMouseLeave={() => setCopyExampleHover(false)}
 							style={{
 								display: 'inline-flex',
 								alignItems: 'center',
@@ -554,7 +571,7 @@ export function OverviewTab({ module }: OverviewTabProps) {
 								height: '32px',
 								borderRadius: '6px',
 								border: '1px solid hsl(214.3 31.8% 91.4%)',
-								backgroundColor: 'white',
+								backgroundColor: copyExampleHover ? 'hsl(210 40% 96.1%)' : 'white',
 								cursor: 'pointer',
 								color: copiedExample ? '#a9e43f' : '#1e303a',
 								transition: 'all 150ms',

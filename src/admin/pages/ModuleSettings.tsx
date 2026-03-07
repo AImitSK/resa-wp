@@ -25,7 +25,6 @@ import { AdminPageLayout } from '../components/AdminPageLayout';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Spinner } from '@/components/ui/spinner';
@@ -85,7 +84,7 @@ export function ModuleSettings() {
 		fontWeight: 500,
 		transition: 'all 150ms',
 		backgroundColor: isActive ? 'white' : 'transparent',
-		color: isActive ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
+		color: '#1e303a',
 		boxShadow: isActive ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none',
 		cursor: 'pointer',
 	});
@@ -132,14 +131,25 @@ export function ModuleSettings() {
 						)}
 					</AlertDescription>
 				</Alert>
-				<Button
-					variant="link"
+				<button
 					onClick={() => navigate('/modules')}
-					style={{ marginTop: '16px' }}
+					style={{
+						marginTop: '16px',
+						display: 'inline-flex',
+						alignItems: 'center',
+						gap: '6px',
+						color: '#1e303a',
+						fontSize: '14px',
+						fontWeight: 500,
+						background: 'none',
+						border: 'none',
+						cursor: 'pointer',
+						padding: 0,
+					}}
 				>
-					<ArrowLeft />
+					<ArrowLeft style={{ width: '16px', height: '16px' }} />
 					{__('Zurück zu Smart Assets', 'resa')}
-				</Button>
+				</button>
 			</AdminPageLayout>
 		);
 	}
@@ -211,7 +221,7 @@ export function ModuleSettings() {
 						<span
 							style={{
 								fontSize: '13px',
-								color: module?.active ? '#a9e43f' : 'hsl(215.4 16.3% 46.9%)',
+								color: module?.active ? '#a9e43f' : '#1e303a',
 								fontWeight: 500,
 							}}
 						>

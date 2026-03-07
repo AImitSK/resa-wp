@@ -72,7 +72,7 @@ export function PdfTab({ slug }: PdfTabProps) {
 		return (
 			<div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '20px' }}>
 				<Spinner className="resa-size-5" />
-				<span style={{ color: 'hsl(215.4 16.3% 46.9%)', fontSize: '14px' }}>
+				<span style={{ color: '#1e303a', fontSize: '14px' }}>
 					{__('PDF-Einstellungen werden geladen...', 'resa')}
 				</span>
 			</div>
@@ -97,6 +97,7 @@ function PdfTabInner({ settings, slug }: { settings: ModulePdfSettings; slug: st
 	const saveSettings = useSaveModulePdfSettings(slug);
 	const [local, setLocal] = useState<ModulePdfSettings>(settings);
 	const [hasChanges, setHasChanges] = useState(false);
+	const [saveHover, setSaveHover] = useState(false);
 
 	const toggleSection = (key: keyof ModulePdfSettings) => {
 		setLocal((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -115,9 +116,8 @@ function PdfTabInner({ settings, slug }: { settings: ModulePdfSettings; slug: st
 	};
 
 	const cardStyle: React.CSSProperties = {
-		backgroundColor: 'white',
+		backgroundColor: 'hsl(210 40% 96.1%)',
 		borderRadius: '8px',
-		border: '1px solid hsl(214.3 31.8% 91.4%)',
 		padding: '20px',
 	};
 
@@ -167,6 +167,29 @@ function PdfTabInner({ settings, slug }: { settings: ModulePdfSettings; slug: st
 
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+			{/* Page header */}
+			<div>
+				<h3
+					style={{
+						fontSize: '18px',
+						fontWeight: 600,
+						color: '#1e303a',
+						margin: 0,
+					}}
+				>
+					{__('PDF-Ausgabe', 'resa')}
+				</h3>
+				<p
+					style={{
+						fontSize: '14px',
+						color: '#1e303a',
+						margin: '4px 0 0 0',
+					}}
+				>
+					{__('Konfiguriere welche Abschnitte im PDF-Report erscheinen.', 'resa')}
+				</p>
+			</div>
+
 			{/* Section toggles */}
 			<div style={cardStyle}>
 				<h3
@@ -182,7 +205,7 @@ function PdfTabInner({ settings, slug }: { settings: ModulePdfSettings; slug: st
 				<p
 					style={{
 						fontSize: '13px',
-						color: 'hsl(215.4 16.3% 46.9%)',
+						color: '#1e303a',
 						margin: '0 0 8px 0',
 					}}
 				>
@@ -217,7 +240,7 @@ function PdfTabInner({ settings, slug }: { settings: ModulePdfSettings; slug: st
 										height: '32px',
 										borderRadius: '6px',
 										backgroundColor: checked ? '#a9e43f' : 'hsl(210 40% 96.1%)',
-										color: checked ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
+										color: '#1e303a',
 										flexShrink: 0,
 									}}
 								>
@@ -236,7 +259,7 @@ function PdfTabInner({ settings, slug }: { settings: ModulePdfSettings; slug: st
 									<div
 										style={{
 											fontSize: '12px',
-											color: 'hsl(215.4 16.3% 46.9%)',
+											color: '#1e303a',
 											marginTop: '2px',
 										}}
 									>
@@ -273,7 +296,7 @@ function PdfTabInner({ settings, slug }: { settings: ModulePdfSettings; slug: st
 					<p
 						style={{
 							fontSize: '13px',
-							color: 'hsl(215.4 16.3% 46.9%)',
+							color: '#1e303a',
 							margin: '0 0 16px 0',
 						}}
 					>
@@ -332,7 +355,7 @@ function PdfTabInner({ settings, slug }: { settings: ModulePdfSettings; slug: st
 							<p
 								style={{
 									fontSize: '11px',
-									color: 'hsl(215.4 16.3% 46.9%)',
+									color: '#1e303a',
 									marginTop: '4px',
 									marginBottom: 0,
 								}}
@@ -352,10 +375,17 @@ function PdfTabInner({ settings, slug }: { settings: ModulePdfSettings; slug: st
 				<Button
 					onClick={handleSave}
 					disabled={!hasChanges || saveSettings.isPending}
+					onMouseEnter={() => setSaveHover(true)}
+					onMouseLeave={() => setSaveHover(false)}
 					style={{
-						backgroundColor: hasChanges ? '#a9e43f' : 'hsl(210 40% 96.1%)',
-						color: '#1e303a',
+						backgroundColor: !hasChanges
+							? 'hsl(210 40% 96.1%)'
+							: saveHover
+								? '#98d438'
+								: '#a9e43f',
+						color: hasChanges ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
 						border: 'none',
+						cursor: hasChanges ? 'pointer' : 'not-allowed',
 					}}
 				>
 					{saveSettings.isPending ? (

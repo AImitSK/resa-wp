@@ -37,6 +37,8 @@ export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps)
 	const [regionPreset, setRegionPreset] = useState(settings.region_preset ?? 'medium_city');
 	const [factors, setFactors] = useState<Record<string, unknown>>(settings.factors ?? {});
 	const [hasChanges, setHasChanges] = useState(false);
+	const [saveHover, setSaveHover] = useState(false);
+	const [previewHover, setPreviewHover] = useState(false);
 
 	const handleModeChange = (mode: 'pauschal' | 'individuell') => {
 		if (mode === 'individuell' && setupMode === 'pauschal') {
@@ -123,6 +125,29 @@ export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps)
 
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+			{/* Page header */}
+			<div>
+				<h3
+					style={{
+						fontSize: '18px',
+						fontWeight: 600,
+						color: '#1e303a',
+						margin: 0,
+					}}
+				>
+					{__('Einrichtung', 'resa')}
+				</h3>
+				<p
+					style={{
+						fontSize: '14px',
+						color: '#1e303a',
+						margin: '4px 0 0 0',
+					}}
+				>
+					{__('Konfiguriere den Berechnungsmodus und die Faktoren.', 'resa')}
+				</p>
+			</div>
+
 			{/* Setup mode toggle */}
 			<div style={sectionStyle}>
 				<h3 style={sectionTitleStyle}>{__('Einrichtungsmodus', 'resa')}</h3>
@@ -145,7 +170,7 @@ export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps)
 								<div
 									style={{
 										fontSize: '12px',
-										color: 'hsl(215.4 16.3% 46.9%)',
+										color: '#1e303a',
 										marginTop: '4px',
 									}}
 								>
@@ -196,7 +221,7 @@ export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps)
 										<div
 											style={{
 												fontSize: '12px',
-												color: 'hsl(215.4 16.3% 46.9%)',
+												color: '#1e303a',
 											}}
 										>
 											{__('Basispreis:', 'resa')}{' '}
@@ -215,10 +240,20 @@ export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps)
 					{/* Preset preview */}
 					<details style={{ marginTop: '16px' }}>
 						<summary
+							onMouseEnter={() => setPreviewHover(true)}
+							onMouseLeave={() => setPreviewHover(false)}
 							style={{
+								display: 'inline-flex',
+								alignItems: 'center',
+								padding: '6px 12px',
+								borderRadius: '6px',
 								fontSize: '13px',
-								color: 'hsl(215.4 16.3% 46.9%)',
+								fontWeight: 500,
+								color: '#1e303a',
+								backgroundColor: previewHover ? 'hsl(210 40% 88%)' : 'transparent',
 								cursor: 'pointer',
+								transition: 'background-color 150ms',
+								listStyle: 'none',
 							}}
 						>
 							{__('Vorschau der Werte', 'resa')}
@@ -258,11 +293,18 @@ export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps)
 				<Button
 					onClick={handleSave}
 					disabled={isSaving || !hasChanges}
+					onMouseEnter={() => setSaveHover(true)}
+					onMouseLeave={() => setSaveHover(false)}
 					style={{
-						backgroundColor: hasChanges ? '#a9e43f' : 'hsl(210 40% 96.1%)',
+						backgroundColor: !hasChanges
+							? 'hsl(210 40% 96.1%)'
+							: saveHover
+								? '#98d438'
+								: '#a9e43f',
 						color: hasChanges ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
 						border: 'none',
 						fontWeight: 500,
+						cursor: hasChanges ? 'pointer' : 'not-allowed',
 					}}
 				>
 					{isSaving && <Spinner style={{ marginRight: '8px' }} />}

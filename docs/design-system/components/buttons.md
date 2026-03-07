@@ -237,6 +237,42 @@ function GhostButton({ children, onClick }: { children: React.ReactNode; onClick
 
 ---
 
+---
+
+## Icons in Buttons
+
+### Pfeil rechts
+
+**IMMER** das `ArrowRight` Icon verwenden, **NIEMALS** Text-Pfeile wie `→` oder `>`.
+
+```tsx
+import { ArrowRight } from 'lucide-react';
+
+// Richtig ✓
+<OutlineButton>
+	{__('Zur Dokumentation', 'resa')}
+	<ArrowRight style={{ width: '16px', height: '16px', strokeWidth: 1.5 }} />
+</OutlineButton>
+
+// FALSCH ✗
+<OutlineButton>
+	{__('Zur Dokumentation', 'resa')} →
+</OutlineButton>
+```
+
+### Pfeil links (Zurück)
+
+```tsx
+import { ArrowLeft } from 'lucide-react';
+
+<GhostButton onClick={handleBack}>
+	<ArrowLeft style={{ width: '16px', height: '16px' }} />
+	{__('Zurück', 'resa')}
+</GhostButton>;
+```
+
+---
+
 ## Weitere Varianten
 
 TODO: Destructive Button, Secondary Button (RESA Blau)

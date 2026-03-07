@@ -68,6 +68,8 @@ export function LocationValuesTab({
 		price_min: 0,
 		price_max: 0,
 	});
+	const [cancelHover, setCancelHover] = useState(false);
+	const [saveHover, setSaveHover] = useState(false);
 
 	// Memoize active locations to prevent re-renders
 	const activeLocations = useMemo(() => {
@@ -173,9 +175,7 @@ export function LocationValuesTab({
 								width: '32px',
 								height: '32px',
 								borderRadius: '6px',
-								backgroundColor: row.original.hasCustomValues
-									? '#a9e43f'
-									: 'hsl(210 40% 96.1%)',
+								backgroundColor: 'hsl(210 40% 96.1%)',
 								display: 'flex',
 								alignItems: 'center',
 								justifyContent: 'center',
@@ -185,9 +185,7 @@ export function LocationValuesTab({
 								style={{
 									width: '16px',
 									height: '16px',
-									color: row.original.hasCustomValues
-										? '#1e303a'
-										: 'hsl(215.4 16.3% 46.9%)',
+									color: '#1e303a',
 								}}
 							/>
 						</div>
@@ -195,7 +193,7 @@ export function LocationValuesTab({
 							<div style={{ fontWeight: 500, color: '#1e303a' }}>
 								{row.original.name}
 							</div>
-							<div style={{ fontSize: '12px', color: 'hsl(215.4 16.3% 46.9%)' }}>
+							<div style={{ fontSize: '12px', color: '#1e303a' }}>
 								{row.original.bundesland && `${row.original.bundesland} | `}
 								{regionTypeLabels[row.original.region_type] ??
 									row.original.region_type}
@@ -214,8 +212,8 @@ export function LocationValuesTab({
 							fontSize: '11px',
 							padding: '3px 10px',
 							borderRadius: '9999px',
-							backgroundColor: '#1e303a',
-							color: row.original.hasCustomValues ? '#a9e43f' : 'white',
+							backgroundColor: row.original.hasCustomValues ? '#a9e43f' : '#1e303a',
+							color: row.original.hasCustomValues ? '#1e303a' : 'white',
 							fontWeight: 500,
 						}}
 					>
@@ -241,9 +239,7 @@ export function LocationValuesTab({
 					<div
 						style={{
 							fontWeight: row.original.hasCustomValues ? 600 : 400,
-							color: row.original.hasCustomValues
-								? '#1e303a'
-								: 'hsl(215.4 16.3% 46.9%)',
+							color: row.original.hasCustomValues ? '#1e303a' : '#1e303a',
 						}}
 					>
 						{row.original.base_price !== null && row.original.base_price !== 0 ? (
@@ -255,7 +251,7 @@ export function LocationValuesTab({
 								€/m²
 							</>
 						) : (
-							<span style={{ color: 'hsl(215.4 16.3% 60%)', fontStyle: 'italic' }}>
+							<span style={{ color: '#1e303a', fontStyle: 'italic' }}>
 								{__('nicht konfiguriert', 'resa')}
 							</span>
 						)}
@@ -269,9 +265,7 @@ export function LocationValuesTab({
 					<div
 						style={{
 							fontSize: '13px',
-							color: row.original.hasCustomValues
-								? '#1e303a'
-								: 'hsl(215.4 16.3% 46.9%)',
+							color: row.original.hasCustomValues ? '#1e303a' : '#1e303a',
 						}}
 					>
 						{row.original.price_min !== null &&
@@ -389,7 +383,7 @@ export function LocationValuesTab({
 				}}
 			>
 				<Spinner style={{ width: '20px', height: '20px' }} />
-				<span style={{ color: 'hsl(215.4 16.3% 46.9%)' }}>
+				<span style={{ color: '#1e303a' }}>
 					{__('Standorte werden geladen...', 'resa')}
 				</span>
 			</div>
@@ -410,14 +404,14 @@ export function LocationValuesTab({
 					style={{
 						width: '48px',
 						height: '48px',
-						color: 'hsl(215.4 16.3% 46.9%)',
+						color: '#1e303a',
 						margin: '0 auto 16px',
 					}}
 				/>
 				<div style={{ color: '#1e303a', fontWeight: 500, marginBottom: '8px' }}>
 					{__('Keine aktiven Standorte vorhanden', 'resa')}
 				</div>
-				<p style={{ fontSize: '14px', color: 'hsl(215.4 16.3% 46.9%)', margin: 0 }}>
+				<p style={{ fontSize: '14px', color: '#1e303a', margin: 0 }}>
 					{__('Erstelle zuerst einen Standort unter', 'resa')}{' '}
 					<span style={{ fontWeight: 500, color: '#1e303a' }}>
 						{__('Standorte', 'resa')}
@@ -430,20 +424,31 @@ export function LocationValuesTab({
 
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-			{/* Info text */}
-			<p
-				style={{
-					fontSize: '14px',
-					color: 'hsl(215.4 16.3% 46.9%)',
-					margin: 0,
-					lineHeight: 1.6,
-				}}
-			>
-				{__(
-					'Hier kannst du für jeden Standort individuelle Basiswerte festlegen. Diese überschreiben die globalen Einstellungen für den jeweiligen Standort.',
-					'resa',
-				)}
-			</p>
+			{/* Page header */}
+			<div>
+				<h3
+					style={{
+						fontSize: '18px',
+						fontWeight: 600,
+						color: '#1e303a',
+						margin: 0,
+					}}
+				>
+					{__('Standort-Werte', 'resa')}
+				</h3>
+				<p
+					style={{
+						fontSize: '14px',
+						color: '#1e303a',
+						margin: '4px 0 0 0',
+					}}
+				>
+					{__(
+						'Individuelle Basiswerte pro Standort, die die globalen Einstellungen überschreiben.',
+						'resa',
+					)}
+				</p>
+			</div>
 
 			{/* Edit form (shown when editing) */}
 			{editingLocationId !== null && (
@@ -547,10 +552,14 @@ export function LocationValuesTab({
 						<Button
 							variant="outline"
 							onClick={handleCancel}
+							onMouseEnter={() => setCancelHover(true)}
+							onMouseLeave={() => setCancelHover(false)}
 							style={{
-								backgroundColor: 'white',
+								backgroundColor: cancelHover ? 'hsl(210 40% 96.1%)' : 'white',
 								color: '#1e303a',
 								border: '1px solid hsl(214.3 31.8% 91.4%)',
+								boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+								cursor: 'pointer',
 							}}
 						>
 							{__('Abbrechen', 'resa')}
@@ -558,7 +567,14 @@ export function LocationValuesTab({
 						<Button
 							onClick={handleSave}
 							disabled={isSaving}
-							style={{ backgroundColor: '#a9e43f', color: '#1e303a', border: 'none' }}
+							onMouseEnter={() => setSaveHover(true)}
+							onMouseLeave={() => setSaveHover(false)}
+							style={{
+								backgroundColor: saveHover ? '#98d438' : '#a9e43f',
+								color: '#1e303a',
+								border: 'none',
+								cursor: isSaving ? 'not-allowed' : 'pointer',
+							}}
 						>
 							{isSaving && (
 								<Spinner
@@ -640,7 +656,7 @@ export function LocationValuesTab({
 									style={{
 										padding: '24px',
 										textAlign: 'center',
-										color: 'hsl(215.4 16.3% 46.9%)',
+										color: '#1e303a',
 									}}
 								>
 									{__('Keine Standorte gefunden.', 'resa')}
@@ -658,7 +674,7 @@ export function LocationValuesTab({
 					justifyContent: 'space-between',
 					alignItems: 'center',
 					fontSize: '13px',
-					color: 'hsl(215.4 16.3% 46.9%)',
+					color: '#1e303a',
 				}}
 			>
 				<span>

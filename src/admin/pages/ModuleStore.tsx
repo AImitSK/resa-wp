@@ -40,6 +40,31 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 type FilterOption = 'all' | 'free' | 'premium';
 
+// ─── Styled Button Components ────────────────────────────
+
+function GhostButton({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type="button"
+			size="sm"
+			onClick={onClick}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: isHovered ? 'hsl(210 40% 88%)' : 'transparent',
+				color: '#1e303a',
+				border: 'none',
+				boxShadow: 'none',
+				gap: '4px',
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
+
 /** Module icons by slug */
 const MODULE_ICONS: Record<string, React.ElementType> = {
 	'rent-calculator': Calculator,
@@ -121,7 +146,7 @@ export function ModuleStore() {
 		marginLeft: '6px',
 		borderRadius: '9999px',
 		backgroundColor: 'hsl(210 40% 90%)',
-		color: 'hsl(215.4 16.3% 46.9%)',
+		color: '#1e303a',
 		fontSize: '11px',
 		fontFamily: 'ui-monospace, monospace',
 		fontWeight: 500,
@@ -204,7 +229,7 @@ export function ModuleStore() {
 								fontWeight: 500,
 								transition: 'all 150ms',
 								backgroundColor: filter === 'all' ? 'white' : 'transparent',
-								color: filter === 'all' ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
+								color: filter === 'all' ? '#1e303a' : '#1e303a',
 								boxShadow:
 									filter === 'all' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none',
 							}}
@@ -225,7 +250,7 @@ export function ModuleStore() {
 								fontWeight: 500,
 								transition: 'all 150ms',
 								backgroundColor: filter === 'free' ? 'white' : 'transparent',
-								color: filter === 'free' ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
+								color: filter === 'free' ? '#1e303a' : '#1e303a',
 								boxShadow:
 									filter === 'free' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none',
 							}}
@@ -246,7 +271,7 @@ export function ModuleStore() {
 								fontWeight: 500,
 								transition: 'all 150ms',
 								backgroundColor: filter === 'premium' ? 'white' : 'transparent',
-								color: filter === 'premium' ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
+								color: filter === 'premium' ? '#1e303a' : '#1e303a',
 								boxShadow:
 									filter === 'premium' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none',
 							}}
@@ -267,7 +292,7 @@ export function ModuleStore() {
 							transform: 'translateY(-50%)',
 							width: '16px',
 							height: '16px',
-							color: 'hsl(215.4 16.3% 46.9%)',
+							color: '#1e303a',
 						}}
 					/>
 					<Input
@@ -388,9 +413,7 @@ function ModuleCard({
 							</div>
 						</div>
 					</div>
-					<ChevronRight
-						style={{ width: '16px', height: '16px', color: 'hsl(215.4 16.3% 46.9%)' }}
-					/>
+					<ChevronRight style={{ width: '16px', height: '16px', color: '#1e303a' }} />
 				</div>
 			</CardHeader>
 
@@ -416,22 +439,17 @@ function ModuleCard({
 							onCheckedChange={() => onToggle(module.slug)}
 							disabled={isToggling}
 						/>
-						<span style={{ fontSize: '14px', color: 'hsl(215.4 16.3% 46.9%)' }}>
+						<span style={{ fontSize: '14px', color: '#1e303a' }}>
 							{module.active ? __('Aktiv', 'resa') : __('Inaktiv', 'resa')}
 						</span>
 					</div>
 				)}
-				<Button
-					variant="ghost"
-					size="sm"
-					style={{
-						gap: '4px',
-						visibility: module.active ? 'visible' : 'hidden',
-					}}
-				>
-					<Settings style={{ width: '12px', height: '12px' }} />
-					{__('Einstellungen', 'resa')}
-				</Button>
+				<div style={{ visibility: module.active ? 'visible' : 'hidden' }}>
+					<GhostButton>
+						<Settings style={{ width: '12px', height: '12px' }} />
+						{__('Einstellungen', 'resa')}
+					</GhostButton>
+				</div>
 			</CardFooter>
 		</Card>
 	);
