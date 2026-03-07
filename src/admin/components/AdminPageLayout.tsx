@@ -12,6 +12,7 @@ import { ArrowLeft } from 'lucide-react';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 interface BreadcrumbItem {
 	label: string;
@@ -40,6 +41,8 @@ interface AdminPageLayoutProps {
 
 const pluginUrl = window.resaAdmin?.pluginUrl ?? '';
 const logoUrl = `${pluginUrl}assets/images/resa-smart-assets.png`;
+const version = window.resaAdmin?.version ?? '';
+const plan = window.resaAdmin?.features?.plan ?? 'free';
 
 /**
  * Footer component - shared across all variants
@@ -99,39 +102,64 @@ function OverviewHeader({
 		<div
 			style={{
 				display: 'flex',
-				alignItems: 'flex-start',
+				alignItems: 'center',
 				justifyContent: 'space-between',
-				padding: '24px',
-				paddingBottom: '20px',
+				padding: '12px 24px',
+				backgroundColor: 'hsl(210 40% 96.1%)',
+				borderRadius: '12px 12px 0 0',
+				marginBottom: '24px',
 			}}
 		>
-			<div>
-				{title && (
-					<h2 style={{ fontSize: '24px', fontWeight: 600, lineHeight: 1.2, margin: 0 }}>
-						{title}
-					</h2>
+			<div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+				{showLogo !== false && (
+					<img
+						src={logoUrl}
+						alt="RESA Smart Assets"
+						style={{ height: '48px', width: 'auto' }}
+					/>
 				)}
-				{description && (
-					<p
-						style={{
-							fontSize: '14px',
-							color: 'hsl(215.4 16.3% 46.9%)',
-							marginTop: '4px',
-							marginBottom: 0,
-						}}
-					>
-						{description}
-					</p>
-				)}
-				{headerActions && <div style={{ marginTop: '16px' }}>{headerActions}</div>}
+				<div>
+					{title && (
+						<h2
+							style={{
+								fontSize: '24px',
+								fontWeight: 600,
+								lineHeight: 1.2,
+								margin: 0,
+								color: '#1e303a',
+							}}
+						>
+							{title}
+						</h2>
+					)}
+					{description && (
+						<p
+							style={{
+								fontSize: '14px',
+								color: '#1e303a',
+								marginTop: '4px',
+								marginBottom: 0,
+							}}
+						>
+							{description}
+						</p>
+					)}
+					{headerActions && <div style={{ marginTop: '16px' }}>{headerActions}</div>}
+				</div>
 			</div>
-			{showLogo !== false && (
-				<img
-					src={logoUrl}
-					alt="RESA Smart Assets"
-					style={{ height: '64px', width: 'auto' }}
-				/>
-			)}
+			<div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+				<span style={{ fontSize: '13px', color: '#1e303a' }}>v{version}</span>
+				<Badge
+					style={{
+						backgroundColor: plan === 'premium' ? '#a9e43f' : '#1e303a',
+						color: plan === 'premium' ? '#1e303a' : 'white',
+						fontSize: '11px',
+						padding: '4px 10px',
+					}}
+				>
+					{plan === 'premium' ? 'Premium' : 'Free'}
+				</Badge>
+			</div>
 		</div>
 	);
 }

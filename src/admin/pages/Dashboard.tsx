@@ -22,14 +22,7 @@ import { useLeads, useLeadStats, type LeadStatus } from '../hooks/useLeads';
 import { useLocations } from '../hooks/useLocations';
 import { useFeatures } from '../hooks/useFeatures';
 import { useModules } from '../hooks/useModules';
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -104,8 +97,8 @@ const cardHeaderStyles: React.CSSProperties = {
 
 const cardTitleStyles: React.CSSProperties = {
 	fontSize: '14px',
-	fontWeight: 500,
-	color: 'hsl(215.4 16.3% 46.9%)',
+	fontWeight: 600,
+	color: '#1e303a',
 	margin: 0,
 };
 
@@ -130,20 +123,7 @@ const trendLineStyles: React.CSSProperties = {
 	gap: '6px',
 	fontSize: '13px',
 	color: '#1e303a',
-	fontWeight: 500,
-};
-
-const linkLineStyles: React.CSSProperties = {
-	display: 'flex',
-	alignItems: 'center',
-	gap: '6px',
-	fontSize: '13px',
-	color: 'hsl(215.4 16.3% 46.9%)',
-	cursor: 'pointer',
-	background: 'none',
-	border: 'none',
-	padding: 0,
-	textAlign: 'left',
+	fontWeight: 400,
 };
 
 // ─── Helper Functions ───────────────────────────────────
@@ -487,7 +467,12 @@ export function Dashboard() {
 			{/* KPI Cards */}
 			<div className="resa-grid resa-grid-cols-1 md:resa-grid-cols-2 lg:resa-grid-cols-4 resa-gap-4">
 				{/* Card 1: Leads gesamt */}
-				<Card>
+				<Card
+					style={{
+						border: '1px solid hsl(214.3 31.8% 91.4%)',
+						boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+					}}
+				>
 					<div style={cardStyles}>
 						<div style={cardHeaderStyles}>
 							<span style={cardTitleStyles}>{__('Leads gesamt', 'resa')}</span>
@@ -521,24 +506,36 @@ export function Dashboard() {
 								<PopoverTrigger asChild>
 									<button
 										style={{
-											display: 'flex',
+											display: 'inline-flex',
 											alignItems: 'center',
+											justifyContent: 'center',
 											gap: '8px',
-											padding: '8px 12px',
+											height: '32px',
+											width: 'fit-content',
+											padding: '0 12px',
 											fontSize: '13px',
-											backgroundColor: 'white',
-											border: '1px solid hsl(214.3 31.8% 91.4%)',
+											fontWeight: 500,
+											whiteSpace: 'nowrap',
 											borderRadius: '6px',
-											cursor: 'pointer',
+											border: '1px solid #e8e8e8',
+											backgroundColor: 'white',
+											boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
 											color: '#1e303a',
-											width: '100%',
+											cursor: 'pointer',
+										}}
+										onMouseEnter={(e) => {
+											e.currentTarget.style.backgroundColor =
+												'hsl(210 40% 96.1%)';
+										}}
+										onMouseLeave={(e) => {
+											e.currentTarget.style.backgroundColor = 'white';
 										}}
 									>
 										<CalendarIcon
 											style={{
-												width: '14px',
-												height: '14px',
-												color: 'hsl(215.4 16.3% 46.9%)',
+												width: '16px',
+												height: '16px',
+												strokeWidth: 1.5,
 											}}
 										/>
 										{getDisplayLabel}
@@ -551,6 +548,10 @@ export function Dashboard() {
 										backgroundColor: 'white',
 										width: 'auto',
 										maxWidth: 'none',
+										border: '1px solid hsl(214.3 31.8% 91.4%)',
+										boxShadow:
+											'0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+										borderRadius: '8px',
 									}}
 								>
 									<div style={{ display: 'flex' }}>
@@ -633,7 +634,12 @@ export function Dashboard() {
 				</Card>
 
 				{/* Card 2: Neue Leads */}
-				<Card>
+				<Card
+					style={{
+						border: '1px solid hsl(214.3 31.8% 91.4%)',
+						boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+					}}
+				>
 					<div style={cardStyles}>
 						<div style={cardHeaderStyles}>
 							<span style={cardTitleStyles}>{__('Neue Leads', 'resa')}</span>
@@ -649,24 +655,57 @@ export function Dashboard() {
 							<div style={trendLineStyles}>
 								{__('Unbearbeitete Anfragen', 'resa')}
 							</div>
-							<button style={linkLineStyles} onClick={handleViewAllLeads}>
+							<button
+								onClick={handleViewAllLeads}
+								style={{
+									display: 'inline-flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									gap: '8px',
+									height: '32px',
+									width: 'fit-content',
+									padding: '0 12px',
+									fontSize: '13px',
+									fontWeight: 500,
+									whiteSpace: 'nowrap',
+									borderRadius: '6px',
+									border: '1px solid #e8e8e8',
+									backgroundColor: 'white',
+									boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+									color: '#1e303a',
+									cursor: 'pointer',
+								}}
+								onMouseEnter={(e) => {
+									e.currentTarget.style.backgroundColor = 'hsl(210 40% 96.1%)';
+								}}
+								onMouseLeave={(e) => {
+									e.currentTarget.style.backgroundColor = 'white';
+								}}
+							>
 								{__('Alle Leads anzeigen', 'resa')}
-								<ArrowRight style={{ width: '14px', height: '14px' }} />
+								<ArrowRight
+									style={{ width: '16px', height: '16px', strokeWidth: 1.5 }}
+								/>
 							</button>
 						</div>
 					</div>
 				</Card>
 
 				{/* Card 3: Standorte */}
-				<Card>
+				<Card
+					style={{
+						border: '1px solid hsl(214.3 31.8% 91.4%)',
+						boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+					}}
+				>
 					<div style={cardStyles}>
 						<div style={cardHeaderStyles}>
 							<span style={cardTitleStyles}>{__('Standorte', 'resa')}</span>
 							<Badge
 								style={{
-									backgroundColor: '#1e303a',
-									color: 'white',
-									border: 'none',
+									backgroundColor: 'white',
+									color: '#1e303a',
+									border: '1px solid #1e303a',
 								}}
 							>
 								{planLabel}
@@ -681,24 +720,57 @@ export function Dashboard() {
 									maxLocations,
 								)}
 							</div>
-							<button style={linkLineStyles} onClick={handleLocationsSettings}>
-								{__('Städte-Einstellungen', 'resa')}
-								<ArrowRight style={{ width: '14px', height: '14px' }} />
+							<button
+								onClick={handleLocationsSettings}
+								style={{
+									display: 'inline-flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									gap: '8px',
+									height: '32px',
+									width: 'fit-content',
+									padding: '0 12px',
+									fontSize: '13px',
+									fontWeight: 500,
+									whiteSpace: 'nowrap',
+									borderRadius: '6px',
+									border: '1px solid #e8e8e8',
+									backgroundColor: 'white',
+									boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+									color: '#1e303a',
+									cursor: 'pointer',
+								}}
+								onMouseEnter={(e) => {
+									e.currentTarget.style.backgroundColor = 'hsl(210 40% 96.1%)';
+								}}
+								onMouseLeave={(e) => {
+									e.currentTarget.style.backgroundColor = 'white';
+								}}
+							>
+								{__('Einstellungen', 'resa')}
+								<ArrowRight
+									style={{ width: '16px', height: '16px', strokeWidth: 1.5 }}
+								/>
 							</button>
 						</div>
 					</div>
 				</Card>
 
 				{/* Card 4: Smart Assets */}
-				<Card>
+				<Card
+					style={{
+						border: '1px solid hsl(214.3 31.8% 91.4%)',
+						boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+					}}
+				>
 					<div style={cardStyles}>
 						<div style={cardHeaderStyles}>
 							<span style={cardTitleStyles}>{__('Smart Assets', 'resa')}</span>
 							<Badge
 								style={{
-									backgroundColor: '#1e303a',
-									color: 'white',
-									border: 'none',
+									backgroundColor: 'white',
+									color: '#1e303a',
+									border: '1px solid #1e303a',
 								}}
 							>
 								{planLabel}
@@ -713,9 +785,37 @@ export function Dashboard() {
 									maxAssets,
 								)}
 							</div>
-							<button style={linkLineStyles} onClick={handleAssetsSettings}>
-								{__('Smart Asset Einstellungen', 'resa')}
-								<ArrowRight style={{ width: '14px', height: '14px' }} />
+							<button
+								onClick={handleAssetsSettings}
+								style={{
+									display: 'inline-flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									gap: '8px',
+									height: '32px',
+									width: 'fit-content',
+									padding: '0 12px',
+									fontSize: '13px',
+									fontWeight: 500,
+									whiteSpace: 'nowrap',
+									borderRadius: '6px',
+									border: '1px solid #e8e8e8',
+									backgroundColor: 'white',
+									boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+									color: '#1e303a',
+									cursor: 'pointer',
+								}}
+								onMouseEnter={(e) => {
+									e.currentTarget.style.backgroundColor = 'hsl(210 40% 96.1%)';
+								}}
+								onMouseLeave={(e) => {
+									e.currentTarget.style.backgroundColor = 'white';
+								}}
+							>
+								{__('Einstellungen', 'resa')}
+								<ArrowRight
+									style={{ width: '16px', height: '16px', strokeWidth: 1.5 }}
+								/>
 							</button>
 						</div>
 					</div>
@@ -723,14 +823,29 @@ export function Dashboard() {
 			</div>
 
 			{/* Recent Leads Table */}
-			<Card>
-				<CardHeader>
-					<CardTitle className="resa-text-lg">{__('Neueste Leads', 'resa')}</CardTitle>
-					<CardDescription>
+			<div>
+				<div style={{ marginBottom: '16px' }}>
+					<h3
+						style={{
+							fontSize: '18px',
+							fontWeight: 600,
+							color: '#1e303a',
+							margin: 0,
+						}}
+					>
+						{__('Neueste Leads', 'resa')}
+					</h3>
+					<p
+						style={{
+							fontSize: '14px',
+							color: '#1e303a',
+							margin: '4px 0 0 0',
+						}}
+					>
 						{__('Die letzten eingegangenen Anfragen', 'resa')}
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
+					</p>
+				</div>
+				<div>
 					{/* Loading state */}
 					{recentLeadsLoading && (
 						<div
@@ -933,13 +1048,40 @@ export function Dashboard() {
 							</Table>
 						</div>
 					)}
-				</CardContent>
-				<CardFooter>
-					<Button variant="link" className="resa-ml-auto" onClick={handleViewAllLeads}>
-						{__('Alle Leads anzeigen', 'resa')} →
-					</Button>
-				</CardFooter>
-			</Card>
+				</div>
+				<div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+					<button
+						onClick={handleViewAllLeads}
+						style={{
+							display: 'inline-flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							gap: '8px',
+							height: '32px',
+							width: 'fit-content',
+							padding: '0 12px',
+							fontSize: '13px',
+							fontWeight: 500,
+							whiteSpace: 'nowrap',
+							borderRadius: '6px',
+							border: '1px solid #e8e8e8',
+							backgroundColor: 'white',
+							boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+							color: '#1e303a',
+							cursor: 'pointer',
+						}}
+						onMouseEnter={(e) => {
+							e.currentTarget.style.backgroundColor = 'hsl(210 40% 96.1%)';
+						}}
+						onMouseLeave={(e) => {
+							e.currentTarget.style.backgroundColor = 'white';
+						}}
+					>
+						{__('Alle Leads anzeigen', 'resa')}
+						<ArrowRight style={{ width: '16px', height: '16px', strokeWidth: 1.5 }} />
+					</button>
+				</div>
+			</div>
 		</AdminPageLayout>
 	);
 }
