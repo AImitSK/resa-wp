@@ -9,7 +9,7 @@
  * - Instructions for users
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
 import { __ } from '@wordpress/i18n';
 import { MapPin, Navigation, Search, Loader2 } from 'lucide-react';
 
@@ -18,6 +18,32 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { LeafletMapWrapper, type MapPosition } from './map/LeafletMapWrapper';
 import { useGeocoding, type GeocodingResult } from '../hooks/useGeocoding';
+
+// ─── Ghost Button Component ────────────────────────────
+
+function GhostButton({ children, onClick }: { children: ReactNode; onClick?: () => void }) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type="button"
+			size="sm"
+			onClick={onClick}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: isHovered ? 'hsl(210 40% 88%)' : 'transparent',
+				color: '#1e303a',
+				border: 'none',
+				boxShadow: 'none',
+				gap: '4px',
+				fontSize: '13px',
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
 
 interface LocationMapPickerProps {
 	/** Initial latitude */
@@ -241,7 +267,7 @@ export function LocationMapPicker({
 							'z.B. "Bad Oeynhausen" oder "Bahnhofstraße 15, München"',
 							'resa',
 						)}
-						style={{ paddingLeft: '2.5rem' }}
+						style={{ paddingLeft: '2.5rem', backgroundColor: 'white' }}
 					/>
 					{isSearching && (
 						<Loader2
@@ -300,18 +326,10 @@ export function LocationMapPicker({
 				<div className="resa-flex resa-items-center resa-justify-between resa-mb-2">
 					<Label>{__('Standort auf Karte', 'resa')}</Label>
 					{navigator.geolocation && (
-						<Button
-							type="button"
-							variant="ghost"
-							size="sm"
-							onClick={handleLocateMe}
-							className="resa-text-xs"
-						>
-							<Navigation
-								style={{ width: '14px', height: '14px', marginRight: '4px' }}
-							/>
+						<GhostButton onClick={handleLocateMe}>
+							<Navigation style={{ width: '14px', height: '14px' }} />
 							{__('Mein Standort', 'resa')}
-						</Button>
+						</GhostButton>
 					)}
 				</div>
 
@@ -354,6 +372,7 @@ export function LocationMapPicker({
 						value={latInput}
 						onChange={(e) => handleLatInputChange(e.target.value)}
 						placeholder="52.2058"
+						style={{ backgroundColor: 'white' }}
 					/>
 				</div>
 				<div className="resa-space-y-2">
@@ -367,13 +386,24 @@ export function LocationMapPicker({
 						value={lngInput}
 						onChange={(e) => handleLngInputChange(e.target.value)}
 						placeholder="8.7974"
+						style={{ backgroundColor: 'white' }}
 					/>
 				</div>
 				<div className="resa-space-y-2">
 					<Label htmlFor="location-zoom">{__('Zoom-Level', 'resa')}</Label>
 					<select
 						id="location-zoom"
-						className="resa-flex resa-h-9 resa-w-full resa-rounded-md resa-border resa-border-input resa-bg-transparent resa-px-3 resa-py-1 resa-text-sm resa-shadow-sm resa-transition-colors focus:resa-outline-none focus:resa-ring-1 focus:resa-ring-ring"
+						style={{
+							height: '36px',
+							width: '100%',
+							borderRadius: '6px',
+							border: '1px solid hsl(214.3 31.8% 78%)',
+							backgroundColor: 'white',
+							padding: '0 12px',
+							fontSize: '14px',
+							color: '#1e303a',
+							boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+						}}
 						value={zoom}
 						onChange={(e) => handleZoomSelectChange(e.target.value)}
 					>
@@ -388,16 +418,10 @@ export function LocationMapPicker({
 
 			{/* Clear button */}
 			{hasCoordinates && (
-				<div className="resa-flex resa-justify-end">
-					<Button
-						type="button"
-						variant="ghost"
-						size="sm"
-						onClick={handleClear}
-						className="resa-text-xs resa-text-muted-foreground"
-					>
+				<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+					<GhostButton onClick={handleClear}>
 						{__('Koordinaten entfernen', 'resa')}
-					</Button>
+					</GhostButton>
 				</div>
 			)}
 		</div>

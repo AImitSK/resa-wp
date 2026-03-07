@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { __, sprintf, _n } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import { Plus, MapPin, Pencil, Trash2, Crown, AlertTriangle, MoreHorizontal } from 'lucide-react';
 import {
 	useLocations,
@@ -258,7 +258,7 @@ export function Locations() {
 					</h3>
 					<p
 						style={{
-							color: 'hsl(215.4 16.3% 46.9%)',
+							color: '#1e303a',
 							marginBottom: '24px',
 							maxWidth: '400px',
 							margin: '0 auto 24px',
@@ -353,7 +353,7 @@ export function Locations() {
 							style={{
 								margin: 0,
 								fontSize: '13px',
-								color: 'hsl(215.4 16.3% 46.9%)',
+								color: '#1e303a',
 							}}
 						>
 							{__('Upgrade auf Premium für unbegrenzte Standorte.', 'resa')}
@@ -388,16 +388,9 @@ export function Locations() {
 				style={{
 					display: 'flex',
 					alignItems: 'center',
-					justifyContent: 'space-between',
+					justifyContent: 'flex-end',
 				}}
 			>
-				<div style={{ fontSize: '14px', color: '#1e303a' }}>
-					{locations &&
-						sprintf(
-							_n('%d Standort', '%d Standorte', locations.length, 'resa'),
-							locations.length,
-						)}
-				</div>
 				<PrimaryButton onClick={() => setView('create')} disabled={!canAddLocation}>
 					<Plus style={{ width: '16px', height: '16px', marginRight: '6px' }} />
 					{__('Neuer Standort', 'resa')}
@@ -416,9 +409,7 @@ export function Locations() {
 					}}
 				>
 					<Spinner style={{ width: '20px', height: '20px' }} />
-					<span style={{ color: 'hsl(215.4 16.3% 46.9%)' }}>
-						{__('Lade Standorte...', 'resa')}
-					</span>
+					<span style={{ color: '#1e303a' }}>{__('Lade Standorte...', 'resa')}</span>
 				</div>
 			)}
 
@@ -451,7 +442,7 @@ export function Locations() {
 							style={{
 								width: '24px',
 								height: '24px',
-								color: 'hsl(215.4 16.3% 46.9%)',
+								color: '#1e303a',
 							}}
 						/>
 					</div>
@@ -460,7 +451,7 @@ export function Locations() {
 					</h3>
 					<p
 						style={{
-							color: 'hsl(215.4 16.3% 46.9%)',
+							color: '#1e303a',
 							marginBottom: '16px',
 						}}
 					>
@@ -567,9 +558,7 @@ export function Locations() {
 														style={{
 															width: '16px',
 															height: '16px',
-															color: location.is_active
-																? '#1e303a'
-																: 'hsl(215.4 16.3% 46.9%)',
+															color: '#1e303a',
 														}}
 													/>
 												</div>
@@ -585,7 +574,7 @@ export function Locations() {
 										</TableCell>
 										<TableCell
 											style={{
-												color: 'hsl(215.4 16.3% 46.9%)',
+												color: '#1e303a',
 												paddingTop: '12px',
 												paddingBottom: '12px',
 											}}
@@ -647,7 +636,7 @@ export function Locations() {
 												<span
 													style={{
 														fontSize: '13px',
-														color: 'hsl(215.4 16.3% 46.9%)',
+														color: '#1e303a',
 													}}
 												>
 													{location.is_active

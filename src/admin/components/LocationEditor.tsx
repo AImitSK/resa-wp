@@ -173,26 +173,65 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 		onSave(form);
 	};
 
+	const cardStyle: React.CSSProperties = {
+		backgroundColor: 'hsl(210 40% 96.1%)',
+		borderRadius: '8px',
+		padding: '20px',
+	};
+
+	const cardHeaderStyle: React.CSSProperties = {
+		fontSize: '15px',
+		fontWeight: 600,
+		color: '#1e303a',
+		margin: 0,
+	};
+
+	const cardSublineStyle: React.CSSProperties = {
+		fontSize: '13px',
+		color: '#1e303a',
+		margin: '4px 0 16px 0',
+	};
+
 	return (
-		<form onSubmit={handleSubmit} className="resa-space-y-6">
-			{/* Basic info */}
-			<div className="resa-space-y-4">
-				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-					{__('Grunddaten', 'resa')}
+		<form
+			onSubmit={handleSubmit}
+			style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
+		>
+			{/* Page header */}
+			<div>
+				<h3 style={{ fontSize: '18px', fontWeight: 600, color: '#1e303a', margin: 0 }}>
+					{initialData ? __('Standort bearbeiten', 'resa') : __('Neuer Standort', 'resa')}
 				</h3>
-				<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-					<div className="resa-space-y-2">
-						<Label htmlFor="location-name">{__('Name', 'resa')} *</Label>
+				<p style={{ fontSize: '14px', color: '#1e303a', margin: '4px 0 0 0' }}>
+					{__('Konfiguriere die Grunddaten und regionalen Einstellungen.', 'resa')}
+				</p>
+			</div>
+
+			{/* Box 1: Grunddaten */}
+			<div style={cardStyle}>
+				<h4 style={cardHeaderStyle}>{__('Grunddaten', 'resa')}</h4>
+				<p style={cardSublineStyle}>
+					{__('Name, Slug und Regionsinformationen des Standorts.', 'resa')}
+				</p>
+
+				<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+						<Label htmlFor="location-name" style={{ color: '#1e303a' }}>
+							{__('Name', 'resa')} *
+						</Label>
 						<Input
 							id="location-name"
 							value={form.name}
 							onChange={(e) => updateName(e.target.value)}
 							placeholder={__('z.B. München', 'resa')}
 							required
+							style={{ backgroundColor: 'white' }}
 						/>
 					</div>
-					<div className="resa-space-y-2">
-						<Label htmlFor="location-slug">{__('Slug', 'resa')}</Label>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+						<Label htmlFor="location-slug" style={{ color: '#1e303a' }}>
+							{__('Slug', 'resa')}
+						</Label>
 						<Input
 							id="location-slug"
 							value={form.slug}
@@ -201,19 +240,13 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 								setForm((prev) => ({ ...prev, slug: e.target.value }));
 							}}
 							placeholder={__('z.B. muenchen', 'resa')}
+							style={{ backgroundColor: 'white' }}
 						/>
 					</div>
-				</div>
-			</div>
-
-			{/* Location details */}
-			<div className="resa-space-y-4">
-				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-					{__('Region', 'resa')}
-				</h3>
-				<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-					<div className="resa-space-y-2">
-						<Label htmlFor="location-country">{__('Land', 'resa')} *</Label>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+						<Label htmlFor="location-country" style={{ color: '#1e303a' }}>
+							{__('Land', 'resa')} *
+						</Label>
 						<Input
 							id="location-country"
 							value={form.country}
@@ -222,10 +255,11 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 							}
 							placeholder={__('z.B. Deutschland, Österreich, Rumänien...', 'resa')}
 							required
+							style={{ backgroundColor: 'white' }}
 						/>
 					</div>
-					<div className="resa-space-y-2">
-						<Label htmlFor="location-bundesland">
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+						<Label htmlFor="location-bundesland" style={{ color: '#1e303a' }}>
 							{__('Region / Bundesland', 'resa')}
 						</Label>
 						<Input
@@ -235,15 +269,26 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 								setForm((prev) => ({ ...prev, bundesland: e.target.value }))
 							}
 							placeholder={__('z.B. Bayern, Wien, București...', 'resa')}
+							style={{ backgroundColor: 'white' }}
 						/>
 					</div>
-				</div>
-				<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-					<div className="resa-space-y-2">
-						<Label htmlFor="location-region-type">{__('Regionstyp', 'resa')}</Label>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+						<Label htmlFor="location-region-type" style={{ color: '#1e303a' }}>
+							{__('Regionstyp', 'resa')}
+						</Label>
 						<select
 							id="location-region-type"
-							className="resa-flex resa-h-9 resa-w-full resa-rounded-md resa-border resa-border-input resa-bg-transparent resa-px-3 resa-py-1 resa-text-sm resa-shadow-sm resa-transition-colors focus:resa-outline-none focus:resa-ring-1 focus:resa-ring-ring"
+							style={{
+								height: '36px',
+								width: '100%',
+								borderRadius: '6px',
+								border: '1px solid hsl(214.3 31.8% 78%)',
+								backgroundColor: 'white',
+								padding: '0 12px',
+								fontSize: '14px',
+								color: '#1e303a',
+								boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+							}}
 							value={form.region_type}
 							onChange={(e) =>
 								setForm((prev) => ({ ...prev, region_type: e.target.value }))
@@ -259,11 +304,13 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 				</div>
 			</div>
 
-			{/* Map Picker */}
-			<div className="resa-space-y-4">
-				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-					{__('Kartenposition', 'resa')}
-				</h3>
+			{/* Box 2: Kartenposition */}
+			<div style={cardStyle}>
+				<h4 style={cardHeaderStyle}>{__('Kartenposition', 'resa')}</h4>
+				<p style={cardSublineStyle}>
+					{__('Position auf der Karte für Standortanzeige im Widget.', 'resa')}
+				</p>
+
 				<LocationMapPicker
 					latitude={form.latitude}
 					longitude={form.longitude}
@@ -272,14 +319,16 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 				/>
 			</div>
 
-			{/* Tax and commission rates */}
-			<div className="resa-space-y-4">
-				<h3 className="resa-text-sm resa-font-medium resa-text-muted-foreground">
-					{__('Regionale Kostensätze', 'resa')}
-				</h3>
-				<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-					<div className="resa-space-y-2">
-						<Label htmlFor="location-grest">
+			{/* Box 3: Regionale Kostensätze */}
+			<div style={cardStyle}>
+				<h4 style={cardHeaderStyle}>{__('Regionale Kostensätze', 'resa')}</h4>
+				<p style={cardSublineStyle}>
+					{__('Grunderwerbsteuer und Maklerprovision für diesen Standort.', 'resa')}
+				</p>
+
+				<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+						<Label htmlFor="location-grest" style={{ color: '#1e303a' }}>
 							{__('Grunderwerbsteuer (%)', 'resa')}
 						</Label>
 						<Input
@@ -298,10 +347,13 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 									},
 								}))
 							}
+							style={{ backgroundColor: 'white' }}
 						/>
 					</div>
-					<div className="resa-space-y-2">
-						<Label htmlFor="location-makler">{__('Maklerprovision (%)', 'resa')}</Label>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+						<Label htmlFor="location-makler" style={{ color: '#1e303a' }}>
+							{__('Maklerprovision (%)', 'resa')}
+						</Label>
 						<Input
 							id="location-makler"
 							type="number"
@@ -318,8 +370,9 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 									},
 								}))
 							}
+							style={{ backgroundColor: 'white' }}
 						/>
-						<p className="resa-text-xs resa-text-muted-foreground">
+						<p style={{ fontSize: '12px', color: '#1e303a', margin: '4px 0 0 0' }}>
 							{__('Standard: 3,57% (inkl. MwSt.)', 'resa')}
 						</p>
 					</div>
@@ -327,7 +380,14 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 			</div>
 
 			{/* Actions */}
-			<div className="resa-flex resa-gap-3 resa-justify-end resa-pt-4">
+			<div
+				style={{
+					display: 'flex',
+					gap: '12px',
+					justifyContent: 'flex-end',
+					paddingTop: '8px',
+				}}
+			>
 				<OutlineButton onClick={onCancel}>{__('Abbrechen', 'resa')}</OutlineButton>
 				<PrimaryButton type="submit" disabled={isSaving || !form.name}>
 					{isSaving && <Spinner className="resa-mr-2" />}
