@@ -3,186 +3,332 @@
  *
  * Used in module settings (SetupTab) for configuring multipliers,
  * premiums, and other calculation parameters.
+ *
+ * Uses React Hook Form for validation (integrated with parent form).
+ * @see docs/design-system/patterns/form-validation.md
  */
 
-/**
- * Type guard to safely cast factor groups to number records.
- */
-function toNumberRecord(value: unknown): Record<string, number> {
-	if (typeof value === 'object' && value !== null) {
-		const result: Record<string, number> = {};
-		for (const [k, v] of Object.entries(value)) {
-			result[k] = typeof v === 'number' ? v : 0;
-		}
-		return result;
-	}
-	return {};
-}
+import type { UseFormReturn, FieldErrors, Path, PathValue } from 'react-hook-form';
+import { __ } from '@wordpress/i18n';
 
 /**
- * Safely convert a value to number with fallback.
+ * Generic form data type that includes a factors object.
+ * This allows the FactorEditor to work with any form that has a factors field.
  */
-function toNumber(value: unknown, fallback = 0): number {
-	return typeof value === 'number' ? value : fallback;
+interface FormDataWithFactors {
+	factors: {
+		base_price?: number;
+		size_degression?: number;
+		location_ratings?: Record<string, number>;
+		condition_multipliers?: Record<string, number>;
+		type_multipliers?: Record<string, number>;
+		feature_premiums?: Record<string, number>;
+		age_multipliers?: Record<string, number>;
+		[key: string]: unknown;
+	};
 }
+
+// ─── Styles ─────────────────────────────────────────────
+
+const inputStyles: React.CSSProperties = {
+	width: '80px',
+	padding: '4px 8px',
+	fontSize: '14px',
+	borderRadius: '6px',
+	border: '1px solid hsl(214.3 31.8% 78%)',
+	backgroundColor: 'white',
+};
+
+const inputFullStyles: React.CSSProperties = {
+	width: '100%',
+	height: '36px',
+	padding: '0 12px',
+	fontSize: '14px',
+	borderRadius: '6px',
+	border: '1px solid hsl(214.3 31.8% 78%)',
+	backgroundColor: 'white',
+};
+
+const labelStyles: React.CSSProperties = {
+	display: 'block',
+	fontSize: '14px',
+	fontWeight: 500,
+	marginBottom: '4px',
+	color: '#1e303a',
+};
+
+const groupTitleStyles: React.CSSProperties = {
+	fontSize: '14px',
+	fontWeight: 500,
+	marginBottom: '8px',
+	color: '#1e303a',
+};
+
+const errorStyles: React.CSSProperties = {
+	fontSize: '13px',
+	color: '#ef4444',
+	margin: '4px 0 0 0',
+};
+
+// ─── Factor Group Item Definition ───────────────────────
 
 interface FactorGroupItem {
 	key: string;
 	label: string;
 }
 
-interface FactorGroupProps {
+// ─── Factor Group Component ─────────────────────────────
+
+interface FactorGroupProps<T extends FormDataWithFactors> {
 	title: string;
 	items: FactorGroupItem[];
-	group: string;
-	factors: Record<string, unknown>;
-	onChange: (group: string, subKey: string, value: number) => void;
+	groupName: keyof FormDataWithFactors['factors'];
+	form: UseFormReturn<T>;
+	errors?: FieldErrors<T>;
 }
 
 /**
  * Render a group of factor inputs (e.g., location ratings, condition multipliers).
+ * Uses form.register for each input field.
  */
-export function FactorGroup({ title, items, group, factors, onChange }: FactorGroupProps) {
-	const groupValues = toNumberRecord(factors[group]);
+function FactorGroup<T extends FormDataWithFactors>({
+	title,
+	items,
+	groupName,
+	form,
+	errors,
+}: FactorGroupProps<T>) {
+	const { setValue, watch } = form;
+
+	// Watch the current group values
+	const groupPath = `factors.${String(groupName)}` as Path<T>;
+	const groupValues = (watch(groupPath) as Record<string, number> | undefined) ?? {};
+
+	// Get nested errors for this group
+	const factorsErrors = errors?.factors as Record<string, unknown> | undefined;
+	const groupErrors = factorsErrors?.[String(groupName)] as
+		| Record<string, { message?: string }>
+		| undefined;
 
 	return (
 		<div>
-			<h4 className="resa-text-sm resa-font-medium resa-mb-2">{title}</h4>
-			<div className="resa-grid resa-grid-cols-2 resa-gap-2">
-				{items.map((item) => (
-					<div key={item.key} className="resa-flex resa-items-center resa-gap-2">
-						<label className="resa-text-xs resa-w-36 resa-shrink-0">{item.label}</label>
-						<input
-							type="number"
-							step="0.01"
-							className="resa-w-20 resa-px-2 resa-py-1 resa-text-sm resa-rounded-md resa-border resa-border-input resa-bg-background focus:resa-outline-none focus:resa-ring-1 focus:resa-ring-ring"
-							value={groupValues[item.key] ?? 0}
-							onChange={(e) => onChange(group, item.key, Number(e.target.value))}
-						/>
-					</div>
-				))}
+			<h4 style={groupTitleStyles}>{title}</h4>
+			<div
+				style={{
+					display: 'grid',
+					gridTemplateColumns: 'repeat(2, 1fr)',
+					gap: '8px',
+				}}
+			>
+				{items.map((item) => {
+					const fieldPath = `factors.${String(groupName)}.${item.key}` as Path<T>;
+					const fieldError = groupErrors?.[item.key];
+
+					return (
+						<div
+							key={item.key}
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								gap: '8px',
+							}}
+						>
+							<label
+								style={{
+									fontSize: '12px',
+									width: '144px',
+									flexShrink: 0,
+									color: '#1e303a',
+								}}
+							>
+								{item.label}
+							</label>
+							<input
+								type="number"
+								step="0.01"
+								value={groupValues[item.key] ?? 0}
+								onChange={(e) => {
+									const value = parseFloat(e.target.value) || 0;
+									setValue(fieldPath, value as PathValue<T, typeof fieldPath>, {
+										shouldDirty: true,
+										shouldValidate: true,
+									});
+								}}
+								style={{
+									...inputStyles,
+									borderColor: fieldError ? '#ef4444' : undefined,
+								}}
+							/>
+						</div>
+					);
+				})}
 			</div>
+			{groupErrors && Object.keys(groupErrors).length > 0 && (
+				<p style={errorStyles}>{__('Bitte gültige Zahlenwerte eingeben', 'resa')}</p>
+			)}
 		</div>
 	);
 }
 
-interface FactorEditorProps {
-	factors: Record<string, unknown>;
-	onFactorChange: (key: string, value: number) => void;
-	onNestedFactorChange: (group: string, subKey: string, value: number) => void;
+// ─── Main Factor Editor Component ───────────────────────
+
+interface FactorEditorProps<T extends FormDataWithFactors> {
+	form: UseFormReturn<T>;
 }
 
 /**
  * Full factor editor with all factor groups for rent calculator.
+ * Integrates with React Hook Form from parent component.
  */
-export function FactorEditor({ factors, onFactorChange, onNestedFactorChange }: FactorEditorProps) {
-	const inputClass =
-		'resa-w-full resa-px-3 resa-py-2 resa-rounded-md resa-border resa-border-input resa-bg-background resa-text-sm focus:resa-outline-none focus:resa-ring-2 focus:resa-ring-ring';
-	const labelClass = 'resa-block resa-text-sm resa-font-medium resa-mb-1';
+export function FactorEditor<T extends FormDataWithFactors>({ form }: FactorEditorProps<T>) {
+	const {
+		setValue,
+		watch,
+		formState: { errors },
+	} = form;
+
+	// Watch base values
+	const basePrice = (watch('factors.base_price' as Path<T>) as number | undefined) ?? 0;
+	const sizeDegression = (watch('factors.size_degression' as Path<T>) as number | undefined) ?? 0;
+
+	// Get errors for base fields
+	const factorsErrors = errors?.factors as Record<string, { message?: string }> | undefined;
+	const basePriceError = factorsErrors?.base_price;
+	const sizeDegresssionError = factorsErrors?.size_degression;
 
 	return (
-		<div className="resa-space-y-4">
+		<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 			{/* Base values */}
-			<div className="resa-grid resa-grid-cols-2 resa-gap-4">
+			<div
+				style={{
+					display: 'grid',
+					gridTemplateColumns: 'repeat(2, 1fr)',
+					gap: '16px',
+				}}
+			>
 				<div>
-					<label className={labelClass}>Basismietpreis/m² (EUR)</label>
+					<label style={labelStyles}>{__('Basismietpreis/m2 (EUR)', 'resa')}</label>
 					<input
 						type="number"
 						step="0.01"
-						className={inputClass}
-						value={toNumber(factors.base_price)}
-						onChange={(e) => onFactorChange('base_price', Number(e.target.value))}
+						value={basePrice}
+						onChange={(e) => {
+							const value = parseFloat(e.target.value) || 0;
+							setValue(
+								'factors.base_price' as Path<T>,
+								value as PathValue<T, Path<T>>,
+								{ shouldDirty: true, shouldValidate: true },
+							);
+						}}
+						style={{
+							...inputFullStyles,
+							borderColor: basePriceError ? '#ef4444' : undefined,
+						}}
 					/>
+					{basePriceError && <p style={errorStyles}>{basePriceError.message}</p>}
 				</div>
 				<div>
-					<label className={labelClass}>Größendegression</label>
+					<label style={labelStyles}>{__('Grossendegression', 'resa')}</label>
 					<input
 						type="number"
 						step="0.01"
-						className={inputClass}
-						value={toNumber(factors.size_degression)}
-						onChange={(e) => onFactorChange('size_degression', Number(e.target.value))}
+						value={sizeDegression}
+						onChange={(e) => {
+							const value = parseFloat(e.target.value) || 0;
+							setValue(
+								'factors.size_degression' as Path<T>,
+								value as PathValue<T, Path<T>>,
+								{ shouldDirty: true, shouldValidate: true },
+							);
+						}}
+						style={{
+							...inputFullStyles,
+							borderColor: sizeDegresssionError ? '#ef4444' : undefined,
+						}}
 					/>
+					{sizeDegresssionError && (
+						<p style={errorStyles}>{sizeDegresssionError.message}</p>
+					)}
 				</div>
 			</div>
 
 			{/* Location ratings */}
 			<FactorGroup
-				title="Lage-Faktoren"
+				title={__('Lage-Faktoren', 'resa')}
 				items={[
-					{ key: '1', label: 'Einfache Lage (1)' },
-					{ key: '2', label: 'Normale Lage (2)' },
-					{ key: '3', label: 'Gute Lage (3)' },
-					{ key: '4', label: 'Sehr gute Lage (4)' },
-					{ key: '5', label: 'Premium-Lage (5)' },
+					{ key: '1', label: __('Einfache Lage (1)', 'resa') },
+					{ key: '2', label: __('Normale Lage (2)', 'resa') },
+					{ key: '3', label: __('Gute Lage (3)', 'resa') },
+					{ key: '4', label: __('Sehr gute Lage (4)', 'resa') },
+					{ key: '5', label: __('Premium-Lage (5)', 'resa') },
 				]}
-				group="location_ratings"
-				factors={factors}
-				onChange={onNestedFactorChange}
+				groupName="location_ratings"
+				form={form}
+				errors={errors}
 			/>
 
 			{/* Condition multipliers */}
 			<FactorGroup
-				title="Zustands-Faktoren"
+				title={__('Zustands-Faktoren', 'resa')}
 				items={[
-					{ key: 'new', label: 'Neubau/Kernsaniert' },
-					{ key: 'renovated', label: 'Renoviert' },
-					{ key: 'good', label: 'Guter Zustand' },
-					{ key: 'needs_renovation', label: 'Renovierungsbedurftig' },
+					{ key: 'new', label: __('Neubau/Kernsaniert', 'resa') },
+					{ key: 'renovated', label: __('Renoviert', 'resa') },
+					{ key: 'good', label: __('Guter Zustand', 'resa') },
+					{ key: 'needs_renovation', label: __('Renovierungsbedurftig', 'resa') },
 				]}
-				group="condition_multipliers"
-				factors={factors}
-				onChange={onNestedFactorChange}
+				groupName="condition_multipliers"
+				form={form}
+				errors={errors}
 			/>
 
 			{/* Type multipliers */}
 			<FactorGroup
-				title="Immobilientyp-Faktoren"
+				title={__('Immobilientyp-Faktoren', 'resa')}
 				items={[
-					{ key: 'apartment', label: 'Wohnung' },
-					{ key: 'house', label: 'Haus' },
+					{ key: 'apartment', label: __('Wohnung', 'resa') },
+					{ key: 'house', label: __('Haus', 'resa') },
 				]}
-				group="type_multipliers"
-				factors={factors}
-				onChange={onNestedFactorChange}
+				groupName="type_multipliers"
+				form={form}
+				errors={errors}
 			/>
 
 			{/* Feature premiums */}
 			<FactorGroup
-				title="Ausstattungs-Zuschlage (EUR/m2)"
+				title={__('Ausstattungs-Zuschlage (EUR/m2)', 'resa')}
 				items={[
-					{ key: 'balcony', label: 'Balkon' },
-					{ key: 'terrace', label: 'Terrasse' },
-					{ key: 'garden', label: 'Garten' },
-					{ key: 'elevator', label: 'Aufzug' },
-					{ key: 'parking', label: 'Stellplatz' },
-					{ key: 'garage', label: 'Garage' },
-					{ key: 'cellar', label: 'Keller' },
-					{ key: 'fitted_kitchen', label: 'Einbaukuche' },
-					{ key: 'floor_heating', label: 'Fussbodenheizung' },
-					{ key: 'guest_toilet', label: 'Gaste-WC' },
-					{ key: 'barrier_free', label: 'Barrierefrei' },
+					{ key: 'balcony', label: __('Balkon', 'resa') },
+					{ key: 'terrace', label: __('Terrasse', 'resa') },
+					{ key: 'garden', label: __('Garten', 'resa') },
+					{ key: 'elevator', label: __('Aufzug', 'resa') },
+					{ key: 'parking', label: __('Stellplatz', 'resa') },
+					{ key: 'garage', label: __('Garage', 'resa') },
+					{ key: 'cellar', label: __('Keller', 'resa') },
+					{ key: 'fitted_kitchen', label: __('Einbaukuche', 'resa') },
+					{ key: 'floor_heating', label: __('Fussbodenheizung', 'resa') },
+					{ key: 'guest_toilet', label: __('Gaste-WC', 'resa') },
+					{ key: 'barrier_free', label: __('Barrierefrei', 'resa') },
 				]}
-				group="feature_premiums"
-				factors={factors}
-				onChange={onNestedFactorChange}
+				groupName="feature_premiums"
+				form={form}
+				errors={errors}
 			/>
 
 			{/* Age multipliers */}
 			<FactorGroup
-				title="Alter-Faktoren"
+				title={__('Alter-Faktoren', 'resa')}
 				items={[
-					{ key: 'before_1946', label: 'Altbau (bis 1945)' },
-					{ key: '1946_1959', label: 'Nachkriegsbau (1946-1959)' },
-					{ key: '1960_1979', label: '60er/70er Jahre' },
-					{ key: '1980_1989', label: '80er Jahre' },
-					{ key: '1990_1999', label: '90er Jahre' },
-					{ key: '2000_2014', label: '2000er Jahre' },
-					{ key: '2015_plus', label: 'Neubau (ab 2015)' },
+					{ key: 'before_1946', label: __('Altbau (bis 1945)', 'resa') },
+					{ key: '1946_1959', label: __('Nachkriegsbau (1946-1959)', 'resa') },
+					{ key: '1960_1979', label: __('60er/70er Jahre', 'resa') },
+					{ key: '1980_1989', label: __('80er Jahre', 'resa') },
+					{ key: '1990_1999', label: __('90er Jahre', 'resa') },
+					{ key: '2000_2014', label: __('2000er Jahre', 'resa') },
+					{ key: '2015_plus', label: __('Neubau (ab 2015)', 'resa') },
 				]}
-				group="age_multipliers"
-				factors={factors}
-				onChange={onNestedFactorChange}
+				groupName="age_multipliers"
+				form={form}
+				errors={errors}
 			/>
 		</div>
 	);

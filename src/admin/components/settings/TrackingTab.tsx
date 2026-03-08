@@ -6,10 +6,13 @@
  * 2. dataLayer / GTM Events (Free + Pro)
  * 3. Erweitert (Pro only — Enhanced Conversions, GCLID, UTM, Partial Leads)
  *
- * Follows the AgentDataForm inline-styles pattern from Settings.tsx.
+ * Uses Zod + React Hook Form for validation.
+ * @see docs/design-system/patterns/form-validation.md
  */
 
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { __ } from '@wordpress/i18n';
 import { Lock, Crown, Copy, Check } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,7 +26,7 @@ import { LoadingState } from '../LoadingState';
 import { useTrackingSettings, useSaveTrackingSettings } from '../../hooks/useTrackingSettings';
 import { toast } from '../../lib/toast';
 import { useFeatures } from '../../hooks/useFeatures';
-import type { TrackingSettings } from '../../types';
+import { trackingSettingsSchema, type TrackingSettingsFormData } from '../../schemas/tracking';
 
 // ─── Styled Button Component ────────────────────────────
 
@@ -213,7 +216,7 @@ export function TrackingTab() {
 	const features = useFeatures();
 	const isPremium = features.can_use_advanced_tracking;
 
-	const defaults: TrackingSettings = {
+	const defaults: TrackingSettingsFormData = {
 		funnel_tracking_enabled: true,
 		partial_leads_enabled: true,
 		partial_lead_ttl_days: 30,
@@ -227,18 +230,22 @@ export function TrackingTab() {
 		utm_capture_enabled: true,
 	};
 
-	const [form, setForm] = useState<TrackingSettings>(settings ?? defaults);
-	const [isDirty, setIsDirty] = useState(false);
+	const form = useForm<TrackingSettingsFormData>({
+		resolver: zodResolver(trackingSettingsSchema),
+		defaultValues: defaults,
+	});
 
-	const updateField = <K extends keyof TrackingSettings>(key: K, value: TrackingSettings[K]) => {
-		setForm((prev) => ({ ...prev, [key]: value }));
-		setIsDirty(true);
-	};
+	// Sync server data when loaded
+	useEffect(() => {
+		if (settings) {
+			form.reset(settings);
+		}
+	}, [settings, form]);
 
-	const handleSave = () => {
-		saveMutation.mutate(form, {
+	const onSubmit = (data: TrackingSettingsFormData) => {
+		saveMutation.mutate(data, {
 			onSuccess: () => {
-				setIsDirty(false);
+				form.reset(data);
 				toast.success(__('Tracking-Einstellungen gespeichert.', 'resa'));
 			},
 			onError: () => {
@@ -250,6 +257,15 @@ export function TrackingTab() {
 	if (isLoading) {
 		return <LoadingState message={__('Lade Tracking-Einstellungen...', 'resa')} />;
 	}
+
+	const {
+		formState: { isDirty, errors },
+		watch,
+	} = form;
+
+	// Watch values for conditional rendering
+	const datalayerEnabled = watch('datalayer_enabled');
+	const partialLeadsEnabled = watch('partial_leads_enabled');
 
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -289,10 +305,7 @@ export function TrackingTab() {
 									<Input
 										id="fv-id"
 										placeholder="AW-123456789"
-										value={form.google_ads_fv_id}
-										onChange={(e) =>
-											updateField('google_ads_fv_id', e.target.value)
-										}
+										{...form.register('google_ads_fv_id')}
 										style={inputStyles}
 									/>
 								</div>
@@ -305,10 +318,7 @@ export function TrackingTab() {
 									<Input
 										id="fv-label"
 										placeholder="AbCdEf..."
-										value={form.google_ads_fv_label}
-										onChange={(e) =>
-											updateField('google_ads_fv_label', e.target.value)
-										}
+										{...form.register('google_ads_fv_label')}
 										style={inputStyles}
 									/>
 								</div>
@@ -334,10 +344,7 @@ export function TrackingTab() {
 									<Input
 										id="fs-id"
 										placeholder="AW-123456789"
-										value={form.google_ads_fs_id}
-										onChange={(e) =>
-											updateField('google_ads_fs_id', e.target.value)
-										}
+										{...form.register('google_ads_fs_id')}
 										style={inputStyles}
 									/>
 								</div>
@@ -350,10 +357,7 @@ export function TrackingTab() {
 									<Input
 										id="fs-label"
 										placeholder="AbCdEf..."
-										value={form.google_ads_fs_label}
-										onChange={(e) =>
-											updateField('google_ads_fs_label', e.target.value)
-										}
+										{...form.register('google_ads_fs_label')}
 										style={inputStyles}
 									/>
 								</div>
@@ -391,16 +395,20 @@ export function TrackingTab() {
 									)}
 								</p>
 							</div>
-							<Switch
-								checked={form.datalayer_enabled}
-								onCheckedChange={(checked) =>
-									updateField('datalayer_enabled', checked)
-								}
+							<Controller
+								name="datalayer_enabled"
+								control={form.control}
+								render={({ field }) => (
+									<Switch
+										checked={field.value}
+										onCheckedChange={field.onChange}
+									/>
+								)}
 							/>
 						</div>
 
 						{/* Events Table (conditional) */}
-						{form.datalayer_enabled && (
+						{datalayerEnabled && (
 							<div style={grayBoxStyles}>
 								<p style={{ ...boxTitleStyles, marginBottom: '12px' }}>
 									{__('Verfügbare Events', 'resa')}
@@ -557,12 +565,16 @@ export function TrackingTab() {
 									)}
 								</p>
 							</div>
-							<Switch
-								disabled={!isPremium}
-								checked={form.enhanced_conversions_enabled}
-								onCheckedChange={(checked) =>
-									updateField('enhanced_conversions_enabled', checked)
-								}
+							<Controller
+								name="enhanced_conversions_enabled"
+								control={form.control}
+								render={({ field }) => (
+									<Switch
+										disabled={!isPremium}
+										checked={field.value}
+										onCheckedChange={field.onChange}
+									/>
+								)}
 							/>
 						</div>
 
@@ -577,12 +589,16 @@ export function TrackingTab() {
 									)}
 								</p>
 							</div>
-							<Switch
-								disabled={!isPremium}
-								checked={form.gclid_capture_enabled}
-								onCheckedChange={(checked) =>
-									updateField('gclid_capture_enabled', checked)
-								}
+							<Controller
+								name="gclid_capture_enabled"
+								control={form.control}
+								render={({ field }) => (
+									<Switch
+										disabled={!isPremium}
+										checked={field.value}
+										onCheckedChange={field.onChange}
+									/>
+								)}
 							/>
 						</div>
 
@@ -594,12 +610,16 @@ export function TrackingTab() {
 									{__('UTM-Parameter aus der URL im Lead speichern.', 'resa')}
 								</p>
 							</div>
-							<Switch
-								disabled={!isPremium}
-								checked={form.utm_capture_enabled}
-								onCheckedChange={(checked) =>
-									updateField('utm_capture_enabled', checked)
-								}
+							<Controller
+								name="utm_capture_enabled"
+								control={form.control}
+								render={({ field }) => (
+									<Switch
+										disabled={!isPremium}
+										checked={field.value}
+										onCheckedChange={field.onChange}
+									/>
+								)}
 							/>
 						</div>
 
@@ -614,35 +634,53 @@ export function TrackingTab() {
 									)}
 								</p>
 							</div>
-							<Switch
-								disabled={!isPremium}
-								checked={form.partial_leads_enabled}
-								onCheckedChange={(checked) =>
-									updateField('partial_leads_enabled', checked)
-								}
+							<Controller
+								name="partial_leads_enabled"
+								control={form.control}
+								render={({ field }) => (
+									<Switch
+										disabled={!isPremium}
+										checked={field.value}
+										onCheckedChange={field.onChange}
+									/>
+								)}
 							/>
 						</div>
 
 						{/* Partial Lead TTL (conditional) */}
-						{form.partial_leads_enabled && isPremium && (
+						{partialLeadsEnabled && isPremium && (
 							<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
 								<Label htmlFor="ttl">
 									{__('Partial Lead Aufbewahrung (Tage)', 'resa')}
 								</Label>
-								<Input
-									id="ttl"
-									type="number"
-									min={7}
-									max={365}
-									value={form.partial_lead_ttl_days}
-									onChange={(e) =>
-										updateField(
-											'partial_lead_ttl_days',
-											parseInt(e.target.value, 10) || 30,
-										)
-									}
-									style={{ ...inputStyles, width: '120px' }}
+								<Controller
+									name="partial_lead_ttl_days"
+									control={form.control}
+									render={({ field }) => (
+										<Input
+											id="ttl"
+											type="number"
+											min={7}
+											max={365}
+											value={field.value}
+											onChange={(e) =>
+												field.onChange(parseInt(e.target.value, 10) || 30)
+											}
+											style={{
+												...inputStyles,
+												width: '120px',
+												borderColor: errors.partial_lead_ttl_days
+													? '#ef4444'
+													: undefined,
+											}}
+										/>
+									)}
 								/>
+								{errors.partial_lead_ttl_days && (
+									<p style={{ fontSize: '13px', color: '#ef4444', margin: 0 }}>
+										{errors.partial_lead_ttl_days.message}
+									</p>
+								)}
 							</div>
 						)}
 					</div>
@@ -657,7 +695,10 @@ export function TrackingTab() {
 					justifyContent: 'flex-end',
 				}}
 			>
-				<PrimaryButton onClick={handleSave} disabled={!isDirty || saveMutation.isPending}>
+				<PrimaryButton
+					onClick={form.handleSubmit(onSubmit)}
+					disabled={!isDirty || saveMutation.isPending}
+				>
 					{saveMutation.isPending && (
 						<Spinner style={{ width: '14px', height: '14px' }} />
 					)}

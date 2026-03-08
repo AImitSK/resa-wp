@@ -1,16 +1,20 @@
 /**
  * PDF Templates page — base layout settings with live preview.
  *
- * Follows the AgentDataForm inline-styles pattern from Settings.tsx.
+ * Uses Zod + React Hook Form for validation.
+ * @see docs/design-system/patterns/form-validation.md
  */
 
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { __, sprintf } from '@wordpress/i18n';
 import { AdminPageLayout } from '../components/AdminPageLayout';
 import { PdfPreview } from '../components/PdfPreview';
-import { usePdfSettings, useSavePdfSettings, type PdfSettings } from '../hooks/usePdfSettings';
+import { usePdfSettings, useSavePdfSettings } from '../hooks/usePdfSettings';
 import { useBranding } from '../hooks/useBranding';
 import { useTeamMembers } from '../hooks/useTeam';
+import { pdfTemplateSchema, type PdfTemplateFormData } from '../schemas/pdfTemplate';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -192,7 +196,7 @@ export function BaseLayoutTab({
 	logoUrl,
 	teamMembers,
 }: {
-	initialData: PdfSettings | undefined;
+	initialData: PdfTemplateFormData | undefined;
 	logoUrl?: string;
 	teamMembers: Array<{
 		id: number | null;
@@ -206,42 +210,47 @@ export function BaseLayoutTab({
 }) {
 	const saveMutation = useSavePdfSettings();
 
-	const [form, setForm] = useState<PdfSettings>(
-		initialData ?? {
-			headerText: '',
-			footerText: '',
-			showDate: true,
-			showAgents: true,
-			logoPosition: 'left',
-			logoSize: 36,
-			margins: { top: 20, bottom: 25, left: 15, right: 15 },
-		},
-	);
-	const [isDirty, setIsDirty] = useState(false);
-
-	const updateField = <K extends keyof PdfSettings>(key: K, value: PdfSettings[K]) => {
-		setForm((prev) => ({ ...prev, [key]: value }));
-		setIsDirty(true);
+	const defaults: PdfTemplateFormData = {
+		headerText: '',
+		footerText: '',
+		showDate: true,
+		showAgents: true,
+		logoPosition: 'left',
+		logoSize: 36,
+		margins: { top: 20, bottom: 25, left: 15, right: 15 },
 	};
 
-	const updateMargin = (side: keyof PdfSettings['margins'], value: number) => {
-		setForm((prev) => ({
-			...prev,
-			margins: { ...prev.margins, [side]: value },
-		}));
-		setIsDirty(true);
-	};
+	const form = useForm<PdfTemplateFormData>({
+		resolver: zodResolver(pdfTemplateSchema),
+		defaultValues: defaults,
+	});
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		try {
-			await saveMutation.mutateAsync(form);
-			setIsDirty(false);
-			toast.success(__('PDF-Einstellungen gespeichert.', 'resa'));
-		} catch {
-			toast.error(__('Fehler beim Speichern.', 'resa'));
+	// Sync server data when loaded
+	useEffect(() => {
+		if (initialData) {
+			form.reset(initialData);
 		}
+	}, [initialData, form]);
+
+	const onSubmit = (data: PdfTemplateFormData) => {
+		saveMutation.mutate(data, {
+			onSuccess: () => {
+				form.reset(data);
+				toast.success(__('PDF-Einstellungen gespeichert.', 'resa'));
+			},
+			onError: () => {
+				toast.error(__('Fehler beim Speichern.', 'resa'));
+			},
+		});
 	};
+
+	const {
+		formState: { isDirty, errors },
+		watch,
+	} = form;
+
+	// Watch all values for live preview
+	const formValues = watch();
 
 	return (
 		<div
@@ -253,10 +262,7 @@ export function BaseLayoutTab({
 			}}
 		>
 			{/* Settings Panel (left) */}
-			<form
-				onSubmit={handleSubmit}
-				style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
-			>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 				{/* Card 1: Header */}
 				<Card style={cardStyles}>
 					<CardContent style={{ padding: '20px' }}>
@@ -333,37 +339,48 @@ export function BaseLayoutTab({
 												alignSelf: 'flex-start',
 											}}
 										>
-											{(
-												[
-													['left', __('Links', 'resa')],
-													['center', __('Mitte', 'resa')],
-													['right', __('Rechts', 'resa')],
-												] as [PdfSettings['logoPosition'], string][]
-											).map(([pos, label]) => (
-												<button
-													key={pos}
-													type="button"
-													onClick={() => updateField('logoPosition', pos)}
-													style={{
-														padding: '6px 12px',
-														fontSize: '13px',
-														fontWeight: 500,
-														border: 'none',
-														cursor: 'pointer',
-														backgroundColor:
-															form.logoPosition === pos
-																? '#1e303a'
-																: 'white',
-														color:
-															form.logoPosition === pos
-																? '#a9e43f'
-																: 'hsl(215.4 16.3% 46.9%)',
-														transition: 'all 150ms',
-													}}
-												>
-													{label}
-												</button>
-											))}
+											<Controller
+												name="logoPosition"
+												control={form.control}
+												render={({ field }) => (
+													<>
+														{(
+															[
+																['left', __('Links', 'resa')],
+																['center', __('Mitte', 'resa')],
+																['right', __('Rechts', 'resa')],
+															] as [
+																PdfTemplateFormData['logoPosition'],
+																string,
+															][]
+														).map(([pos, label]) => (
+															<button
+																key={pos}
+																type="button"
+																onClick={() => field.onChange(pos)}
+																style={{
+																	padding: '6px 12px',
+																	fontSize: '13px',
+																	fontWeight: 500,
+																	border: 'none',
+																	cursor: 'pointer',
+																	backgroundColor:
+																		field.value === pos
+																			? '#1e303a'
+																			: 'white',
+																	color:
+																		field.value === pos
+																			? '#a9e43f'
+																			: 'hsl(215.4 16.3% 46.9%)',
+																	transition: 'all 150ms',
+																}}
+															>
+																{label}
+															</button>
+														))}
+													</>
+												)}
+											/>
 										</div>
 									</div>
 
@@ -383,24 +400,32 @@ export function BaseLayoutTab({
 												gap: '10px',
 											}}
 										>
-											<Slider
-												value={form.logoSize}
-												min={16}
-												max={80}
-												step={2}
-												onChange={(v) => updateField('logoSize', v)}
+											<Controller
+												name="logoSize"
+												control={form.control}
+												render={({ field }) => (
+													<>
+														<Slider
+															value={field.value}
+															min={16}
+															max={80}
+															step={2}
+															onChange={field.onChange}
+														/>
+														<span
+															style={{
+																fontSize: '13px',
+																fontWeight: 500,
+																color: '#1e303a',
+																minWidth: '40px',
+																textAlign: 'right',
+															}}
+														>
+															{field.value}px
+														</span>
+													</>
+												)}
 											/>
-											<span
-												style={{
-													fontSize: '13px',
-													fontWeight: 500,
-													color: '#1e303a',
-													minWidth: '40px',
-													textAlign: 'right',
-												}}
-											>
-												{form.logoSize}px
-											</span>
 										</div>
 									</div>
 								</div>
@@ -411,11 +436,18 @@ export function BaseLayoutTab({
 								<Label htmlFor="header-text">{__('Header-Text', 'resa')}</Label>
 								<Input
 									id="header-text"
-									value={form.headerText}
-									onChange={(e) => updateField('headerText', e.target.value)}
+									{...form.register('headerText')}
 									placeholder={__('z.B. Firmenname oder Slogan', 'resa')}
-									style={inputStyles}
+									style={{
+										...inputStyles,
+										borderColor: errors.headerText ? '#ef4444' : undefined,
+									}}
 								/>
+								{errors.headerText && (
+									<p style={{ fontSize: '13px', color: '#ef4444', margin: 0 }}>
+										{errors.headerText.message}
+									</p>
+								)}
 								<p style={fieldDescStyles}>
 									{__('Wird neben oder unter dem Logo angezeigt.', 'resa')}
 								</p>
@@ -444,11 +476,18 @@ export function BaseLayoutTab({
 								<Label htmlFor="footer-text">{__('Footer-Text', 'resa')}</Label>
 								<Input
 									id="footer-text"
-									value={form.footerText}
-									onChange={(e) => updateField('footerText', e.target.value)}
+									{...form.register('footerText')}
 									placeholder={__('z.B. © 2026 Mustermann Immobilien', 'resa')}
-									style={inputStyles}
+									style={{
+										...inputStyles,
+										borderColor: errors.footerText ? '#ef4444' : undefined,
+									}}
 								/>
+								{errors.footerText && (
+									<p style={{ fontSize: '13px', color: '#ef4444', margin: 0 }}>
+										{errors.footerText.message}
+									</p>
+								)}
 							</div>
 
 							{/* Show Date Toggle */}
@@ -459,9 +498,15 @@ export function BaseLayoutTab({
 										{__('Erstellungsdatum in Header und Footer.', 'resa')}
 									</p>
 								</div>
-								<Switch
-									checked={form.showDate}
-									onCheckedChange={(checked) => updateField('showDate', checked)}
+								<Controller
+									name="showDate"
+									control={form.control}
+									render={({ field }) => (
+										<Switch
+											checked={field.value}
+											onCheckedChange={field.onChange}
+										/>
+									)}
 								/>
 							</div>
 						</div>
@@ -490,15 +535,19 @@ export function BaseLayoutTab({
 										{__('Automatisch dem Standort zugeordnet.', 'resa')}
 									</p>
 								</div>
-								<Switch
-									checked={form.showAgents}
-									onCheckedChange={(checked) =>
-										updateField('showAgents', checked)
-									}
+								<Controller
+									name="showAgents"
+									control={form.control}
+									render={({ field }) => (
+										<Switch
+											checked={field.value}
+											onCheckedChange={field.onChange}
+										/>
+									)}
 								/>
 							</div>
 
-							{form.showAgents && teamMembers.length === 0 && (
+							{formValues.showAgents && teamMembers.length === 0 && (
 								<p
 									style={{
 										margin: 0,
@@ -535,7 +584,7 @@ export function BaseLayoutTab({
 											['bottom', __('Unten', 'resa')],
 											['left', __('Links', 'resa')],
 											['right', __('Rechts', 'resa')],
-										] as [keyof PdfSettings['margins'], string][]
+										] as [keyof PdfTemplateFormData['margins'], string][]
 									).map(([side, label]) => (
 										<div
 											key={side}
@@ -554,24 +603,43 @@ export function BaseLayoutTab({
 											>
 												{label}
 											</Label>
-											<Input
-												id={`margin-${side}`}
-												type="number"
-												min={0}
-												max={50}
-												value={form.margins[side]}
-												onChange={(e) =>
-													updateMargin(
-														side,
-														parseInt(e.target.value, 10) || 0,
-													)
-												}
-												style={{
-													...inputStyles,
-													textAlign: 'center',
-													padding: '0 8px',
-												}}
+											<Controller
+												name={`margins.${side}`}
+												control={form.control}
+												render={({ field }) => (
+													<Input
+														id={`margin-${side}`}
+														type="number"
+														min={0}
+														max={50}
+														value={field.value}
+														onChange={(e) =>
+															field.onChange(
+																parseInt(e.target.value, 10) || 0,
+															)
+														}
+														style={{
+															...inputStyles,
+															textAlign: 'center',
+															padding: '0 8px',
+															borderColor: errors.margins?.[side]
+																? '#ef4444'
+																: undefined,
+														}}
+													/>
+												)}
 											/>
+											{errors.margins?.[side] && (
+												<p
+													style={{
+														fontSize: '12px',
+														color: '#ef4444',
+														margin: 0,
+													}}
+												>
+													{errors.margins[side]?.message}
+												</p>
+											)}
 										</div>
 									))}
 								</div>
@@ -588,20 +656,23 @@ export function BaseLayoutTab({
 						justifyContent: 'flex-end',
 					}}
 				>
-					<PrimaryButton type="submit" disabled={!isDirty || saveMutation.isPending}>
+					<PrimaryButton
+						onClick={form.handleSubmit(onSubmit)}
+						disabled={!isDirty || saveMutation.isPending}
+					>
 						{saveMutation.isPending && (
 							<Spinner style={{ width: '14px', height: '14px' }} />
 						)}
 						{__('Speichern', 'resa')}
 					</PrimaryButton>
 				</div>
-			</form>
+			</div>
 
 			{/* Preview Panel (right) */}
 			<div style={{ position: 'sticky', top: '80px' }}>
 				<Card style={cardStyles}>
 					<CardContent style={{ padding: 0 }}>
-						<PdfPreview settings={form} logoUrl={logoUrl} agents={teamMembers} />
+						<PdfPreview settings={formValues} logoUrl={logoUrl} agents={teamMembers} />
 					</CardContent>
 				</Card>
 			</div>

@@ -3,9 +3,14 @@
  *
  * Allows creating, editing, testing, toggling, and deleting webhooks.
  * Limited to 5 webhooks. Premium-only (gate is handled at page level).
+ *
+ * Uses Zod + React Hook Form for validation.
+ * @see docs/design-system/patterns/form-validation.md
  */
 
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { __ } from '@wordpress/i18n';
 import { Plus, Pencil, Trash2, Send, Copy, Check, RefreshCw, MoreHorizontal } from 'lucide-react';
 
@@ -16,7 +21,8 @@ import {
 	useDeleteWebhook,
 	useTestWebhook,
 } from '../../hooks/useWebhooks';
-import type { WebhookConfig, WebhookFormData } from '../../types';
+import type { WebhookConfig } from '../../types';
+import { webhookSchema, type WebhookFormData } from '../../schemas/webhook';
 import { toast } from '../../lib/toast';
 import { ConfirmDeleteDialog } from '../ConfirmDeleteDialog';
 
@@ -133,6 +139,17 @@ function generateSecret(): string {
 	return `whsec_${hex}`;
 }
 
+// ─── Styles ─────────────────────────────────────────────
+
+const inputStyles: React.CSSProperties = {
+	height: '36px',
+	padding: '0 12px',
+	fontSize: '14px',
+	border: '1px solid hsl(214.3 31.8% 78%)',
+	borderRadius: '6px',
+	backgroundColor: 'white',
+};
+
 export function WebhooksTab() {
 	const { data: webhooks, isLoading } = useWebhooks();
 	const createMutation = useCreateWebhook();
@@ -144,44 +161,68 @@ export function WebhooksTab() {
 	const [editingWebhook, setEditingWebhook] = useState<WebhookConfig | null>(null);
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [webhookToDelete, setWebhookToDelete] = useState<WebhookConfig | null>(null);
-
-	// Form state.
-	const [formName, setFormName] = useState('');
-	const [formUrl, setFormUrl] = useState('');
-	const [formSecret, setFormSecret] = useState('');
-	const [formEvents, setFormEvents] = useState<string[]>(['lead.created']);
-	const [formActive, setFormActive] = useState(true);
 	const [copied, setCopied] = useState(false);
+
+	// Form defaults
+	const defaults: WebhookFormData = {
+		name: '',
+		url: '',
+		secret: generateSecret(),
+		events: ['lead.created'],
+		isActive: true,
+	};
+
+	const form = useForm<WebhookFormData>({
+		resolver: zodResolver(webhookSchema),
+		defaultValues: defaults,
+	});
+
+	const {
+		formState: { errors },
+	} = form;
+
+	// Reset form when dialog opens/closes
+	useEffect(() => {
+		if (dialogOpen) {
+			if (editingWebhook) {
+				// Edit mode: populate with existing data
+				form.reset({
+					name: editingWebhook.name,
+					url: editingWebhook.url,
+					secret: editingWebhook.secret,
+					events: editingWebhook.events,
+					isActive: editingWebhook.isActive,
+				});
+			} else {
+				// Create mode: fresh defaults
+				form.reset({
+					name: '',
+					url: '',
+					secret: generateSecret(),
+					events: ['lead.created'],
+					isActive: true,
+				});
+			}
+		}
+	}, [dialogOpen, editingWebhook, form]);
 
 	const openCreateDialog = () => {
 		setEditingWebhook(null);
-		setFormName('');
-		setFormUrl('');
-		setFormSecret(generateSecret());
-		setFormEvents(['lead.created']);
-		setFormActive(true);
 		setDialogOpen(true);
 	};
 
 	const openEditDialog = (webhook: WebhookConfig) => {
 		setEditingWebhook(webhook);
-		setFormName(webhook.name);
-		setFormUrl(webhook.url);
-		setFormSecret(webhook.secret);
-		setFormEvents(webhook.events);
-		setFormActive(webhook.isActive);
 		setDialogOpen(true);
 	};
 
-	const handleSave = async () => {
-		const data: WebhookFormData = {
-			name: formName,
-			url: formUrl,
-			secret: formSecret,
-			events: formEvents,
-			isActive: formActive,
-		};
+	const handleCloseDialog = () => {
+		setDialogOpen(false);
+		setEditingWebhook(null);
+		form.reset(defaults);
+	};
 
+	const onSubmit = async (data: WebhookFormData) => {
 		try {
 			if (editingWebhook) {
 				await updateMutation.mutateAsync({ id: editingWebhook.id, data });
@@ -190,7 +231,7 @@ export function WebhooksTab() {
 				await createMutation.mutateAsync(data);
 				toast.success(__('Webhook erstellt.', 'resa'));
 			}
-			setDialogOpen(false);
+			handleCloseDialog();
 		} catch {
 			toast.error(__('Fehler beim Speichern des Webhooks.', 'resa'));
 		}
@@ -241,16 +282,16 @@ export function WebhooksTab() {
 	};
 
 	const copySecret = () => {
-		navigator.clipboard.writeText(formSecret);
+		const secret = form.getValues('secret');
+		navigator.clipboard.writeText(secret);
 		setCopied(true);
 		setTimeout(() => setCopied(false), 2000);
 	};
 
 	const regenerateSecret = () => {
-		setFormSecret(generateSecret());
+		form.setValue('secret', generateSecret(), { shouldDirty: true });
 	};
 
-	const isFormValid = formName.trim() !== '' && formUrl.trim() !== '';
 	const isSaving = createMutation.isPending || updateMutation.isPending;
 	const count = webhooks?.length ?? 0;
 	const isAtLimit = count >= MAX_WEBHOOKS;
@@ -584,7 +625,7 @@ export function WebhooksTab() {
 			)}
 
 			{/* Create / Edit Dialog */}
-			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+			<Dialog open={dialogOpen} onOpenChange={(open) => !open && handleCloseDialog()}>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>
@@ -600,10 +641,18 @@ export function WebhooksTab() {
 							<Label htmlFor="webhook-name">{__('Name', 'resa')}</Label>
 							<Input
 								id="webhook-name"
-								value={formName}
-								onChange={(e) => setFormName(e.target.value)}
 								placeholder={__('z.B. Zapier Lead-Sync', 'resa')}
+								{...form.register('name')}
+								style={{
+									...inputStyles,
+									borderColor: errors.name ? '#ef4444' : undefined,
+								}}
 							/>
+							{errors.name && (
+								<p style={{ fontSize: '13px', color: '#ef4444', margin: 0 }}>
+									{errors.name.message}
+								</p>
+							)}
 						</div>
 
 						{/* URL */}
@@ -612,10 +661,18 @@ export function WebhooksTab() {
 							<Input
 								id="webhook-url"
 								type="url"
-								value={formUrl}
-								onChange={(e) => setFormUrl(e.target.value)}
 								placeholder="https://hooks.zapier.com/..."
+								{...form.register('url')}
+								style={{
+									...inputStyles,
+									borderColor: errors.url ? '#ef4444' : undefined,
+								}}
 							/>
+							{errors.url && (
+								<p style={{ fontSize: '13px', color: '#ef4444', margin: 0 }}>
+									{errors.url.message}
+								</p>
+							)}
 						</div>
 
 						{/* Secret */}
@@ -623,9 +680,10 @@ export function WebhooksTab() {
 							<Label>{__('Secret (HMAC-SHA256)', 'resa')}</Label>
 							<div className="resa-flex resa-gap-2">
 								<Input
-									value={formSecret}
 									readOnly
 									className="resa-font-mono resa-text-xs"
+									{...form.register('secret')}
+									style={inputStyles}
 								/>
 								<Button
 									variant="outline"
@@ -653,43 +711,68 @@ export function WebhooksTab() {
 						{/* Events */}
 						<div className="resa-space-y-2">
 							<Label>{__('Events', 'resa')}</Label>
-							<div className="resa-flex resa-items-center resa-gap-2">
-								<input
-									type="checkbox"
-									id="event-lead-created"
-									checked={formEvents.includes('lead.created')}
-									onChange={(e) => {
-										if (e.target.checked) {
-											setFormEvents([...formEvents, 'lead.created']);
-										} else {
-											setFormEvents(
-												formEvents.filter((ev) => ev !== 'lead.created'),
-											);
-										}
-									}}
-								/>
-								<Label htmlFor="event-lead-created" className="resa-font-normal">
-									lead.created
-								</Label>
-							</div>
+							<Controller
+								name="events"
+								control={form.control}
+								render={({ field }) => (
+									<div className="resa-flex resa-items-center resa-gap-2">
+										<input
+											type="checkbox"
+											id="event-lead-created"
+											checked={field.value.includes('lead.created')}
+											onChange={(e) => {
+												if (e.target.checked) {
+													field.onChange([
+														...field.value,
+														'lead.created',
+													]);
+												} else {
+													field.onChange(
+														field.value.filter(
+															(ev) => ev !== 'lead.created',
+														),
+													);
+												}
+											}}
+										/>
+										<Label
+											htmlFor="event-lead-created"
+											className="resa-font-normal"
+										>
+											lead.created
+										</Label>
+									</div>
+								)}
+							/>
+							{errors.events && (
+								<p style={{ fontSize: '13px', color: '#ef4444', margin: 0 }}>
+									{errors.events.message}
+								</p>
+							)}
 						</div>
 
 						{/* Active toggle */}
 						<div className="resa-flex resa-items-center resa-justify-between">
 							<Label htmlFor="webhook-active">{__('Aktiv', 'resa')}</Label>
-							<Switch
-								id="webhook-active"
-								checked={formActive}
-								onCheckedChange={setFormActive}
+							<Controller
+								name="isActive"
+								control={form.control}
+								render={({ field }) => (
+									<Switch
+										id="webhook-active"
+										checked={field.value}
+										onCheckedChange={field.onChange}
+									/>
+								)}
 							/>
 						</div>
 					</div>
 
 					<DialogFooter>
-						<OutlineButton onClick={() => setDialogOpen(false)}>
+						<OutlineButton onClick={handleCloseDialog}>
 							{__('Abbrechen', 'resa')}
 						</OutlineButton>
-						<PrimaryButton onClick={handleSave} disabled={!isFormValid || isSaving}>
+						<PrimaryButton onClick={form.handleSubmit(onSubmit)} disabled={isSaving}>
 							{isSaving ? __('Speichern...', 'resa') : __('Speichern', 'resa')}
 						</PrimaryButton>
 					</DialogFooter>

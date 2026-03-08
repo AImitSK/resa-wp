@@ -1,9 +1,14 @@
 /**
  * Location values tab — Configure location-specific calculation values.
  * Uses TanStack Table for a modern data table experience.
+ *
+ * Uses Zod + React Hook Form for validation.
+ * @see docs/design-system/patterns/form-validation.md
  */
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { __, sprintf } from '@wordpress/i18n';
 import {
 	flexRender,
@@ -34,6 +39,7 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useLocations } from '../../hooks/useLocations';
+import { locationValuesSchema, type LocationValuesFormData } from '../../schemas';
 import type { LocationValue, ModuleSettingsData } from '../../hooks/useModuleSettings';
 
 interface LocationValuesTabProps {
@@ -54,6 +60,17 @@ interface LocationTableRow {
 	price_max: number | null;
 }
 
+// ─── Styles ─────────────────────────────────────────────
+
+const inputStyles: React.CSSProperties = {
+	height: '36px',
+	padding: '0 12px',
+	fontSize: '14px',
+	border: '1px solid hsl(214.3 31.8% 78%)',
+	borderRadius: '6px',
+	backgroundColor: 'white',
+};
+
 export function LocationValuesTab({
 	settings,
 	onSaveLocationValue,
@@ -63,13 +80,25 @@ export function LocationValuesTab({
 	const { data: locations, isLoading: locationsLoading } = useLocations();
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [editingLocationId, setEditingLocationId] = useState<number | null>(null);
-	const [formValues, setFormValues] = useState<LocationValue>({
-		base_price: 0,
-		price_min: 0,
-		price_max: 0,
-	});
 	const [cancelHover, setCancelHover] = useState(false);
 	const [saveHover, setSaveHover] = useState(false);
+
+	// React Hook Form Setup
+	const form = useForm<LocationValuesFormData>({
+		resolver: zodResolver(locationValuesSchema),
+		defaultValues: {
+			base_price: 0,
+			price_min: 0,
+			price_max: 0,
+		},
+	});
+
+	const {
+		register,
+		handleSubmit,
+		reset,
+		formState: { errors },
+	} = form;
 
 	// Memoize active locations to prevent re-renders
 	const activeLocations = useMemo(() => {
@@ -126,22 +155,25 @@ export function LocationValuesTab({
 	const handleEdit = useCallback(
 		(row: LocationTableRow) => {
 			setEditingLocationId(row.id);
-			// Pre-fill with current values (custom or default)
-			setFormValues({
+			// Reset form with current values (custom or default)
+			reset({
 				base_price: row.base_price ?? defaultValues.base_price,
 				price_min: row.price_min ?? defaultValues.price_min,
 				price_max: row.price_max ?? defaultValues.price_max,
 			});
 		},
-		[defaultValues],
+		[defaultValues, reset],
 	);
 
-	const handleSave = useCallback(() => {
-		if (editingLocationId !== null) {
-			onSaveLocationValue(editingLocationId, formValues);
-			setEditingLocationId(null);
-		}
-	}, [editingLocationId, formValues, onSaveLocationValue]);
+	const onSubmit = useCallback(
+		(data: LocationValuesFormData) => {
+			if (editingLocationId !== null) {
+				onSaveLocationValue(editingLocationId, data);
+				setEditingLocationId(null);
+			}
+		},
+		[editingLocationId, onSaveLocationValue],
+	);
 
 	const handleCancel = useCallback(() => {
 		setEditingLocationId(null);
@@ -153,6 +185,17 @@ export function LocationValuesTab({
 		},
 		[onDeleteLocationValue],
 	);
+
+	// Reset form when editing is cancelled externally (e.g., after save)
+	useEffect(() => {
+		if (editingLocationId === null) {
+			reset({
+				base_price: 0,
+				price_min: 0,
+				price_max: 0,
+			});
+		}
+	}, [editingLocationId, reset]);
 
 	const columns = useMemo<ColumnDef<LocationTableRow>[]>(
 		() => [
@@ -248,7 +291,7 @@ export function LocationValuesTab({
 									minimumFractionDigits: 2,
 									maximumFractionDigits: 2,
 								})}{' '}
-								€/m²
+								EUR/m²
 							</>
 						) : (
 							<span style={{ color: '#1e303a', fontStyle: 'italic' }}>
@@ -281,7 +324,7 @@ export function LocationValuesTab({
 									minimumFractionDigits: 2,
 									maximumFractionDigits: 2,
 								})}{' '}
-								€/m²
+								EUR/m²
 							</>
 						) : (
 							'—'
@@ -464,126 +507,157 @@ export function LocationValuesTab({
 						{__('Werte bearbeiten', 'resa')}:{' '}
 						{tableData.find((l) => l.id === editingLocationId)?.name}
 					</h4>
-					<div
-						style={{
-							display: 'grid',
-							gridTemplateColumns: 'repeat(3, 1fr)',
-							gap: '16px',
-							marginBottom: '16px',
-						}}
-					>
-						<div>
-							<label
-								style={{
-									display: 'block',
-									fontSize: '12px',
-									fontWeight: 500,
-									color: '#1e303a',
-									marginBottom: '6px',
-								}}
-							>
-								{__('Basispreis (€/m²)', 'resa')}
-							</label>
-							<Input
-								type="number"
-								step="0.01"
-								value={formValues.base_price}
-								onChange={(e) =>
-									setFormValues((prev) => ({
-										...prev,
-										base_price: Number(e.target.value),
-									}))
-								}
-								style={{ backgroundColor: 'white' }}
-							/>
-						</div>
-						<div>
-							<label
-								style={{
-									display: 'block',
-									fontSize: '12px',
-									fontWeight: 500,
-									color: '#1e303a',
-									marginBottom: '6px',
-								}}
-							>
-								{__('Min (€/m²)', 'resa')}
-							</label>
-							<Input
-								type="number"
-								step="0.01"
-								value={formValues.price_min ?? 0}
-								onChange={(e) =>
-									setFormValues((prev) => ({
-										...prev,
-										price_min: Number(e.target.value),
-									}))
-								}
-								style={{ backgroundColor: 'white' }}
-							/>
-						</div>
-						<div>
-							<label
-								style={{
-									display: 'block',
-									fontSize: '12px',
-									fontWeight: 500,
-									color: '#1e303a',
-									marginBottom: '6px',
-								}}
-							>
-								{__('Max (€/m²)', 'resa')}
-							</label>
-							<Input
-								type="number"
-								step="0.01"
-								value={formValues.price_max ?? 0}
-								onChange={(e) =>
-									setFormValues((prev) => ({
-										...prev,
-										price_max: Number(e.target.value),
-									}))
-								}
-								style={{ backgroundColor: 'white' }}
-							/>
-						</div>
-					</div>
-					<div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-						<Button
-							variant="outline"
-							onClick={handleCancel}
-							onMouseEnter={() => setCancelHover(true)}
-							onMouseLeave={() => setCancelHover(false)}
+					<form onSubmit={handleSubmit(onSubmit)}>
+						<div
 							style={{
-								backgroundColor: cancelHover ? 'hsl(210 40% 96.1%)' : 'white',
-								color: '#1e303a',
-								border: '1px solid hsl(214.3 31.8% 91.4%)',
-								boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-								cursor: 'pointer',
+								display: 'grid',
+								gridTemplateColumns: 'repeat(3, 1fr)',
+								gap: '16px',
+								marginBottom: '16px',
 							}}
 						>
-							{__('Abbrechen', 'resa')}
-						</Button>
-						<Button
-							onClick={handleSave}
-							disabled={isSaving}
-							onMouseEnter={() => setSaveHover(true)}
-							onMouseLeave={() => setSaveHover(false)}
-							style={{
-								backgroundColor: saveHover ? '#98d438' : '#a9e43f',
-								color: '#1e303a',
-								border: 'none',
-								cursor: isSaving ? 'not-allowed' : 'pointer',
-							}}
-						>
-							{isSaving && (
-								<Spinner
-									style={{ marginRight: '8px', width: '14px', height: '14px' }}
+							<div>
+								<label
+									style={{
+										display: 'block',
+										fontSize: '12px',
+										fontWeight: 500,
+										color: '#1e303a',
+										marginBottom: '6px',
+									}}
+								>
+									{__('Basispreis (EUR/m²)', 'resa')}
+								</label>
+								<Input
+									type="number"
+									step="0.01"
+									{...register('base_price', { valueAsNumber: true })}
+									style={{
+										...inputStyles,
+										borderColor: errors.base_price ? '#ef4444' : undefined,
+									}}
 								/>
-							)}
-							{isSaving ? __('Speichern...', 'resa') : __('Speichern', 'resa')}
-						</Button>
-					</div>
+								{errors.base_price && (
+									<p
+										style={{
+											fontSize: '13px',
+											color: '#ef4444',
+											margin: '4px 0 0 0',
+										}}
+									>
+										{errors.base_price.message}
+									</p>
+								)}
+							</div>
+							<div>
+								<label
+									style={{
+										display: 'block',
+										fontSize: '12px',
+										fontWeight: 500,
+										color: '#1e303a',
+										marginBottom: '6px',
+									}}
+								>
+									{__('Min (EUR/m²)', 'resa')}
+								</label>
+								<Input
+									type="number"
+									step="0.01"
+									{...register('price_min', { valueAsNumber: true })}
+									style={{
+										...inputStyles,
+										borderColor: errors.price_min ? '#ef4444' : undefined,
+									}}
+								/>
+								{errors.price_min && (
+									<p
+										style={{
+											fontSize: '13px',
+											color: '#ef4444',
+											margin: '4px 0 0 0',
+										}}
+									>
+										{errors.price_min.message}
+									</p>
+								)}
+							</div>
+							<div>
+								<label
+									style={{
+										display: 'block',
+										fontSize: '12px',
+										fontWeight: 500,
+										color: '#1e303a',
+										marginBottom: '6px',
+									}}
+								>
+									{__('Max (EUR/m²)', 'resa')}
+								</label>
+								<Input
+									type="number"
+									step="0.01"
+									{...register('price_max', { valueAsNumber: true })}
+									style={{
+										...inputStyles,
+										borderColor: errors.price_max ? '#ef4444' : undefined,
+									}}
+								/>
+								{errors.price_max && (
+									<p
+										style={{
+											fontSize: '13px',
+											color: '#ef4444',
+											margin: '4px 0 0 0',
+										}}
+									>
+										{errors.price_max.message}
+									</p>
+								)}
+							</div>
+						</div>
+						<div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+							<Button
+								type="button"
+								variant="outline"
+								onClick={handleCancel}
+								onMouseEnter={() => setCancelHover(true)}
+								onMouseLeave={() => setCancelHover(false)}
+								style={{
+									backgroundColor: cancelHover ? 'hsl(210 40% 96.1%)' : 'white',
+									color: '#1e303a',
+									border: '1px solid hsl(214.3 31.8% 91.4%)',
+									boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+									cursor: 'pointer',
+								}}
+							>
+								{__('Abbrechen', 'resa')}
+							</Button>
+							<Button
+								type="submit"
+								disabled={isSaving}
+								onMouseEnter={() => setSaveHover(true)}
+								onMouseLeave={() => setSaveHover(false)}
+								style={{
+									backgroundColor: saveHover ? '#98d438' : '#a9e43f',
+									color: '#1e303a',
+									border: 'none',
+									cursor: isSaving ? 'not-allowed' : 'pointer',
+								}}
+							>
+								{isSaving && (
+									<Spinner
+										style={{
+											marginRight: '8px',
+											width: '14px',
+											height: '14px',
+										}}
+									/>
+								)}
+								{isSaving ? __('Speichern...', 'resa') : __('Speichern', 'resa')}
+							</Button>
+						</div>
+					</form>
 				</div>
 			)}
 

@@ -1,28 +1,30 @@
 /**
  * PDF tab — Configure which sections appear in the module's PDF output.
+ *
+ * Uses Zod + React Hook Form for validation.
+ * @see docs/design-system/patterns/form-validation.md
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { __ } from '@wordpress/i18n';
 import { BarChart3, Table2, Map, MessageSquare, AlertTriangle } from 'lucide-react';
-import {
-	useModulePdfSettings,
-	useSaveModulePdfSettings,
-	type ModulePdfSettings,
-} from '../../hooks/useModulePdfSettings';
+import { useModulePdfSettings, useSaveModulePdfSettings } from '../../hooks/useModulePdfSettings';
 
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { LoadingState } from '../LoadingState';
 import { toast } from '../../lib/toast';
+import { pdfSettingsSchema, type PdfSettingsFormData } from '../../schemas/pdfSettings';
 
 interface PdfTabProps {
 	slug: string;
 }
 
 interface SectionToggle {
-	key: keyof ModulePdfSettings;
+	key: keyof PdfSettingsFormData;
 	label: string;
 	description: string;
 	icon: React.ElementType;
@@ -88,26 +90,36 @@ export function PdfTab({ slug }: PdfTabProps) {
 	return <PdfTabInner key={slug} settings={settings} slug={slug} />;
 }
 
-function PdfTabInner({ settings, slug }: { settings: ModulePdfSettings; slug: string }) {
+function PdfTabInner({ settings, slug }: { settings: PdfSettingsFormData; slug: string }) {
 	const saveSettings = useSaveModulePdfSettings(slug);
-	const [local, setLocal] = useState<ModulePdfSettings>(settings);
-	const [hasChanges, setHasChanges] = useState(false);
 	const [saveHover, setSaveHover] = useState(false);
 
-	const toggleSection = (key: keyof ModulePdfSettings) => {
-		setLocal((prev) => ({ ...prev, [key]: !prev[key] }));
-		setHasChanges(true);
+	const defaults: PdfSettingsFormData = {
+		showChart: true,
+		showFactors: true,
+		showMap: true,
+		showCta: true,
+		showDisclaimer: true,
+		ctaTitle: '',
+		ctaText: '',
 	};
 
-	const updateField = (key: keyof ModulePdfSettings, value: string) => {
-		setLocal((prev) => ({ ...prev, [key]: value }));
-		setHasChanges(true);
-	};
+	const form = useForm<PdfSettingsFormData>({
+		resolver: zodResolver(pdfSettingsSchema),
+		defaultValues: defaults,
+	});
 
-	const handleSave = () => {
-		saveSettings.mutate(local, {
+	// Sync server data when loaded
+	useEffect(() => {
+		if (settings) {
+			form.reset(settings);
+		}
+	}, [settings, form]);
+
+	const onSubmit = (data: PdfSettingsFormData) => {
+		saveSettings.mutate(data, {
 			onSuccess: () => {
-				setHasChanges(false);
+				form.reset(data);
 				toast.success(__('PDF-Einstellungen gespeichert.', 'resa'));
 			},
 			onError: () => {
@@ -115,6 +127,13 @@ function PdfTabInner({ settings, slug }: { settings: ModulePdfSettings; slug: st
 			},
 		});
 	};
+
+	const {
+		formState: { isDirty, errors },
+		watch,
+	} = form;
+
+	const showCta = watch('showCta');
 
 	const cardStyle: React.CSSProperties = {
 		backgroundColor: 'hsl(210 40% 96.1%)',
@@ -215,74 +234,93 @@ function PdfTabInner({ settings, slug }: { settings: ModulePdfSettings; slug: st
 
 				{SECTIONS.map((section, index) => {
 					const Icon = section.icon;
-					const checked = local[section.key] as boolean;
 					return (
-						<div
+						<Controller
 							key={section.key}
-							style={{
-								...toggleRowStyle,
-								...(index === SECTIONS.length - 1 ? { borderBottom: 'none' } : {}),
+							name={
+								section.key as
+									| 'showChart'
+									| 'showFactors'
+									| 'showMap'
+									| 'showCta'
+									| 'showDisclaimer'
+							}
+							control={form.control}
+							render={({ field }) => {
+								const checked = field.value as boolean;
+								return (
+									<div
+										style={{
+											...toggleRowStyle,
+											...(index === SECTIONS.length - 1
+												? { borderBottom: 'none' }
+												: {}),
+										}}
+									>
+										<div
+											style={{
+												display: 'flex',
+												alignItems: 'center',
+												gap: '12px',
+												flex: 1,
+											}}
+										>
+											<div
+												style={{
+													display: 'flex',
+													alignItems: 'center',
+													justifyContent: 'center',
+													width: '32px',
+													height: '32px',
+													borderRadius: '6px',
+													backgroundColor: checked
+														? '#a9e43f'
+														: 'hsl(210 40% 96.1%)',
+													color: '#1e303a',
+													flexShrink: 0,
+												}}
+											>
+												<Icon style={{ width: '16px', height: '16px' }} />
+											</div>
+											<div>
+												<div
+													style={{
+														fontSize: '14px',
+														fontWeight: 500,
+														color: '#1e303a',
+													}}
+												>
+													{section.label}
+												</div>
+												<div
+													style={{
+														fontSize: '12px',
+														color: '#1e303a',
+														marginTop: '2px',
+													}}
+												>
+													{section.description}
+												</div>
+											</div>
+										</div>
+										<button
+											onClick={() => field.onChange(!checked)}
+											style={switchStyle(checked)}
+											type="button"
+											aria-label={section.label}
+										>
+											<span style={switchKnobStyle(checked)} />
+										</button>
+									</div>
+								);
 							}}
-						>
-							<div
-								style={{
-									display: 'flex',
-									alignItems: 'center',
-									gap: '12px',
-									flex: 1,
-								}}
-							>
-								<div
-									style={{
-										display: 'flex',
-										alignItems: 'center',
-										justifyContent: 'center',
-										width: '32px',
-										height: '32px',
-										borderRadius: '6px',
-										backgroundColor: checked ? '#a9e43f' : 'hsl(210 40% 96.1%)',
-										color: '#1e303a',
-										flexShrink: 0,
-									}}
-								>
-									<Icon style={{ width: '16px', height: '16px' }} />
-								</div>
-								<div>
-									<div
-										style={{
-											fontSize: '14px',
-											fontWeight: 500,
-											color: '#1e303a',
-										}}
-									>
-										{section.label}
-									</div>
-									<div
-										style={{
-											fontSize: '12px',
-											color: '#1e303a',
-											marginTop: '2px',
-										}}
-									>
-										{section.description}
-									</div>
-								</div>
-							</div>
-							<button
-								onClick={() => toggleSection(section.key)}
-								style={switchStyle(checked)}
-								type="button"
-								aria-label={section.label}
-							>
-								<span style={switchKnobStyle(checked)} />
-							</button>
-						</div>
+						/>
 					);
 				})}
 			</div>
 
 			{/* CTA customization (only visible when CTA is enabled) */}
-			{local.showCta && (
+			{showCta && (
 				<div style={cardStyle}>
 					<h3
 						style={{
@@ -322,14 +360,27 @@ function PdfTabInner({ settings, slug }: { settings: ModulePdfSettings; slug: st
 							</label>
 							<input
 								type="text"
-								value={local.ctaTitle}
-								onChange={(e) => updateField('ctaTitle', e.target.value)}
+								{...form.register('ctaTitle')}
 								placeholder={__(
 									'Interesse an einer persönlichen Beratung?',
 									'resa',
 								)}
-								style={inputStyle}
+								style={{
+									...inputStyle,
+									borderColor: errors.ctaTitle ? '#ef4444' : undefined,
+								}}
 							/>
+							{errors.ctaTitle && (
+								<p
+									style={{
+										fontSize: '13px',
+										color: '#ef4444',
+										margin: '4px 0 0 0',
+									}}
+								>
+									{errors.ctaTitle.message}
+								</p>
+							)}
 						</div>
 						<div>
 							<label
@@ -345,14 +396,27 @@ function PdfTabInner({ settings, slug }: { settings: ModulePdfSettings; slug: st
 							</label>
 							<input
 								type="text"
-								value={local.ctaText}
-								onChange={(e) => updateField('ctaText', e.target.value)}
+								{...form.register('ctaText')}
 								placeholder={__(
 									'Kontaktieren Sie {name} für eine unverbindliche Einschätzung.',
 									'resa',
 								)}
-								style={inputStyle}
+								style={{
+									...inputStyle,
+									borderColor: errors.ctaText ? '#ef4444' : undefined,
+								}}
 							/>
+							{errors.ctaText && (
+								<p
+									style={{
+										fontSize: '13px',
+										color: '#ef4444',
+										margin: '4px 0 0 0',
+									}}
+								>
+									{errors.ctaText.message}
+								</p>
+							)}
 							<p
 								style={{
 									fontSize: '11px',
@@ -374,19 +438,19 @@ function PdfTabInner({ settings, slug }: { settings: ModulePdfSettings; slug: st
 			{/* Save button */}
 			<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
 				<Button
-					onClick={handleSave}
-					disabled={!hasChanges || saveSettings.isPending}
+					onClick={form.handleSubmit(onSubmit)}
+					disabled={!isDirty || saveSettings.isPending}
 					onMouseEnter={() => setSaveHover(true)}
 					onMouseLeave={() => setSaveHover(false)}
 					style={{
-						backgroundColor: !hasChanges
+						backgroundColor: !isDirty
 							? 'hsl(210 40% 96.1%)'
 							: saveHover
 								? '#98d438'
 								: '#a9e43f',
-						color: hasChanges ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
+						color: isDirty ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
 						border: 'none',
-						cursor: hasChanges ? 'pointer' : 'not-allowed',
+						cursor: isDirty ? 'pointer' : 'not-allowed',
 					}}
 				>
 					{saveSettings.isPending ? (

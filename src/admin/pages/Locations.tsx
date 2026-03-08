@@ -216,7 +216,8 @@ export function Locations() {
 				slug: editingLocation.slug,
 				country: editingLocation.country ?? '',
 				bundesland: editingLocation.bundesland ?? '',
-				region_type: editingLocation.region_type ?? 'medium_city',
+				region_type: (editingLocation.region_type ??
+					'medium_city') as LocationFormData['region_type'],
 				latitude: editingLocation.latitude,
 				longitude: editingLocation.longitude,
 				zoom_level: editingLocation.zoom_level ?? 13,

@@ -7,9 +7,17 @@
  * Uses inline styles for consistent WP Admin styling.
  */
 
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { __ } from '@wordpress/i18n';
 import { Paperclip } from 'lucide-react';
+import {
+	emailTemplateSchema,
+	type EmailTemplateFormData,
+	testEmailSchema,
+	type TestEmailFormData,
+} from '../../schemas/emailTemplate';
 
 import { AdminPageLayout } from '../AdminPageLayout';
 import { EmailEditor } from './tiptap/EmailEditor';
@@ -218,46 +226,79 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 	const resetMutation = useResetEmailTemplate(templateId);
 	const testMutation = useSendTestEmail(templateId);
 
-	// Local editor state — initialized from API data.
-	const [subject, setSubject] = useState(template.subject);
-	const [body, setBody] = useState(template.body);
-	const [isActive, setIsActive] = useState(template.is_active);
-	const [isDirty, setIsDirty] = useState(false);
+	// React Hook Form for template data
+	const form = useForm<EmailTemplateFormData>({
+		resolver: zodResolver(emailTemplateSchema),
+		defaultValues: {
+			subject: template.subject,
+			body: template.body,
+			is_active: template.is_active,
+		},
+	});
 
-	// Dialog states.
+	// React Hook Form for test email dialog
+	const testForm = useForm<TestEmailFormData>({
+		resolver: zodResolver(testEmailSchema),
+		defaultValues: {
+			email: '',
+		},
+	});
+
+	// Sync server data when template changes (e.g. after reset via query invalidation)
+	useEffect(() => {
+		form.reset({
+			subject: template.subject,
+			body: template.body,
+			is_active: template.is_active,
+		});
+	}, [template, form]);
+
+	// Dialog states
 	const [resetDialogOpen, setResetDialogOpen] = useState(false);
 	const [testDialogOpen, setTestDialogOpen] = useState(false);
-	const [testEmail, setTestEmail] = useState('');
 
-	const handleSave = async () => {
-		try {
-			await saveMutation.mutateAsync({ subject, body, is_active: isActive });
-			setIsDirty(false);
-			toast.success(__('Vorlage gespeichert.', 'resa'));
-		} catch {
-			toast.error(__('Fehler beim Speichern.', 'resa'));
-		}
+	const {
+		formState: { isDirty, errors },
+		watch,
+	} = form;
+
+	// Watch values for live preview
+	const watchedSubject = watch('subject');
+	const watchedBody = watch('body');
+
+	const onSubmit = (data: EmailTemplateFormData) => {
+		saveMutation.mutate(data, {
+			onSuccess: () => {
+				form.reset(data);
+				toast.success(__('Vorlage gespeichert.', 'resa'));
+			},
+			onError: () => {
+				toast.error(__('Fehler beim Speichern.', 'resa'));
+			},
+		});
 	};
 
 	const handleReset = async () => {
 		try {
 			await resetMutation.mutateAsync();
 			setResetDialogOpen(false);
-			setIsDirty(false);
 			toast.success(__('Vorlage zurückgesetzt.', 'resa'));
 		} catch {
 			toast.error(__('Fehler beim Zurücksetzen.', 'resa'));
 		}
 	};
 
-	const handleTest = async () => {
-		try {
-			await testMutation.mutateAsync(testEmail);
-			setTestDialogOpen(false);
-			toast.success(__('Test-Mail gesendet.', 'resa'));
-		} catch (e) {
-			toast.error(e instanceof Error ? e.message : __('Fehler beim Versand.', 'resa'));
-		}
+	const onTestSubmit = (data: TestEmailFormData) => {
+		testMutation.mutate(data.email, {
+			onSuccess: () => {
+				setTestDialogOpen(false);
+				testForm.reset();
+				toast.success(__('Test-Mail gesendet.', 'resa'));
+			},
+			onError: (e) => {
+				toast.error(e instanceof Error ? e.message : __('Fehler beim Versand.', 'resa'));
+			},
+		});
 	};
 
 	return (
@@ -302,13 +343,16 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 										)}
 									</p>
 								</div>
-								<Switch
-									id="template-active"
-									checked={isActive}
-									onCheckedChange={(checked) => {
-										setIsActive(checked);
-										setIsDirty(true);
-									}}
+								<Controller
+									name="is_active"
+									control={form.control}
+									render={({ field }) => (
+										<Switch
+											id="template-active"
+											checked={field.value}
+											onCheckedChange={field.onChange}
+										/>
+									)}
 								/>
 							</div>
 
@@ -319,29 +363,41 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 								</Label>
 								<Input
 									id="template-subject"
-									value={subject}
-									onChange={(e) => {
-										setSubject(e.target.value);
-										setIsDirty(true);
-									}}
+									{...form.register('subject')}
 									placeholder={__('E-Mail-Betreff...', 'resa')}
-									style={inputStyles}
+									style={{
+										...inputStyles,
+										borderColor: errors.subject ? '#ef4444' : undefined,
+									}}
 								/>
+								{errors.subject && (
+									<p style={{ fontSize: '13px', color: '#ef4444', margin: 0 }}>
+										{errors.subject.message}
+									</p>
+								)}
 							</div>
 
 							{/* Body Editor */}
 							<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
 								<Label style={labelStyles}>{__('Inhalt', 'resa')}</Label>
-								<EmailEditor
-									content={body}
-									onUpdate={(html) => {
-										setBody(html);
-										setIsDirty(true);
-									}}
-									availableVariables={template.available_variables}
-									variableLabels={template.variable_labels}
-									variableGroups={template.variable_groups}
+								<Controller
+									name="body"
+									control={form.control}
+									render={({ field }) => (
+										<EmailEditor
+											content={field.value}
+											onUpdate={field.onChange}
+											availableVariables={template.available_variables}
+											variableLabels={template.variable_labels}
+											variableGroups={template.variable_groups}
+										/>
+									)}
 								/>
+								{errors.body && (
+									<p style={{ fontSize: '13px', color: '#ef4444', margin: 0 }}>
+										{errors.body.message}
+									</p>
+								)}
 							</div>
 
 							{/* Attachment info */}
@@ -399,8 +455,8 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 					<ResizablePanel defaultSize={45} minSize={20}>
 						<div style={{ paddingLeft: '20px', height: '100%' }}>
 							<TemplatePreview
-								subject={subject}
-								body={body}
+								subject={watchedSubject}
+								body={watchedBody}
 								exampleValues={template.example_values}
 							/>
 						</div>
@@ -422,17 +478,12 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 					>
 						{__('Auf Standard zurücksetzen', 'resa')}
 					</OutlineButton>
-					<OutlineButton
-						onClick={() => {
-							setTestEmail(window.resaAdmin?.adminEmail || '');
-							setTestDialogOpen(true);
-						}}
-					>
+					<OutlineButton onClick={() => setTestDialogOpen(true)}>
 						{__('Test-Mail senden', 'resa')}
 					</OutlineButton>
 					<div style={{ marginLeft: 'auto' }}>
 						<PrimaryButton
-							onClick={handleSave}
+							onClick={form.handleSubmit(onSubmit)}
 							disabled={saveMutation.isPending || !isDirty}
 						>
 							{saveMutation.isPending && (
@@ -475,7 +526,16 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 			</Dialog>
 
 			{/* Test Email Dialog */}
-			<Dialog open={testDialogOpen} onOpenChange={setTestDialogOpen}>
+			<Dialog
+				open={testDialogOpen}
+				onOpenChange={(open) => {
+					setTestDialogOpen(open);
+					if (open) {
+						// Pre-fill with admin email when opening
+						testForm.reset({ email: window.resaAdmin?.adminEmail || '' });
+					}
+				}}
+			>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>{__('Test-Mail senden', 'resa')}</DialogTitle>
@@ -493,19 +553,28 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 						<Input
 							id="test-email"
 							type="email"
-							value={testEmail}
-							onChange={(e) => setTestEmail(e.target.value)}
+							{...testForm.register('email')}
 							placeholder="test@example.com"
-							style={inputStyles}
+							style={{
+								...inputStyles,
+								borderColor: testForm.formState.errors.email
+									? '#ef4444'
+									: undefined,
+							}}
 						/>
+						{testForm.formState.errors.email && (
+							<p style={{ fontSize: '13px', color: '#ef4444', margin: 0 }}>
+								{testForm.formState.errors.email.message}
+							</p>
+						)}
 					</div>
 					<DialogFooter>
 						<OutlineButton onClick={() => setTestDialogOpen(false)}>
 							{__('Schließen', 'resa')}
 						</OutlineButton>
 						<PrimaryButton
-							onClick={handleTest}
-							disabled={testMutation.isPending || !testEmail}
+							onClick={testForm.handleSubmit(onTestSubmit)}
+							disabled={testMutation.isPending}
 						>
 							{testMutation.isPending && (
 								<Spinner

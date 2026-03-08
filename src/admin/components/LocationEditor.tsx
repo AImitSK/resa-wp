@@ -4,9 +4,14 @@
  * Simplified version: Only basic location info (name, region, taxes).
  * Calculation factors are now managed in module settings.
  * Now includes map picker for setting coordinates.
+ *
+ * Uses Zod + React Hook Form for validation.
+ * @see docs/design-system/patterns/form-validation.md
  */
 
-import { useState, useCallback, type ReactNode } from 'react';
+import { useState, useCallback, useEffect, type ReactNode } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { __ } from '@wordpress/i18n';
 
 import { Button } from '@/components/ui/button';
@@ -86,6 +91,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { LocationMapPicker } from './LocationMapPicker';
+import { locationSchema, type LocationFormData } from '../schemas/location';
 
 interface LocationEditorProps {
 	initialData?: LocationFormData;
@@ -94,21 +100,8 @@ interface LocationEditorProps {
 	isSaving: boolean;
 }
 
-export interface LocationFormData {
-	name: string;
-	slug: string;
-	country: string;
-	bundesland: string;
-	region_type: string;
-	latitude?: number | null;
-	longitude?: number | null;
-	zoom_level?: number;
-	data: {
-		grunderwerbsteuer?: number;
-		maklerprovision?: number;
-		[key: string]: unknown;
-	};
-}
+// Re-export für externe Nutzung
+export type { LocationFormData } from '../schemas/location';
 
 /** Region types for selection. */
 const REGION_TYPES = [
@@ -116,7 +109,7 @@ const REGION_TYPES = [
 	{ value: 'small_town', label: 'Kleinstadt / Stadtrand' },
 	{ value: 'medium_city', label: 'Mittelstadt' },
 	{ value: 'large_city', label: 'Großstadt / Zentrum' },
-];
+] as const;
 
 function slugify(text: string): string {
 	return text
@@ -129,7 +122,7 @@ function slugify(text: string): string {
 		.replace(/^-|-$/g, '');
 }
 
-const emptyForm: LocationFormData = {
+const defaultValues: LocationFormData = {
 	name: '',
 	slug: '',
 	country: '',
@@ -145,32 +138,45 @@ const emptyForm: LocationFormData = {
 };
 
 export function LocationEditor({ initialData, onSave, onCancel, isSaving }: LocationEditorProps) {
-	const [form, setForm] = useState<LocationFormData>(initialData ?? emptyForm);
 	const [autoSlug, setAutoSlug] = useState(!initialData);
 
-	const updateName = (name: string) => {
-		setForm((prev) => ({
-			...prev,
-			name,
-			slug: autoSlug ? slugify(name) : prev.slug,
-		}));
-	};
+	const form = useForm<LocationFormData>({
+		resolver: zodResolver(locationSchema),
+		defaultValues: initialData ?? defaultValues,
+	});
+
+	// Sync server data when loaded (for edit mode)
+	useEffect(() => {
+		if (initialData) {
+			form.reset(initialData);
+		}
+	}, [initialData, form]);
+
+	const {
+		formState: { errors },
+	} = form;
+
+	// Watch name field for auto-slug generation
+	const watchedName = form.watch('name');
+
+	// Auto-generate slug when name changes (only if autoSlug is enabled)
+	useEffect(() => {
+		if (autoSlug && watchedName) {
+			form.setValue('slug', slugify(watchedName), { shouldDirty: true });
+		}
+	}, [watchedName, autoSlug, form]);
 
 	const handleCoordinatesChange = useCallback(
 		(lat: number | null, lng: number | null, zoom: number) => {
-			setForm((prev) => ({
-				...prev,
-				latitude: lat,
-				longitude: lng,
-				zoom_level: zoom,
-			}));
+			form.setValue('latitude', lat, { shouldDirty: true });
+			form.setValue('longitude', lng, { shouldDirty: true });
+			form.setValue('zoom_level', zoom, { shouldDirty: true });
 		},
-		[],
+		[form],
 	);
 
-	const handleSubmit = (e: React.FormEvent) => {
-		e.preventDefault();
-		onSave(form);
+	const onSubmit = (data: LocationFormData) => {
+		onSave(data);
 	};
 
 	const cardStyle: React.CSSProperties = {
@@ -192,9 +198,19 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 		margin: '4px 0 16px 0',
 	};
 
+	const inputStyle: React.CSSProperties = {
+		backgroundColor: 'white',
+	};
+
+	const errorStyle: React.CSSProperties = {
+		fontSize: '13px',
+		color: '#ef4444',
+		margin: '4px 0 0 0',
+	};
+
 	return (
 		<form
-			onSubmit={handleSubmit}
+			onSubmit={form.handleSubmit(onSubmit)}
 			style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
 		>
 			{/* Page header */}
@@ -221,12 +237,14 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 						</Label>
 						<Input
 							id="location-name"
-							value={form.name}
-							onChange={(e) => updateName(e.target.value)}
+							{...form.register('name')}
 							placeholder={__('z.B. München', 'resa')}
-							required
-							style={{ backgroundColor: 'white' }}
+							style={{
+								...inputStyle,
+								borderColor: errors.name ? '#ef4444' : undefined,
+							}}
 						/>
+						{errors.name && <p style={errorStyle}>{errors.name.message}</p>}
 					</div>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
 						<Label htmlFor="location-slug" style={{ color: '#1e303a' }}>
@@ -234,14 +252,16 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 						</Label>
 						<Input
 							id="location-slug"
-							value={form.slug}
-							onChange={(e) => {
-								setAutoSlug(false);
-								setForm((prev) => ({ ...prev, slug: e.target.value }));
-							}}
+							{...form.register('slug', {
+								onChange: () => setAutoSlug(false),
+							})}
 							placeholder={__('z.B. muenchen', 'resa')}
-							style={{ backgroundColor: 'white' }}
+							style={{
+								...inputStyle,
+								borderColor: errors.slug ? '#ef4444' : undefined,
+							}}
 						/>
+						{errors.slug && <p style={errorStyle}>{errors.slug.message}</p>}
 					</div>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
 						<Label htmlFor="location-country" style={{ color: '#1e303a' }}>
@@ -249,14 +269,14 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 						</Label>
 						<Input
 							id="location-country"
-							value={form.country}
-							onChange={(e) =>
-								setForm((prev) => ({ ...prev, country: e.target.value }))
-							}
+							{...form.register('country')}
 							placeholder={__('z.B. Deutschland, Österreich, Rumänien...', 'resa')}
-							required
-							style={{ backgroundColor: 'white' }}
+							style={{
+								...inputStyle,
+								borderColor: errors.country ? '#ef4444' : undefined,
+							}}
 						/>
+						{errors.country && <p style={errorStyle}>{errors.country.message}</p>}
 					</div>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
 						<Label htmlFor="location-bundesland" style={{ color: '#1e303a' }}>
@@ -264,42 +284,54 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 						</Label>
 						<Input
 							id="location-bundesland"
-							value={form.bundesland}
-							onChange={(e) =>
-								setForm((prev) => ({ ...prev, bundesland: e.target.value }))
-							}
+							{...form.register('bundesland')}
 							placeholder={__('z.B. Bayern, Wien, București...', 'resa')}
-							style={{ backgroundColor: 'white' }}
+							style={{
+								...inputStyle,
+								borderColor: errors.bundesland ? '#ef4444' : undefined,
+							}}
 						/>
+						{errors.bundesland && <p style={errorStyle}>{errors.bundesland.message}</p>}
 					</div>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
 						<Label htmlFor="location-region-type" style={{ color: '#1e303a' }}>
 							{__('Regionstyp', 'resa')}
 						</Label>
-						<select
-							id="location-region-type"
-							style={{
-								height: '36px',
-								width: '100%',
-								borderRadius: '6px',
-								border: '1px solid hsl(214.3 31.8% 78%)',
-								backgroundColor: 'white',
-								padding: '0 12px',
-								fontSize: '14px',
-								color: '#1e303a',
-								boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-							}}
-							value={form.region_type}
-							onChange={(e) =>
-								setForm((prev) => ({ ...prev, region_type: e.target.value }))
-							}
-						>
-							{REGION_TYPES.map((rt) => (
-								<option key={rt.value} value={rt.value}>
-									{rt.label}
-								</option>
-							))}
-						</select>
+						<Controller
+							name="region_type"
+							control={form.control}
+							render={({ field }) => (
+								<select
+									id="location-region-type"
+									value={field.value}
+									onChange={(e) =>
+										field.onChange(
+											e.target.value as LocationFormData['region_type'],
+										)
+									}
+									style={{
+										height: '36px',
+										width: '100%',
+										borderRadius: '6px',
+										border: `1px solid ${errors.region_type ? '#ef4444' : 'hsl(214.3 31.8% 78%)'}`,
+										backgroundColor: 'white',
+										padding: '0 12px',
+										fontSize: '14px',
+										color: '#1e303a',
+										boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+									}}
+								>
+									{REGION_TYPES.map((rt) => (
+										<option key={rt.value} value={rt.value}>
+											{rt.label}
+										</option>
+									))}
+								</select>
+							)}
+						/>
+						{errors.region_type && (
+							<p style={errorStyle}>{errors.region_type.message}</p>
+						)}
 					</div>
 				</div>
 			</div>
@@ -312,9 +344,9 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 				</p>
 
 				<LocationMapPicker
-					latitude={form.latitude}
-					longitude={form.longitude}
-					zoomLevel={form.zoom_level ?? 13}
+					latitude={form.watch('latitude')}
+					longitude={form.watch('longitude')}
+					zoomLevel={form.watch('zoom_level') ?? 13}
 					onCoordinatesChange={handleCoordinatesChange}
 				/>
 			</div>
@@ -331,47 +363,59 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 						<Label htmlFor="location-grest" style={{ color: '#1e303a' }}>
 							{__('Grunderwerbsteuer (%)', 'resa')}
 						</Label>
-						<Input
-							id="location-grest"
-							type="number"
-							step="0.1"
-							min="0"
-							max="10"
-							value={form.data.grunderwerbsteuer ?? 5.0}
-							onChange={(e) =>
-								setForm((prev) => ({
-									...prev,
-									data: {
-										...prev.data,
-										grunderwerbsteuer: Number(e.target.value),
-									},
-								}))
-							}
-							style={{ backgroundColor: 'white' }}
+						<Controller
+							name="data.grunderwerbsteuer"
+							control={form.control}
+							render={({ field }) => (
+								<Input
+									id="location-grest"
+									type="number"
+									step="0.1"
+									min="0"
+									max="10"
+									value={field.value ?? 5.0}
+									onChange={(e) => field.onChange(Number(e.target.value))}
+									style={{
+										...inputStyle,
+										borderColor: errors.data?.grunderwerbsteuer
+											? '#ef4444'
+											: undefined,
+									}}
+								/>
+							)}
 						/>
+						{errors.data?.grunderwerbsteuer && (
+							<p style={errorStyle}>{errors.data.grunderwerbsteuer.message}</p>
+						)}
 					</div>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
 						<Label htmlFor="location-makler" style={{ color: '#1e303a' }}>
 							{__('Maklerprovision (%)', 'resa')}
 						</Label>
-						<Input
-							id="location-makler"
-							type="number"
-							step="0.01"
-							min="0"
-							max="10"
-							value={form.data.maklerprovision ?? 3.57}
-							onChange={(e) =>
-								setForm((prev) => ({
-									...prev,
-									data: {
-										...prev.data,
-										maklerprovision: Number(e.target.value),
-									},
-								}))
-							}
-							style={{ backgroundColor: 'white' }}
+						<Controller
+							name="data.maklerprovision"
+							control={form.control}
+							render={({ field }) => (
+								<Input
+									id="location-makler"
+									type="number"
+									step="0.01"
+									min="0"
+									max="10"
+									value={field.value ?? 3.57}
+									onChange={(e) => field.onChange(Number(e.target.value))}
+									style={{
+										...inputStyle,
+										borderColor: errors.data?.maklerprovision
+											? '#ef4444'
+											: undefined,
+									}}
+								/>
+							)}
 						/>
+						{errors.data?.maklerprovision && (
+							<p style={errorStyle}>{errors.data.maklerprovision.message}</p>
+						)}
 						<p style={{ fontSize: '12px', color: '#1e303a', margin: '4px 0 0 0' }}>
 							{__('Standard: 3,57% (inkl. MwSt.)', 'resa')}
 						</p>
@@ -389,7 +433,7 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 				}}
 			>
 				<OutlineButton onClick={onCancel}>{__('Abbrechen', 'resa')}</OutlineButton>
-				<PrimaryButton type="submit" disabled={isSaving || !form.name}>
+				<PrimaryButton type="submit" disabled={isSaving || !form.watch('name')}>
 					{isSaving && <Spinner className="resa-mr-2" />}
 					{isSaving ? __('Speichern...', 'resa') : __('Speichern', 'resa')}
 				</PrimaryButton>

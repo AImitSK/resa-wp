@@ -4,9 +4,14 @@
  * Allows creating, editing, testing, toggling, and deleting messenger
  * connections for Slack, Microsoft Teams, and Discord.
  * Limited to 5 connections. Premium-only (gate is handled at page level).
+ *
+ * Uses Zod + React Hook Form for validation.
+ * @see docs/design-system/patterns/form-validation.md
  */
 
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { __ } from '@wordpress/i18n';
 import { Plus, Pencil, Trash2, Send, MoreHorizontal } from 'lucide-react';
 
@@ -17,7 +22,8 @@ import {
 	useDeleteMessenger,
 	useTestMessenger,
 } from '../../hooks/useMessengers';
-import type { MessengerConfig, MessengerFormData, MessengerPlatform } from '../../types';
+import type { MessengerConfig, MessengerPlatform } from '../../types';
+import { messengerFormSchema, type MessengerFormData } from '../../schemas/messenger';
 
 import {
 	Dialog,
@@ -144,6 +150,17 @@ function platformBadgeStyle(platform: MessengerPlatform): React.CSSProperties {
 	};
 }
 
+// ─── Input Styles ────────────────────────────────────────
+
+const inputStyles: React.CSSProperties = {
+	height: '36px',
+	padding: '0 12px',
+	fontSize: '14px',
+	border: '1px solid hsl(214.3 31.8% 78%)',
+	borderRadius: '6px',
+	backgroundColor: 'white',
+};
+
 export function MessengerTab() {
 	const { data: messengers, isLoading } = useMessengers();
 	const createMutation = useCreateMessenger();
@@ -156,53 +173,75 @@ export function MessengerTab() {
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [messengerToDelete, setMessengerToDelete] = useState<MessengerConfig | null>(null);
 
-	// Form state.
-	const [formName, setFormName] = useState('');
-	const [formPlatform, setFormPlatform] = useState<MessengerPlatform>('slack');
-	const [formUrl, setFormUrl] = useState('');
-	const [formActive, setFormActive] = useState(true);
+	// Default form values
+	const defaults: MessengerFormData = {
+		name: '',
+		platform: 'slack',
+		webhookUrl: '',
+		isActive: true,
+	};
+
+	const form = useForm<MessengerFormData>({
+		resolver: zodResolver(messengerFormSchema),
+		defaultValues: defaults,
+	});
+
+	const {
+		formState: { errors },
+	} = form;
+
+	// Watch platform for placeholder updates
+	const watchedPlatform = form.watch('platform');
+
+	// Reset form when dialog opens/closes
+	useEffect(() => {
+		if (dialogOpen) {
+			if (editingMessenger) {
+				form.reset({
+					name: editingMessenger.name,
+					platform: editingMessenger.platform,
+					webhookUrl: editingMessenger.webhookUrl,
+					isActive: editingMessenger.isActive,
+				});
+			} else {
+				form.reset(defaults);
+			}
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [dialogOpen, editingMessenger]);
 
 	const openCreateDialog = () => {
 		setEditingMessenger(null);
-		setFormName('');
-		setFormPlatform('slack');
-		setFormUrl('');
-		setFormActive(true);
 		setDialogOpen(true);
 	};
 
 	const openEditDialog = (messenger: MessengerConfig) => {
 		setEditingMessenger(messenger);
-		setFormName(messenger.name);
-		setFormPlatform(messenger.platform);
-		setFormUrl(messenger.webhookUrl);
-		setFormActive(messenger.isActive);
 		setDialogOpen(true);
 	};
 
-	const handleSave = async () => {
+	const handleCloseDialog = () => {
+		setDialogOpen(false);
+		form.reset(defaults);
+	};
+
+	const onSubmit = async (data: MessengerFormData) => {
 		try {
 			if (editingMessenger) {
 				await updateMutation.mutateAsync({
 					id: editingMessenger.id,
 					data: {
-						name: formName,
-						webhookUrl: formUrl,
-						isActive: formActive,
+						name: data.name,
+						webhookUrl: data.webhookUrl,
+						isActive: data.isActive,
 					},
 				});
 				toast.success(__('Verbindung aktualisiert.', 'resa'));
 			} else {
-				const data: MessengerFormData = {
-					name: formName,
-					platform: formPlatform,
-					webhookUrl: formUrl,
-					isActive: formActive,
-				};
 				await createMutation.mutateAsync(data);
 				toast.success(__('Verbindung erstellt.', 'resa'));
 			}
-			setDialogOpen(false);
+			handleCloseDialog();
 		} catch {
 			toast.error(__('Fehler beim Speichern der Verbindung.', 'resa'));
 		}
@@ -252,7 +291,6 @@ export function MessengerTab() {
 		}
 	};
 
-	const isFormValid = formName.trim() !== '' && formUrl.trim() !== '';
 	const isSaving = createMutation.isPending || updateMutation.isPending;
 	const count = messengers?.length ?? 0;
 	const isAtLimit = count >= MAX_MESSENGERS;
@@ -634,7 +672,7 @@ export function MessengerTab() {
 			</div>
 
 			{/* Create / Edit Dialog */}
-			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+			<Dialog open={dialogOpen} onOpenChange={(open) => !open && handleCloseDialog()}>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>
@@ -649,23 +687,31 @@ export function MessengerTab() {
 						{!editingMessenger && (
 							<div className="resa-space-y-2">
 								<Label>{__('Plattform', 'resa')}</Label>
-								<div className="resa-flex resa-gap-2">
-									{PLATFORMS.map((p) => (
-										<Button
-											key={p.value}
-											variant={
-												formPlatform === p.value ? 'default' : 'outline'
-											}
-											size="sm"
-											onClick={() => {
-												setFormPlatform(p.value);
-												setFormUrl('');
-											}}
-										>
-											{p.label}
-										</Button>
-									))}
-								</div>
+								<Controller
+									name="platform"
+									control={form.control}
+									render={({ field }) => (
+										<div className="resa-flex resa-gap-2">
+											{PLATFORMS.map((p) => (
+												<Button
+													key={p.value}
+													variant={
+														field.value === p.value
+															? 'default'
+															: 'outline'
+													}
+													size="sm"
+													onClick={() => {
+														field.onChange(p.value);
+														form.setValue('webhookUrl', '');
+													}}
+												>
+													{p.label}
+												</Button>
+											))}
+										</div>
+									)}
+								/>
 							</div>
 						)}
 
@@ -692,10 +738,18 @@ export function MessengerTab() {
 							<Label htmlFor="messenger-name">{__('Name', 'resa')}</Label>
 							<Input
 								id="messenger-name"
-								value={formName}
-								onChange={(e) => setFormName(e.target.value)}
+								{...form.register('name')}
 								placeholder={__('z.B. Lead-Kanal Berlin', 'resa')}
+								style={{
+									...inputStyles,
+									borderColor: errors.name ? '#ef4444' : undefined,
+								}}
 							/>
+							{errors.name && (
+								<p style={{ fontSize: '13px', color: '#ef4444', margin: 0 }}>
+									{errors.name.message}
+								</p>
+							)}
 						</div>
 
 						{/* Webhook URL */}
@@ -704,35 +758,49 @@ export function MessengerTab() {
 							<Input
 								id="messenger-url"
 								type="url"
-								value={formUrl}
-								onChange={(e) => setFormUrl(e.target.value)}
+								{...form.register('webhookUrl')}
 								placeholder={
 									PLATFORM_PLACEHOLDERS[
-										editingMessenger?.platform ?? formPlatform
+										editingMessenger?.platform ?? watchedPlatform
 									]
 								}
+								style={{
+									...inputStyles,
+									borderColor: errors.webhookUrl ? '#ef4444' : undefined,
+								}}
 							/>
+							{errors.webhookUrl && (
+								<p style={{ fontSize: '13px', color: '#ef4444', margin: 0 }}>
+									{errors.webhookUrl.message}
+								</p>
+							)}
 							<p className="resa-text-xs resa-text-muted-foreground">
-								{PLATFORM_HELP[editingMessenger?.platform ?? formPlatform]}
+								{PLATFORM_HELP[editingMessenger?.platform ?? watchedPlatform]}
 							</p>
 						</div>
 
 						{/* Active toggle */}
 						<div className="resa-flex resa-items-center resa-justify-between">
 							<Label htmlFor="messenger-active">{__('Aktiv', 'resa')}</Label>
-							<Switch
-								id="messenger-active"
-								checked={formActive}
-								onCheckedChange={setFormActive}
+							<Controller
+								name="isActive"
+								control={form.control}
+								render={({ field }) => (
+									<Switch
+										id="messenger-active"
+										checked={field.value}
+										onCheckedChange={field.onChange}
+									/>
+								)}
 							/>
 						</div>
 					</div>
 
 					<DialogFooter>
-						<OutlineButton onClick={() => setDialogOpen(false)}>
+						<OutlineButton onClick={handleCloseDialog}>
 							{__('Abbrechen', 'resa')}
 						</OutlineButton>
-						<PrimaryButton onClick={handleSave} disabled={!isFormValid || isSaving}>
+						<PrimaryButton onClick={form.handleSubmit(onSubmit)} disabled={isSaving}>
 							{isSaving ? __('Speichern...', 'resa') : __('Speichern', 'resa')}
 						</PrimaryButton>
 					</DialogFooter>

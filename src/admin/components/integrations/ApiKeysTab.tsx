@@ -6,6 +6,8 @@
  */
 
 import { useState, type ReactNode } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { __ } from '@wordpress/i18n';
 import {
 	Plus,
@@ -57,6 +59,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { LoadingState } from '../LoadingState';
+import { apiKeyCreateSchema, type ApiKeyCreateFormData } from '../../schemas/apiKey';
 
 // ─── Styled Button Components ────────────────────────────
 
@@ -131,20 +134,32 @@ export function ApiKeysTab() {
 	const [createDialogOpen, setCreateDialogOpen] = useState(false);
 	const [revealDialogOpen, setRevealDialogOpen] = useState(false);
 	const [createdKey, setCreatedKey] = useState<ApiKeyCreateResponse | null>(null);
-	const [formName, setFormName] = useState('');
 	const [copied, setCopied] = useState(false);
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [apiKeyToDelete, setApiKeyToDelete] = useState<ApiKeyConfig | null>(null);
 
+	const form = useForm<ApiKeyCreateFormData>({
+		resolver: zodResolver(apiKeyCreateSchema),
+		defaultValues: { name: '' },
+	});
+
 	const openCreateDialog = () => {
-		setFormName('');
+		form.reset({ name: '' });
 		setCreateDialogOpen(true);
 	};
 
-	const handleCreate = async () => {
+	const handleCloseCreateDialog = (open: boolean) => {
+		if (!open) {
+			form.reset({ name: '' });
+		}
+		setCreateDialogOpen(open);
+	};
+
+	const handleCreate = async (data: ApiKeyCreateFormData) => {
 		try {
-			const result = await createMutation.mutateAsync({ name: formName });
+			const result = await createMutation.mutateAsync({ name: data.name });
 			setCreateDialogOpen(false);
+			form.reset({ name: '' });
 			setCreatedKey(result);
 			setRevealDialogOpen(true);
 		} catch {
@@ -489,7 +504,7 @@ export function ApiKeysTab() {
 			<EndpointDocs />
 
 			{/* Create Dialog */}
-			<Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+			<Dialog open={createDialogOpen} onOpenChange={handleCloseCreateDialog}>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>{__('API-Schlüssel erstellen', 'resa')}</DialogTitle>
@@ -500,10 +515,17 @@ export function ApiKeysTab() {
 							<Label htmlFor="api-key-name">{__('Name', 'resa')}</Label>
 							<Input
 								id="api-key-name"
-								value={formName}
-								onChange={(e) => setFormName(e.target.value)}
+								{...form.register('name')}
 								placeholder={__('z.B. Mein Dashboard', 'resa')}
+								style={{
+									borderColor: form.formState.errors.name ? '#ef4444' : undefined,
+								}}
 							/>
+							{form.formState.errors.name && (
+								<p style={{ fontSize: '13px', color: '#ef4444', margin: 0 }}>
+									{form.formState.errors.name.message}
+								</p>
+							)}
 							<p className="resa-text-xs resa-text-muted-foreground">
 								{__(
 									'Ein Name zur Identifikation des Schlüssels (z.B. App-Name oder Zweck).',
@@ -514,12 +536,12 @@ export function ApiKeysTab() {
 					</div>
 
 					<DialogFooter>
-						<OutlineButton onClick={() => setCreateDialogOpen(false)}>
+						<OutlineButton onClick={() => handleCloseCreateDialog(false)}>
 							{__('Abbrechen', 'resa')}
 						</OutlineButton>
 						<PrimaryButton
-							onClick={handleCreate}
-							disabled={formName.trim() === '' || createMutation.isPending}
+							onClick={form.handleSubmit(handleCreate)}
+							disabled={!form.formState.isValid || createMutation.isPending}
 						>
 							{createMutation.isPending
 								? __('Erstellen...', 'resa')

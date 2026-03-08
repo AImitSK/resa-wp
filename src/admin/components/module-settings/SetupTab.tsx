@@ -1,15 +1,21 @@
 /**
  * Setup tab — Configure setup mode (pauschal/individuell) and factors.
  *
+ * Uses Zod + React Hook Form for validation.
+ * @see docs/design-system/patterns/form-validation.md
+ *
  * Note: To reset state when settings change, use a key prop on this component
  * in the parent, e.g. <SetupTab key={settings.updated_at} ... />
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { __ } from '@wordpress/i18n';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { FactorEditor } from '../FactorEditor';
+import { moduleSetupSchema, type ModuleSetupFormData } from '../../schemas/moduleSetup';
 import type {
 	ModuleSettingsData,
 	RegionPreset,
@@ -31,57 +37,65 @@ interface SetupTabProps {
 }
 
 export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps) {
-	const [setupMode, setSetupMode] = useState<'pauschal' | 'individuell'>(
-		settings.setup_mode ?? 'pauschal',
-	);
-	const [regionPreset, setRegionPreset] = useState(settings.region_preset ?? 'medium_city');
-	const [factors, setFactors] = useState<Record<string, unknown>>(settings.factors ?? {});
-	const [hasChanges, setHasChanges] = useState(false);
 	const [saveHover, setSaveHover] = useState(false);
 	const [previewHover, setPreviewHover] = useState(false);
+
+	const defaults: ModuleSetupFormData = {
+		setup_mode: settings.setup_mode ?? 'pauschal',
+		region_preset: settings.region_preset ?? 'medium_city',
+		factors: settings.factors ?? {},
+	};
+
+	const form = useForm<ModuleSetupFormData>({
+		resolver: zodResolver(moduleSetupSchema),
+		defaultValues: defaults,
+	});
+
+	// Sync server data when settings prop changes
+	useEffect(() => {
+		form.reset({
+			setup_mode: settings.setup_mode ?? 'pauschal',
+			region_preset: settings.region_preset ?? 'medium_city',
+			factors: settings.factors ?? {},
+		});
+	}, [settings, form]);
+
+	const {
+		formState: { isDirty, errors },
+		watch,
+		setValue,
+	} = form;
+
+	const setupMode = watch('setup_mode');
+	const regionPreset = watch('region_preset');
 
 	const handleModeChange = (mode: 'pauschal' | 'individuell') => {
 		if (mode === 'individuell' && setupMode === 'pauschal') {
 			const preset = presets[regionPreset];
 			if (preset) {
-				setFactors({ ...preset });
+				setValue('factors', { ...preset }, { shouldDirty: true });
 			}
 		}
-		setSetupMode(mode);
-		setHasChanges(true);
+		setValue('setup_mode', mode, { shouldDirty: true });
 	};
 
 	const handlePresetChange = (preset: string) => {
-		setRegionPreset(preset);
+		setValue('region_preset', preset, { shouldDirty: true });
 		if (setupMode === 'pauschal' && presets[preset]) {
-			setFactors({ ...presets[preset] });
+			setValue('factors', { ...presets[preset] }, { shouldDirty: true });
 		}
-		setHasChanges(true);
 	};
 
-	const handleFactorChange = (key: string, value: number) => {
-		setFactors((prev) => ({ ...prev, [key]: value }));
-		setHasChanges(true);
-	};
-
-	const handleNestedFactorChange = (group: string, subKey: string, value: number) => {
-		setFactors((prev) => {
-			const currentGroup = (prev[group] as Record<string, number>) ?? {};
-			return {
-				...prev,
-				[group]: { ...currentGroup, [subKey]: value },
-			};
-		});
-		setHasChanges(true);
-	};
-
-	const handleSave = () => {
+	const onSubmit = (data: ModuleSetupFormData) => {
 		onSave({
-			setup_mode: setupMode,
-			region_preset: regionPreset,
-			factors: setupMode === 'individuell' ? factors : (presets[regionPreset] ?? factors),
+			setup_mode: data.setup_mode,
+			region_preset: data.region_preset,
+			factors:
+				data.setup_mode === 'individuell'
+					? data.factors
+					: (presets[data.region_preset] ?? data.factors),
 		});
-		setHasChanges(false);
+		form.reset(data);
 	};
 
 	const sectionStyle: React.CSSProperties = {
@@ -151,91 +165,113 @@ export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps)
 			{/* Setup mode toggle */}
 			<div style={sectionStyle}>
 				<h3 style={sectionTitleStyle}>{__('Einrichtungsmodus', 'resa')}</h3>
-				<div style={{ display: 'flex', gap: '16px' }}>
-					{(['pauschal', 'individuell'] as const).map((mode) => (
-						<label key={mode} style={modeCardStyle(setupMode === mode)}>
-							<input
-								type="radio"
-								name="setup_mode"
-								checked={setupMode === mode}
-								onChange={() => handleModeChange(mode)}
-								style={{ marginTop: '2px', accentColor: '#a9e43f' }}
-							/>
-							<div>
-								<div style={{ fontWeight: 500, color: '#1e303a' }}>
-									{mode === 'pauschal'
-										? __('Pauschal', 'resa')
-										: __('Individuell', 'resa')}
-								</div>
-								<div
-									style={{
-										fontSize: '12px',
-										color: '#1e303a',
-										marginTop: '4px',
-									}}
-								>
-									{mode === 'pauschal'
-										? __(
-												'Verwende vordefinierte Werte für einen Regionstyp',
-												'resa',
-											)
-										: __('Konfiguriere alle Faktoren manuell', 'resa')}
-								</div>
-							</div>
-						</label>
-					))}
-				</div>
+				<Controller
+					name="setup_mode"
+					control={form.control}
+					render={({ field }) => (
+						<div style={{ display: 'flex', gap: '16px' }}>
+							{(['pauschal', 'individuell'] as const).map((mode) => (
+								<label key={mode} style={modeCardStyle(field.value === mode)}>
+									<input
+										type="radio"
+										name="setup_mode"
+										checked={field.value === mode}
+										onChange={() => handleModeChange(mode)}
+										style={{ marginTop: '2px', accentColor: '#a9e43f' }}
+									/>
+									<div>
+										<div style={{ fontWeight: 500, color: '#1e303a' }}>
+											{mode === 'pauschal'
+												? __('Pauschal', 'resa')
+												: __('Individuell', 'resa')}
+										</div>
+										<div
+											style={{
+												fontSize: '12px',
+												color: '#1e303a',
+												marginTop: '4px',
+											}}
+										>
+											{mode === 'pauschal'
+												? __(
+														'Verwende vordefinierte Werte für einen Regionstyp',
+														'resa',
+													)
+												: __('Konfiguriere alle Faktoren manuell', 'resa')}
+										</div>
+									</div>
+								</label>
+							))}
+						</div>
+					)}
+				/>
+				{errors.setup_mode && (
+					<p style={{ fontSize: '13px', color: '#ef4444', margin: '8px 0 0 0' }}>
+						{errors.setup_mode.message}
+					</p>
+				)}
 			</div>
 
 			{/* Pauschal: Preset selection */}
 			{setupMode === 'pauschal' && (
 				<div style={sectionStyle}>
 					<h3 style={sectionTitleStyle}>{__('Regionstyp', 'resa')}</h3>
-					<div
-						style={{
-							display: 'grid',
-							gridTemplateColumns: 'repeat(2, 1fr)',
-							gap: '12px',
-						}}
-					>
-						{Object.entries(presets).map(([key, preset]) => (
-							<label key={key} style={presetCardStyle(regionPreset === key)}>
-								<input
-									type="radio"
-									name="region_preset"
-									checked={regionPreset === key}
-									onChange={() => handlePresetChange(key)}
-									style={{ accentColor: '#a9e43f' }}
-								/>
-								<div>
-									<div
-										style={{
-											fontSize: '14px',
-											fontWeight: 500,
-											color: '#1e303a',
-										}}
-									>
-										{preset.label}
-									</div>
-									{preset.base_price && (
-										<div
-											style={{
-												fontSize: '12px',
-												color: '#1e303a',
-											}}
-										>
-											{__('Basispreis:', 'resa')}{' '}
-											{preset.base_price.toLocaleString('de-DE', {
-												minimumFractionDigits: 2,
-												maximumFractionDigits: 2,
-											})}{' '}
-											€/m²
+					<Controller
+						name="region_preset"
+						control={form.control}
+						render={({ field }) => (
+							<div
+								style={{
+									display: 'grid',
+									gridTemplateColumns: 'repeat(2, 1fr)',
+									gap: '12px',
+								}}
+							>
+								{Object.entries(presets).map(([key, preset]) => (
+									<label key={key} style={presetCardStyle(field.value === key)}>
+										<input
+											type="radio"
+											name="region_preset"
+											checked={field.value === key}
+											onChange={() => handlePresetChange(key)}
+											style={{ accentColor: '#a9e43f' }}
+										/>
+										<div>
+											<div
+												style={{
+													fontSize: '14px',
+													fontWeight: 500,
+													color: '#1e303a',
+												}}
+											>
+												{preset.label}
+											</div>
+											{preset.base_price && (
+												<div
+													style={{
+														fontSize: '12px',
+														color: '#1e303a',
+													}}
+												>
+													{__('Basispreis:', 'resa')}{' '}
+													{preset.base_price.toLocaleString('de-DE', {
+														minimumFractionDigits: 2,
+														maximumFractionDigits: 2,
+													})}{' '}
+													EUR/m2
+												</div>
+											)}
 										</div>
-									)}
-								</div>
-							</label>
-						))}
-					</div>
+									</label>
+								))}
+							</div>
+						)}
+					/>
+					{errors.region_preset && (
+						<p style={{ fontSize: '13px', color: '#ef4444', margin: '8px 0 0 0' }}>
+							{errors.region_preset.message}
+						</p>
+					)}
 
 					{/* Preset preview */}
 					<details style={{ marginTop: '16px' }}>
@@ -280,31 +316,27 @@ export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps)
 			{setupMode === 'individuell' && (
 				<div style={sectionStyle}>
 					<h3 style={sectionTitleStyle}>{__('Berechnungsfaktoren', 'resa')}</h3>
-					<FactorEditor
-						factors={factors}
-						onFactorChange={handleFactorChange}
-						onNestedFactorChange={handleNestedFactorChange}
-					/>
+					<FactorEditor form={form} />
 				</div>
 			)}
 
 			{/* Save button */}
 			<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
 				<Button
-					onClick={handleSave}
-					disabled={isSaving || !hasChanges}
+					onClick={form.handleSubmit(onSubmit)}
+					disabled={isSaving || !isDirty}
 					onMouseEnter={() => setSaveHover(true)}
 					onMouseLeave={() => setSaveHover(false)}
 					style={{
-						backgroundColor: !hasChanges
+						backgroundColor: !isDirty
 							? 'hsl(210 40% 96.1%)'
 							: saveHover
 								? '#98d438'
 								: '#a9e43f',
-						color: hasChanges ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
+						color: isDirty ? '#1e303a' : 'hsl(215.4 16.3% 46.9%)',
 						border: 'none',
 						fontWeight: 500,
-						cursor: hasChanges ? 'pointer' : 'not-allowed',
+						cursor: isDirty ? 'pointer' : 'not-allowed',
 					}}
 				>
 					{isSaving && <Spinner style={{ marginRight: '8px' }} />}

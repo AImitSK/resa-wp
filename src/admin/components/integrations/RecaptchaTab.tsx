@@ -2,10 +2,13 @@
  * reCAPTCHA v3 settings tab — site key, secret key, threshold configuration.
  *
  * Available for both Free and Pro users (no FeatureGate).
- * Follows the TrackingTab inline-styles + isDirty pattern.
+ * Uses Zod + React Hook Form for validation.
+ * @see docs/design-system/patterns/form-validation.md
  */
 
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { __ } from '@wordpress/i18n';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,7 +19,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { LoadingState } from '../LoadingState';
 import { useRecaptchaSettings, useSaveRecaptchaSettings } from '../../hooks/useRecaptchaSettings';
 import { toast } from '../../lib/toast';
-import type { RecaptchaSettings } from '../../types';
+import { recaptchaSettingsSchema, type RecaptchaSettingsFormData } from '../../schemas/recaptcha';
 
 // ─── Styled Button Components ────────────────────────────
 
@@ -101,6 +104,15 @@ const cardStyles: React.CSSProperties = {
 	boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
 };
 
+const inputStyles: React.CSSProperties = {
+	height: '36px',
+	padding: '0 12px',
+	fontSize: '14px',
+	border: '1px solid hsl(214.3 31.8% 78%)',
+	borderRadius: '6px',
+	backgroundColor: 'white',
+};
+
 // ─── Threshold Options ─────────────────────────────────
 
 const THRESHOLD_OPTIONS = [
@@ -116,28 +128,29 @@ export function RecaptchaTab() {
 	const { data: settings, isLoading } = useRecaptchaSettings();
 	const saveMutation = useSaveRecaptchaSettings();
 
-	const defaults: RecaptchaSettings = {
+	const defaults: RecaptchaSettingsFormData = {
 		enabled: false,
 		site_key: '',
 		secret_key: '',
 		threshold: 0.5,
 	};
 
-	const [form, setForm] = useState<RecaptchaSettings>(settings ?? defaults);
-	const [isDirty, setIsDirty] = useState(false);
+	const form = useForm<RecaptchaSettingsFormData>({
+		resolver: zodResolver(recaptchaSettingsSchema),
+		defaultValues: defaults,
+	});
 
-	const updateField = <K extends keyof RecaptchaSettings>(
-		key: K,
-		value: RecaptchaSettings[K],
-	) => {
-		setForm((prev) => ({ ...prev, [key]: value }));
-		setIsDirty(true);
-	};
+	// Sync server data when loaded
+	useEffect(() => {
+		if (settings) {
+			form.reset(settings);
+		}
+	}, [settings, form]);
 
-	const handleSave = () => {
-		saveMutation.mutate(form, {
+	const onSubmit = (data: RecaptchaSettingsFormData) => {
+		saveMutation.mutate(data, {
 			onSuccess: () => {
-				setIsDirty(false);
+				form.reset(data);
 				toast.success(__('reCAPTCHA-Einstellungen gespeichert.', 'resa'));
 			},
 			onError: () => {
@@ -149,6 +162,11 @@ export function RecaptchaTab() {
 	if (isLoading) {
 		return <LoadingState message={__('Lade reCAPTCHA-Einstellungen...', 'resa')} />;
 	}
+
+	const {
+		formState: { isDirty, errors },
+	} = form;
+	const enabled = form.watch('enabled');
 
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -180,14 +198,20 @@ export function RecaptchaTab() {
 									)}
 								</p>
 							</div>
-							<Switch
-								checked={form.enabled}
-								onCheckedChange={(checked) => updateField('enabled', checked)}
+							<Controller
+								name="enabled"
+								control={form.control}
+								render={({ field }) => (
+									<Switch
+										checked={field.value}
+										onCheckedChange={field.onChange}
+									/>
+								)}
 							/>
 						</div>
 
 						{/* API Keys - nur wenn enabled */}
-						{form.enabled && (
+						{enabled && (
 							<>
 								<div
 									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
@@ -198,17 +222,23 @@ export function RecaptchaTab() {
 									<Input
 										id="recaptcha-site-key"
 										placeholder="6Lc..."
-										value={form.site_key}
-										onChange={(e) => updateField('site_key', e.target.value)}
+										{...form.register('site_key')}
 										style={{
-											height: '36px',
-											padding: '0 12px',
-											fontSize: '14px',
-											border: '1px solid hsl(214.3 31.8% 78%)',
-											borderRadius: '6px',
-											backgroundColor: 'white',
+											...inputStyles,
+											borderColor: errors.site_key ? '#ef4444' : undefined,
 										}}
 									/>
+									{errors.site_key && (
+										<p
+											style={{
+												fontSize: '13px',
+												color: '#ef4444',
+												margin: 0,
+											}}
+										>
+											{errors.site_key.message}
+										</p>
+									)}
 								</div>
 								<div
 									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
@@ -220,17 +250,23 @@ export function RecaptchaTab() {
 										id="recaptcha-secret-key"
 										type="password"
 										placeholder="6Lc..."
-										value={form.secret_key}
-										onChange={(e) => updateField('secret_key', e.target.value)}
+										{...form.register('secret_key')}
 										style={{
-											height: '36px',
-											padding: '0 12px',
-											fontSize: '14px',
-											border: '1px solid hsl(214.3 31.8% 78%)',
-											borderRadius: '6px',
-											backgroundColor: 'white',
+											...inputStyles,
+											borderColor: errors.secret_key ? '#ef4444' : undefined,
 										}}
 									/>
+									{errors.secret_key && (
+										<p
+											style={{
+												fontSize: '13px',
+												color: '#ef4444',
+												margin: 0,
+											}}
+										>
+											{errors.secret_key.message}
+										</p>
+									)}
 									<p style={fieldDescStyles}>
 										{__('Site Key und Secret Key erhältst du in der', 'resa')}{' '}
 										<a
@@ -255,32 +291,49 @@ export function RecaptchaTab() {
 									<Label htmlFor="recaptcha-threshold">
 										{__('Score-Schwellenwert', 'resa')}
 									</Label>
-									<select
-										id="recaptcha-threshold"
-										value={String(form.threshold)}
-										onChange={(e) =>
-											updateField('threshold', parseFloat(e.target.value))
-										}
-										style={{
-											display: 'block',
-											width: '100%',
-											maxWidth: '280px',
-											height: '36px',
-											padding: '0 12px',
-											fontSize: '14px',
-											borderRadius: '6px',
-											border: '1px solid hsl(214.3 31.8% 78%)',
-											backgroundColor: 'white',
-											color: '#1e303a',
-											boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-										}}
-									>
-										{THRESHOLD_OPTIONS.map((opt) => (
-											<option key={opt.value} value={opt.value}>
-												{opt.label}
-											</option>
-										))}
-									</select>
+									<Controller
+										name="threshold"
+										control={form.control}
+										render={({ field }) => (
+											<select
+												id="recaptcha-threshold"
+												value={String(field.value)}
+												onChange={(e) =>
+													field.onChange(parseFloat(e.target.value))
+												}
+												style={{
+													display: 'block',
+													width: '100%',
+													maxWidth: '280px',
+													height: '36px',
+													padding: '0 12px',
+													fontSize: '14px',
+													borderRadius: '6px',
+													border: '1px solid hsl(214.3 31.8% 78%)',
+													backgroundColor: 'white',
+													color: '#1e303a',
+													boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+												}}
+											>
+												{THRESHOLD_OPTIONS.map((opt) => (
+													<option key={opt.value} value={opt.value}>
+														{opt.label}
+													</option>
+												))}
+											</select>
+										)}
+									/>
+									{errors.threshold && (
+										<p
+											style={{
+												fontSize: '13px',
+												color: '#ef4444',
+												margin: 0,
+											}}
+										>
+											{errors.threshold.message}
+										</p>
+									)}
 									<p style={fieldDescStyles}>
 										{__(
 											'Besucher mit einem Score unter diesem Wert werden als Spam eingestuft. 1.0 = sicher menschlich, 0.0 = sicher Bot.',
@@ -302,7 +355,10 @@ export function RecaptchaTab() {
 					justifyContent: 'flex-end',
 				}}
 			>
-				<PrimaryButton onClick={handleSave} disabled={!isDirty || saveMutation.isPending}>
+				<PrimaryButton
+					onClick={form.handleSubmit(onSubmit)}
+					disabled={!isDirty || saveMutation.isPending}
+				>
 					{saveMutation.isPending && (
 						<Spinner style={{ width: '14px', height: '14px', marginRight: '8px' }} />
 					)}

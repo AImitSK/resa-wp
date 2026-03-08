@@ -6,10 +6,13 @@
  * 2. Datenaufbewahrung (lead retention, anonymize toggle, email log retention)
  * 3. WordPress Privacy Tools (read-only info card)
  *
- * Follows the AgentDataForm inline-styles pattern from Settings.tsx.
+ * Uses Zod + React Hook Form for validation.
+ * @see docs/design-system/patterns/form-validation.md
  */
 
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { __ } from '@wordpress/i18n';
 import { ShieldCheck } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,7 +25,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { LoadingState } from '../LoadingState';
 import { usePrivacySettings, useSavePrivacySettings } from '../../hooks/usePrivacySettings';
 import { toast } from '../../lib/toast';
-import type { PrivacySettings } from '../../types';
+import { gdprSettingsSchema, type GdprSettingsFormData } from '../../schemas/gdpr';
 
 // ─── Styled Button Component ────────────────────────────
 
@@ -159,7 +162,7 @@ export function GdprTab() {
 	const { data: settings, isLoading } = usePrivacySettings();
 	const saveMutation = useSavePrivacySettings();
 
-	const defaults: PrivacySettings = {
+	const defaults: GdprSettingsFormData = {
 		privacy_url: '',
 		consent_text:
 			'Ich stimme der Verarbeitung meiner Daten gemäß der [Datenschutzerklärung] zu.',
@@ -169,18 +172,22 @@ export function GdprTab() {
 		anonymize_instead_of_delete: false,
 	};
 
-	const [form, setForm] = useState<PrivacySettings>(settings ?? defaults);
-	const [isDirty, setIsDirty] = useState(false);
+	const form = useForm<GdprSettingsFormData>({
+		resolver: zodResolver(gdprSettingsSchema),
+		defaultValues: defaults,
+	});
 
-	const updateField = <K extends keyof PrivacySettings>(key: K, value: PrivacySettings[K]) => {
-		setForm((prev) => ({ ...prev, [key]: value }));
-		setIsDirty(true);
-	};
+	// Sync server data when loaded
+	useEffect(() => {
+		if (settings) {
+			form.reset(settings);
+		}
+	}, [settings, form]);
 
-	const handleSave = () => {
-		saveMutation.mutate(form, {
+	const onSubmit = (data: GdprSettingsFormData) => {
+		saveMutation.mutate(data, {
 			onSuccess: () => {
-				setIsDirty(false);
+				form.reset(data);
 				toast.success(__('Datenschutz-Einstellungen gespeichert.', 'resa'));
 			},
 			onError: () => {
@@ -192,6 +199,10 @@ export function GdprTab() {
 	if (isLoading) {
 		return <LoadingState message={__('Lade Datenschutz-Einstellungen...', 'resa')} />;
 	}
+
+	const {
+		formState: { isDirty, errors },
+	} = form;
 
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -227,10 +238,23 @@ export function GdprTab() {
 										id="privacy-url"
 										type="url"
 										placeholder="https://example.com/datenschutz"
-										value={form.privacy_url}
-										onChange={(e) => updateField('privacy_url', e.target.value)}
-										style={inputStyles}
+										{...form.register('privacy_url')}
+										style={{
+											...inputStyles,
+											borderColor: errors.privacy_url ? '#ef4444' : undefined,
+										}}
 									/>
+									{errors.privacy_url && (
+										<p
+											style={{
+												fontSize: '13px',
+												color: '#ef4444',
+												margin: 0,
+											}}
+										>
+											{errors.privacy_url.message}
+										</p>
+									)}
 									<p style={fieldDescStyles}>
 										{__(
 											'Leer = WordPress-Datenschutzseite (Einstellungen → Datenschutz)',
@@ -249,16 +273,27 @@ export function GdprTab() {
 									<Textarea
 										id="consent-text"
 										rows={3}
-										value={form.consent_text}
-										onChange={(e) =>
-											updateField('consent_text', e.target.value)
-										}
+										{...form.register('consent_text')}
 										style={{
 											...inputStyles,
 											height: 'auto',
 											padding: '8px 12px',
+											borderColor: errors.consent_text
+												? '#ef4444'
+												: undefined,
 										}}
 									/>
+									{errors.consent_text && (
+										<p
+											style={{
+												fontSize: '13px',
+												color: '#ef4444',
+												margin: 0,
+											}}
+										>
+											{errors.consent_text.message}
+										</p>
+									)}
 									<p style={fieldDescStyles}>
 										{__(
 											'Der Platzhalter [Datenschutzerklärung] wird als klickbarer Link dargestellt.',
@@ -276,12 +311,25 @@ export function GdprTab() {
 									</Label>
 									<Input
 										id="newsletter-text"
-										value={form.newsletter_text}
-										onChange={(e) =>
-											updateField('newsletter_text', e.target.value)
-										}
-										style={inputStyles}
+										{...form.register('newsletter_text')}
+										style={{
+											...inputStyles,
+											borderColor: errors.newsletter_text
+												? '#ef4444'
+												: undefined,
+										}}
 									/>
+									{errors.newsletter_text && (
+										<p
+											style={{
+												fontSize: '13px',
+												color: '#ef4444',
+												margin: 0,
+											}}
+										>
+											{errors.newsletter_text.message}
+										</p>
+									)}
 								</div>
 							</div>
 						</div>
@@ -323,23 +371,26 @@ export function GdprTab() {
 									<Label htmlFor="lead-retention">
 										{__('Leads löschen nach', 'resa')}
 									</Label>
-									<select
-										id="lead-retention"
-										value={form.lead_retention_days}
-										onChange={(e) =>
-											updateField(
-												'lead_retention_days',
-												parseInt(e.target.value, 10),
-											)
-										}
-										style={selectStyles}
-									>
-										{leadRetentionOptions.map((opt) => (
-											<option key={opt.value} value={opt.value}>
-												{opt.label}
-											</option>
-										))}
-									</select>
+									<Controller
+										name="lead_retention_days"
+										control={form.control}
+										render={({ field }) => (
+											<select
+												id="lead-retention"
+												value={field.value}
+												onChange={(e) =>
+													field.onChange(parseInt(e.target.value, 10))
+												}
+												style={selectStyles}
+											>
+												{leadRetentionOptions.map((opt) => (
+													<option key={opt.value} value={opt.value}>
+														{opt.label}
+													</option>
+												))}
+											</select>
+										)}
+									/>
 								</div>
 
 								{/* Email Log Retention */}
@@ -349,23 +400,26 @@ export function GdprTab() {
 									<Label htmlFor="email-log-retention">
 										{__('E-Mail-Protokoll löschen nach', 'resa')}
 									</Label>
-									<select
-										id="email-log-retention"
-										value={form.email_log_retention_days}
-										onChange={(e) =>
-											updateField(
-												'email_log_retention_days',
-												parseInt(e.target.value, 10),
-											)
-										}
-										style={selectStyles}
-									>
-										{emailLogRetentionOptions.map((opt) => (
-											<option key={opt.value} value={opt.value}>
-												{opt.label}
-											</option>
-										))}
-									</select>
+									<Controller
+										name="email_log_retention_days"
+										control={form.control}
+										render={({ field }) => (
+											<select
+												id="email-log-retention"
+												value={field.value}
+												onChange={(e) =>
+													field.onChange(parseInt(e.target.value, 10))
+												}
+												style={selectStyles}
+											>
+												{emailLogRetentionOptions.map((opt) => (
+													<option key={opt.value} value={opt.value}>
+														{opt.label}
+													</option>
+												))}
+											</select>
+										)}
+									/>
 								</div>
 							</div>
 						</div>
@@ -383,11 +437,15 @@ export function GdprTab() {
 									)}
 								</p>
 							</div>
-							<Switch
-								checked={form.anonymize_instead_of_delete}
-								onCheckedChange={(checked) =>
-									updateField('anonymize_instead_of_delete', checked)
-								}
+							<Controller
+								name="anonymize_instead_of_delete"
+								control={form.control}
+								render={({ field }) => (
+									<Switch
+										checked={field.value}
+										onCheckedChange={field.onChange}
+									/>
+								)}
 							/>
 						</div>
 					</div>
@@ -544,7 +602,10 @@ export function GdprTab() {
 					justifyContent: 'flex-end',
 				}}
 			>
-				<PrimaryButton onClick={handleSave} disabled={!isDirty || saveMutation.isPending}>
+				<PrimaryButton
+					onClick={form.handleSubmit(onSubmit)}
+					disabled={!isDirty || saveMutation.isPending}
+				>
 					{saveMutation.isPending && (
 						<Spinner style={{ width: '14px', height: '14px' }} />
 					)}

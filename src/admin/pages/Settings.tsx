@@ -6,12 +6,16 @@
  * PDF and email templates are available as dedicated tabs.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { __ } from '@wordpress/i18n';
 import { User, X, Image, Plus, Pencil, Trash2, MapPin } from 'lucide-react';
 import { AdminPageLayout } from '../components/AdminPageLayout';
-import { useAgentData, useSaveAgentData, type AgentData } from '../hooks/useAgentData';
+import { useAgentData, useSaveAgentData } from '../hooks/useAgentData';
 import { useBranding, useSaveBranding, type BrandingSettings } from '../hooks/useBranding';
+import { toast } from '../lib/toast';
+import { generalSettingsSchema, type GeneralSettingsFormData } from '../schemas/generalSettings';
 import {
 	useMapSettings,
 	useSaveMapSettings,
@@ -138,7 +142,11 @@ export function Settings() {
  * Agent Data Tab — form for broker/agent information.
  */
 function AgentDataTab() {
-	const { data: agentData, isLoading, error } = useAgentData();
+	const { data: agentData, isLoading: agentLoading, error: agentError } = useAgentData();
+	const { data: brandingData, isLoading: brandingLoading, error: brandingError } = useBranding();
+
+	const isLoading = agentLoading || brandingLoading;
+	const error = agentError || brandingError;
 
 	if (isLoading) {
 		return <LoadingState message={__('Lade Maklerdaten...', 'resa')} />;
@@ -155,7 +163,20 @@ function AgentDataTab() {
 		);
 	}
 
-	return <AgentDataForm initialData={agentData} />;
+	// Transform AgentData to match the form schema (without id and photoUrl)
+	const initialAgentData = agentData
+		? {
+				name: agentData.name,
+				company: agentData.company,
+				email: agentData.email,
+				phone: agentData.phone,
+				address: agentData.address,
+				website: agentData.website,
+				imprintUrl: agentData.imprintUrl,
+			}
+		: undefined;
+
+	return <AgentDataForm initialAgentData={initialAgentData} initialBrandingData={brandingData} />;
 }
 
 // ─── Styled Button Components ────────────────────────────
@@ -283,14 +304,19 @@ const inputStyles: React.CSSProperties = {
 	backgroundColor: 'white',
 };
 
-function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) {
+function AgentDataForm({
+	initialAgentData,
+	initialBrandingData,
+}: {
+	initialAgentData: GeneralSettingsFormData['agent'] | undefined;
+	initialBrandingData: BrandingSettings | undefined;
+}) {
 	const saveMutation = useSaveAgentData();
-	const { data: brandingData } = useBranding();
 	const saveBrandingMutation = useSaveBranding();
 
-	const [form, setForm] = useState<AgentData>(
-		initialData ?? {
-			id: null,
+	// Default values
+	const defaults: GeneralSettingsFormData = {
+		agent: {
 			name: '',
 			company: '',
 			email: '',
@@ -298,46 +324,33 @@ function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) 
 			address: '',
 			website: '',
 			imprintUrl: '',
-			photoUrl: null,
 		},
-	);
-
-	const [branding, setBranding] = useState<BrandingSettings>(
-		brandingData ?? {
+		branding: {
 			logoUrl: '',
 			logoId: 0,
 			primaryColor: '#a9e43f',
 			secondaryColor: '#1e303a',
 			showPoweredBy: true,
 		},
-	);
+	};
 
-	// Sync branding state when data loads.
-	const [brandingSynced, setBrandingSynced] = useState(false);
-	if (brandingData && !brandingSynced) {
-		setBranding(brandingData);
-		setBrandingSynced(true);
-	}
+	const form = useForm<GeneralSettingsFormData>({
+		resolver: zodResolver(generalSettingsSchema),
+		defaultValues: defaults,
+	});
 
-	const [agentDirty, setAgentDirty] = useState(false);
-	const [brandingDirty, setBrandingDirty] = useState(false);
-	const isDirty = agentDirty || brandingDirty;
+	// Sync server data when loaded
+	useEffect(() => {
+		if (initialAgentData || initialBrandingData) {
+			form.reset({
+				agent: initialAgentData ?? defaults.agent,
+				branding: initialBrandingData ?? defaults.branding,
+			});
+		}
+	}, [initialAgentData, initialBrandingData, form]);
 
 	// Free plan cannot disable "Powered by RESA".
 	const isPremium = window.resaAdmin?.features?.plan !== 'free';
-
-	const updateField = <K extends keyof AgentData>(key: K, value: AgentData[K]) => {
-		setForm((prev) => ({ ...prev, [key]: value }));
-		setAgentDirty(true);
-	};
-
-	const updateBrandingField = <K extends keyof BrandingSettings>(
-		key: K,
-		value: BrandingSettings[K],
-	) => {
-		setBranding((prev) => ({ ...prev, [key]: value }));
-		setBrandingDirty(true);
-	};
 
 	const handleSelectLogo = async () => {
 		const result = await openMediaLibrary(
@@ -345,58 +358,56 @@ function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) 
 			__('Als Logo verwenden', 'resa'),
 		);
 		if (result) {
-			setBranding((prev) => ({ ...prev, logoUrl: result.url, logoId: result.id }));
-			setBrandingDirty(true);
+			form.setValue('branding.logoUrl', result.url, { shouldDirty: true });
+			form.setValue('branding.logoId', result.id, { shouldDirty: true });
 		}
 	};
 
 	const handleRemoveLogo = () => {
-		setBranding((prev) => ({ ...prev, logoUrl: '', logoId: 0 }));
-		setBrandingDirty(true);
+		form.setValue('branding.logoUrl', '', { shouldDirty: true });
+		form.setValue('branding.logoId', 0, { shouldDirty: true });
 	};
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-
-		const promises: Promise<unknown>[] = [];
-
-		if (agentDirty) {
-			promises.push(
+	const onSubmit = async (data: GeneralSettingsFormData) => {
+		try {
+			await Promise.all([
 				saveMutation.mutateAsync({
-					name: form.name,
-					email: form.email,
-					phone: form.phone,
-					company: form.company,
-					address: form.address,
-					website: form.website,
-					imprint_url: form.imprintUrl,
+					name: data.agent.name,
+					email: data.agent.email,
+					phone: data.agent.phone,
+					company: data.agent.company,
+					address: data.agent.address,
+					website: data.agent.website,
+					imprint_url: data.agent.imprintUrl,
 				}),
-			);
-		}
-
-		if (brandingDirty) {
-			promises.push(
 				saveBrandingMutation.mutateAsync({
-					logoUrl: branding.logoUrl,
-					logoId: branding.logoId,
-					primaryColor: branding.primaryColor,
-					secondaryColor: branding.secondaryColor,
-					showPoweredBy: branding.showPoweredBy,
+					logoUrl: data.branding.logoUrl,
+					logoId: data.branding.logoId,
+					primaryColor: data.branding.primaryColor,
+					secondaryColor: data.branding.secondaryColor,
+					showPoweredBy: data.branding.showPoweredBy,
 				}),
-			);
-		}
+			]);
 
-		await Promise.all(promises);
-		setAgentDirty(false);
-		setBrandingDirty(false);
+			form.reset(data);
+			toast.success(__('Einstellungen gespeichert.', 'resa'));
+		} catch {
+			toast.error(__('Fehler beim Speichern.', 'resa'));
+		}
 	};
 
-	const isValid = form.name.trim() !== '' && form.email.trim() !== '';
+	const {
+		formState: { isDirty, isValid, errors },
+		watch,
+	} = form;
 	const isSaving = saveMutation.isPending || saveBrandingMutation.isPending;
+
+	// Watch branding values for the preview
+	const branding = watch('branding');
 
 	return (
 		<form
-			onSubmit={handleSubmit}
+			onSubmit={form.handleSubmit(onSubmit)}
 			style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
 		>
 			{/* Card 1: Maklerdaten (Persönliche Daten + Kontaktdaten + Online-Präsenz) */}
@@ -432,12 +443,24 @@ function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) 
 									<Label htmlFor="agent-name">{__('Name', 'resa')} *</Label>
 									<Input
 										id="agent-name"
-										value={form.name}
-										onChange={(e) => updateField('name', e.target.value)}
+										{...form.register('agent.name')}
 										placeholder={__('Max Mustermann', 'resa')}
-										required
-										style={inputStyles}
+										style={{
+											...inputStyles,
+											borderColor: errors.agent?.name ? '#ef4444' : undefined,
+										}}
 									/>
+									{errors.agent?.name && (
+										<p
+											style={{
+												fontSize: '13px',
+												color: '#ef4444',
+												margin: 0,
+											}}
+										>
+											{errors.agent.name.message}
+										</p>
+									)}
 								</div>
 								<div
 									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
@@ -445,8 +468,7 @@ function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) 
 									<Label htmlFor="agent-company">{__('Firma', 'resa')}</Label>
 									<Input
 										id="agent-company"
-										value={form.company}
-										onChange={(e) => updateField('company', e.target.value)}
+										{...form.register('agent.company')}
 										placeholder={__('Mustermann Immobilien GmbH', 'resa')}
 										style={inputStyles}
 									/>
@@ -480,12 +502,26 @@ function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) 
 										<Input
 											id="agent-email"
 											type="email"
-											value={form.email}
-											onChange={(e) => updateField('email', e.target.value)}
+											{...form.register('agent.email')}
 											placeholder={__('max@mustermann-immo.de', 'resa')}
-											required
-											style={inputStyles}
+											style={{
+												...inputStyles,
+												borderColor: errors.agent?.email
+													? '#ef4444'
+													: undefined,
+											}}
 										/>
+										{errors.agent?.email && (
+											<p
+												style={{
+													fontSize: '13px',
+													color: '#ef4444',
+													margin: 0,
+												}}
+											>
+												{errors.agent.email.message}
+											</p>
+										)}
 									</div>
 									<div
 										style={{
@@ -498,8 +534,7 @@ function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) 
 										<Input
 											id="agent-phone"
 											type="tel"
-											value={form.phone}
-											onChange={(e) => updateField('phone', e.target.value)}
+											{...form.register('agent.phone')}
 											placeholder={__('+49 123 456789', 'resa')}
 											style={inputStyles}
 										/>
@@ -511,8 +546,7 @@ function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) 
 									<Label htmlFor="agent-address">{__('Adresse', 'resa')}</Label>
 									<Textarea
 										id="agent-address"
-										value={form.address}
-										onChange={(e) => updateField('address', e.target.value)}
+										{...form.register('agent.address')}
 										placeholder={__(
 											'Musterstraße 1\n12345 Musterstadt',
 											'resa',
@@ -547,11 +581,26 @@ function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) 
 									<Input
 										id="agent-website"
 										type="url"
-										value={form.website}
-										onChange={(e) => updateField('website', e.target.value)}
+										{...form.register('agent.website')}
 										placeholder={__('https://mustermann-immo.de', 'resa')}
-										style={inputStyles}
+										style={{
+											...inputStyles,
+											borderColor: errors.agent?.website
+												? '#ef4444'
+												: undefined,
+										}}
 									/>
+									{errors.agent?.website && (
+										<p
+											style={{
+												fontSize: '13px',
+												color: '#ef4444',
+												margin: 0,
+											}}
+										>
+											{errors.agent.website.message}
+										</p>
+									)}
 								</div>
 								<div
 									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
@@ -562,14 +611,29 @@ function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) 
 									<Input
 										id="agent-imprint"
 										type="url"
-										value={form.imprintUrl}
-										onChange={(e) => updateField('imprintUrl', e.target.value)}
+										{...form.register('agent.imprintUrl')}
 										placeholder={__(
 											'https://mustermann-immo.de/impressum',
 											'resa',
 										)}
-										style={inputStyles}
+										style={{
+											...inputStyles,
+											borderColor: errors.agent?.imprintUrl
+												? '#ef4444'
+												: undefined,
+										}}
 									/>
+									{errors.agent?.imprintUrl && (
+										<p
+											style={{
+												fontSize: '13px',
+												color: '#ef4444',
+												margin: 0,
+											}}
+										>
+											{errors.agent.imprintUrl.message}
+										</p>
+									)}
 								</div>
 							</div>
 						</div>
@@ -713,118 +777,140 @@ function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) 
 										gap: '12px',
 									}}
 								>
-									<div
-										style={{
-											display: 'flex',
-											flexDirection: 'column',
-											gap: '6px',
-										}}
-									>
-										<Label htmlFor="primary-color">
-											{__('Primärfarbe', 'resa')}
-										</Label>
-										<div
-											style={{
-												display: 'flex',
-												alignItems: 'center',
-												gap: '8px',
-											}}
-										>
-											<input
-												id="primary-color"
-												type="color"
-												value={branding.primaryColor}
-												onChange={(e) =>
-													updateBrandingField(
-														'primaryColor',
-														e.target.value,
-													)
-												}
+									<Controller
+										name="branding.primaryColor"
+										control={form.control}
+										render={({ field }) => (
+											<div
 												style={{
-													width: '36px',
-													height: '36px',
-													padding: 0,
-													border: '1px solid hsl(214.3 31.8% 91.4%)',
-													borderRadius: '6px',
-													cursor: 'pointer',
-													backgroundColor: 'transparent',
+													display: 'flex',
+													flexDirection: 'column',
+													gap: '6px',
 												}}
-											/>
-											<Input
-												type="text"
-												value={branding.primaryColor}
-												onChange={(e) =>
-													updateBrandingField(
-														'primaryColor',
-														e.target.value,
-													)
-												}
+											>
+												<Label htmlFor="primary-color">
+													{__('Primärfarbe', 'resa')}
+												</Label>
+												<div
+													style={{
+														display: 'flex',
+														alignItems: 'center',
+														gap: '8px',
+													}}
+												>
+													<input
+														id="primary-color"
+														type="color"
+														value={field.value}
+														onChange={field.onChange}
+														style={{
+															width: '36px',
+															height: '36px',
+															padding: 0,
+															border: '1px solid hsl(214.3 31.8% 91.4%)',
+															borderRadius: '6px',
+															cursor: 'pointer',
+															backgroundColor: 'transparent',
+														}}
+													/>
+													<Input
+														type="text"
+														value={field.value}
+														onChange={field.onChange}
+														style={{
+															...inputStyles,
+															width: '90px',
+															fontFamily: 'monospace',
+															fontSize: '12px',
+															borderColor: errors.branding
+																?.primaryColor
+																? '#ef4444'
+																: undefined,
+														}}
+														maxLength={7}
+													/>
+												</div>
+												{errors.branding?.primaryColor && (
+													<p
+														style={{
+															fontSize: '13px',
+															color: '#ef4444',
+															margin: 0,
+														}}
+													>
+														{errors.branding.primaryColor.message}
+													</p>
+												)}
+											</div>
+										)}
+									/>
+									<Controller
+										name="branding.secondaryColor"
+										control={form.control}
+										render={({ field }) => (
+											<div
 												style={{
-													...inputStyles,
-													width: '90px',
-													fontFamily: 'monospace',
-													fontSize: '12px',
+													display: 'flex',
+													flexDirection: 'column',
+													gap: '6px',
 												}}
-												maxLength={7}
-											/>
-										</div>
-									</div>
-									<div
-										style={{
-											display: 'flex',
-											flexDirection: 'column',
-											gap: '6px',
-										}}
-									>
-										<Label htmlFor="secondary-color">
-											{__('Sekundärfarbe', 'resa')}
-										</Label>
-										<div
-											style={{
-												display: 'flex',
-												alignItems: 'center',
-												gap: '8px',
-											}}
-										>
-											<input
-												id="secondary-color"
-												type="color"
-												value={branding.secondaryColor}
-												onChange={(e) =>
-													updateBrandingField(
-														'secondaryColor',
-														e.target.value,
-													)
-												}
-												style={{
-													width: '36px',
-													height: '36px',
-													padding: 0,
-													border: '1px solid hsl(214.3 31.8% 91.4%)',
-													borderRadius: '6px',
-													cursor: 'pointer',
-													backgroundColor: 'transparent',
-												}}
-											/>
-											<Input
-												type="text"
-												value={branding.secondaryColor}
-												onChange={(e) =>
-													updateBrandingField(
-														'secondaryColor',
-														e.target.value,
-													)
-												}
-												style={{
-													...inputStyles,
-													width: '90px',
-													fontFamily: 'monospace',
-													fontSize: '12px',
-												}}
-												maxLength={7}
-											/>
-										</div>
-									</div>
+											>
+												<Label htmlFor="secondary-color">
+													{__('Sekundärfarbe', 'resa')}
+												</Label>
+												<div
+													style={{
+														display: 'flex',
+														alignItems: 'center',
+														gap: '8px',
+													}}
+												>
+													<input
+														id="secondary-color"
+														type="color"
+														value={field.value}
+														onChange={field.onChange}
+														style={{
+															width: '36px',
+															height: '36px',
+															padding: 0,
+															border: '1px solid hsl(214.3 31.8% 91.4%)',
+															borderRadius: '6px',
+															cursor: 'pointer',
+															backgroundColor: 'transparent',
+														}}
+													/>
+													<Input
+														type="text"
+														value={field.value}
+														onChange={field.onChange}
+														style={{
+															...inputStyles,
+															width: '90px',
+															fontFamily: 'monospace',
+															fontSize: '12px',
+															borderColor: errors.branding
+																?.secondaryColor
+																? '#ef4444'
+																: undefined,
+														}}
+														maxLength={7}
+													/>
+												</div>
+												{errors.branding?.secondaryColor && (
+													<p
+														style={{
+															fontSize: '13px',
+															color: '#ef4444',
+															margin: 0,
+														}}
+													>
+														{errors.branding.secondaryColor.message}
+													</p>
+												)}
+											</div>
+										)}
+									/>
 								</div>
 							</div>
 						</div>
@@ -866,12 +952,16 @@ function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) 
 										PRO
 									</Badge>
 								)}
-								<Switch
-									checked={branding.showPoweredBy}
-									onCheckedChange={(checked) =>
-										updateBrandingField('showPoweredBy', checked)
-									}
-									disabled={!isPremium}
+								<Controller
+									name="branding.showPoweredBy"
+									control={form.control}
+									render={({ field }) => (
+										<Switch
+											checked={field.value}
+											onCheckedChange={field.onChange}
+											disabled={!isPremium}
+										/>
+									)}
 								/>
 							</div>
 						</div>
