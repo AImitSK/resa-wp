@@ -273,6 +273,93 @@ import { ArrowLeft } from 'lucide-react';
 
 ---
 
+## Destructive Button
+
+Roter Button für Lösch-Aktionen und destruktive Operationen. Signalisiert visuell, dass eine Aktion unwiderruflich ist.
+
+### Spezifikation
+
+| Eigenschaft          | Wert                     |
+| -------------------- | ------------------------ |
+| **Background**       | `hsl(0 84.2% 60.2%)`     |
+| **Background Hover** | `hsl(0 84.2% 50.2%)`     |
+| **Text Color**       | `white`                  |
+| **Border**           | `none`                   |
+| **Disabled Bg**      | `hsl(210 40% 96.1%)`     |
+| **Disabled Text**    | `hsl(215.4 16.3% 46.9%)` |
+| **Disabled Cursor**  | `not-allowed`            |
+
+### Varianten
+
+#### Destructive ohne Icon
+
+Für einfache Lösch-Aktionen.
+
+```tsx
+<DestructiveButton onClick={handleDelete}>{__('Löschen', 'resa')}</DestructiveButton>
+```
+
+#### Destructive mit Loading-Spinner
+
+Für asynchrone Lösch-Aktionen mit Ladezustand.
+
+```tsx
+<DestructiveButton onClick={handleDelete} disabled={isLoading}>
+	{isLoading && <Spinner style={{ width: '14px', height: '14px', marginRight: '8px' }} />}
+	{__('Löschen', 'resa')}
+</DestructiveButton>
+```
+
+### Code (Komponente)
+
+```tsx
+function DestructiveButton({
+	children,
+	onClick,
+	disabled,
+}: {
+	children: React.ReactNode;
+	onClick?: () => void;
+	disabled?: boolean;
+}) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type="button"
+			onClick={onClick}
+			disabled={disabled}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: disabled
+					? 'hsl(210 40% 96.1%)'
+					: isHovered
+						? 'hsl(0 84.2% 50.2%)'
+						: 'hsl(0 84.2% 60.2%)',
+				color: disabled ? 'hsl(215.4 16.3% 46.9%)' : 'white',
+				border: 'none',
+				cursor: disabled ? 'not-allowed' : 'pointer',
+				opacity: 1,
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
+```
+
+### Verwendung
+
+- Löschen von Datensätzen (Leads, Standorte, Webhooks)
+- Bestätigungsdialoge für destruktive Aktionen
+- Entfernen von Verknüpfungen oder Konfigurationen
+- Immer in Kombination mit `ConfirmDeleteDialog` für wichtige Löschungen
+
+> **Hinweis:** Der Destructive Button sollte immer die sekundäre Position einnehmen, wenn er neben einem Abbrechen-Button steht. Im `ConfirmDeleteDialog` erscheint er rechts neben dem Outline-Button.
+
+---
+
 ## Weitere Varianten
 
-TODO: Destructive Button, Secondary Button (RESA Blau)
+TODO: Secondary Button (RESA Blau)
