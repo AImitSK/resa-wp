@@ -12,7 +12,6 @@ import {
 	Trash2,
 	Copy,
 	Check,
-	BookOpen,
 	AlertTriangle,
 	ChevronDown,
 	Code,
@@ -27,7 +26,6 @@ import {
 } from '../../hooks/useApiKeys';
 import type { ApiKeyConfig, ApiKeyCreateResponse } from '../../types';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
 	Dialog,
 	DialogContent,
@@ -719,21 +717,40 @@ function EndpointDocs() {
 		},
 	];
 
+	// Styles
+	const cardStyle: React.CSSProperties = {
+		marginTop: '24px',
+		border: '1px solid hsl(214.3 31.8% 91.4%)',
+		borderRadius: '8px',
+		padding: '16px',
+		boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+	};
+
+	const headlineStyle: React.CSSProperties = {
+		fontSize: '15px',
+		fontWeight: 600,
+		color: '#1e303a',
+		margin: 0,
+	};
+
+	const sublineStyle: React.CSSProperties = {
+		fontSize: '13px',
+		color: '#1e303a',
+		margin: '4px 0 0 0',
+	};
+
 	return (
-		<Card className="resa-mt-4">
-			<CardHeader>
-				<CardTitle className="resa-flex resa-items-center resa-gap-2">
-					<BookOpen className="resa-h-5 resa-w-5" />
-					{__('API-Dokumentation', 'resa')}
-				</CardTitle>
-				<p className="resa-text-sm resa-text-muted-foreground">
+		<div style={cardStyle}>
+			<div style={{ marginBottom: '16px' }}>
+				<h4 style={headlineStyle}>{__('API-Dokumentation', 'resa')}</h4>
+				<p style={sublineStyle}>
 					{__(
 						'Read-only Zugriff auf Leads und Standorte via Bearer-Token im Authorization-Header.',
 						'resa',
 					)}
 				</p>
-			</CardHeader>
-			<CardContent className="resa-space-y-6">
+			</div>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 				{/* Quick Start */}
 				<div>
 					<div className="resa-flex resa-items-center resa-justify-between resa-mb-2">
@@ -868,7 +885,7 @@ function EndpointDocs() {
 						);
 					})}
 				</div>
-			</CardContent>
-		</Card>
+			</div>
+		</div>
 	);
 }

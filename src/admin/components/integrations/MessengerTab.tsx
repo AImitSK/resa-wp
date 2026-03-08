@@ -8,7 +8,7 @@
 
 import { useState, type ReactNode } from 'react';
 import { __ } from '@wordpress/i18n';
-import { Plus, Pencil, Trash2, Send, Info, MoreHorizontal } from 'lucide-react';
+import { Plus, Pencil, Trash2, Send, MoreHorizontal } from 'lucide-react';
 
 import {
 	useMessengers,
@@ -19,7 +19,6 @@ import {
 } from '../../hooks/useMessengers';
 import type { MessengerConfig, MessengerFormData, MessengerPlatform } from '../../types';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
 	Dialog,
 	DialogContent,
@@ -631,42 +630,52 @@ export function MessengerTab() {
 				</div>
 			)}
 
-			{/* Setup Help Card */}
-			<Card style={{ marginTop: '16px' }}>
-				<CardHeader>
-					<CardTitle className="resa-flex resa-items-center resa-gap-2 resa-text-base">
-						<Info className="resa-h-4 resa-w-4" />
-						{__('Einrichtungs-Hilfe', 'resa')}
-					</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<p className="resa-text-sm resa-text-muted-foreground resa-mb-3">
+			{/* Setup Help Box */}
+			<div
+				style={{
+					marginTop: '24px',
+					border: '1px solid hsl(214.3 31.8% 91.4%)',
+					borderRadius: '8px',
+					padding: '16px',
+					boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+				}}
+			>
+				<div style={{ marginBottom: '12px' }}>
+					<h4 style={headlineStyle}>{__('Einrichtungs-Hilfe', 'resa')}</h4>
+					<p style={sublineStyle}>
 						{__(
-							'Nachrichten werden automatisch bei jedem neuen Lead an alle aktiven Verbindungen gesendet. Erstellen Sie eine Incoming-Webhook-URL in Ihrer Plattform:',
+							'Nachrichten werden automatisch bei jedem neuen Lead an alle aktiven Verbindungen gesendet.',
 							'resa',
 						)}
 					</p>
-					<div className="resa-space-y-2">
-						{PLATFORMS.map((p) => (
-							<div
-								key={p.value}
-								className="resa-flex resa-items-start resa-gap-2 resa-text-sm"
+				</div>
+				<div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+					{PLATFORMS.map((p) => (
+						<div
+							key={p.value}
+							style={{
+								display: 'flex',
+								alignItems: 'flex-start',
+								gap: '8px',
+								fontSize: '13px',
+							}}
+						>
+							<Badge
+								variant="outline"
+								style={{
+									...platformBadgeStyle(p.value),
+									fontSize: '11px',
+									flexShrink: 0,
+									marginTop: '2px',
+								}}
 							>
-								<Badge
-									variant="outline"
-									className="resa-text-xs resa-shrink-0 resa-mt-0.5"
-									style={platformBadgeStyle(p.value)}
-								>
-									{p.label}
-								</Badge>
-								<span className="resa-text-muted-foreground">
-									{PLATFORM_HELP[p.value]}
-								</span>
-							</div>
-						))}
-					</div>
-				</CardContent>
-			</Card>
+								{p.label}
+							</Badge>
+							<span style={{ color: '#64748b' }}>{PLATFORM_HELP[p.value]}</span>
+						</div>
+					))}
+				</div>
+			</div>
 
 			{/* Create / Edit Dialog */}
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

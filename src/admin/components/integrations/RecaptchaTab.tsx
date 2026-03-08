@@ -59,22 +59,44 @@ function PrimaryButton({
 
 const sectionTitleStyles: React.CSSProperties = {
 	margin: 0,
-	fontSize: '14px',
+	fontSize: '16px',
 	fontWeight: 600,
 	color: '#1e303a',
 };
 
 const sectionDescStyles: React.CSSProperties = {
-	margin: 0,
+	margin: '4px 0 0 0',
 	fontSize: '13px',
 	color: 'hsl(215.4 16.3% 46.9%)',
 };
 
-const switchRowStyles: React.CSSProperties = {
+const elementTitleStyles: React.CSSProperties = {
+	margin: 0,
+	fontSize: '14px',
+	fontWeight: 500,
+	color: '#1e303a',
+};
+
+const fieldDescStyles: React.CSSProperties = {
+	margin: '2px 0 0 0',
+	fontSize: '12px',
+	color: 'hsl(215.4 16.3% 46.9%)',
+};
+
+const toggleBoxStyles: React.CSSProperties = {
 	display: 'flex',
 	alignItems: 'center',
 	justifyContent: 'space-between',
-	gap: '16px',
+	padding: '16px',
+	border: '1px solid hsl(214.3 31.8% 91.4%)',
+	borderRadius: '8px',
+	backgroundColor: 'hsl(210 40% 96.1%)',
+};
+
+const cardStyles: React.CSSProperties = {
+	border: '1px solid hsl(214.3 31.8% 91.4%)',
+	borderRadius: '8px',
+	boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
 };
 
 // ─── Threshold Options ─────────────────────────────────
@@ -130,18 +152,29 @@ export function RecaptchaTab() {
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 			{/* Card: reCAPTCHA v3 Configuration */}
-			<Card>
+			<Card style={cardStyles}>
 				<CardContent style={{ padding: '20px' }}>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-						{/* Header + Switch */}
-						<div style={switchRowStyles}>
+						{/* Card Header */}
+						<div>
+							<h2 style={sectionTitleStyles}>{__('Verbindung', 'resa')}</h2>
+							<p style={sectionDescStyles}>
+								{__(
+									'Verbinde RESA mit Google reCAPTCHA v3 für unsichtbaren Spam-Schutz.',
+									'resa',
+								)}
+							</p>
+						</div>
+
+						{/* Enable Switch */}
+						<div style={toggleBoxStyles}>
 							<div>
-								<h3 style={sectionTitleStyles}>
-									{__('Google reCAPTCHA v3', 'resa')}
-								</h3>
-								<p style={{ ...sectionDescStyles, marginTop: '4px' }}>
+								<p style={elementTitleStyles}>
+									{__('reCAPTCHA aktivieren', 'resa')}
+								</p>
+								<p style={fieldDescStyles}>
 									{__(
-										'Unsichtbarer Spam-Schutz. Bewertet Besucher im Hintergrund ohne Interaktion.',
+										'Bewertet Besucher im Hintergrund ohne Interaktion.',
 										'resa',
 									)}
 								</p>
@@ -152,107 +185,110 @@ export function RecaptchaTab() {
 							/>
 						</div>
 
-						{/* API Keys */}
-						<div className="resa-grid resa-grid-cols-1 resa-gap-4">
-							<div className="resa-space-y-2">
-								<Label htmlFor="recaptcha-site-key">{__('Site Key', 'resa')}</Label>
-								<Input
-									id="recaptcha-site-key"
-									placeholder="6Lc..."
-									value={form.site_key}
-									onChange={(e) => updateField('site_key', e.target.value)}
-									style={{ backgroundColor: 'white' }}
-								/>
-							</div>
-							<div className="resa-space-y-2">
-								<Label htmlFor="recaptcha-secret-key">
-									{__('Secret Key', 'resa')}
-								</Label>
-								<Input
-									id="recaptcha-secret-key"
-									type="password"
-									placeholder="6Lc..."
-									value={form.secret_key}
-									onChange={(e) => updateField('secret_key', e.target.value)}
-									style={{ backgroundColor: 'white' }}
-								/>
-							</div>
-						</div>
-
-						{/* Threshold */}
-						<div className="resa-space-y-2">
-							<Label htmlFor="recaptcha-threshold">
-								{__('Score-Schwellenwert', 'resa')}
-							</Label>
-							<select
-								id="recaptcha-threshold"
-								value={String(form.threshold)}
-								onChange={(e) =>
-									updateField('threshold', parseFloat(e.target.value))
-								}
-								style={{
-									display: 'block',
-									width: '100%',
-									maxWidth: '280px',
-									height: '36px',
-									padding: '0 12px',
-									fontSize: '14px',
-									borderRadius: '6px',
-									border: '1px solid hsl(214.3 31.8% 78%)',
-									backgroundColor: 'white',
-									color: '#1e303a',
-									boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-								}}
-							>
-								{THRESHOLD_OPTIONS.map((opt) => (
-									<option key={opt.value} value={opt.value}>
-										{opt.label}
-									</option>
-								))}
-							</select>
-							<p
-								style={{
-									margin: '4px 0 0 0',
-									fontSize: '12px',
-									color: 'hsl(215.4 16.3% 46.9%)',
-								}}
-							>
-								{__(
-									'Besucher mit einem Score unter diesem Wert werden als Spam eingestuft. 1.0 = sicher menschlich, 0.0 = sicher Bot.',
-									'resa',
-								)}
-							</p>
-						</div>
-
-						{/* Info box */}
-						<div
-							style={{
-								border: '1px solid hsl(214.3 31.8% 91.4%)',
-								borderRadius: '8px',
-								padding: '16px',
-								fontSize: '13px',
-								color: 'hsl(215.4 16.3% 46.9%)',
-							}}
-						>
-							<p style={{ margin: '0 0 8px 0', fontWeight: 500, color: '#1e303a' }}>
-								{__('Hinweis', 'resa')}
-							</p>
-							<p style={{ margin: 0 }}>
-								{__(
-									'reCAPTCHA v3 arbeitet unsichtbar im Hintergrund. Site Key und Secret Key erhältst du in der',
-									'resa',
-								)}{' '}
-								<a
-									href="https://www.google.com/recaptcha/admin"
-									target="_blank"
-									rel="noopener noreferrer"
-									style={{ color: '#1e303a', textDecoration: 'underline' }}
+						{/* API Keys - nur wenn enabled */}
+						{form.enabled && (
+							<>
+								<div
+									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
 								>
-									{__('Google reCAPTCHA Admin Console', 'resa')}
-								</a>
-								. {__('Wähle dort „reCAPTCHA v3" als Typ.', 'resa')}
-							</p>
-						</div>
+									<Label htmlFor="recaptcha-site-key">
+										{__('Site Key', 'resa')}
+									</Label>
+									<Input
+										id="recaptcha-site-key"
+										placeholder="6Lc..."
+										value={form.site_key}
+										onChange={(e) => updateField('site_key', e.target.value)}
+										style={{
+											height: '36px',
+											padding: '0 12px',
+											fontSize: '14px',
+											border: '1px solid hsl(214.3 31.8% 78%)',
+											borderRadius: '6px',
+											backgroundColor: 'white',
+										}}
+									/>
+								</div>
+								<div
+									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+								>
+									<Label htmlFor="recaptcha-secret-key">
+										{__('Secret Key', 'resa')}
+									</Label>
+									<Input
+										id="recaptcha-secret-key"
+										type="password"
+										placeholder="6Lc..."
+										value={form.secret_key}
+										onChange={(e) => updateField('secret_key', e.target.value)}
+										style={{
+											height: '36px',
+											padding: '0 12px',
+											fontSize: '14px',
+											border: '1px solid hsl(214.3 31.8% 78%)',
+											borderRadius: '6px',
+											backgroundColor: 'white',
+										}}
+									/>
+									<p style={fieldDescStyles}>
+										{__('Site Key und Secret Key erhältst du in der', 'resa')}{' '}
+										<a
+											href="https://www.google.com/recaptcha/admin"
+											target="_blank"
+											rel="noopener noreferrer"
+											style={{
+												color: '#1e303a',
+												textDecoration: 'underline',
+											}}
+										>
+											{__('Google reCAPTCHA Admin Console', 'resa')}
+										</a>
+										.
+									</p>
+								</div>
+
+								{/* Threshold */}
+								<div
+									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+								>
+									<Label htmlFor="recaptcha-threshold">
+										{__('Score-Schwellenwert', 'resa')}
+									</Label>
+									<select
+										id="recaptcha-threshold"
+										value={String(form.threshold)}
+										onChange={(e) =>
+											updateField('threshold', parseFloat(e.target.value))
+										}
+										style={{
+											display: 'block',
+											width: '100%',
+											maxWidth: '280px',
+											height: '36px',
+											padding: '0 12px',
+											fontSize: '14px',
+											borderRadius: '6px',
+											border: '1px solid hsl(214.3 31.8% 78%)',
+											backgroundColor: 'white',
+											color: '#1e303a',
+											boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+										}}
+									>
+										{THRESHOLD_OPTIONS.map((opt) => (
+											<option key={opt.value} value={opt.value}>
+												{opt.label}
+											</option>
+										))}
+									</select>
+									<p style={fieldDescStyles}>
+										{__(
+											'Besucher mit einem Score unter diesem Wert werden als Spam eingestuft. 1.0 = sicher menschlich, 0.0 = sicher Bot.',
+											'resa',
+										)}
+									</p>
+								</div>
+							</>
+						)}
 					</div>
 				</CardContent>
 			</Card>

@@ -113,8 +113,9 @@ const badgeStyles: React.CSSProperties = {
 
 const successBadgeStyles: React.CSSProperties = {
 	...badgeStyles,
-	backgroundColor: colors.primary,
-	color: colors.primaryForeground,
+	backgroundColor: 'hsl(142 76% 95%)',
+	color: 'hsl(142 76% 30%)',
+	border: '1px solid hsl(142 76% 80%)',
 };
 
 const errorBadgeStyles: React.CSSProperties = {
@@ -185,6 +186,13 @@ const separatorStyles: React.CSSProperties = {
 	margin: '16px 0',
 };
 
+const cardStyles: React.CSSProperties = {
+	border: `1px solid ${colors.borderLight}`,
+	borderRadius: '8px',
+	backgroundColor: colors.background,
+	boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+};
+
 // ─── Styled Button Components ────────────────────────────
 
 function PrimaryButton({
@@ -216,6 +224,43 @@ function PrimaryButton({
 				border: 'none',
 				cursor: disabled ? 'not-allowed' : 'pointer',
 				opacity: 1,
+				gap: '6px',
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
+
+function OutlineButton({
+	children,
+	onClick,
+	disabled,
+}: {
+	children: ReactNode;
+	onClick?: () => void;
+	disabled?: boolean;
+}) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type="button"
+			size="sm"
+			onClick={onClick}
+			disabled={disabled}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: disabled
+					? colors.backgroundMuted
+					: isHovered
+						? 'hsl(210 40% 96.1%)'
+						: 'white',
+				color: disabled ? colors.textMuted : colors.text,
+				border: `1px solid ${colors.border}`,
+				cursor: disabled ? 'not-allowed' : 'pointer',
+				boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
 				gap: '6px',
 			}}
 		>
@@ -341,7 +386,7 @@ export function PropstackTab() {
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 			{/* Card 1: Verbindung */}
-			<Card>
+			<Card style={cardStyles}>
 				<CardContent style={{ padding: '20px' }}>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 						{/* Card Header */}
@@ -425,15 +470,9 @@ export function PropstackTab() {
 
 								{/* Test Connection */}
 								<div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-									<Button
-										type="button"
-										variant="outline"
+									<OutlineButton
 										onClick={handleTestConnection}
 										disabled={testMutation.isPending || !form.api_key}
-										style={{
-											border: `1px solid ${colors.border}`,
-											backgroundColor: colors.background,
-										}}
 									>
 										{testMutation.isPending && (
 											<Spinner
@@ -445,7 +484,7 @@ export function PropstackTab() {
 											/>
 										)}
 										{__('Verbindung testen', 'resa-propstack')}
-									</Button>
+									</OutlineButton>
 
 									{connectionStatus === 'connected' && (
 										<span style={successBadgeStyles}>
@@ -490,7 +529,7 @@ export function PropstackTab() {
 			{form.enabled && isConnected && (
 				<>
 					{/* Card 2: Makler-Zuweisung */}
-					<Card>
+					<Card style={cardStyles}>
 						<CardContent style={{ padding: '20px' }}>
 							<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 								<div>
@@ -681,7 +720,7 @@ export function PropstackTab() {
 					</Card>
 
 					{/* Card 3: Aktivitäten */}
-					<Card>
+					<Card style={cardStyles}>
 						<CardContent style={{ padding: '20px' }}>
 							<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 								{/* Card Header */}
@@ -836,7 +875,7 @@ export function PropstackTab() {
 					</Card>
 
 					{/* Card 4: Newsletter */}
-					<Card>
+					<Card style={cardStyles}>
 						<CardContent style={{ padding: '20px' }}>
 							<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 								<div>
