@@ -33,8 +33,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Spinner } from '@/components/ui/spinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { LoadingState } from '../components/LoadingState';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -160,12 +160,7 @@ export function ModuleStore() {
 				title={__('Smart Assets', 'resa')}
 				description={__('Aktiviere und konfiguriere deine Lead-Tools.', 'resa')}
 			>
-				<div className="resa-flex resa-items-center resa-justify-center resa-py-12 resa-gap-2">
-					<Spinner className="resa-size-5" />
-					<span className="resa-text-muted-foreground">
-						{__('Module werden geladen...', 'resa')}
-					</span>
-				</div>
+				<LoadingState message={__('Module werden geladen...', 'resa')} />
 			</AdminPageLayout>
 		);
 	}

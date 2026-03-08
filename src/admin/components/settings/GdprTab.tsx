@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
+import { LoadingState } from '../LoadingState';
 import { usePrivacySettings, useSavePrivacySettings } from '../../hooks/usePrivacySettings';
 import type { PrivacySettings } from '../../types';
 
@@ -182,14 +183,7 @@ export function GdprTab() {
 	};
 
 	if (isLoading) {
-		return (
-			<div className="resa-flex resa-items-center resa-justify-center resa-gap-2 resa-py-12">
-				<Spinner className="resa-size-5" />
-				<span className="resa-text-muted-foreground">
-					{__('Lade Datenschutz-Einstellungen...', 'resa')}
-				</span>
-			</div>
-		);
+		return <LoadingState message={__('Lade Datenschutz-Einstellungen...', 'resa')} />;
 	}
 
 	return (

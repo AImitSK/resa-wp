@@ -40,6 +40,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { LoadingState } from '../components/LoadingState';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
@@ -140,14 +141,7 @@ function AgentDataTab() {
 	const { data: agentData, isLoading, error } = useAgentData();
 
 	if (isLoading) {
-		return (
-			<div className="resa-flex resa-items-center resa-justify-center resa-gap-2 resa-py-12">
-				<Spinner className="resa-size-5" />
-				<span className="resa-text-muted-foreground">
-					{__('Lade Maklerdaten...', 'resa')}
-				</span>
-			</div>
-		);
+		return <LoadingState message={__('Lade Maklerdaten...', 'resa')} />;
 	}
 
 	if (error) {
@@ -938,12 +932,7 @@ function TeamTab() {
 	};
 
 	if (isLoading) {
-		return (
-			<div className="resa-flex resa-items-center resa-justify-center resa-gap-2 resa-py-12">
-				<Spinner className="resa-size-5" />
-				<span className="resa-text-muted-foreground">{__('Lade Team...', 'resa')}</span>
-			</div>
-		);
+		return <LoadingState message={__('Lade Team...', 'resa')} />;
 	}
 
 	if (error) {
@@ -1613,14 +1602,7 @@ function PdfTab() {
 	const { data: teamMembers } = useTeamMembers();
 
 	if (isLoading) {
-		return (
-			<div className="resa-flex resa-items-center resa-justify-center resa-gap-2 resa-py-12">
-				<Spinner className="resa-size-5" />
-				<span className="resa-text-muted-foreground">
-					{__('Lade PDF-Einstellungen...', 'resa')}
-				</span>
-			</div>
-		);
+		return <LoadingState message={__('Lade PDF-Einstellungen...', 'resa')} />;
 	}
 
 	if (error) {
@@ -1657,14 +1639,7 @@ function MapsTab() {
 	const { data: mapSettings, isLoading, error } = useMapSettings();
 
 	if (isLoading) {
-		return (
-			<div className="resa-flex resa-items-center resa-justify-center resa-gap-2 resa-py-12">
-				<Spinner className="resa-size-5" />
-				<span className="resa-text-muted-foreground">
-					{__('Lade Karteneinstellungen...', 'resa')}
-				</span>
-			</div>
-		);
+		return <LoadingState message={__('Lade Karteneinstellungen...', 'resa')} />;
 	}
 
 	if (error) {

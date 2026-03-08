@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { LoadingState } from '../LoadingState';
 
 interface PdfTabProps {
 	slug: string;
@@ -69,14 +70,7 @@ export function PdfTab({ slug }: PdfTabProps) {
 	const { data: settings, isLoading, error } = useModulePdfSettings(slug);
 
 	if (isLoading) {
-		return (
-			<div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '20px' }}>
-				<Spinner className="resa-size-5" />
-				<span style={{ color: '#1e303a', fontSize: '14px' }}>
-					{__('PDF-Einstellungen werden geladen...', 'resa')}
-				</span>
-			</div>
-		);
+		return <LoadingState message={__('Lade PDF-Einstellungen...', 'resa')} size="compact" />;
 	}
 
 	if (error || !settings) {

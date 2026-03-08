@@ -46,7 +46,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
+import { LoadingState } from '../LoadingState';
 
 // ─── Styled Button Components ────────────────────────────
 
@@ -305,14 +305,7 @@ export function WebhooksTab() {
 
 	// Loading state.
 	if (isLoading) {
-		return (
-			<div>
-				<Skeleton className="resa-h-6 resa-w-32 resa-mb-4" />
-				<Skeleton className="resa-h-10 resa-w-full resa-mb-2" />
-				<Skeleton className="resa-h-10 resa-w-full resa-mb-2" />
-				<Skeleton className="resa-h-10 resa-w-full" />
-			</div>
-		);
+		return <LoadingState message={__('Lade Webhooks...', 'resa')} />;
 	}
 
 	return (

@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Spinner } from '@/components/ui/spinner';
+import { LoadingState } from '../LoadingState';
 import { useRecaptchaSettings, useSaveRecaptchaSettings } from '../../hooks/useRecaptchaSettings';
 import type { RecaptchaSettings } from '../../types';
 
@@ -139,14 +140,7 @@ export function RecaptchaTab() {
 	};
 
 	if (isLoading) {
-		return (
-			<div className="resa-flex resa-items-center resa-justify-center resa-gap-2 resa-py-12">
-				<Spinner className="resa-size-5" />
-				<span className="resa-text-muted-foreground">
-					{__('Lade reCAPTCHA-Einstellungen...', 'resa')}
-				</span>
-			</div>
-		);
+		return <LoadingState message={__('Lade reCAPTCHA-Einstellungen...', 'resa')} />;
 	}
 
 	return (

@@ -26,8 +26,7 @@ import { AdminPageLayout } from '../components/AdminPageLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Spinner } from '@/components/ui/spinner';
+import { LoadingState } from '../components/LoadingState';
 
 /** Module icons by slug */
 const MODULE_ICONS: Record<string, React.ElementType> = {
@@ -102,14 +101,7 @@ export function ModuleSettings() {
 				breadcrumbs={breadcrumbs}
 				onBack={() => navigate('/modules')}
 			>
-				<Skeleton className="resa-h-4 resa-w-48" />
-				<Skeleton className="resa-h-8 resa-w-64 resa-mt-4" />
-				<div className="resa-flex resa-items-center resa-gap-2 resa-mt-6">
-					<Spinner className="resa-size-5" />
-					<span className="resa-text-muted-foreground">
-						{__('Einstellungen werden geladen...', 'resa')}
-					</span>
-				</div>
+				<LoadingState message={__('Lade Modul-Einstellungen...', 'resa')} />
 			</AdminPageLayout>
 		);
 	}

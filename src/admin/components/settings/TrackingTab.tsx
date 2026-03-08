@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Spinner } from '@/components/ui/spinner';
 import { Badge } from '@/components/ui/badge';
+import { LoadingState } from '../LoadingState';
 import { useTrackingSettings, useSaveTrackingSettings } from '../../hooks/useTrackingSettings';
 import { useFeatures } from '../../hooks/useFeatures';
 import type { TrackingSettings } from '../../types';
@@ -240,14 +241,7 @@ export function TrackingTab() {
 	};
 
 	if (isLoading) {
-		return (
-			<div className="resa-flex resa-items-center resa-justify-center resa-gap-2 resa-py-12">
-				<Spinner className="resa-size-5" />
-				<span className="resa-text-muted-foreground">
-					{__('Lade Tracking-Einstellungen...', 'resa')}
-				</span>
-			</div>
-		);
+		return <LoadingState message={__('Lade Tracking-Einstellungen...', 'resa')} />;
 	}
 
 	return (

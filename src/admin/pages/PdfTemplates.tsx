@@ -18,6 +18,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { LoadingState } from '../components/LoadingState';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 
@@ -139,12 +140,7 @@ export function PdfTemplates() {
 					'resa',
 				)}
 			>
-				<div className="resa-flex resa-items-center resa-justify-center resa-gap-2 resa-py-12">
-					<Spinner className="resa-size-5" />
-					<span className="resa-text-muted-foreground">
-						{__('Lade PDF-Einstellungen...', 'resa')}
-					</span>
-				</div>
+				<LoadingState message={__('Lade PDF-Einstellungen...', 'resa')} />
 			</AdminPageLayout>
 		);
 	}

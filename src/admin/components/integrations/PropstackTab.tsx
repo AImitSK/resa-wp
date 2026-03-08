@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Spinner } from '@/components/ui/spinner';
+import { LoadingState } from '../LoadingState';
 import {
 	Select,
 	SelectContent,
@@ -365,22 +366,7 @@ export function PropstackTab() {
 	};
 
 	if (isLoading) {
-		return (
-			<div
-				style={{
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'center',
-					gap: '8px',
-					padding: '48px',
-				}}
-			>
-				<Spinner style={{ width: '20px', height: '20px' }} />
-				<span style={{ color: colors.textMuted }}>
-					{__('Lade Propstack-Einstellungen...', 'resa-propstack')}
-				</span>
-			</div>
-		);
+		return <LoadingState message={__('Lade Propstack-Einstellungen...', 'resa-propstack')} />;
 	}
 
 	return (

@@ -8,8 +8,8 @@ import { useState, type ReactNode } from 'react';
 import { __ } from '@wordpress/i18n';
 import { Mail, ChevronRight } from 'lucide-react';
 import { useEmailTemplates } from '../../hooks/useEmailTemplates';
-import { Spinner } from '@/components/ui/spinner';
 import { Button } from '@/components/ui/button';
+import { LoadingState } from '../LoadingState';
 
 // ─── Styled Button Components ────────────────────────────
 
@@ -122,22 +122,7 @@ export function TemplatesTab({ onEdit }: TemplatesTabProps) {
 	const [hoveredId, setHoveredId] = useState<string | null>(null);
 
 	if (isLoading) {
-		return (
-			<div
-				style={{
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'center',
-					gap: '8px',
-					padding: '48px 0',
-				}}
-			>
-				<Spinner style={{ width: '20px', height: '20px' }} />
-				<span style={{ fontSize: '14px', color: 'hsl(215.4 16.3% 46.9%)' }}>
-					{__('Lade Vorlagen...', 'resa')}
-				</span>
-			</div>
-		);
+		return <LoadingState message={__('Lade Vorlagen...', 'resa')} />;
 	}
 
 	if (!templates || templates.length === 0) {
