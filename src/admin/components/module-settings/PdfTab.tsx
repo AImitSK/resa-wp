@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { LoadingState } from '../LoadingState';
+import { toast } from '../../lib/toast';
 
 interface PdfTabProps {
 	slug: string;
@@ -105,7 +106,13 @@ function PdfTabInner({ settings, slug }: { settings: ModulePdfSettings; slug: st
 
 	const handleSave = () => {
 		saveSettings.mutate(local, {
-			onSuccess: () => setHasChanges(false),
+			onSuccess: () => {
+				setHasChanges(false);
+				toast.success(__('PDF-Einstellungen gespeichert.', 'resa'));
+			},
+			onError: () => {
+				toast.error(__('Fehler beim Speichern.', 'resa'));
+			},
 		});
 	};
 
@@ -392,19 +399,6 @@ function PdfTabInner({ settings, slug }: { settings: ModulePdfSettings; slug: st
 					)}
 				</Button>
 			</div>
-
-			{saveSettings.isSuccess && !hasChanges && (
-				<p
-					style={{
-						fontSize: '13px',
-						color: '#059669',
-						textAlign: 'right',
-						margin: '-12px 0 0 0',
-					}}
-				>
-					{__('PDF-Einstellungen gespeichert.', 'resa')}
-				</p>
-			)}
 		</div>
 	);
 }

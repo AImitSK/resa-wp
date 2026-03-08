@@ -21,6 +21,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { LoadingState } from '../LoadingState';
 import { usePrivacySettings, useSavePrivacySettings } from '../../hooks/usePrivacySettings';
+import { toast } from '../../lib/toast';
 import type { PrivacySettings } from '../../types';
 
 // ─── Styled Button Component ────────────────────────────
@@ -178,7 +179,13 @@ export function GdprTab() {
 
 	const handleSave = () => {
 		saveMutation.mutate(form, {
-			onSuccess: () => setIsDirty(false),
+			onSuccess: () => {
+				setIsDirty(false);
+				toast.success(__('Datenschutz-Einstellungen gespeichert.', 'resa'));
+			},
+			onError: () => {
+				toast.error(__('Fehler beim Speichern.', 'resa'));
+			},
 		});
 	};
 
@@ -534,18 +541,9 @@ export function GdprTab() {
 				style={{
 					display: 'flex',
 					alignItems: 'center',
-					justifyContent: 'space-between',
+					justifyContent: 'flex-end',
 				}}
 			>
-				<p
-					style={{
-						margin: 0,
-						fontSize: '12px',
-						color: 'hsl(215.4 16.3% 46.9%)',
-					}}
-				>
-					{saveMutation.isSuccess && __('Datenschutz-Einstellungen gespeichert.', 'resa')}
-				</p>
 				<PrimaryButton onClick={handleSave} disabled={!isDirty || saveMutation.isPending}>
 					{saveMutation.isPending && (
 						<Spinner style={{ width: '14px', height: '14px' }} />

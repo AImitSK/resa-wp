@@ -46,8 +46,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingState } from '../LoadingState';
+import { toast } from '../../lib/toast';
 
 // ─── Styled Button Components ────────────────────────────
 
@@ -152,20 +152,12 @@ export function MessengerTab() {
 
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [editingMessenger, setEditingMessenger] = useState<MessengerConfig | null>(null);
-	const [feedback, setFeedback] = useState<{
-		type: 'success' | 'error';
-		message: string;
-	} | null>(null);
 
 	// Form state.
 	const [formName, setFormName] = useState('');
 	const [formPlatform, setFormPlatform] = useState<MessengerPlatform>('slack');
 	const [formUrl, setFormUrl] = useState('');
 	const [formActive, setFormActive] = useState(true);
-
-	const clearFeedback = () => {
-		setTimeout(() => setFeedback(null), 5000);
-	};
 
 	const openCreateDialog = () => {
 		setEditingMessenger(null);
@@ -196,10 +188,7 @@ export function MessengerTab() {
 						isActive: formActive,
 					},
 				});
-				setFeedback({
-					type: 'success',
-					message: __('Verbindung aktualisiert.', 'resa'),
-				});
+				toast.success(__('Verbindung aktualisiert.', 'resa'));
 			} else {
 				const data: MessengerFormData = {
 					name: formName,
@@ -208,19 +197,12 @@ export function MessengerTab() {
 					isActive: formActive,
 				};
 				await createMutation.mutateAsync(data);
-				setFeedback({
-					type: 'success',
-					message: __('Verbindung erstellt.', 'resa'),
-				});
+				toast.success(__('Verbindung erstellt.', 'resa'));
 			}
 			setDialogOpen(false);
 		} catch {
-			setFeedback({
-				type: 'error',
-				message: __('Fehler beim Speichern der Verbindung.', 'resa'),
-			});
+			toast.error(__('Fehler beim Speichern der Verbindung.', 'resa'));
 		}
-		clearFeedback();
 	};
 
 	const handleToggle = async (messenger: MessengerConfig) => {
@@ -230,53 +212,34 @@ export function MessengerTab() {
 				data: { isActive: !messenger.isActive },
 			});
 		} catch {
-			setFeedback({
-				type: 'error',
-				message: __('Fehler beim Ändern des Status.', 'resa'),
-			});
-			clearFeedback();
+			toast.error(__('Fehler beim Ändern des Status.', 'resa'));
 		}
 	};
 
 	const handleDelete = async (id: number) => {
 		try {
 			await deleteMutation.mutateAsync(id);
-			setFeedback({
-				type: 'success',
-				message: __('Verbindung gelöscht.', 'resa'),
-			});
+			toast.success(__('Verbindung gelöscht.', 'resa'));
 		} catch {
-			setFeedback({
-				type: 'error',
-				message: __('Fehler beim Löschen der Verbindung.', 'resa'),
-			});
+			toast.error(__('Fehler beim Löschen der Verbindung.', 'resa'));
 		}
-		clearFeedback();
 	};
 
 	const handleTest = async (id: number) => {
 		try {
 			const result = await testMutation.mutateAsync(id);
 			if (result.success) {
-				setFeedback({
-					type: 'success',
-					message: `${__('Test erfolgreich', 'resa')} (HTTP ${result.statusCode})`,
-				});
+				toast.success(`${__('Test erfolgreich', 'resa')} (HTTP ${result.statusCode})`);
 			} else {
-				setFeedback({
-					type: 'error',
-					message: result.error
+				toast.error(
+					result.error
 						? `${__('Test fehlgeschlagen', 'resa')}: ${result.error}`
 						: `${__('Test fehlgeschlagen', 'resa')} (HTTP ${result.statusCode})`,
-				});
+				);
 			}
 		} catch {
-			setFeedback({
-				type: 'error',
-				message: __('Fehler beim Senden des Tests.', 'resa'),
-			});
+			toast.error(__('Fehler beim Senden des Tests.', 'resa'));
 		}
-		clearFeedback();
 	};
 
 	const isFormValid = formName.trim() !== '' && formUrl.trim() !== '';
@@ -312,16 +275,6 @@ export function MessengerTab() {
 
 	return (
 		<>
-			{/* Feedback Alert */}
-			{feedback && (
-				<Alert
-					variant={feedback.type === 'error' ? 'destructive' : 'default'}
-					style={{ marginBottom: '16px' }}
-				>
-					<AlertDescription>{feedback.message}</AlertDescription>
-				</Alert>
-			)}
-
 			{/* Header */}
 			<div style={headerStyle}>
 				<div>

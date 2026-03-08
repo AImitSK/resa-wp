@@ -21,6 +21,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { LoadingState } from '../components/LoadingState';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
+import { toast } from '../lib/toast';
 
 // ─── Styled Button Component ────────────────────────────
 
@@ -233,8 +234,13 @@ export function BaseLayoutTab({
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		await saveMutation.mutateAsync(form);
-		setIsDirty(false);
+		try {
+			await saveMutation.mutateAsync(form);
+			setIsDirty(false);
+			toast.success(__('PDF-Einstellungen gespeichert.', 'resa'));
+		} catch {
+			toast.error(__('Fehler beim Speichern.', 'resa'));
+		}
 	};
 
 	return (
@@ -579,18 +585,9 @@ export function BaseLayoutTab({
 					style={{
 						display: 'flex',
 						alignItems: 'center',
-						justifyContent: 'space-between',
+						justifyContent: 'flex-end',
 					}}
 				>
-					<p
-						style={{
-							margin: 0,
-							fontSize: '12px',
-							color: 'hsl(215.4 16.3% 46.9%)',
-						}}
-					>
-						{saveMutation.isSuccess && __('PDF-Einstellungen gespeichert.', 'resa')}
-					</p>
 					<PrimaryButton type="submit" disabled={!isDirty || saveMutation.isPending}>
 						{saveMutation.isPending && (
 							<Spinner style={{ width: '14px', height: '14px' }} />

@@ -21,6 +21,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Badge } from '@/components/ui/badge';
 import { LoadingState } from '../LoadingState';
 import { useTrackingSettings, useSaveTrackingSettings } from '../../hooks/useTrackingSettings';
+import { toast } from '../../lib/toast';
 import { useFeatures } from '../../hooks/useFeatures';
 import type { TrackingSettings } from '../../types';
 
@@ -236,7 +237,13 @@ export function TrackingTab() {
 
 	const handleSave = () => {
 		saveMutation.mutate(form, {
-			onSuccess: () => setIsDirty(false),
+			onSuccess: () => {
+				setIsDirty(false);
+				toast.success(__('Tracking-Einstellungen gespeichert.', 'resa'));
+			},
+			onError: () => {
+				toast.error(__('Fehler beim Speichern.', 'resa'));
+			},
 		});
 	};
 
@@ -647,18 +654,9 @@ export function TrackingTab() {
 				style={{
 					display: 'flex',
 					alignItems: 'center',
-					justifyContent: 'space-between',
+					justifyContent: 'flex-end',
 				}}
 			>
-				<p
-					style={{
-						margin: 0,
-						fontSize: '12px',
-						color: 'hsl(215.4 16.3% 46.9%)',
-					}}
-				>
-					{saveMutation.isSuccess && __('Tracking-Einstellungen gespeichert.', 'resa')}
-				</p>
 				<PrimaryButton onClick={handleSave} disabled={!isDirty || saveMutation.isPending}>
 					{saveMutation.isPending && (
 						<Spinner style={{ width: '14px', height: '14px' }} />
