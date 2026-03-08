@@ -175,6 +175,7 @@ export function GdprTab() {
 	const form = useForm<GdprSettingsFormData>({
 		resolver: zodResolver(gdprSettingsSchema),
 		defaultValues: defaults,
+		mode: 'onChange',
 	});
 
 	// Sync server data when loaded

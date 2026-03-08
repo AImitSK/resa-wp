@@ -184,6 +184,7 @@ export function MessengerTab() {
 	const form = useForm<MessengerFormData>({
 		resolver: zodResolver(messengerFormSchema),
 		defaultValues: defaults,
+		mode: 'onChange',
 	});
 
 	const {

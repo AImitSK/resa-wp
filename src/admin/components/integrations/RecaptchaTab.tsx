@@ -138,6 +138,7 @@ export function RecaptchaTab() {
 	const form = useForm<RecaptchaSettingsFormData>({
 		resolver: zodResolver(recaptchaSettingsSchema),
 		defaultValues: defaults,
+		mode: 'onChange',
 	});
 
 	// Sync server data when loaded

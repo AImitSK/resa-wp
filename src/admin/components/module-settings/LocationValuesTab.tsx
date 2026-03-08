@@ -91,6 +91,7 @@ export function LocationValuesTab({
 			price_min: 0,
 			price_max: 0,
 		},
+		mode: 'onChange',
 	});
 
 	const {
@@ -507,7 +508,7 @@ export function LocationValuesTab({
 						{__('Werte bearbeiten', 'resa')}:{' '}
 						{tableData.find((l) => l.id === editingLocationId)?.name}
 					</h4>
-					<form onSubmit={handleSubmit(onSubmit)}>
+					<form onSubmit={handleSubmit(onSubmit)} noValidate>
 						<div
 							style={{
 								display: 'grid',

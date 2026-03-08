@@ -143,6 +143,7 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 	const form = useForm<LocationFormData>({
 		resolver: zodResolver(locationSchema),
 		defaultValues: initialData ?? defaultValues,
+		mode: 'onChange',
 	});
 
 	// Sync server data when loaded (for edit mode)
@@ -211,6 +212,7 @@ export function LocationEditor({ initialData, onSave, onCancel, isSaving }: Loca
 	return (
 		<form
 			onSubmit={form.handleSubmit(onSubmit)}
+			noValidate
 			style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
 		>
 			{/* Page header */}

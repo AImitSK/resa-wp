@@ -234,6 +234,7 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 			body: template.body,
 			is_active: template.is_active,
 		},
+		mode: 'onChange',
 	});
 
 	// React Hook Form for test email dialog
@@ -242,6 +243,7 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 		defaultValues: {
 			email: '',
 		},
+		mode: 'onChange',
 	});
 
 	// Sync server data when template changes (e.g. after reset via query invalidation)

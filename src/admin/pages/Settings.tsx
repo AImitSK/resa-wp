@@ -337,6 +337,7 @@ function AgentDataForm({
 	const form = useForm<GeneralSettingsFormData>({
 		resolver: zodResolver(generalSettingsSchema),
 		defaultValues: defaults,
+		mode: 'onChange',
 	});
 
 	// Sync server data when loaded
@@ -408,6 +409,7 @@ function AgentDataForm({
 	return (
 		<form
 			onSubmit={form.handleSubmit(onSubmit)}
+			noValidate
 			style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
 		>
 			{/* Card 1: Maklerdaten (Persönliche Daten + Kontaktdaten + Online-Präsenz) */}
@@ -1360,6 +1362,7 @@ function TeamMemberForm({
 	return (
 		<form
 			onSubmit={handleSubmit}
+			noValidate
 			style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
 		>
 			{/* Card: Ansprechpartner */}
@@ -1857,6 +1860,7 @@ function MapsForm({ initialData }: { initialData: MapSettings | undefined }) {
 	return (
 		<form
 			onSubmit={handleSubmit}
+			noValidate
 			style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
 		>
 			{/* Card 1: Kartenanbieter */}

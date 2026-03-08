@@ -175,6 +175,7 @@ export function WebhooksTab() {
 	const form = useForm<WebhookFormData>({
 		resolver: zodResolver(webhookSchema),
 		defaultValues: defaults,
+		mode: 'onChange',
 	});
 
 	const {

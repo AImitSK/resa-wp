@@ -141,6 +141,7 @@ export function ApiKeysTab() {
 	const form = useForm<ApiKeyCreateFormData>({
 		resolver: zodResolver(apiKeyCreateSchema),
 		defaultValues: { name: '' },
+		mode: 'onChange',
 	});
 
 	const openCreateDialog = () => {

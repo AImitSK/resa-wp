@@ -115,6 +115,7 @@ export function LocationEditor({ initialData, onSave }: Props) {
 			longitude: 13.405,
 			isActive: true,
 		},
+		mode: 'onChange', // Validierung bei jeder Eingabe (nicht erst bei Submit)
 	});
 
 	const onSubmit = async (data: LocationFormData) => {
@@ -124,13 +125,23 @@ export function LocationEditor({ initialData, onSave }: Props) {
 
 	return (
 		<Form {...form}>
-			<form onSubmit={form.handleSubmit(onSubmit)}>
+			{/* noValidate deaktiviert Browser-Validierung (nur Zod) */}
+			<form onSubmit={form.handleSubmit(onSubmit)} noValidate>
 				{/* FormFields hier */}
 			</form>
 		</Form>
 	);
 }
 ```
+
+### Wichtige Optionen
+
+| Option       | Wert         | Beschreibung                                        |
+| ------------ | ------------ | --------------------------------------------------- |
+| `mode`       | `'onChange'` | Validierung bei jeder Eingabe (sofortiges Feedback) |
+| `noValidate` | `true`       | Deaktiviert Browser-Tooltips, nur Zod-Validierung   |
+
+````
 
 ### Form-Kontext für verschachtelte Komponenten
 
@@ -144,7 +155,7 @@ function NestedComponent() {
 	} = useFormContext<LocationFormData>();
 	// Zugriff auf das übergeordnete Formular
 }
-```
+````
 
 ---
 

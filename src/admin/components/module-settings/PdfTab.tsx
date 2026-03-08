@@ -107,6 +107,7 @@ function PdfTabInner({ settings, slug }: { settings: PdfSettingsFormData; slug: 
 	const form = useForm<PdfSettingsFormData>({
 		resolver: zodResolver(pdfSettingsSchema),
 		defaultValues: defaults,
+		mode: 'onChange',
 	});
 
 	// Sync server data when loaded

@@ -233,6 +233,7 @@ export function TrackingTab() {
 	const form = useForm<TrackingSettingsFormData>({
 		resolver: zodResolver(trackingSettingsSchema),
 		defaultValues: defaults,
+		mode: 'onChange',
 	});
 
 	// Sync server data when loaded

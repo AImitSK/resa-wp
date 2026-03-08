@@ -6,6 +6,7 @@
 
 import { z } from 'zod';
 import { __ } from '@wordpress/i18n';
+import { factorSchema } from './factor';
 
 /**
  * Schema für Module Setup Settings.
@@ -18,7 +19,7 @@ export const moduleSetupSchema = z.object({
 	region_preset: z.string().min(1, __('Bitte einen Regionstyp wählen', 'resa')),
 
 	/** Berechnungsfaktoren (bei individuell manuell bearbeitet, bei pauschal aus Preset) */
-	factors: z.record(z.string(), z.unknown()),
+	factors: factorSchema.partial(),
 });
 
 /**

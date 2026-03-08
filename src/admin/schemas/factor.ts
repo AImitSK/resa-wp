@@ -9,36 +9,65 @@
  */
 
 import { z } from 'zod';
+import { __ } from '@wordpress/i18n';
 
 /**
- * Schema für eine Gruppe von Faktoren (z.B. location_ratings, condition_multipliers).
+ * Schema für Multiplikatoren (0.1 - 3.0).
+ * Typische Werte: 0.8-1.2 für normale Faktoren.
  */
-const factorGroupSchema = z.record(z.string(), z.number());
+const multiplierSchema = z
+	.number()
+	.min(0.1, __('Mindestens 0.1', 'resa'))
+	.max(3.0, __('Maximal 3.0', 'resa'));
+
+/**
+ * Schema für eine Gruppe von Multiplikatoren.
+ */
+const multiplierGroupSchema = z.record(z.string(), multiplierSchema);
+
+/**
+ * Schema für Zuschläge in EUR/m² (0 - 10).
+ */
+const premiumSchema = z
+	.number()
+	.min(0, __('Mindestens 0', 'resa'))
+	.max(10, __('Maximal 10 EUR/m²', 'resa'));
+
+/**
+ * Schema für eine Gruppe von Zuschlägen.
+ */
+const premiumGroupSchema = z.record(z.string(), premiumSchema);
 
 /**
  * Schema für die vollständige Faktorenstruktur des Mietpreis-Kalkulators.
  */
 export const factorSchema = z.object({
-	/** Basismietpreis pro m² in EUR */
-	base_price: z.number().min(0),
+	/** Basismietpreis pro m² in EUR (0-50) */
+	base_price: z
+		.number()
+		.min(0, __('Mindestens 0 EUR/m²', 'resa'))
+		.max(50, __('Maximal 50 EUR/m²', 'resa')),
 
-	/** Größendegression (Abschlag pro m² über Basisgröße) */
-	size_degression: z.number(),
+	/** Größendegression (0-0.5, Abschlag pro m² über Basisgröße) */
+	size_degression: z
+		.number()
+		.min(0, __('Mindestens 0', 'resa'))
+		.max(0.5, __('Maximal 0.5', 'resa')),
 
 	/** Lage-Faktoren (Key: 1-5 für Lage-Bewertung) */
-	location_ratings: factorGroupSchema,
+	location_ratings: multiplierGroupSchema,
 
 	/** Zustands-Multiplikatoren (new, renovated, good, needs_renovation) */
-	condition_multipliers: factorGroupSchema,
+	condition_multipliers: multiplierGroupSchema,
 
 	/** Immobilientyp-Multiplikatoren (apartment, house) */
-	type_multipliers: factorGroupSchema,
+	type_multipliers: multiplierGroupSchema,
 
 	/** Ausstattungs-Zuschläge in EUR/m² */
-	feature_premiums: factorGroupSchema,
+	feature_premiums: premiumGroupSchema,
 
 	/** Alter-Faktoren nach Baujahr-Gruppen */
-	age_multipliers: factorGroupSchema,
+	age_multipliers: multiplierGroupSchema,
 });
 
 /**
@@ -50,8 +79,8 @@ export type FactorFormData = z.infer<typeof factorSchema>;
  * Default-Werte für eine neue Faktorenstruktur.
  */
 export const defaultFactors: FactorFormData = {
-	base_price: 0,
-	size_degression: 0,
+	base_price: 12.5,
+	size_degression: 0.02,
 	location_ratings: {
 		'1': 0.8,
 		'2': 0.9,

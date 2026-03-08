@@ -301,6 +301,7 @@ export function PropstackTab() {
 	const form = useForm<PropstackSettingsFormData>({
 		resolver: zodResolver(propstackSettingsSchema),
 		defaultValues: defaults,
+		mode: 'onChange',
 	});
 
 	const [showApiKey, setShowApiKey] = useState(false);

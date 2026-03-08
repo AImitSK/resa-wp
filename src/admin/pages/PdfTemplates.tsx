@@ -223,6 +223,7 @@ export function BaseLayoutTab({
 	const form = useForm<PdfTemplateFormData>({
 		resolver: zodResolver(pdfTemplateSchema),
 		defaultValues: defaults,
+		mode: 'onChange',
 	});
 
 	// Sync server data when loaded

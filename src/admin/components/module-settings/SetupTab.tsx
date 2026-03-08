@@ -12,10 +12,12 @@ import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { __ } from '@wordpress/i18n';
+import { RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { FactorEditor } from '../FactorEditor';
 import { moduleSetupSchema, type ModuleSetupFormData } from '../../schemas/moduleSetup';
+import { defaultFactors } from '../../schemas/factor';
 import type {
 	ModuleSettingsData,
 	RegionPreset,
@@ -39,6 +41,7 @@ interface SetupTabProps {
 export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps) {
 	const [saveHover, setSaveHover] = useState(false);
 	const [previewHover, setPreviewHover] = useState(false);
+	const [resetHover, setResetHover] = useState(false);
 
 	const defaults: ModuleSetupFormData = {
 		setup_mode: settings.setup_mode ?? 'pauschal',
@@ -49,6 +52,7 @@ export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps)
 	const form = useForm<ModuleSetupFormData>({
 		resolver: zodResolver(moduleSetupSchema),
 		defaultValues: defaults,
+		mode: 'onChange',
 	});
 
 	// Sync server data when settings prop changes
@@ -315,7 +319,40 @@ export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps)
 			{/* Individuell: Manual factor editing */}
 			{setupMode === 'individuell' && (
 				<div style={sectionStyle}>
-					<h3 style={sectionTitleStyle}>{__('Berechnungsfaktoren', 'resa')}</h3>
+					<div
+						style={{
+							display: 'flex',
+							justifyContent: 'space-between',
+							alignItems: 'center',
+							marginBottom: '16px',
+						}}
+					>
+						<h3 style={{ ...sectionTitleStyle, marginBottom: 0 }}>
+							{__('Berechnungsfaktoren', 'resa')}
+						</h3>
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={() => {
+								setValue('factors', { ...defaultFactors }, { shouldDirty: true });
+							}}
+							onMouseEnter={() => setResetHover(true)}
+							onMouseLeave={() => setResetHover(false)}
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								gap: '6px',
+								backgroundColor: resetHover ? 'hsl(210 40% 94%)' : 'white',
+								border: '1px solid hsl(214.3 31.8% 78%)',
+								color: '#1e303a',
+								fontSize: '13px',
+							}}
+						>
+							<RotateCcw style={{ width: '14px', height: '14px' }} />
+							{__('Auf Standardwerte zurücksetzen', 'resa')}
+						</Button>
+					</div>
 					<FactorEditor form={form} />
 				</div>
 			)}
