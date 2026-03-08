@@ -84,9 +84,27 @@ export function EmailEditor({
 	if (!editor) return null;
 
 	return (
-		<div className="resa-rounded-md resa-border resa-bg-background focus-within:resa-ring-2 focus-within:resa-ring-primary focus-within:resa-ring-offset-2">
+		<div
+			style={{
+				border: '1px solid hsl(214.3 31.8% 78%)',
+				borderRadius: '8px',
+				backgroundColor: 'white',
+				boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+				overflow: 'hidden',
+			}}
+		>
 			{/* Toolbar */}
-			<div className="resa-flex resa-flex-wrap resa-items-center resa-gap-0.5 resa-border-b resa-p-1">
+			<div
+				style={{
+					display: 'flex',
+					flexWrap: 'wrap',
+					alignItems: 'center',
+					gap: '2px',
+					padding: '8px',
+					backgroundColor: 'hsl(210 40% 96.1%)',
+					borderBottom: '1px solid hsl(214.3 31.8% 78%)',
+				}}
+			>
 				{/* Text formatting */}
 				<Button
 					variant="ghost"
@@ -172,10 +190,12 @@ export function EmailEditor({
 			</div>
 
 			{/* Editor content */}
-			<EditorContent
-				editor={editor}
-				className="resa-prose resa-prose-sm resa-max-w-none resa-p-4 [&_.ProseMirror]:resa-min-h-[300px] [&_.ProseMirror]:resa-outline-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:resa-text-muted-foreground [&_.ProseMirror_p.is-editor-empty:first-child::before]:resa-float-left [&_.ProseMirror_p.is-editor-empty:first-child::before]:resa-content-[attr(data-placeholder)] [&_.ProseMirror_p.is-editor-empty:first-child::before]:resa-pointer-events-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:resa-h-0"
-			/>
+			<div style={{ padding: '16px', backgroundColor: 'white' }}>
+				<EditorContent
+					editor={editor}
+					className="resa-prose resa-prose-sm resa-max-w-none [&_.ProseMirror]:resa-min-h-[300px] [&_.ProseMirror]:resa-outline-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:resa-text-muted-foreground [&_.ProseMirror_p.is-editor-empty:first-child::before]:resa-float-left [&_.ProseMirror_p.is-editor-empty:first-child::before]:resa-content-[attr(data-placeholder)] [&_.ProseMirror_p.is-editor-empty:first-child::before]:resa-pointer-events-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:resa-h-0"
+				/>
+			</div>
 		</div>
 	);
 }

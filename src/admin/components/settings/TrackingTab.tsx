@@ -9,9 +9,9 @@
  * Follows the AgentDataForm inline-styles pattern from Settings.tsx.
  */
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { __ } from '@wordpress/i18n';
-import { Lock, Crown } from 'lucide-react';
+import { Lock, Crown, Copy, Check } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,40 +23,185 @@ import { useTrackingSettings, useSaveTrackingSettings } from '../../hooks/useTra
 import { useFeatures } from '../../hooks/useFeatures';
 import type { TrackingSettings } from '../../types';
 
+// ─── Styled Button Component ────────────────────────────
+
+function PrimaryButton({
+	children,
+	onClick,
+	disabled,
+}: {
+	children: ReactNode;
+	onClick?: () => void;
+	disabled?: boolean;
+}) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type="button"
+			size="sm"
+			onClick={onClick}
+			disabled={disabled}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: disabled
+					? 'hsl(210 40% 96.1%)'
+					: isHovered
+						? '#98d438'
+						: '#a9e43f',
+				color: disabled ? 'hsl(215.4 16.3% 46.9%)' : '#1e303a',
+				border: 'none',
+				cursor: disabled ? 'not-allowed' : 'pointer',
+				opacity: 1,
+				gap: '6px',
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
+
 // ─── Styles ─────────────────────────────────────────────
+
+const cardStyles: React.CSSProperties = {
+	border: '1px solid hsl(214.3 31.8% 91.4%)',
+	borderRadius: '8px',
+	boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+};
 
 const sectionTitleStyles: React.CSSProperties = {
 	margin: 0,
-	fontSize: '14px',
+	fontSize: '16px',
 	fontWeight: 600,
 	color: '#1e303a',
 };
 
 const sectionDescStyles: React.CSSProperties = {
-	margin: 0,
+	margin: '4px 0 0 0',
 	fontSize: '13px',
 	color: 'hsl(215.4 16.3% 46.9%)',
 };
 
-const switchRowStyles: React.CSSProperties = {
-	display: 'flex',
-	alignItems: 'center',
-	justifyContent: 'space-between',
-	gap: '16px',
+const grayBoxStyles: React.CSSProperties = {
+	padding: '16px',
+	border: '1px solid hsl(214.3 31.8% 91.4%)',
+	borderRadius: '8px',
+	backgroundColor: 'hsl(210 40% 96.1%)',
 };
 
-const switchLabelStyles: React.CSSProperties = {
+const boxTitleStyles: React.CSSProperties = {
+	margin: 0,
 	fontSize: '14px',
 	fontWeight: 500,
 	color: '#1e303a',
-	margin: 0,
 };
 
-const switchDescStyles: React.CSSProperties = {
-	fontSize: '13px',
-	color: 'hsl(215.4 16.3% 46.9%)',
-	margin: '2px 0 0 0',
+const toggleBoxStyles: React.CSSProperties = {
+	display: 'flex',
+	alignItems: 'center',
+	justifyContent: 'space-between',
+	padding: '16px',
+	border: '1px solid hsl(214.3 31.8% 91.4%)',
+	borderRadius: '8px',
+	backgroundColor: 'hsl(210 40% 96.1%)',
 };
+
+const fieldDescStyles: React.CSSProperties = {
+	margin: '2px 0 0 0',
+	fontSize: '12px',
+	color: 'hsl(215.4 16.3% 46.9%)',
+};
+
+const inputStyles: React.CSSProperties = {
+	height: '36px',
+	padding: '0 12px',
+	fontSize: '14px',
+	border: '1px solid hsl(214.3 31.8% 78%)',
+	borderRadius: '6px',
+	backgroundColor: 'white',
+};
+
+// ─── dataLayer Events ───────────────────────────────────
+
+const DATALAYER_EVENTS = [
+	{
+		name: 'resa_asset_view',
+		description: __('Besucher sieht das Smart Asset (Widget geladen)', 'resa'),
+	},
+	{
+		name: 'resa_asset_start',
+		description: __('Benutzer startet die Interaktion (erster Klick)', 'resa'),
+	},
+	{
+		name: 'resa_step_complete',
+		description: __('Ein Schritt im Wizard wurde abgeschlossen', 'resa'),
+	},
+	{
+		name: 'resa_form_view',
+		description: __('Lead-Formular wird angezeigt', 'resa'),
+	},
+	{
+		name: 'resa_form_interact',
+		description: __('Benutzer beginnt Formular auszufüllen', 'resa'),
+	},
+	{
+		name: 'resa_form_submit',
+		description: __('Formular erfolgreich abgesendet (Lead erfasst)', 'resa'),
+	},
+	{
+		name: 'resa_result_view',
+		description: __('Ergebnisseite wird angezeigt', 'resa'),
+	},
+];
+
+// ─── Copyable Event Cell ────────────────────────────────
+
+function CopyableEventCell({ eventName }: { eventName: string }) {
+	const [copied, setCopied] = useState(false);
+
+	const handleCopy = async () => {
+		await navigator.clipboard.writeText(eventName);
+		setCopied(true);
+		setTimeout(() => setCopied(false), 2000);
+	};
+
+	return (
+		<button
+			type="button"
+			onClick={handleCopy}
+			style={{
+				display: 'inline-flex',
+				alignItems: 'center',
+				gap: '6px',
+				padding: '4px 8px',
+				fontSize: '13px',
+				fontFamily: 'ui-monospace, SFMono-Regular, Consolas, monospace',
+				color: '#1e303a',
+				backgroundColor: 'white',
+				border: '1px solid hsl(214.3 31.8% 91.4%)',
+				borderRadius: '4px',
+				cursor: 'pointer',
+				transition: 'all 150ms',
+			}}
+			onMouseEnter={(e) => {
+				e.currentTarget.style.backgroundColor = 'hsl(210 40% 98%)';
+				e.currentTarget.style.borderColor = 'hsl(214.3 31.8% 78%)';
+			}}
+			onMouseLeave={(e) => {
+				e.currentTarget.style.backgroundColor = 'white';
+				e.currentTarget.style.borderColor = 'hsl(214.3 31.8% 91.4%)';
+			}}
+		>
+			{eventName}
+			{copied ? (
+				<Check style={{ width: '12px', height: '12px', color: 'hsl(142 76% 36%)' }} />
+			) : (
+				<Copy style={{ width: '12px', height: '12px', color: 'hsl(215.4 16.3% 46.9%)' }} />
+			)}
+		</button>
+	);
+}
 
 // ─── Component ──────────────────────────────────────────
 
@@ -108,14 +253,15 @@ export function TrackingTab() {
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 			{/* Card 1: Google Ads Conversions */}
-			<Card>
+			<Card style={cardStyles}>
 				<CardContent style={{ padding: '20px' }}>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+						{/* Card Header */}
 						<div>
-							<h3 style={sectionTitleStyles}>
+							<h2 style={sectionTitleStyles}>
 								{__('Google Ads Conversions', 'resa')}
-							</h3>
-							<p style={{ ...sectionDescStyles, marginTop: '4px' }}>
+							</h2>
+							<p style={sectionDescStyles}>
 								{__(
 									'Conversion-Tracking für Google Ads. Trage die Conversion-ID und das Label aus deinem Google Ads Konto ein.',
 									'resa',
@@ -123,20 +269,21 @@ export function TrackingTab() {
 							</p>
 						</div>
 
-						{/* Formular-Ansicht */}
-						<div>
-							<p
-								style={{
-									margin: '0 0 8px 0',
-									fontSize: '13px',
-									fontWeight: 500,
-									color: 'hsl(215.4 16.3% 46.9%)',
-								}}
-							>
+						{/* Formular-Ansicht Box */}
+						<div style={grayBoxStyles}>
+							<p style={{ ...boxTitleStyles, marginBottom: '12px' }}>
 								{__('Formular-Ansicht (form_view)', 'resa')}
 							</p>
-							<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-								<div className="resa-space-y-2">
+							<div
+								style={{
+									display: 'grid',
+									gridTemplateColumns: '1fr 1fr',
+									gap: '16px',
+								}}
+							>
+								<div
+									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+								>
 									<Label htmlFor="fv-id">{__('Conversion-ID', 'resa')}</Label>
 									<Input
 										id="fv-id"
@@ -145,9 +292,12 @@ export function TrackingTab() {
 										onChange={(e) =>
 											updateField('google_ads_fv_id', e.target.value)
 										}
+										style={inputStyles}
 									/>
 								</div>
-								<div className="resa-space-y-2">
+								<div
+									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+								>
 									<Label htmlFor="fv-label">
 										{__('Conversion-Label', 'resa')}
 									</Label>
@@ -158,25 +308,27 @@ export function TrackingTab() {
 										onChange={(e) =>
 											updateField('google_ads_fv_label', e.target.value)
 										}
+										style={inputStyles}
 									/>
 								</div>
 							</div>
 						</div>
 
-						{/* Formular-Absendung */}
-						<div>
-							<p
-								style={{
-									margin: '0 0 8px 0',
-									fontSize: '13px',
-									fontWeight: 500,
-									color: 'hsl(215.4 16.3% 46.9%)',
-								}}
-							>
+						{/* Formular-Absendung Box */}
+						<div style={grayBoxStyles}>
+							<p style={{ ...boxTitleStyles, marginBottom: '12px' }}>
 								{__('Formular-Absendung (form_submit)', 'resa')}
 							</p>
-							<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-								<div className="resa-space-y-2">
+							<div
+								style={{
+									display: 'grid',
+									gridTemplateColumns: '1fr 1fr',
+									gap: '16px',
+								}}
+							>
+								<div
+									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+								>
 									<Label htmlFor="fs-id">{__('Conversion-ID', 'resa')}</Label>
 									<Input
 										id="fs-id"
@@ -185,9 +337,12 @@ export function TrackingTab() {
 										onChange={(e) =>
 											updateField('google_ads_fs_id', e.target.value)
 										}
+										style={inputStyles}
 									/>
 								</div>
-								<div className="resa-space-y-2">
+								<div
+									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+								>
 									<Label htmlFor="fs-label">
 										{__('Conversion-Label', 'resa')}
 									</Label>
@@ -198,6 +353,7 @@ export function TrackingTab() {
 										onChange={(e) =>
 											updateField('google_ads_fs_label', e.target.value)
 										}
+										style={inputStyles}
 									/>
 								</div>
 							</div>
@@ -207,17 +363,29 @@ export function TrackingTab() {
 			</Card>
 
 			{/* Card 2: dataLayer / GTM */}
-			<Card>
+			<Card style={cardStyles}>
 				<CardContent style={{ padding: '20px' }}>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-						<div style={switchRowStyles}>
+						{/* Card Header */}
+						<div>
+							<h2 style={sectionTitleStyles}>
+								{__('dataLayer / GTM Events', 'resa')}
+							</h2>
+							<p style={sectionDescStyles}>
+								{__(
+									'Pusht RESA-Events an window.dataLayer für Google Tag Manager.',
+									'resa',
+								)}
+							</p>
+						</div>
+
+						{/* Enable Toggle */}
+						<div style={toggleBoxStyles}>
 							<div>
-								<h3 style={sectionTitleStyles}>
-									{__('dataLayer / GTM Events', 'resa')}
-								</h3>
-								<p style={{ ...sectionDescStyles, marginTop: '4px' }}>
+								<p style={boxTitleStyles}>{__('dataLayer aktivieren', 'resa')}</p>
+								<p style={fieldDescStyles}>
 									{__(
-										'Pusht RESA-Events an window.dataLayer für Google Tag Manager.',
+										'Events werden automatisch an window.dataLayer gepusht.',
 										'resa',
 									)}
 								</p>
@@ -230,41 +398,82 @@ export function TrackingTab() {
 							/>
 						</div>
 
+						{/* Events Table (conditional) */}
 						{form.datalayer_enabled && (
-							<div
-								style={{
-									border: '1px solid hsl(214.3 31.8% 91.4%)',
-									borderRadius: '8px',
-									padding: '16px',
-								}}
-							>
-								<p
-									style={{
-										margin: '0 0 8px 0',
-										fontSize: '13px',
-										fontWeight: 500,
-										color: '#1e303a',
-									}}
-								>
+							<div style={grayBoxStyles}>
+								<p style={{ ...boxTitleStyles, marginBottom: '12px' }}>
 									{__('Verfügbare Events', 'resa')}
 								</p>
 								<div
 									style={{
-										display: 'grid',
-										gap: '4px',
-										fontSize: '13px',
-										fontFamily: 'ui-monospace, monospace',
-										color: 'hsl(215.4 16.3% 46.9%)',
+										border: '1px solid hsl(214.3 31.8% 91.4%)',
+										borderRadius: '6px',
+										overflow: 'hidden',
+										backgroundColor: 'white',
 									}}
 								>
-									<div>resa_asset_view</div>
-									<div>resa_asset_start</div>
-									<div>resa_step_complete</div>
-									<div>resa_form_view</div>
-									<div>resa_form_interact</div>
-									<div>resa_form_submit</div>
-									<div>resa_result_view</div>
+									<table style={{ width: '100%', borderCollapse: 'collapse' }}>
+										<thead>
+											<tr style={{ backgroundColor: 'hsl(210 40% 98%)' }}>
+												<th
+													style={{
+														padding: '10px 12px',
+														textAlign: 'left',
+														fontSize: '12px',
+														fontWeight: 600,
+														color: 'hsl(215.4 16.3% 46.9%)',
+														borderBottom:
+															'1px solid hsl(214.3 31.8% 91.4%)',
+													}}
+												>
+													{__('Event', 'resa')}
+												</th>
+												<th
+													style={{
+														padding: '10px 12px',
+														textAlign: 'left',
+														fontSize: '12px',
+														fontWeight: 600,
+														color: 'hsl(215.4 16.3% 46.9%)',
+														borderBottom:
+															'1px solid hsl(214.3 31.8% 91.4%)',
+													}}
+												>
+													{__('Beschreibung', 'resa')}
+												</th>
+											</tr>
+										</thead>
+										<tbody>
+											{DATALAYER_EVENTS.map((event, index) => (
+												<tr
+													key={event.name}
+													style={{
+														borderBottom:
+															index < DATALAYER_EVENTS.length - 1
+																? '1px solid hsl(214.3 31.8% 91.4%)'
+																: 'none',
+													}}
+												>
+													<td style={{ padding: '10px 12px' }}>
+														<CopyableEventCell eventName={event.name} />
+													</td>
+													<td
+														style={{
+															padding: '10px 12px',
+															fontSize: '13px',
+															color: 'hsl(215.4 16.3% 46.9%)',
+														}}
+													>
+														{event.description}
+													</td>
+												</tr>
+											))}
+										</tbody>
+									</table>
 								</div>
+								<p style={{ ...fieldDescStyles, marginTop: '8px' }}>
+									{__('Klicke auf einen Event-Namen um ihn zu kopieren.', 'resa')}
+								</p>
 							</div>
 						)}
 					</div>
@@ -272,30 +481,42 @@ export function TrackingTab() {
 			</Card>
 
 			{/* Card 3: Erweitert (Pro) */}
-			<Card style={!isPremium ? { opacity: 0.75 } : undefined}>
+			<Card style={{ ...cardStyles, opacity: !isPremium ? 0.75 : 1 }}>
 				<CardContent style={{ padding: '20px' }}>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-						<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-							<h3 style={sectionTitleStyles}>{__('Erweiterte Optionen', 'resa')}</h3>
-							{!isPremium && (
-								<Badge
-									style={{
-										backgroundColor: '#1e303a',
-										color: 'white',
-										border: 'none',
-										padding: '2px 8px',
-										fontSize: '11px',
-										display: 'inline-flex',
-										alignItems: 'center',
-										gap: '4px',
-									}}
-								>
-									<Lock style={{ width: '10px', height: '10px' }} />
-									Pro
-								</Badge>
-							)}
+						{/* Card Header */}
+						<div>
+							<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+								<h2 style={sectionTitleStyles}>
+									{__('Erweiterte Optionen', 'resa')}
+								</h2>
+								{!isPremium && (
+									<Badge
+										style={{
+											backgroundColor: '#1e303a',
+											color: 'white',
+											border: 'none',
+											padding: '2px 8px',
+											fontSize: '11px',
+											display: 'inline-flex',
+											alignItems: 'center',
+											gap: '4px',
+										}}
+									>
+										<Lock style={{ width: '10px', height: '10px' }} />
+										Pro
+									</Badge>
+								)}
+							</div>
+							<p style={sectionDescStyles}>
+								{__(
+									'Erweitertes Tracking für bessere Attribution und Conversion-Messung.',
+									'resa',
+								)}
+							</p>
 						</div>
 
+						{/* Pro Upgrade Hint */}
 						{!isPremium && (
 							<div
 								style={{
@@ -304,6 +525,7 @@ export function TrackingTab() {
 									gap: '12px',
 									padding: '12px 16px',
 									backgroundColor: 'hsl(210 40% 96.1%)',
+									border: '1px solid hsl(214.3 31.8% 91.4%)',
 									borderRadius: '8px',
 									fontSize: '13px',
 									color: 'hsl(215.4 16.3% 46.9%)',
@@ -323,13 +545,11 @@ export function TrackingTab() {
 							</div>
 						)}
 
-						{/* Enhanced Conversions */}
-						<div style={switchRowStyles}>
+						{/* Enhanced Conversions Toggle */}
+						<div style={toggleBoxStyles}>
 							<div>
-								<p style={switchLabelStyles}>
-									{__('Enhanced Conversions', 'resa')}
-								</p>
-								<p style={switchDescStyles}>
+								<p style={boxTitleStyles}>{__('Enhanced Conversions', 'resa')}</p>
+								<p style={fieldDescStyles}>
 									{__(
 										'SHA-256-gehashte E-Mail an Google Ads senden für bessere Attribution.',
 										'resa',
@@ -345,11 +565,11 @@ export function TrackingTab() {
 							/>
 						</div>
 
-						{/* GCLID */}
-						<div style={switchRowStyles}>
+						{/* GCLID Toggle */}
+						<div style={toggleBoxStyles}>
 							<div>
-								<p style={switchLabelStyles}>{__('GCLID erfassen', 'resa')}</p>
-								<p style={switchDescStyles}>
+								<p style={boxTitleStyles}>{__('GCLID erfassen', 'resa')}</p>
+								<p style={fieldDescStyles}>
 									{__(
 										'Google Click ID aus der URL speichern für Offline-Conversions.',
 										'resa',
@@ -365,13 +585,11 @@ export function TrackingTab() {
 							/>
 						</div>
 
-						{/* UTM */}
-						<div style={switchRowStyles}>
+						{/* UTM Toggle */}
+						<div style={toggleBoxStyles}>
 							<div>
-								<p style={switchLabelStyles}>
-									{__('UTM-Parameter erfassen', 'resa')}
-								</p>
-								<p style={switchDescStyles}>
+								<p style={boxTitleStyles}>{__('UTM-Parameter erfassen', 'resa')}</p>
+								<p style={fieldDescStyles}>
 									{__('UTM-Parameter aus der URL im Lead speichern.', 'resa')}
 								</p>
 							</div>
@@ -384,11 +602,11 @@ export function TrackingTab() {
 							/>
 						</div>
 
-						{/* Partial Leads */}
-						<div style={switchRowStyles}>
+						{/* Partial Leads Toggle */}
+						<div style={toggleBoxStyles}>
 							<div>
-								<p style={switchLabelStyles}>{__('Partial Leads', 'resa')}</p>
-								<p style={switchDescStyles}>
+								<p style={boxTitleStyles}>{__('Partial Leads', 'resa')}</p>
+								<p style={fieldDescStyles}>
 									{__(
 										'Unvollständige Leads speichern (Two-Phase Capture).',
 										'resa',
@@ -404,8 +622,9 @@ export function TrackingTab() {
 							/>
 						</div>
 
+						{/* Partial Lead TTL (conditional) */}
 						{form.partial_leads_enabled && isPremium && (
-							<div className="resa-space-y-2">
+							<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
 								<Label htmlFor="ttl">
 									{__('Partial Lead Aufbewahrung (Tage)', 'resa')}
 								</Label>
@@ -421,7 +640,7 @@ export function TrackingTab() {
 											parseInt(e.target.value, 10) || 30,
 										)
 									}
-									style={{ width: '120px' }}
+									style={{ ...inputStyles, width: '120px' }}
 								/>
 							</div>
 						)}
@@ -446,20 +665,12 @@ export function TrackingTab() {
 				>
 					{saveMutation.isSuccess && __('Tracking-Einstellungen gespeichert.', 'resa')}
 				</p>
-				<Button
-					onClick={handleSave}
-					disabled={!isDirty || saveMutation.isPending}
-					style={{
-						backgroundColor: isDirty ? '#a9e43f' : 'hsl(210 40% 96.1%)',
-						color: '#1e303a',
-						border: 'none',
-					}}
-				>
+				<PrimaryButton onClick={handleSave} disabled={!isDirty || saveMutation.isPending}>
 					{saveMutation.isPending && (
-						<Spinner style={{ width: '14px', height: '14px', marginRight: '8px' }} />
+						<Spinner style={{ width: '14px', height: '14px' }} />
 					)}
 					{__('Speichern', 'resa')}
-				</Button>
+				</PrimaryButton>
 			</div>
 		</div>
 	);

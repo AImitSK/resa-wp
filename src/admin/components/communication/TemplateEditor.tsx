@@ -3,9 +3,11 @@
  *
  * Resizable split layout: left editor, right live preview with draggable handle.
  * Footer: Reset, Test-Mail, Save.
+ *
+ * Uses inline styles for consistent WP Admin styling.
  */
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { __ } from '@wordpress/i18n';
 import { Paperclip } from 'lucide-react';
 
@@ -23,7 +25,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Spinner } from '@/components/ui/spinner';
 import {
 	Dialog,
@@ -34,6 +35,148 @@ import {
 	DialogTitle,
 } from '@/components/ui/dialog';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
+
+// ─── Styled Button Components ────────────────────────────
+
+function PrimaryButton({
+	children,
+	onClick,
+	disabled,
+}: {
+	children: ReactNode;
+	onClick?: () => void;
+	disabled?: boolean;
+}) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type="button"
+			size="sm"
+			onClick={onClick}
+			disabled={disabled}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: disabled
+					? 'hsl(210 40% 96.1%)'
+					: isHovered
+						? '#98d438'
+						: '#a9e43f',
+				color: disabled ? 'hsl(215.4 16.3% 46.9%)' : '#1e303a',
+				border: 'none',
+				cursor: disabled ? 'not-allowed' : 'pointer',
+				opacity: 1,
+				gap: '6px',
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
+
+function OutlineButton({
+	children,
+	onClick,
+	disabled,
+}: {
+	children: ReactNode;
+	onClick?: () => void;
+	disabled?: boolean;
+}) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type="button"
+			size="sm"
+			onClick={onClick}
+			disabled={disabled}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: isHovered ? 'hsl(210 40% 96.1%)' : 'white',
+				color: '#1e303a',
+				border: '1px solid hsl(214.3 31.8% 78%)',
+				cursor: disabled ? 'not-allowed' : 'pointer',
+				opacity: disabled ? 0.5 : 1,
+				gap: '6px',
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
+
+function DestructiveButton({
+	children,
+	onClick,
+	disabled,
+}: {
+	children: ReactNode;
+	onClick?: () => void;
+	disabled?: boolean;
+}) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type="button"
+			size="sm"
+			onClick={onClick}
+			disabled={disabled}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: disabled
+					? 'hsl(210 40% 96.1%)'
+					: isHovered
+						? 'hsl(0 84.2% 50.2%)'
+						: 'hsl(0 84.2% 60.2%)',
+				color: disabled ? 'hsl(215.4 16.3% 46.9%)' : 'white',
+				border: 'none',
+				cursor: disabled ? 'not-allowed' : 'pointer',
+				opacity: 1,
+				gap: '6px',
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
+
+// ─── Styles ─────────────────────────────────────────────
+
+const toggleBoxStyles: React.CSSProperties = {
+	display: 'flex',
+	alignItems: 'center',
+	justifyContent: 'space-between',
+	padding: '16px',
+	border: '1px solid hsl(214.3 31.8% 91.4%)',
+	borderRadius: '8px',
+	backgroundColor: 'hsl(210 40% 96.1%)',
+};
+
+const inputStyles: React.CSSProperties = {
+	height: '36px',
+	padding: '0 12px',
+	fontSize: '14px',
+	border: '1px solid hsl(214.3 31.8% 78%)',
+	borderRadius: '6px',
+	backgroundColor: 'white',
+};
+
+const labelStyles: React.CSSProperties = {
+	fontSize: '14px',
+	fontWeight: 500,
+	color: '#1e303a',
+};
+
+const descStyles: React.CSSProperties = {
+	margin: '2px 0 0 0',
+	fontSize: '12px',
+	color: 'hsl(215.4 16.3% 46.9%)',
+};
 
 interface TemplateEditorProps {
 	templateId: string;
@@ -116,25 +259,33 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 			]}
 			onBack={onBack}
 		>
-			<div className="resa-space-y-6">
+			<div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 				{/* Resizable split: Editor | Preview */}
 				<ResizablePanelGroup
 					orientation="horizontal"
-					className="resa-rounded-lg resa-border"
+					style={{
+						width: '100%',
+						overflow: 'hidden',
+					}}
 				>
 					{/* Left panel: Editor */}
 					<ResizablePanel defaultSize={55} minSize={20}>
-						<div className="resa-space-y-4 resa-p-4 resa-overflow-y-auto">
+						<div
+							style={{
+								display: 'flex',
+								flexDirection: 'column',
+								gap: '16px',
+								paddingRight: '20px',
+								overflowY: 'auto',
+							}}
+						>
 							{/* Active toggle */}
-							<div className="resa-flex resa-items-center resa-justify-between">
-								<div className="resa-space-y-0.5">
-									<Label
-										htmlFor="template-active"
-										className="resa-text-sm resa-font-medium"
-									>
+							<div style={toggleBoxStyles}>
+								<div>
+									<p style={{ margin: 0, ...labelStyles }}>
 										{__('Vorlage aktiv', 'resa')}
-									</Label>
-									<p className="resa-text-sm resa-text-muted-foreground">
+									</p>
+									<p style={descStyles}>
 										{__(
 											'Deaktivierte Vorlagen werden nicht versendet.',
 											'resa',
@@ -152,8 +303,10 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 							</div>
 
 							{/* Subject */}
-							<div className="resa-space-y-2">
-								<Label htmlFor="template-subject">{__('Betreff', 'resa')}</Label>
+							<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+								<Label htmlFor="template-subject" style={labelStyles}>
+									{__('Betreff', 'resa')}
+								</Label>
 								<Input
 									id="template-subject"
 									value={subject}
@@ -162,12 +315,13 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 										setIsDirty(true);
 									}}
 									placeholder={__('E-Mail-Betreff...', 'resa')}
+									style={inputStyles}
 								/>
 							</div>
 
 							{/* Body Editor */}
-							<div className="resa-space-y-2">
-								<Label>{__('Inhalt', 'resa')}</Label>
+							<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+								<Label style={labelStyles}>{__('Inhalt', 'resa')}</Label>
 								<EmailEditor
 									content={body}
 									onUpdate={(html) => {
@@ -182,17 +336,48 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 
 							{/* Attachment info */}
 							{template.has_attachment && (
-								<div className="resa-flex resa-items-center resa-gap-2 resa-rounded-lg resa-border resa-p-3 resa-bg-muted/30">
-									<Paperclip className="resa-size-4 resa-text-muted-foreground" />
-									<span className="resa-text-sm resa-text-muted-foreground">
+								<div
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										gap: '8px',
+										padding: '12px',
+										border: '1px solid hsl(214.3 31.8% 91.4%)',
+										borderRadius: '8px',
+										backgroundColor: 'hsl(210 40% 98%)',
+									}}
+								>
+									<Paperclip
+										style={{
+											width: '16px',
+											height: '16px',
+											color: 'hsl(215.4 16.3% 46.9%)',
+										}}
+									/>
+									<span
+										style={{
+											fontSize: '13px',
+											color: 'hsl(215.4 16.3% 46.9%)',
+										}}
+									>
 										{__(
 											'PDF-Ergebnis wird automatisch als Anhang beigefügt.',
 											'resa',
 										)}
 									</span>
-									<Badge variant="secondary" className="resa-ml-auto">
+									<span
+										style={{
+											marginLeft: 'auto',
+											padding: '2px 8px',
+											fontSize: '11px',
+											fontWeight: 500,
+											borderRadius: '4px',
+											backgroundColor: 'hsl(210 40% 96.1%)',
+											color: '#1e303a',
+										}}
+									>
 										PDF
-									</Badge>
+									</span>
 								</div>
 							)}
 						</div>
@@ -202,7 +387,7 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 
 					{/* Right panel: Preview */}
 					<ResizablePanel defaultSize={45} minSize={20}>
-						<div className="resa-p-4 resa-h-full">
+						<div style={{ paddingLeft: '20px', height: '100%' }}>
 							<TemplatePreview
 								subject={subject}
 								body={body}
@@ -213,16 +398,21 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 				</ResizablePanelGroup>
 
 				{/* Footer actions */}
-				<div className="resa-flex resa-flex-wrap resa-items-center resa-gap-3 resa-border-t resa-pt-4">
-					<Button
-						variant="outline"
+				<div
+					style={{
+						display: 'flex',
+						flexWrap: 'wrap',
+						alignItems: 'center',
+						gap: '12px',
+					}}
+				>
+					<OutlineButton
 						onClick={() => setResetDialogOpen(true)}
 						disabled={!template.is_modified && !isDirty}
 					>
 						{__('Auf Standard zurücksetzen', 'resa')}
-					</Button>
-					<Button
-						variant="outline"
+					</OutlineButton>
+					<OutlineButton
 						onClick={() => {
 							setTestEmail(window.resaAdmin?.adminEmail || '');
 							setTestMessage('');
@@ -230,15 +420,20 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 						}}
 					>
 						{__('Test-Mail senden', 'resa')}
-					</Button>
-					<Button
-						className="resa-ml-auto"
-						onClick={handleSave}
-						disabled={saveMutation.isPending || !isDirty}
-					>
-						{saveMutation.isPending ? <Spinner className="resa-mr-2" /> : null}
-						{__('Speichern', 'resa')}
-					</Button>
+					</OutlineButton>
+					<div style={{ marginLeft: 'auto' }}>
+						<PrimaryButton
+							onClick={handleSave}
+							disabled={saveMutation.isPending || !isDirty}
+						>
+							{saveMutation.isPending && (
+								<Spinner
+									style={{ width: '14px', height: '14px', marginRight: '8px' }}
+								/>
+							)}
+							{__('Speichern', 'resa')}
+						</PrimaryButton>
+					</div>
 				</div>
 			</div>
 
@@ -255,17 +450,17 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setResetDialogOpen(false)}>
+						<OutlineButton onClick={() => setResetDialogOpen(false)}>
 							{__('Abbrechen', 'resa')}
-						</Button>
-						<Button
-							variant="destructive"
-							onClick={handleReset}
-							disabled={resetMutation.isPending}
-						>
-							{resetMutation.isPending ? <Spinner className="resa-mr-2" /> : null}
+						</OutlineButton>
+						<DestructiveButton onClick={handleReset} disabled={resetMutation.isPending}>
+							{resetMutation.isPending && (
+								<Spinner
+									style={{ width: '14px', height: '14px', marginRight: '8px' }}
+								/>
+							)}
 							{__('Zurücksetzen', 'resa')}
-						</Button>
+						</DestructiveButton>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
@@ -282,32 +477,47 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 							)}
 						</DialogDescription>
 					</DialogHeader>
-					<div className="resa-space-y-4">
-						<div className="resa-space-y-2">
-							<Label htmlFor="test-email">{__('Empfänger', 'resa')}</Label>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+							<Label htmlFor="test-email" style={labelStyles}>
+								{__('Empfänger', 'resa')}
+							</Label>
 							<Input
 								id="test-email"
 								type="email"
 								value={testEmail}
 								onChange={(e) => setTestEmail(e.target.value)}
 								placeholder="test@example.com"
+								style={inputStyles}
 							/>
 						</div>
 						{testMessage && (
-							<p className="resa-text-sm resa-text-muted-foreground">{testMessage}</p>
+							<p
+								style={{
+									margin: 0,
+									fontSize: '13px',
+									color: 'hsl(215.4 16.3% 46.9%)',
+								}}
+							>
+								{testMessage}
+							</p>
 						)}
 					</div>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setTestDialogOpen(false)}>
+						<OutlineButton onClick={() => setTestDialogOpen(false)}>
 							{__('Schließen', 'resa')}
-						</Button>
-						<Button
+						</OutlineButton>
+						<PrimaryButton
 							onClick={handleTest}
 							disabled={testMutation.isPending || !testEmail}
 						>
-							{testMutation.isPending ? <Spinner className="resa-mr-2" /> : null}
+							{testMutation.isPending && (
+								<Spinner
+									style={{ width: '14px', height: '14px', marginRight: '8px' }}
+								/>
+							)}
 							{__('Senden', 'resa')}
-						</Button>
+						</PrimaryButton>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>

@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import { __ } from '@wordpress/i18n';
-import { User, Users, X, Image, Plus, Pencil, Trash2, MapPin } from 'lucide-react';
+import { User, X, Image, Plus, Pencil, Trash2, MapPin } from 'lucide-react';
 import { AdminPageLayout } from '../components/AdminPageLayout';
 import { useAgentData, useSaveAgentData, type AgentData } from '../hooks/useAgentData';
 import { useBranding, useSaveBranding, type BrandingSettings } from '../hooks/useBranding';
@@ -44,7 +44,6 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Separator } from '@/components/ui/separator';
 
 type SettingsTab = 'agent' | 'team' | 'maps' | 'tracking' | 'gdpr' | 'pdf' | 'email';
 
@@ -165,6 +164,131 @@ function AgentDataTab() {
 	return <AgentDataForm initialData={agentData} />;
 }
 
+// ─── Styled Button Components ────────────────────────────
+
+function PrimaryButton({
+	children,
+	onClick,
+	disabled,
+	type = 'button',
+}: {
+	children: React.ReactNode;
+	onClick?: () => void;
+	disabled?: boolean;
+	type?: 'button' | 'submit';
+}) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type={type}
+			size="sm"
+			onClick={onClick}
+			disabled={disabled}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: disabled
+					? 'hsl(210 40% 96.1%)'
+					: isHovered
+						? '#98d438'
+						: '#a9e43f',
+				color: disabled ? 'hsl(215.4 16.3% 46.9%)' : '#1e303a',
+				border: 'none',
+				cursor: disabled ? 'not-allowed' : 'pointer',
+				opacity: 1,
+				gap: '6px',
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
+
+function OutlineButton({
+	children,
+	onClick,
+	disabled,
+	style,
+}: {
+	children: React.ReactNode;
+	onClick?: () => void;
+	disabled?: boolean;
+	style?: React.CSSProperties;
+}) {
+	const [isHovered, setIsHovered] = useState(false);
+
+	return (
+		<Button
+			type="button"
+			size="sm"
+			onClick={onClick}
+			disabled={disabled}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			style={{
+				backgroundColor: disabled
+					? 'hsl(210 40% 96.1%)'
+					: isHovered
+						? 'hsl(210 40% 96.1%)'
+						: 'white',
+				color: disabled ? 'hsl(215.4 16.3% 46.9%)' : '#1e303a',
+				border: '1px solid hsl(214.3 31.8% 78%)',
+				cursor: disabled ? 'not-allowed' : 'pointer',
+				boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+				gap: '6px',
+				...style,
+			}}
+		>
+			{children}
+		</Button>
+	);
+}
+
+// ─── Styles ─────────────────────────────────────────────
+
+const cardStyles: React.CSSProperties = {
+	border: '1px solid hsl(214.3 31.8% 91.4%)',
+	borderRadius: '8px',
+	boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+};
+
+const sectionTitleStyles: React.CSSProperties = {
+	margin: 0,
+	fontSize: '16px',
+	fontWeight: 600,
+	color: '#1e303a',
+};
+
+const sectionDescStyles: React.CSSProperties = {
+	margin: '4px 0 0 0',
+	fontSize: '13px',
+	color: 'hsl(215.4 16.3% 46.9%)',
+};
+
+const boxTitleStyles: React.CSSProperties = {
+	margin: 0,
+	fontSize: '14px',
+	fontWeight: 500,
+	color: '#1e303a',
+};
+
+const grayBoxStyles: React.CSSProperties = {
+	padding: '16px',
+	border: '1px solid hsl(214.3 31.8% 91.4%)',
+	borderRadius: '8px',
+	backgroundColor: 'hsl(210 40% 96.1%)',
+};
+
+const inputStyles: React.CSSProperties = {
+	height: '36px',
+	padding: '0 12px',
+	fontSize: '14px',
+	border: '1px solid hsl(214.3 31.8% 78%)',
+	borderRadius: '6px',
+	backgroundColor: 'white',
+};
+
 function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) {
 	const saveMutation = useSaveAgentData();
 	const { data: brandingData } = useBranding();
@@ -281,425 +405,498 @@ function AgentDataForm({ initialData }: { initialData: AgentData | undefined }) 
 			onSubmit={handleSubmit}
 			style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
 		>
-			{/* Persönliche Daten */}
-			<Card>
+			{/* Card 1: Maklerdaten (Persönliche Daten + Kontaktdaten + Online-Präsenz) */}
+			<Card style={cardStyles}>
 				<CardContent style={{ padding: '20px' }}>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-						<h3
-							style={{
-								margin: 0,
-								fontSize: '14px',
-								fontWeight: 600,
-								color: '#1e303a',
-							}}
-						>
-							{__('Persönliche Daten', 'resa')}
-						</h3>
-						<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-							<div className="resa-space-y-2">
-								<Label htmlFor="agent-name">{__('Name', 'resa')} *</Label>
-								<Input
-									id="agent-name"
-									value={form.name}
-									onChange={(e) => updateField('name', e.target.value)}
-									placeholder={__('Max Mustermann', 'resa')}
-									required
-								/>
-							</div>
-							<div className="resa-space-y-2">
-								<Label htmlFor="agent-company">{__('Firma', 'resa')}</Label>
-								<Input
-									id="agent-company"
-									value={form.company}
-									onChange={(e) => updateField('company', e.target.value)}
-									placeholder={__('Mustermann Immobilien GmbH', 'resa')}
-								/>
-							</div>
-						</div>
-					</div>
-				</CardContent>
-			</Card>
-
-			{/* Kontaktdaten */}
-			<Card>
-				<CardContent style={{ padding: '20px' }}>
-					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-						<h3
-							style={{
-								margin: 0,
-								fontSize: '14px',
-								fontWeight: 600,
-								color: '#1e303a',
-							}}
-						>
-							{__('Kontaktdaten', 'resa')}
-						</h3>
-						<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-							<div className="resa-space-y-2">
-								<Label htmlFor="agent-email">{__('E-Mail', 'resa')} *</Label>
-								<Input
-									id="agent-email"
-									type="email"
-									value={form.email}
-									onChange={(e) => updateField('email', e.target.value)}
-									placeholder={__('max@mustermann-immo.de', 'resa')}
-									required
-								/>
-							</div>
-							<div className="resa-space-y-2">
-								<Label htmlFor="agent-phone">{__('Telefon', 'resa')}</Label>
-								<Input
-									id="agent-phone"
-									type="tel"
-									value={form.phone}
-									onChange={(e) => updateField('phone', e.target.value)}
-									placeholder={__('+49 123 456789', 'resa')}
-								/>
-							</div>
-						</div>
-						<div className="resa-space-y-2">
-							<Label htmlFor="agent-address">{__('Adresse', 'resa')}</Label>
-							<Textarea
-								id="agent-address"
-								value={form.address}
-								onChange={(e) => updateField('address', e.target.value)}
-								placeholder={__('Musterstraße 1\n12345 Musterstadt', 'resa')}
-								rows={3}
-							/>
-						</div>
-					</div>
-				</CardContent>
-			</Card>
-
-			{/* Online-Präsenz */}
-			<Card>
-				<CardContent style={{ padding: '20px' }}>
-					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-						<h3
-							style={{
-								margin: 0,
-								fontSize: '14px',
-								fontWeight: 600,
-								color: '#1e303a',
-							}}
-						>
-							{__('Online-Präsenz', 'resa')}
-						</h3>
-						<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-							<div className="resa-space-y-2">
-								<Label htmlFor="agent-website">{__('Website', 'resa')}</Label>
-								<Input
-									id="agent-website"
-									type="url"
-									value={form.website}
-									onChange={(e) => updateField('website', e.target.value)}
-									placeholder={__('https://mustermann-immo.de', 'resa')}
-								/>
-							</div>
-							<div className="resa-space-y-2">
-								<Label htmlFor="agent-imprint">{__('Impressum-URL', 'resa')}</Label>
-								<Input
-									id="agent-imprint"
-									type="url"
-									value={form.imprintUrl}
-									onChange={(e) => updateField('imprintUrl', e.target.value)}
-									placeholder={__('https://mustermann-immo.de/impressum', 'resa')}
-								/>
-							</div>
-						</div>
-					</div>
-				</CardContent>
-			</Card>
-
-			{/* Logo */}
-			<Card>
-				<CardContent style={{ padding: '20px' }}>
-					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-						<h3
-							style={{
-								margin: 0,
-								fontSize: '14px',
-								fontWeight: 600,
-								color: '#1e303a',
-							}}
-						>
-							{__('Logo', 'resa')}
-						</h3>
-
-						{branding.logoUrl ? (
-							<div className="resa-flex resa-items-start resa-gap-4">
-								<div
-									style={{
-										width: '120px',
-										height: '80px',
-										borderRadius: '8px',
-										border: '1px solid hsl(214.3 31.8% 91.4%)',
-										backgroundColor: '#fff',
-										display: 'flex',
-										alignItems: 'center',
-										justifyContent: 'center',
-										overflow: 'hidden',
-									}}
-								>
-									<img
-										src={branding.logoUrl}
-										alt={__('Logo', 'resa')}
-										style={{
-											maxWidth: '100%',
-											maxHeight: '100%',
-											objectFit: 'contain',
-										}}
-									/>
-								</div>
-								<div className="resa-flex resa-gap-2">
-									<Button
-										type="button"
-										variant="outline"
-										size="sm"
-										onClick={handleSelectLogo}
-									>
-										{__('Ändern', 'resa')}
-									</Button>
-									<Button
-										type="button"
-										variant="outline"
-										size="sm"
-										onClick={handleRemoveLogo}
-										style={{ color: 'hsl(0 84.2% 60.2%)' }}
-									>
-										<X
-											style={{
-												width: '14px',
-												height: '14px',
-												marginRight: '4px',
-											}}
-										/>
-										{__('Entfernen', 'resa')}
-									</Button>
-								</div>
-							</div>
-						) : (
-							<button
-								type="button"
-								onClick={handleSelectLogo}
-								style={{
-									width: '100%',
-									maxWidth: '400px',
-									padding: '24px',
-									border: '2px dashed hsl(214.3 31.8% 91.4%)',
-									borderRadius: '8px',
-									backgroundColor: 'hsl(210 40% 98%)',
-									cursor: 'pointer',
-									display: 'flex',
-									flexDirection: 'column',
-									alignItems: 'center',
-									gap: '8px',
-									transition: 'border-color 150ms',
-								}}
-								onMouseEnter={(e) =>
-									(e.currentTarget.style.borderColor = 'hsl(215.4 16.3% 46.9%)')
-								}
-								onMouseLeave={(e) =>
-									(e.currentTarget.style.borderColor = 'hsl(214.3 31.8% 91.4%)')
-								}
-							>
-								<div
-									style={{
-										width: '40px',
-										height: '40px',
-										borderRadius: '50%',
-										backgroundColor: 'hsl(210 40% 96.1%)',
-										display: 'flex',
-										alignItems: 'center',
-										justifyContent: 'center',
-									}}
-								>
-									<Image
-										style={{
-											width: '20px',
-											height: '20px',
-											color: 'hsl(215.4 16.3% 46.9%)',
-										}}
-									/>
-								</div>
-								<span style={{ fontWeight: 500, color: '#1e303a' }}>
-									{__('Logo auswählen', 'resa')}
-								</span>
-								<span style={{ fontSize: '12px', color: 'hsl(215.4 16.3% 46.9%)' }}>
-									{__('PNG, JPG oder SVG empfohlen', 'resa')}
-								</span>
-							</button>
-						)}
-					</div>
-				</CardContent>
-			</Card>
-
-			{/* Farben */}
-			<Card>
-				<CardContent style={{ padding: '20px' }}>
-					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-						<h3
-							style={{
-								margin: 0,
-								fontSize: '14px',
-								fontWeight: 600,
-								color: '#1e303a',
-							}}
-						>
-							{__('Farben', 'resa')}
-						</h3>
-						<div
-							className="resa-grid resa-grid-cols-2 resa-gap-4"
-							style={{ maxWidth: '400px' }}
-						>
-							<div className="resa-space-y-2">
-								<Label htmlFor="primary-color">{__('Primärfarbe', 'resa')}</Label>
-								<div className="resa-flex resa-items-center resa-gap-2">
-									<input
-										id="primary-color"
-										type="color"
-										value={branding.primaryColor}
-										onChange={(e) =>
-											updateBrandingField('primaryColor', e.target.value)
-										}
-										style={{
-											width: '40px',
-											height: '40px',
-											padding: 0,
-											border: '1px solid hsl(214.3 31.8% 91.4%)',
-											borderRadius: '6px',
-											cursor: 'pointer',
-											backgroundColor: 'transparent',
-										}}
-									/>
-									<Input
-										type="text"
-										value={branding.primaryColor}
-										onChange={(e) =>
-											updateBrandingField('primaryColor', e.target.value)
-										}
-										style={{ width: '100px', fontFamily: 'monospace' }}
-										maxLength={7}
-									/>
-								</div>
-								<p
-									className="resa-text-xs resa-text-muted-foreground"
-									style={{ margin: 0 }}
-								>
-									{__('Buttons, Akzente, Progress-Bar', 'resa')}
-								</p>
-							</div>
-							<div className="resa-space-y-2">
-								<Label htmlFor="secondary-color">
-									{__('Sekundärfarbe', 'resa')}
-								</Label>
-								<div className="resa-flex resa-items-center resa-gap-2">
-									<input
-										id="secondary-color"
-										type="color"
-										value={branding.secondaryColor}
-										onChange={(e) =>
-											updateBrandingField('secondaryColor', e.target.value)
-										}
-										style={{
-											width: '40px',
-											height: '40px',
-											padding: 0,
-											border: '1px solid hsl(214.3 31.8% 91.4%)',
-											borderRadius: '6px',
-											cursor: 'pointer',
-											backgroundColor: 'transparent',
-										}}
-									/>
-									<Input
-										type="text"
-										value={branding.secondaryColor}
-										onChange={(e) =>
-											updateBrandingField('secondaryColor', e.target.value)
-										}
-										style={{ width: '100px', fontFamily: 'monospace' }}
-										maxLength={7}
-									/>
-								</div>
-								<p
-									className="resa-text-xs resa-text-muted-foreground"
-									style={{ margin: 0 }}
-								>
-									{__('Texte, Hover-States', 'resa')}
-								</p>
-							</div>
-						</div>
-					</div>
-				</CardContent>
-			</Card>
-
-			{/* Powered By */}
-			<Card>
-				<CardContent style={{ padding: '20px' }}>
-					<div className="resa-flex resa-items-center resa-justify-between">
+						{/* Card Header */}
 						<div>
-							<h3
-								style={{
-									margin: 0,
-									fontSize: '14px',
-									fontWeight: 600,
-									color: '#1e303a',
-								}}
-							>
-								{__('"Powered by RESA" anzeigen', 'resa')}
-							</h3>
-							<p
-								className="resa-text-sm resa-text-muted-foreground"
-								style={{ margin: 0, marginTop: '2px' }}
-							>
-								{isPremium
-									? __('Zeigt den RESA-Hinweis in deinen Smart Assets.', 'resa')
-									: __('Im Free-Plan ist der Hinweis immer sichtbar.', 'resa')}
+							<h2 style={sectionTitleStyles}>{__('Maklerdaten', 'resa')}</h2>
+							<p style={sectionDescStyles}>
+								{__(
+									'Diese Daten werden in PDF-Dokumenten, E-Mails und auf der Ergebnisseite angezeigt.',
+									'resa',
+								)}
 							</p>
 						</div>
-						<div className="resa-flex resa-items-center resa-gap-2">
-							{!isPremium && (
-								<Badge variant="secondary" style={{ fontSize: '10px' }}>
-									PRO
-								</Badge>
-							)}
-							<Switch
-								checked={branding.showPoweredBy}
-								onCheckedChange={(checked) =>
-									updateBrandingField('showPoweredBy', checked)
-								}
-								disabled={!isPremium}
-							/>
+
+						{/* Persönliche Daten Box */}
+						<div style={grayBoxStyles}>
+							<p style={{ ...boxTitleStyles, marginBottom: '12px' }}>
+								{__('Persönliche Daten', 'resa')}
+							</p>
+							<div
+								style={{
+									display: 'grid',
+									gridTemplateColumns: '1fr 1fr',
+									gap: '16px',
+								}}
+							>
+								<div
+									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+								>
+									<Label htmlFor="agent-name">{__('Name', 'resa')} *</Label>
+									<Input
+										id="agent-name"
+										value={form.name}
+										onChange={(e) => updateField('name', e.target.value)}
+										placeholder={__('Max Mustermann', 'resa')}
+										required
+										style={inputStyles}
+									/>
+								</div>
+								<div
+									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+								>
+									<Label htmlFor="agent-company">{__('Firma', 'resa')}</Label>
+									<Input
+										id="agent-company"
+										value={form.company}
+										onChange={(e) => updateField('company', e.target.value)}
+										placeholder={__('Mustermann Immobilien GmbH', 'resa')}
+										style={inputStyles}
+									/>
+								</div>
+							</div>
+						</div>
+
+						{/* Kontaktdaten Box */}
+						<div style={grayBoxStyles}>
+							<p style={{ ...boxTitleStyles, marginBottom: '12px' }}>
+								{__('Kontaktdaten', 'resa')}
+							</p>
+							<div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+								<div
+									style={{
+										display: 'grid',
+										gridTemplateColumns: '1fr 1fr',
+										gap: '16px',
+									}}
+								>
+									<div
+										style={{
+											display: 'flex',
+											flexDirection: 'column',
+											gap: '6px',
+										}}
+									>
+										<Label htmlFor="agent-email">
+											{__('E-Mail', 'resa')} *
+										</Label>
+										<Input
+											id="agent-email"
+											type="email"
+											value={form.email}
+											onChange={(e) => updateField('email', e.target.value)}
+											placeholder={__('max@mustermann-immo.de', 'resa')}
+											required
+											style={inputStyles}
+										/>
+									</div>
+									<div
+										style={{
+											display: 'flex',
+											flexDirection: 'column',
+											gap: '6px',
+										}}
+									>
+										<Label htmlFor="agent-phone">{__('Telefon', 'resa')}</Label>
+										<Input
+											id="agent-phone"
+											type="tel"
+											value={form.phone}
+											onChange={(e) => updateField('phone', e.target.value)}
+											placeholder={__('+49 123 456789', 'resa')}
+											style={inputStyles}
+										/>
+									</div>
+								</div>
+								<div
+									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+								>
+									<Label htmlFor="agent-address">{__('Adresse', 'resa')}</Label>
+									<Textarea
+										id="agent-address"
+										value={form.address}
+										onChange={(e) => updateField('address', e.target.value)}
+										placeholder={__(
+											'Musterstraße 1\n12345 Musterstadt',
+											'resa',
+										)}
+										rows={3}
+										style={{
+											...inputStyles,
+											height: 'auto',
+											padding: '8px 12px',
+										}}
+									/>
+								</div>
+							</div>
+						</div>
+
+						{/* Online-Präsenz Box */}
+						<div style={grayBoxStyles}>
+							<p style={{ ...boxTitleStyles, marginBottom: '12px' }}>
+								{__('Online-Präsenz', 'resa')}
+							</p>
+							<div
+								style={{
+									display: 'grid',
+									gridTemplateColumns: '1fr 1fr',
+									gap: '16px',
+								}}
+							>
+								<div
+									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+								>
+									<Label htmlFor="agent-website">{__('Website', 'resa')}</Label>
+									<Input
+										id="agent-website"
+										type="url"
+										value={form.website}
+										onChange={(e) => updateField('website', e.target.value)}
+										placeholder={__('https://mustermann-immo.de', 'resa')}
+										style={inputStyles}
+									/>
+								</div>
+								<div
+									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+								>
+									<Label htmlFor="agent-imprint">
+										{__('Impressum-URL', 'resa')}
+									</Label>
+									<Input
+										id="agent-imprint"
+										type="url"
+										value={form.imprintUrl}
+										onChange={(e) => updateField('imprintUrl', e.target.value)}
+										placeholder={__(
+											'https://mustermann-immo.de/impressum',
+											'resa',
+										)}
+										style={inputStyles}
+									/>
+								</div>
+							</div>
 						</div>
 					</div>
 				</CardContent>
 			</Card>
 
-			{/* Info + Save */}
+			{/* Card 2: Branding (Logo + Farben + Powered By) */}
+			<Card style={cardStyles}>
+				<CardContent style={{ padding: '20px' }}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+						{/* Card Header */}
+						<div>
+							<h2 style={sectionTitleStyles}>{__('Branding', 'resa')}</h2>
+							<p style={sectionDescStyles}>
+								{__('Logo und Farben für deine Smart Assets.', 'resa')}
+							</p>
+						</div>
+
+						{/* Logo + Farben side by side */}
+						<div
+							style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}
+						>
+							{/* Logo Box */}
+							<div style={grayBoxStyles}>
+								<p style={{ ...boxTitleStyles, marginBottom: '12px' }}>
+									{__('Logo', 'resa')}
+								</p>
+								{branding.logoUrl ? (
+									<div
+										style={{
+											display: 'flex',
+											alignItems: 'flex-start',
+											gap: '12px',
+										}}
+									>
+										<div
+											style={{
+												width: '100px',
+												height: '70px',
+												borderRadius: '6px',
+												border: '1px solid hsl(214.3 31.8% 91.4%)',
+												backgroundColor: '#fff',
+												display: 'flex',
+												alignItems: 'center',
+												justifyContent: 'center',
+												overflow: 'hidden',
+											}}
+										>
+											<img
+												src={branding.logoUrl}
+												alt={__('Logo', 'resa')}
+												style={{
+													maxWidth: '100%',
+													maxHeight: '100%',
+													objectFit: 'contain',
+												}}
+											/>
+										</div>
+										<div
+											style={{
+												display: 'flex',
+												flexDirection: 'column',
+												gap: '6px',
+											}}
+										>
+											<OutlineButton onClick={handleSelectLogo}>
+												{__('Ändern', 'resa')}
+											</OutlineButton>
+											<OutlineButton
+												onClick={handleRemoveLogo}
+												style={{ color: '#dc2626' }}
+											>
+												<X style={{ width: '14px', height: '14px' }} />
+												{__('Entfernen', 'resa')}
+											</OutlineButton>
+										</div>
+									</div>
+								) : (
+									<button
+										type="button"
+										onClick={handleSelectLogo}
+										style={{
+											width: '100%',
+											padding: '20px',
+											border: '2px dashed hsl(214.3 31.8% 78%)',
+											borderRadius: '8px',
+											backgroundColor: 'white',
+											cursor: 'pointer',
+											display: 'flex',
+											flexDirection: 'column',
+											alignItems: 'center',
+											gap: '6px',
+											transition: 'border-color 150ms',
+										}}
+										onMouseEnter={(e) =>
+											(e.currentTarget.style.borderColor = '#1e303a')
+										}
+										onMouseLeave={(e) =>
+											(e.currentTarget.style.borderColor =
+												'hsl(214.3 31.8% 78%)')
+										}
+									>
+										<Image
+											style={{
+												width: '24px',
+												height: '24px',
+												color: 'hsl(215.4 16.3% 46.9%)',
+											}}
+										/>
+										<span
+											style={{
+												fontSize: '13px',
+												fontWeight: 500,
+												color: '#1e303a',
+											}}
+										>
+											{__('Logo auswählen', 'resa')}
+										</span>
+										<span
+											style={{
+												fontSize: '11px',
+												color: 'hsl(215.4 16.3% 46.9%)',
+											}}
+										>
+											{__('PNG, JPG, SVG', 'resa')}
+										</span>
+									</button>
+								)}
+							</div>
+
+							{/* Farben Box */}
+							<div style={grayBoxStyles}>
+								<p style={{ ...boxTitleStyles, marginBottom: '12px' }}>
+									{__('Farben', 'resa')}
+								</p>
+								<div
+									style={{
+										display: 'flex',
+										flexDirection: 'column',
+										gap: '12px',
+									}}
+								>
+									<div
+										style={{
+											display: 'flex',
+											flexDirection: 'column',
+											gap: '6px',
+										}}
+									>
+										<Label htmlFor="primary-color">
+											{__('Primärfarbe', 'resa')}
+										</Label>
+										<div
+											style={{
+												display: 'flex',
+												alignItems: 'center',
+												gap: '8px',
+											}}
+										>
+											<input
+												id="primary-color"
+												type="color"
+												value={branding.primaryColor}
+												onChange={(e) =>
+													updateBrandingField(
+														'primaryColor',
+														e.target.value,
+													)
+												}
+												style={{
+													width: '36px',
+													height: '36px',
+													padding: 0,
+													border: '1px solid hsl(214.3 31.8% 91.4%)',
+													borderRadius: '6px',
+													cursor: 'pointer',
+													backgroundColor: 'transparent',
+												}}
+											/>
+											<Input
+												type="text"
+												value={branding.primaryColor}
+												onChange={(e) =>
+													updateBrandingField(
+														'primaryColor',
+														e.target.value,
+													)
+												}
+												style={{
+													...inputStyles,
+													width: '90px',
+													fontFamily: 'monospace',
+													fontSize: '12px',
+												}}
+												maxLength={7}
+											/>
+										</div>
+									</div>
+									<div
+										style={{
+											display: 'flex',
+											flexDirection: 'column',
+											gap: '6px',
+										}}
+									>
+										<Label htmlFor="secondary-color">
+											{__('Sekundärfarbe', 'resa')}
+										</Label>
+										<div
+											style={{
+												display: 'flex',
+												alignItems: 'center',
+												gap: '8px',
+											}}
+										>
+											<input
+												id="secondary-color"
+												type="color"
+												value={branding.secondaryColor}
+												onChange={(e) =>
+													updateBrandingField(
+														'secondaryColor',
+														e.target.value,
+													)
+												}
+												style={{
+													width: '36px',
+													height: '36px',
+													padding: 0,
+													border: '1px solid hsl(214.3 31.8% 91.4%)',
+													borderRadius: '6px',
+													cursor: 'pointer',
+													backgroundColor: 'transparent',
+												}}
+											/>
+											<Input
+												type="text"
+												value={branding.secondaryColor}
+												onChange={(e) =>
+													updateBrandingField(
+														'secondaryColor',
+														e.target.value,
+													)
+												}
+												style={{
+													...inputStyles,
+													width: '90px',
+													fontFamily: 'monospace',
+													fontSize: '12px',
+												}}
+												maxLength={7}
+											/>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						{/* Powered By Toggle */}
+						<div
+							style={{
+								...grayBoxStyles,
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'space-between',
+							}}
+						>
+							<div>
+								<p style={boxTitleStyles}>
+									{__('"Powered by RESA" anzeigen', 'resa')}
+								</p>
+								<p
+									style={{
+										margin: '2px 0 0 0',
+										fontSize: '12px',
+										color: 'hsl(215.4 16.3% 46.9%)',
+									}}
+								>
+									{isPremium
+										? __(
+												'Zeigt den RESA-Hinweis in deinen Smart Assets.',
+												'resa',
+											)
+										: __(
+												'Im Free-Plan ist der Hinweis immer sichtbar.',
+												'resa',
+											)}
+								</p>
+							</div>
+							<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+								{!isPremium && (
+									<Badge variant="secondary" style={{ fontSize: '10px' }}>
+										PRO
+									</Badge>
+								)}
+								<Switch
+									checked={branding.showPoweredBy}
+									onCheckedChange={(checked) =>
+										updateBrandingField('showPoweredBy', checked)
+									}
+									disabled={!isPremium}
+								/>
+							</div>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Save Footer */}
 			<div
 				style={{
 					display: 'flex',
 					alignItems: 'center',
-					justifyContent: 'space-between',
+					justifyContent: 'flex-end',
 				}}
 			>
-				<p style={{ margin: 0, fontSize: '12px', color: 'hsl(215.4 16.3% 46.9%)' }}>
-					{__(
-						'Diese Daten werden in PDF-Dokumenten, E-Mails und auf der Ergebnisseite angezeigt.',
-						'resa',
-					)}
-				</p>
-				<Button
-					type="submit"
-					disabled={!isDirty || !isValid || isSaving}
-					style={{
-						backgroundColor: isDirty && isValid ? '#a9e43f' : 'hsl(210 40% 96.1%)',
-						color: '#1e303a',
-						border: 'none',
-					}}
-				>
+				<PrimaryButton type="submit" disabled={!isDirty || !isValid || isSaving}>
+					{isSaving && <Spinner style={{ width: '14px', height: '14px' }} />}
 					{__('Speichern', 'resa')}
-				</Button>
+				</PrimaryButton>
 			</div>
 		</form>
 	);
@@ -801,60 +998,52 @@ function TeamTab() {
 						{__('Ansprechpartner für Standorte und PDF-Dokumente verwalten.', 'resa')}
 					</p>
 				</div>
-				<Button
-					onClick={() => setView('create')}
-					style={{ backgroundColor: '#a9e43f', color: '#1e303a', border: 'none' }}
-				>
-					<Plus style={{ width: '16px', height: '16px', marginRight: '6px' }} />
+				<PrimaryButton onClick={() => setView('create')}>
+					<Plus style={{ width: '16px', height: '16px' }} />
 					{__('Ansprechpartner hinzufügen', 'resa')}
-				</Button>
+				</PrimaryButton>
 			</div>
 
 			{/* Team Members List */}
 			{!members || members.length === 0 ? (
 				<div
-					className="resa-py-12 resa-text-center"
 					style={{
-						border: '2px dashed hsl(214.3 31.8% 91.4%)',
-						borderRadius: '8px',
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						justifyContent: 'center',
+						padding: '48px 24px',
+						textAlign: 'center',
+						border: '2px dashed hsl(214.3 31.8% 78%)',
+						borderRadius: '16px',
 					}}
 				>
-					<div
+					<p
 						style={{
-							width: '48px',
-							height: '48px',
-							margin: '0 auto 16px',
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-							borderRadius: '50%',
-							backgroundColor: 'hsl(210 40% 96.1%)',
+							fontSize: '16px',
+							fontWeight: 500,
+							color: '#1e303a',
+							margin: '0 0 4px 0',
 						}}
 					>
-						<Users
-							style={{
-								width: '24px',
-								height: '24px',
-								color: 'hsl(215.4 16.3% 46.9%)',
-							}}
-						/>
-					</div>
-					<h3 style={{ fontWeight: 600, marginBottom: '8px', color: '#1e303a' }}>
 						{__('Noch keine Ansprechpartner', 'resa')}
-					</h3>
-					<p style={{ color: 'hsl(215.4 16.3% 46.9%)', marginBottom: '16px' }}>
+					</p>
+					<p
+						style={{
+							fontSize: '14px',
+							color: '#1e303a',
+							margin: '0 0 16px 0',
+						}}
+					>
 						{__(
 							'Füge Ansprechpartner hinzu, die in PDFs und auf Ergebnisseiten angezeigt werden.',
 							'resa',
 						)}
 					</p>
-					<Button
-						onClick={() => setView('create')}
-						style={{ backgroundColor: '#a9e43f', color: '#1e303a', border: 'none' }}
-					>
-						<Plus style={{ width: '16px', height: '16px', marginRight: '6px' }} />
+					<OutlineButton onClick={() => setView('create')}>
+						<Plus style={{ width: '16px', height: '16px' }} />
 						{__('Ersten Ansprechpartner anlegen', 'resa')}
-					</Button>
+					</OutlineButton>
 				</div>
 			) : (
 				<div
@@ -1094,240 +1283,269 @@ function TeamMemberForm({
 			onSubmit={handleSubmit}
 			style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
 		>
-			{/* Header */}
-			<div>
-				<h3 className="resa-text-lg resa-font-semibold" style={{ margin: 0 }}>
-					{isEditing
-						? __('Ansprechpartner bearbeiten', 'resa')
-						: __('Neuer Ansprechpartner', 'resa')}
-				</h3>
-				<p
-					className="resa-text-sm resa-text-muted-foreground"
-					style={{ margin: 0, marginTop: '2px' }}
-				>
-					{__('Kontaktdaten und Standort-Zuordnung festlegen.', 'resa')}
-				</p>
-			</div>
-
-			{/* Person Card — Photo + Name + Position */}
-			<Card>
+			{/* Card: Ansprechpartner */}
+			<Card style={cardStyles}>
 				<CardContent style={{ padding: '20px' }}>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-						<h3
-							style={{
-								margin: 0,
-								fontSize: '14px',
-								fontWeight: 600,
-								color: '#1e303a',
-							}}
-						>
-							{__('Person', 'resa')}
-						</h3>
+						{/* Card Header */}
+						<div>
+							<h2 style={sectionTitleStyles}>
+								{isEditing
+									? __('Ansprechpartner bearbeiten', 'resa')
+									: __('Neuer Ansprechpartner', 'resa')}
+							</h2>
+							<p style={sectionDescStyles}>
+								{__('Kontaktdaten und Standort-Zuordnung festlegen.', 'resa')}
+							</p>
+						</div>
 
-						{/* Photo */}
-						{form.photoUrl ? (
-							<div className="resa-flex resa-items-center resa-gap-4">
-								<img
-									src={form.photoUrl}
-									alt={form.name}
-									style={{
-										width: '64px',
-										height: '64px',
-										borderRadius: '50%',
-										objectFit: 'cover',
-										border: '1px solid hsl(214.3 31.8% 91.4%)',
-									}}
-								/>
-								<div className="resa-flex resa-gap-2">
-									<Button
-										type="button"
-										variant="outline"
-										size="sm"
-										onClick={handleSelectPhoto}
-									>
-										{__('Ändern', 'resa')}
-									</Button>
-									<Button
-										type="button"
-										variant="outline"
-										size="sm"
-										onClick={() => updateField('photoUrl', null)}
-										style={{ color: 'hsl(0 84.2% 60.2%)' }}
-									>
-										<X
+						{/* Person Box (Photo + Name + Position) */}
+						<div style={grayBoxStyles}>
+							<p style={{ ...boxTitleStyles, marginBottom: '12px' }}>
+								{__('Person', 'resa')}
+							</p>
+
+							{/* Photo + Name/Position side by side */}
+							<div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+								{/* Photo */}
+								<div>
+									{form.photoUrl ? (
+										<div
 											style={{
-												width: '14px',
-												height: '14px',
-												marginRight: '4px',
+												display: 'flex',
+												flexDirection: 'column',
+												alignItems: 'center',
+												gap: '8px',
 											}}
-										/>
-										{__('Entfernen', 'resa')}
-									</Button>
-								</div>
-							</div>
-						) : (
-							<button
-								type="button"
-								onClick={handleSelectPhoto}
-								style={{
-									width: '64px',
-									height: '64px',
-									borderRadius: '50%',
-									border: '2px dashed hsl(214.3 31.8% 91.4%)',
-									backgroundColor: 'hsl(210 40% 98%)',
-									cursor: 'pointer',
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'center',
-									transition: 'border-color 150ms',
-								}}
-								onMouseEnter={(e) =>
-									(e.currentTarget.style.borderColor = 'hsl(215.4 16.3% 46.9%)')
-								}
-								onMouseLeave={(e) =>
-									(e.currentTarget.style.borderColor = 'hsl(214.3 31.8% 91.4%)')
-								}
-							>
-								<Image
-									style={{
-										width: '20px',
-										height: '20px',
-										color: 'hsl(215.4 16.3% 46.9%)',
-									}}
-								/>
-							</button>
-						)}
-
-						<Separator />
-
-						{/* Name + Position */}
-						<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-							<div className="resa-space-y-2">
-								<Label htmlFor="member-name">{__('Name', 'resa')} *</Label>
-								<Input
-									id="member-name"
-									value={form.name}
-									onChange={(e) => updateField('name', e.target.value)}
-									placeholder={__('Max Mustermann', 'resa')}
-									required
-								/>
-							</div>
-							<div className="resa-space-y-2">
-								<Label htmlFor="member-position">
-									{__('Position/Funktion', 'resa')}
-								</Label>
-								<Input
-									id="member-position"
-									value={form.position}
-									onChange={(e) => updateField('position', e.target.value)}
-									placeholder={__('Geschäftsführer', 'resa')}
-								/>
-							</div>
-						</div>
-					</div>
-				</CardContent>
-			</Card>
-
-			{/* Kontakt Card */}
-			<Card>
-				<CardContent style={{ padding: '20px' }}>
-					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-						<h3
-							style={{
-								margin: 0,
-								fontSize: '14px',
-								fontWeight: 600,
-								color: '#1e303a',
-							}}
-						>
-							{__('Kontaktdaten', 'resa')}
-						</h3>
-						<div className="resa-grid resa-grid-cols-2 resa-gap-4">
-							<div className="resa-space-y-2">
-								<Label htmlFor="member-email">{__('E-Mail', 'resa')} *</Label>
-								<Input
-									id="member-email"
-									type="email"
-									value={form.email}
-									onChange={(e) => updateField('email', e.target.value)}
-									placeholder={__('max@mustermann-immo.de', 'resa')}
-									required
-								/>
-							</div>
-							<div className="resa-space-y-2">
-								<Label htmlFor="member-phone">{__('Telefon', 'resa')}</Label>
-								<Input
-									id="member-phone"
-									type="tel"
-									value={form.phone}
-									onChange={(e) => updateField('phone', e.target.value)}
-									placeholder={__('+49 123 456789', 'resa')}
-								/>
-							</div>
-						</div>
-					</div>
-				</CardContent>
-			</Card>
-
-			{/* Standort-Zuordnung Card */}
-			{locations.length > 0 && (
-				<Card>
-					<CardContent style={{ padding: '20px' }}>
-						<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-							<h3
-								style={{
-									margin: 0,
-									fontSize: '14px',
-									fontWeight: 600,
-									color: '#1e303a',
-								}}
-							>
-								{__('Standort-Zuordnung', 'resa')}
-							</h3>
-							<div className="resa-space-y-2">
-								{locations.map((location) => (
-									<label
-										key={location.id}
-										className="resa-flex resa-items-center resa-gap-3 resa-py-1.5 resa-cursor-pointer"
-									>
-										<Checkbox
-											checked={form.locationIds.includes(location.id)}
-											onCheckedChange={() => toggleLocation(location.id)}
-										/>
-										<span className="resa-flex resa-items-center resa-gap-1.5 resa-text-sm">
-											<MapPin
+										>
+											<img
+												src={form.photoUrl}
+												alt={form.name}
 												style={{
-													width: '12px',
-													height: '12px',
+													width: '80px',
+													height: '80px',
+													borderRadius: '50%',
+													objectFit: 'cover',
+													border: '1px solid hsl(214.3 31.8% 91.4%)',
+												}}
+											/>
+											<div style={{ display: 'flex', gap: '4px' }}>
+												<OutlineButton onClick={handleSelectPhoto}>
+													{__('Ändern', 'resa')}
+												</OutlineButton>
+												<OutlineButton
+													onClick={() => updateField('photoUrl', null)}
+													style={{ color: '#dc2626' }}
+												>
+													<X style={{ width: '14px', height: '14px' }} />
+												</OutlineButton>
+											</div>
+										</div>
+									) : (
+										<button
+											type="button"
+											onClick={handleSelectPhoto}
+											style={{
+												width: '80px',
+												height: '80px',
+												borderRadius: '50%',
+												border: '2px dashed hsl(214.3 31.8% 78%)',
+												backgroundColor: 'white',
+												cursor: 'pointer',
+												display: 'flex',
+												flexDirection: 'column',
+												alignItems: 'center',
+												justifyContent: 'center',
+												gap: '4px',
+												transition: 'border-color 150ms',
+											}}
+											onMouseEnter={(e) =>
+												(e.currentTarget.style.borderColor = '#1e303a')
+											}
+											onMouseLeave={(e) =>
+												(e.currentTarget.style.borderColor =
+													'hsl(214.3 31.8% 78%)')
+											}
+										>
+											<Image
+												style={{
+													width: '20px',
+													height: '20px',
 													color: 'hsl(215.4 16.3% 46.9%)',
 												}}
 											/>
-											{location.name}
-										</span>
-									</label>
-								))}
+											<span
+												style={{
+													fontSize: '10px',
+													color: 'hsl(215.4 16.3% 46.9%)',
+												}}
+											>
+												{__('Foto', 'resa')}
+											</span>
+										</button>
+									)}
+								</div>
+
+								{/* Name + Position */}
+								<div
+									style={{
+										flex: 1,
+										display: 'flex',
+										flexDirection: 'column',
+										gap: '12px',
+									}}
+								>
+									<div
+										style={{
+											display: 'flex',
+											flexDirection: 'column',
+											gap: '6px',
+										}}
+									>
+										<Label htmlFor="member-name">{__('Name', 'resa')} *</Label>
+										<Input
+											id="member-name"
+											value={form.name}
+											onChange={(e) => updateField('name', e.target.value)}
+											placeholder={__('Max Mustermann', 'resa')}
+											required
+											style={inputStyles}
+										/>
+									</div>
+									<div
+										style={{
+											display: 'flex',
+											flexDirection: 'column',
+											gap: '6px',
+										}}
+									>
+										<Label htmlFor="member-position">
+											{__('Position/Funktion', 'resa')}
+										</Label>
+										<Input
+											id="member-position"
+											value={form.position}
+											onChange={(e) =>
+												updateField('position', e.target.value)
+											}
+											placeholder={__('Geschäftsführer', 'resa')}
+											style={inputStyles}
+										/>
+									</div>
+								</div>
 							</div>
 						</div>
-					</CardContent>
-				</Card>
-			)}
+
+						{/* Kontaktdaten Box */}
+						<div style={grayBoxStyles}>
+							<p style={{ ...boxTitleStyles, marginBottom: '12px' }}>
+								{__('Kontaktdaten', 'resa')}
+							</p>
+							<div
+								style={{
+									display: 'grid',
+									gridTemplateColumns: '1fr 1fr',
+									gap: '16px',
+								}}
+							>
+								<div
+									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+								>
+									<Label htmlFor="member-email">{__('E-Mail', 'resa')} *</Label>
+									<Input
+										id="member-email"
+										type="email"
+										value={form.email}
+										onChange={(e) => updateField('email', e.target.value)}
+										placeholder={__('max@mustermann-immo.de', 'resa')}
+										required
+										style={inputStyles}
+									/>
+								</div>
+								<div
+									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
+								>
+									<Label htmlFor="member-phone">{__('Telefon', 'resa')}</Label>
+									<Input
+										id="member-phone"
+										type="tel"
+										value={form.phone}
+										onChange={(e) => updateField('phone', e.target.value)}
+										placeholder={__('+49 123 456789', 'resa')}
+										style={inputStyles}
+									/>
+								</div>
+							</div>
+						</div>
+
+						{/* Standort-Zuordnung Box */}
+						{locations.length > 0 && (
+							<div style={grayBoxStyles}>
+								<p style={{ ...boxTitleStyles, marginBottom: '12px' }}>
+									{__('Standort-Zuordnung', 'resa')}
+								</p>
+								<div
+									style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+								>
+									{locations.map((location) => (
+										<label
+											key={location.id}
+											style={{
+												display: 'flex',
+												alignItems: 'center',
+												gap: '10px',
+												padding: '8px 12px',
+												backgroundColor: form.locationIds.includes(
+													location.id,
+												)
+													? 'white'
+													: 'transparent',
+												border: form.locationIds.includes(location.id)
+													? '1px solid hsl(214.3 31.8% 91.4%)'
+													: '1px solid transparent',
+												borderRadius: '6px',
+												cursor: 'pointer',
+												transition: 'all 150ms',
+											}}
+										>
+											<Checkbox
+												checked={form.locationIds.includes(location.id)}
+												onCheckedChange={() => toggleLocation(location.id)}
+											/>
+											<span
+												style={{
+													display: 'flex',
+													alignItems: 'center',
+													gap: '6px',
+													fontSize: '14px',
+													color: '#1e303a',
+												}}
+											>
+												<MapPin
+													style={{
+														width: '14px',
+														height: '14px',
+														color: 'hsl(215.4 16.3% 46.9%)',
+													}}
+												/>
+												{location.name}
+											</span>
+										</label>
+									))}
+								</div>
+							</div>
+						)}
+					</div>
+				</CardContent>
+			</Card>
 
 			{/* Actions */}
-			<div className="resa-flex resa-justify-end resa-gap-3">
-				<Button type="button" variant="outline" onClick={onCancel}>
-					{__('Abbrechen', 'resa')}
-				</Button>
-				<Button
-					type="submit"
-					disabled={!isValid || isSaving}
-					style={{
-						backgroundColor: isValid ? '#a9e43f' : 'hsl(210 40% 96.1%)',
-						color: '#1e303a',
-						border: 'none',
-					}}
-				>
+			<div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+				<OutlineButton onClick={onCancel}>{__('Abbrechen', 'resa')}</OutlineButton>
+				<PrimaryButton type="submit" disabled={!isValid || isSaving}>
+					{isSaving && <Spinner style={{ width: '14px', height: '14px' }} />}
 					{isEditing ? __('Speichern', 'resa') : __('Erstellen', 'resa')}
-				</Button>
+				</PrimaryButton>
 			</div>
 		</form>
 	);
@@ -1493,6 +1711,49 @@ const ZOOM_OPTIONS = [
 	{ value: 17, label: __('Straße', 'resa') },
 ];
 
+/** Styles for provider radio options */
+const providerOptionStyles = (isSelected: boolean, isDisabled: boolean): React.CSSProperties => ({
+	display: 'flex',
+	alignItems: 'flex-start',
+	gap: '12px',
+	padding: '12px',
+	borderRadius: '8px',
+	cursor: isDisabled ? 'not-allowed' : 'pointer',
+	border: isSelected ? '2px solid #a9e43f' : '1px solid hsl(214.3 31.8% 91.4%)',
+	backgroundColor: isSelected ? 'white' : 'transparent',
+	opacity: isDisabled ? 0.6 : 1,
+	transition: 'all 150ms',
+});
+
+const selectStyles: React.CSSProperties = {
+	display: 'block',
+	width: '100%',
+	height: '36px',
+	padding: '0 12px',
+	fontSize: '14px',
+	borderRadius: '6px',
+	border: '1px solid hsl(214.3 31.8% 78%)',
+	backgroundColor: 'white',
+	color: '#1e303a',
+	boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+};
+
+const toggleBoxStyles: React.CSSProperties = {
+	display: 'flex',
+	alignItems: 'center',
+	justifyContent: 'space-between',
+	padding: '16px',
+	border: '1px solid hsl(214.3 31.8% 91.4%)',
+	borderRadius: '8px',
+	backgroundColor: 'hsl(210 40% 96.1%)',
+};
+
+const fieldDescStyles: React.CSSProperties = {
+	margin: '2px 0 0 0',
+	fontSize: '12px',
+	color: 'hsl(215.4 16.3% 46.9%)',
+};
+
 function MapsForm({ initialData }: { initialData: MapSettings | undefined }) {
 	const saveMutation = useSaveMapSettings();
 
@@ -1533,244 +1794,239 @@ function MapsForm({ initialData }: { initialData: MapSettings | undefined }) {
 			onSubmit={handleSubmit}
 			style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
 		>
-			{/* Kartenanbieter Card */}
-			<Card>
+			{/* Card 1: Kartenanbieter */}
+			<Card style={cardStyles}>
 				<CardContent style={{ padding: '20px' }}>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-						<h3
-							style={{
-								margin: 0,
-								fontSize: '14px',
-								fontWeight: 600,
-								color: '#1e303a',
-							}}
-						>
-							{__('Kartenanbieter', 'resa')}
-						</h3>
-						<div className="resa-space-y-3" style={{ maxWidth: '400px' }}>
-							{/* OSM Option */}
-							<label
-								className="resa-flex resa-items-start resa-gap-3 resa-p-3 resa-rounded-lg resa-cursor-pointer"
-								style={{
-									border:
-										form.provider === 'osm'
-											? '2px solid #a9e43f'
-											: '1px solid hsl(214.3 31.8% 91.4%)',
-									backgroundColor:
-										form.provider === 'osm'
-											? 'hsl(210 40% 98%)'
-											: 'transparent',
-								}}
-							>
-								<input
-									type="radio"
-									name="provider"
-									value="osm"
-									checked={form.provider === 'osm'}
-									onChange={() => updateField('provider', 'osm')}
-									className="resa-mt-1"
-								/>
-								<div>
-									<span className="resa-font-medium">
-										{__('OpenStreetMap', 'resa')}
-									</span>
-									<p
-										className="resa-text-sm resa-text-muted-foreground"
-										style={{ margin: 0, marginTop: '2px' }}
-									>
-										{__(
-											'Kostenlos, kein API-Key nötig, DSGVO-freundlich.',
-											'resa',
-										)}
-									</p>
-								</div>
-							</label>
+						{/* Card Header */}
+						<div>
+							<h2 style={sectionTitleStyles}>{__('Kartenanbieter', 'resa')}</h2>
+							<p style={sectionDescStyles}>
+								{__(
+									'Wähle den Kartendienst für die Standort-Anzeige in deinen Smart Assets.',
+									'resa',
+								)}
+							</p>
+						</div>
 
-							{/* Google Maps Option */}
-							<label
-								className="resa-flex resa-items-start resa-gap-3 resa-p-3 resa-rounded-lg"
-								style={{
-									border:
-										form.provider === 'google'
-											? '2px solid #a9e43f'
-											: '1px solid hsl(214.3 31.8% 91.4%)',
-									backgroundColor:
-										form.provider === 'google'
-											? 'hsl(210 40% 98%)'
-											: 'transparent',
-									opacity: form.canUseGoogle ? 1 : 0.6,
-									cursor: form.canUseGoogle ? 'pointer' : 'not-allowed',
-								}}
-							>
-								<input
-									type="radio"
-									name="provider"
-									value="google"
-									checked={form.provider === 'google'}
-									onChange={() =>
-										form.canUseGoogle && updateField('provider', 'google')
-									}
-									disabled={!form.canUseGoogle}
-									className="resa-mt-1"
-								/>
-								<div className="resa-flex-1">
-									<div className="resa-flex resa-items-center resa-gap-2">
-										<span className="resa-font-medium">
-											{__('Google Maps', 'resa')}
-										</span>
-										{!form.canUseGoogle && (
-											<Badge variant="secondary" style={{ fontSize: '10px' }}>
-												PRO
-											</Badge>
-										)}
+						{/* Provider Options Box */}
+						<div style={grayBoxStyles}>
+							<p style={{ ...boxTitleStyles, marginBottom: '12px' }}>
+								{__('Anbieter auswählen', 'resa')}
+							</p>
+							<div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+								{/* OSM Option */}
+								<label style={providerOptionStyles(form.provider === 'osm', false)}>
+									<input
+										type="radio"
+										name="provider"
+										value="osm"
+										checked={form.provider === 'osm'}
+										onChange={() => updateField('provider', 'osm')}
+										style={{ marginTop: '2px' }}
+									/>
+									<div style={{ flex: 1 }}>
+										<p
+											style={{
+												margin: 0,
+												fontSize: '14px',
+												fontWeight: 500,
+												color: '#1e303a',
+											}}
+										>
+											{__('OpenStreetMap', 'resa')}
+										</p>
+										<p style={fieldDescStyles}>
+											{__(
+												'Kostenlos, kein API-Key nötig, DSGVO-freundlich.',
+												'resa',
+											)}
+										</p>
 									</div>
-									<p
-										className="resa-text-sm resa-text-muted-foreground"
-										style={{ margin: 0, marginTop: '2px' }}
-									>
-										{__('Google Maps API mit Places Autocomplete.', 'resa')}
-									</p>
-								</div>
-							</label>
+								</label>
+
+								{/* Google Maps Option */}
+								<label
+									style={providerOptionStyles(
+										form.provider === 'google',
+										!form.canUseGoogle,
+									)}
+								>
+									<input
+										type="radio"
+										name="provider"
+										value="google"
+										checked={form.provider === 'google'}
+										onChange={() =>
+											form.canUseGoogle && updateField('provider', 'google')
+										}
+										disabled={!form.canUseGoogle}
+										style={{ marginTop: '2px' }}
+									/>
+									<div style={{ flex: 1 }}>
+										<div
+											style={{
+												display: 'flex',
+												alignItems: 'center',
+												gap: '8px',
+											}}
+										>
+											<p
+												style={{
+													margin: 0,
+													fontSize: '14px',
+													fontWeight: 500,
+													color: '#1e303a',
+												}}
+											>
+												{__('Google Maps', 'resa')}
+											</p>
+											{!form.canUseGoogle && (
+												<Badge
+													variant="secondary"
+													style={{ fontSize: '10px' }}
+												>
+													PRO
+												</Badge>
+											)}
+										</div>
+										<p style={fieldDescStyles}>
+											{__('Google Maps API mit Places Autocomplete.', 'resa')}
+										</p>
+									</div>
+								</label>
+							</div>
 						</div>
 
 						{/* Google API Key (conditional) */}
 						{form.provider === 'google' && form.canUseGoogle && (
-							<>
-								<Separator />
-								<div className="resa-space-y-2" style={{ maxWidth: '400px' }}>
-									<Label htmlFor="google-api-key">{__('API-Key', 'resa')}</Label>
-									<Input
-										id="google-api-key"
-										type="password"
-										value={form.googleApiKey}
-										onChange={(e) =>
-											updateField('googleApiKey', e.target.value)
-										}
-										placeholder="AIzaSy..."
-									/>
-									<p
-										className="resa-text-xs resa-text-muted-foreground"
-										style={{ margin: 0 }}
-									>
-										{__(
-											'Google Cloud Console → APIs & Services → Credentials',
-											'resa',
-										)}
-									</p>
-								</div>
-							</>
+							<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+								<Label htmlFor="google-api-key">
+									{__('Google API-Key', 'resa')}
+								</Label>
+								<Input
+									id="google-api-key"
+									type="password"
+									value={form.googleApiKey}
+									onChange={(e) => updateField('googleApiKey', e.target.value)}
+									placeholder="AIzaSy..."
+									style={inputStyles}
+								/>
+								<p style={fieldDescStyles}>
+									{__(
+										'Google Cloud Console → APIs & Services → Credentials',
+										'resa',
+									)}
+								</p>
+							</div>
 						)}
 					</div>
 				</CardContent>
 			</Card>
 
-			{/* Darstellung Card */}
-			<Card>
+			{/* Card 2: Darstellung */}
+			<Card style={cardStyles}>
 				<CardContent style={{ padding: '20px' }}>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-						<h3
-							style={{
-								margin: 0,
-								fontSize: '14px',
-								fontWeight: 600,
-								color: '#1e303a',
-							}}
-						>
-							{__('Darstellung', 'resa')}
-						</h3>
+						{/* Card Header */}
+						<div>
+							<h2 style={sectionTitleStyles}>{__('Darstellung', 'resa')}</h2>
+							<p style={sectionDescStyles}>
+								{__('Passe das Aussehen und Verhalten der Karten an.', 'resa')}
+							</p>
+						</div>
 
-						{/* Tile Style + Zoom side by side */}
-						<div
-							className="resa-grid resa-grid-cols-2 resa-gap-4"
-							style={{ maxWidth: '400px' }}
-						>
-							<div className="resa-space-y-2">
-								<Label htmlFor="tile-style">
-									<span className="resa-flex resa-items-center resa-gap-1.5">
-										{__('Kachel-Stil', 'resa')}
-										{!form.canSelectStyle && (
-											<Badge variant="secondary" style={{ fontSize: '10px' }}>
-												PRO
-											</Badge>
-										)}
-									</span>
-								</Label>
-								<select
-									id="tile-style"
-									className="resa-flex resa-h-9 resa-w-full resa-rounded-md resa-border resa-border-input resa-bg-transparent resa-px-3 resa-py-1 resa-text-sm resa-shadow-sm resa-transition-colors focus:resa-outline-none focus:resa-ring-1 focus:resa-ring-ring"
-									value={form.tileStyle}
-									onChange={(e) =>
-										updateField('tileStyle', e.target.value as TileStyle)
-									}
-									disabled={!form.canSelectStyle}
+						{/* Kachel-Stil + Zoom Box */}
+						<div style={grayBoxStyles}>
+							<p style={{ ...boxTitleStyles, marginBottom: '12px' }}>
+								{__('Karten-Einstellungen', 'resa')}
+							</p>
+							<div
+								style={{
+									display: 'grid',
+									gridTemplateColumns: '1fr 1fr',
+									gap: '16px',
+								}}
+							>
+								<div
+									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
 								>
-									{TILE_STYLE_OPTIONS.map((option) => (
-										<option key={option.value} value={option.value}>
-											{option.label} — {option.description}
-										</option>
-									))}
-								</select>
-								{!form.canSelectStyle && (
-									<p
-										className="resa-text-xs resa-text-muted-foreground"
-										style={{ margin: 0 }}
+									<Label htmlFor="tile-style">
+										<span
+											style={{
+												display: 'flex',
+												alignItems: 'center',
+												gap: '6px',
+											}}
+										>
+											{__('Kachel-Stil', 'resa')}
+											{!form.canSelectStyle && (
+												<Badge
+													variant="secondary"
+													style={{ fontSize: '10px' }}
+												>
+													PRO
+												</Badge>
+											)}
+										</span>
+									</Label>
+									<select
+										id="tile-style"
+										value={form.tileStyle}
+										onChange={(e) =>
+											updateField('tileStyle', e.target.value as TileStyle)
+										}
+										disabled={!form.canSelectStyle}
+										style={{
+											...selectStyles,
+											opacity: form.canSelectStyle ? 1 : 0.6,
+											cursor: form.canSelectStyle ? 'pointer' : 'not-allowed',
+										}}
 									>
-										{__(
-											'Im Free-Plan wird der minimale Stil verwendet.',
-											'resa',
-										)}
-									</p>
-								)}
-							</div>
-							<div className="resa-space-y-2">
-								<Label htmlFor="default-zoom">{__('Standard-Zoom', 'resa')}</Label>
-								<select
-									id="default-zoom"
-									className="resa-flex resa-h-9 resa-w-full resa-rounded-md resa-border resa-border-input resa-bg-transparent resa-px-3 resa-py-1 resa-text-sm resa-shadow-sm resa-transition-colors focus:resa-outline-none focus:resa-ring-1 focus:resa-ring-ring"
-									value={form.defaultZoom}
-									onChange={(e) =>
-										updateField('defaultZoom', parseInt(e.target.value, 10))
-									}
+										{TILE_STYLE_OPTIONS.map((option) => (
+											<option key={option.value} value={option.value}>
+												{option.label}
+											</option>
+										))}
+									</select>
+									{!form.canSelectStyle && (
+										<p style={fieldDescStyles}>
+											{__(
+												'Im Free-Plan wird der minimale Stil verwendet.',
+												'resa',
+											)}
+										</p>
+									)}
+								</div>
+								<div
+									style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}
 								>
-									{ZOOM_OPTIONS.map((option) => (
-										<option key={option.value} value={option.value}>
-											{option.value} — {option.label}
-										</option>
-									))}
-								</select>
+									<Label htmlFor="default-zoom">
+										{__('Standard-Zoom', 'resa')}
+									</Label>
+									<select
+										id="default-zoom"
+										value={form.defaultZoom}
+										onChange={(e) =>
+											updateField('defaultZoom', parseInt(e.target.value, 10))
+										}
+										style={selectStyles}
+									>
+										{ZOOM_OPTIONS.map((option) => (
+											<option key={option.value} value={option.value}>
+												{option.value} — {option.label}
+											</option>
+										))}
+									</select>
+								</div>
 							</div>
 						</div>
 
-						<Separator />
-
 						{/* Scroll Zoom Toggle */}
-						<div
-							className="resa-flex resa-items-center resa-justify-between"
-							style={{
-								padding: '10px 12px',
-								backgroundColor: 'hsl(210 40% 98%)',
-								borderRadius: '6px',
-							}}
-						>
+						<div style={toggleBoxStyles}>
 							<div>
-								<p
-									style={{
-										margin: 0,
-										fontSize: '13px',
-										fontWeight: 500,
-										color: '#1e303a',
-									}}
-								>
-									{__('Scroll-Zoom aktivieren', 'resa')}
-								</p>
-								<p
-									style={{
-										margin: '2px 0 0',
-										fontSize: '12px',
-										color: 'hsl(215.4 16.3% 46.9%)',
-									}}
-								>
+								<p style={boxTitleStyles}>{__('Scroll-Zoom aktivieren', 'resa')}</p>
+								<p style={fieldDescStyles}>
 									{__('Erlaubt Zoomen mit dem Mausrad auf der Karte.', 'resa')}
 								</p>
 							</div>
@@ -1783,19 +2039,20 @@ function MapsForm({ initialData }: { initialData: MapSettings | undefined }) {
 				</CardContent>
 			</Card>
 
-			{/* Save Button */}
-			<div className="resa-flex resa-justify-end">
-				<Button
-					type="submit"
-					disabled={!isDirty || saveMutation.isPending}
-					style={{
-						backgroundColor: isDirty ? '#a9e43f' : 'hsl(210 40% 96.1%)',
-						color: '#1e303a',
-						border: 'none',
-					}}
-				>
+			{/* Save Footer */}
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'flex-end',
+				}}
+			>
+				<PrimaryButton type="submit" disabled={!isDirty || saveMutation.isPending}>
+					{saveMutation.isPending && (
+						<Spinner style={{ width: '14px', height: '14px' }} />
+					)}
 					{__('Speichern', 'resa')}
-				</Button>
+				</PrimaryButton>
 			</div>
 		</form>
 	);
