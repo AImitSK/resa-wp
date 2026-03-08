@@ -3,10 +3,17 @@ import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 
-const mockSettings = {
+const mockSettingsDisabled = {
 	enabled: false,
 	site_key: '',
 	secret_key: '',
+	threshold: 0.5,
+};
+
+const mockSettingsEnabled = {
+	enabled: true,
+	site_key: '6LcTest',
+	secret_key: '6LcSecret',
 	threshold: 0.5,
 };
 
@@ -16,9 +23,11 @@ const mockSaveMutation = {
 	isSuccess: false,
 };
 
+let currentMockSettings = mockSettingsDisabled;
+
 vi.mock('@admin/hooks/useRecaptchaSettings', () => ({
 	useRecaptchaSettings: () => ({
-		data: mockSettings,
+		data: currentMockSettings,
 		isLoading: false,
 	}),
 	useSaveRecaptchaSettings: () => mockSaveMutation,
@@ -74,10 +83,14 @@ beforeEach(() => {
 });
 
 describe('RecaptchaTab', () => {
+	beforeEach(() => {
+		currentMockSettings = mockSettingsDisabled;
+	});
+
 	it('rendert die Überschrift', () => {
 		renderWithProviders();
 
-		expect(screen.getByText('Google reCAPTCHA v3')).toBeInTheDocument();
+		expect(screen.getByText('Verbindung')).toBeInTheDocument();
 	});
 
 	it('rendert den Speichern-Button', () => {
@@ -93,20 +106,23 @@ describe('RecaptchaTab', () => {
 		expect(button).toBeDisabled();
 	});
 
-	it('rendert Site Key und Secret Key Felder', () => {
+	it('rendert Site Key und Secret Key Felder wenn aktiviert', () => {
+		currentMockSettings = mockSettingsEnabled;
 		renderWithProviders();
 
 		expect(screen.getByLabelText('Site Key')).toBeInTheDocument();
 		expect(screen.getByLabelText('Secret Key')).toBeInTheDocument();
 	});
 
-	it('rendert den Score-Schwellenwert', () => {
+	it('rendert den Score-Schwellenwert wenn aktiviert', () => {
+		currentMockSettings = mockSettingsEnabled;
 		renderWithProviders();
 
 		expect(screen.getByLabelText('Score-Schwellenwert')).toBeInTheDocument();
 	});
 
-	it('rendert den Hinweis-Text mit Link', () => {
+	it('rendert den Hinweis-Text mit Link wenn aktiviert', () => {
+		currentMockSettings = mockSettingsEnabled;
 		renderWithProviders();
 
 		expect(screen.getByText('Google reCAPTCHA Admin Console')).toBeInTheDocument();

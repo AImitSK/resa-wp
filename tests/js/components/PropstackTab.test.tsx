@@ -71,7 +71,7 @@ describe('PropstackTab', () => {
 		render(<PropstackTab />, { wrapper });
 
 		await waitFor(() => {
-			expect(screen.getByText(/Propstack-Integration/i)).toBeInTheDocument();
+			expect(screen.getByText('Verbindung')).toBeInTheDocument();
 		});
 	});
 
@@ -107,7 +107,7 @@ describe('PropstackTab', () => {
 		render(<PropstackTab />, { wrapper });
 
 		await waitFor(() => {
-			expect(screen.getByText(/Propstack-Integration/i)).toBeInTheDocument();
+			expect(screen.getByText('Verbindung')).toBeInTheDocument();
 		});
 
 		// Should NOT show other cards (Makler-Zuweisung, Aktivitäten, Newsletter)
@@ -135,7 +135,7 @@ describe('PropstackTab', () => {
 		render(<PropstackTab />, { wrapper });
 
 		await waitFor(() => {
-			const saveButton = screen.getByRole('button', { name: /Einstellungen speichern/i });
+			const saveButton = screen.getByRole('button', { name: /Speichern/i });
 			expect(saveButton).toBeDisabled();
 		});
 	});

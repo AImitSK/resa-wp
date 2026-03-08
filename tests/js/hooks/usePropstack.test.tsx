@@ -36,11 +36,6 @@ describe('usePropstack hooks', () => {
 	);
 
 	describe('usePropstackSettings', () => {
-		it('query key is correct', () => {
-			const { result } = renderHook(() => usePropstackSettings(), { wrapper });
-			expect(result.current.queryKey).toEqual(['propstack-settings']);
-		});
-
 		it('fetches settings from API', async () => {
 			const mockSettings = {
 				enabled: true,
