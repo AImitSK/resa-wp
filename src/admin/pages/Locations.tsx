@@ -37,6 +37,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog';
 
 type View = 'list' | 'create' | 'edit';
 
@@ -124,6 +125,10 @@ function OutlineButton({
 export function Locations() {
 	const [view, setView] = useState<View>('list');
 	const [editingId, setEditingId] = useState<number | null>(null);
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+	const [locationToDelete, setLocationToDelete] = useState<{ id: number; name: string } | null>(
+		null,
+	);
 
 	const { data: locations, isLoading, error } = useLocations();
 	const createMutation = useCreateLocation();
@@ -182,14 +187,16 @@ export function Locations() {
 		[editingId, updateMutation],
 	);
 
-	const handleDelete = useCallback(
-		async (id: number, name: string) => {
-			if (!window.confirm(sprintf(__('Standort "%s" wirklich löschen?', 'resa'), name)))
-				return;
-			await deleteMutation.mutateAsync(id);
-		},
-		[deleteMutation],
-	);
+	const handleDeleteClick = useCallback((id: number, name: string) => {
+		setLocationToDelete({ id, name });
+		setDeleteDialogOpen(true);
+	}, []);
+
+	const handleConfirmDelete = useCallback(async () => {
+		if (!locationToDelete) return;
+		await deleteMutation.mutateAsync(locationToDelete.id);
+		setDeleteDialogOpen(false);
+	}, [deleteMutation, locationToDelete]);
 
 	const startEdit = (location: LocationAdmin) => {
 		setEditingId(location.id);
@@ -694,7 +701,10 @@ export function Locations() {
 													<DropdownMenuSeparator />
 													<DropdownMenuItem
 														onClick={() =>
-															handleDelete(location.id, location.name)
+															handleDeleteClick(
+																location.id,
+																location.name,
+															)
 														}
 														disabled={deleteMutation.isPending}
 														style={{ color: '#dc2626' }}
@@ -718,6 +728,20 @@ export function Locations() {
 					</Table>
 				</div>
 			)}
+
+			{/* Delete Confirmation Dialog */}
+			<ConfirmDeleteDialog
+				open={deleteDialogOpen}
+				onOpenChange={setDeleteDialogOpen}
+				title={__('Standort löschen?', 'resa')}
+				description={__(
+					'Der Standort wird unwiderruflich gelöscht. Leads, die diesem Standort zugeordnet sind, verlieren ihre Zuordnung.',
+					'resa',
+				)}
+				onConfirm={handleConfirmDelete}
+				isLoading={deleteMutation.isPending}
+				itemName={locationToDelete?.name}
+			/>
 		</AdminPageLayout>
 	);
 }

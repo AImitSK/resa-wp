@@ -18,6 +18,7 @@ import {
 } from '../../hooks/useWebhooks';
 import type { WebhookConfig, WebhookFormData } from '../../types';
 import { toast } from '../../lib/toast';
+import { ConfirmDeleteDialog } from '../ConfirmDeleteDialog';
 
 import {
 	Dialog,
@@ -141,6 +142,8 @@ export function WebhooksTab() {
 
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [editingWebhook, setEditingWebhook] = useState<WebhookConfig | null>(null);
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+	const [webhookToDelete, setWebhookToDelete] = useState<WebhookConfig | null>(null);
 
 	// Form state.
 	const [formName, setFormName] = useState('');
@@ -204,10 +207,17 @@ export function WebhooksTab() {
 		}
 	};
 
-	const handleDelete = async (id: number) => {
+	const handleDeleteClick = (webhook: WebhookConfig) => {
+		setWebhookToDelete(webhook);
+		setDeleteDialogOpen(true);
+	};
+
+	const handleConfirmDelete = async () => {
+		if (!webhookToDelete) return;
 		try {
-			await deleteMutation.mutateAsync(id);
+			await deleteMutation.mutateAsync(webhookToDelete.id);
 			toast.success(__('Webhook gelöscht.', 'resa'));
+			setDeleteDialogOpen(false);
 		} catch {
 			toast.error(__('Fehler beim Löschen des Webhooks.', 'resa'));
 		}
@@ -550,7 +560,7 @@ export function WebhooksTab() {
 												</DropdownMenuItem>
 												<DropdownMenuSeparator />
 												<DropdownMenuItem
-													onClick={() => handleDelete(webhook.id)}
+													onClick={() => handleDeleteClick(webhook)}
 													disabled={deleteMutation.isPending}
 													style={{ color: '#dc2626' }}
 												>
@@ -685,6 +695,20 @@ export function WebhooksTab() {
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
+
+			{/* Delete Confirmation Dialog */}
+			<ConfirmDeleteDialog
+				open={deleteDialogOpen}
+				onOpenChange={setDeleteDialogOpen}
+				title={__('Webhook löschen?', 'resa')}
+				description={__(
+					'Der Webhook wird unwiderruflich gelöscht und kann nicht wiederhergestellt werden.',
+					'resa',
+				)}
+				onConfirm={handleConfirmDelete}
+				isLoading={deleteMutation.isPending}
+				itemName={webhookToDelete?.name}
+			/>
 		</>
 	);
 }

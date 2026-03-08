@@ -26,6 +26,7 @@ import {
 } from '../../hooks/useApiKeys';
 import type { ApiKeyConfig, ApiKeyCreateResponse } from '../../types';
 import { toast } from '../../lib/toast';
+import { ConfirmDeleteDialog } from '../ConfirmDeleteDialog';
 
 import {
 	Dialog,
@@ -132,6 +133,8 @@ export function ApiKeysTab() {
 	const [createdKey, setCreatedKey] = useState<ApiKeyCreateResponse | null>(null);
 	const [formName, setFormName] = useState('');
 	const [copied, setCopied] = useState(false);
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+	const [apiKeyToDelete, setApiKeyToDelete] = useState<ApiKeyConfig | null>(null);
 
 	const openCreateDialog = () => {
 		setFormName('');
@@ -160,10 +163,17 @@ export function ApiKeysTab() {
 		}
 	};
 
-	const handleDelete = async (id: number) => {
+	const handleDeleteClick = (apiKey: ApiKeyConfig) => {
+		setApiKeyToDelete(apiKey);
+		setDeleteDialogOpen(true);
+	};
+
+	const handleConfirmDelete = async () => {
+		if (!apiKeyToDelete) return;
 		try {
-			await deleteMutation.mutateAsync(id);
+			await deleteMutation.mutateAsync(apiKeyToDelete.id);
 			toast.success(__('API-Schlüssel gelöscht.', 'resa'));
+			setDeleteDialogOpen(false);
 		} catch {
 			toast.error(__('Fehler beim Löschen des API-Schlüssels.', 'resa'));
 		}
@@ -452,7 +462,7 @@ export function ApiKeysTab() {
 												style={{ backgroundColor: 'white', padding: '4px' }}
 											>
 												<DropdownMenuItem
-													onClick={() => handleDelete(apiKey.id)}
+													onClick={() => handleDeleteClick(apiKey)}
 													disabled={deleteMutation.isPending}
 													style={{ color: '#dc2626' }}
 												>
@@ -565,6 +575,20 @@ export function ApiKeysTab() {
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
+
+			{/* Delete Confirmation Dialog */}
+			<ConfirmDeleteDialog
+				open={deleteDialogOpen}
+				onOpenChange={setDeleteDialogOpen}
+				title={__('API-Schlüssel löschen?', 'resa')}
+				description={__(
+					'Der API-Schlüssel verliert sofort seine Gültigkeit und kann nicht wiederhergestellt werden.',
+					'resa',
+				)}
+				onConfirm={handleConfirmDelete}
+				isLoading={deleteMutation.isPending}
+				itemName={apiKeyToDelete?.name}
+			/>
 		</>
 	);
 }

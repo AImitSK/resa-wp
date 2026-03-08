@@ -82,6 +82,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog';
 
 // ─── Styled Button Components ────────────────────────────
 
@@ -260,6 +261,9 @@ export function Leads() {
 	const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
 	const [notes, setNotes] = useState('');
 	const [notesChanged, setNotesChanged] = useState(false);
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+	const [leadToDelete, setLeadToDelete] = useState<{ id: number; name: string } | null>(null);
+	const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
 
 	// Queries
 	const { data: leadsData, isLoading, error } = useLeads(filters);
@@ -352,54 +356,35 @@ export function Leads() {
 		setNotesChanged(false);
 	}, [selectedLeadId, notes, updateMutation]);
 
-	const handleDelete = useCallback(
-		async (id: number, name: string) => {
-			if (
-				!window.confirm(
-					sprintf(
-						__(
-							'Lead "%s" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
-							'resa',
-						),
-						name,
-					),
-				)
-			) {
-				return;
-			}
-			await deleteMutation.mutateAsync(id);
-			if (view === 'detail') {
-				handleBackToList();
-			}
-		},
-		[deleteMutation, view, handleBackToList],
-	);
+	const handleDeleteClick = useCallback((id: number, name: string) => {
+		setLeadToDelete({ id, name });
+		setDeleteDialogOpen(true);
+	}, []);
+
+	const handleConfirmDelete = useCallback(async () => {
+		if (!leadToDelete) return;
+		await deleteMutation.mutateAsync(leadToDelete.id);
+		setDeleteDialogOpen(false);
+		if (view === 'detail') {
+			handleBackToList();
+		}
+	}, [deleteMutation, view, handleBackToList, leadToDelete]);
 
 	const handleExport = useCallback(async () => {
 		await exportMutation.mutateAsync(filters);
 	}, [exportMutation, filters]);
 
-	const handleBulkDelete = useCallback(async () => {
+	const handleBulkDeleteClick = useCallback(() => {
 		if (selectedRows.size === 0) return;
-		if (
-			!window.confirm(
-				sprintf(
-					_n(
-						'%d Lead wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
-						'%d Leads wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
-						selectedRows.size,
-						'resa',
-					),
-					selectedRows.size,
-				),
-			)
-		) {
-			return;
-		}
+		setBulkDeleteDialogOpen(true);
+	}, [selectedRows.size]);
+
+	const handleConfirmBulkDelete = useCallback(async () => {
 		for (const id of selectedRows) {
 			await deleteMutation.mutateAsync(id);
 		}
 		setSelectedRows(new Set());
+		setBulkDeleteDialogOpen(false);
 	}, [selectedRows, deleteMutation]);
 
 	const handleRowSelect = useCallback((id: number, checked: boolean) => {
@@ -702,7 +687,7 @@ export function Leads() {
 							</Select>
 							<Button
 								variant="outline"
-								onClick={() => handleDelete(selectedLead.id, fullName)}
+								onClick={() => handleDeleteClick(selectedLead.id, fullName)}
 								disabled={deleteMutation.isPending}
 								style={{
 									height: '36px',
@@ -1391,7 +1376,7 @@ export function Leads() {
 						<Button
 							variant="outline"
 							size="sm"
-							onClick={handleBulkDelete}
+							onClick={handleBulkDeleteClick}
 							disabled={deleteMutation.isPending}
 							style={{
 								backgroundColor: 'white',
@@ -2065,7 +2050,7 @@ export function Leads() {
 														<DropdownMenuSeparator />
 														<DropdownMenuItem
 															onClick={() =>
-																handleDelete(lead.id, fullName)
+																handleDeleteClick(lead.id, fullName)
 															}
 															style={{ color: '#ef4444' }}
 														>
@@ -2169,6 +2154,36 @@ export function Leads() {
 					</div>
 				</>
 			)}
+
+			{/* Delete Confirmation Dialog */}
+			<ConfirmDeleteDialog
+				open={deleteDialogOpen}
+				onOpenChange={setDeleteDialogOpen}
+				title={__('Lead löschen?', 'resa')}
+				description={__(
+					'Der Lead wird unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.',
+					'resa',
+				)}
+				onConfirm={handleConfirmDelete}
+				isLoading={deleteMutation.isPending}
+				itemName={leadToDelete?.name}
+			/>
+
+			{/* Bulk Delete Confirmation Dialog */}
+			<ConfirmDeleteDialog
+				open={bulkDeleteDialogOpen}
+				onOpenChange={setBulkDeleteDialogOpen}
+				title={sprintf(
+					_n('%d Lead löschen?', '%d Leads löschen?', selectedRows.size, 'resa'),
+					selectedRows.size,
+				)}
+				description={__(
+					'Die ausgewählten Leads werden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.',
+					'resa',
+				)}
+				onConfirm={handleConfirmBulkDelete}
+				isLoading={deleteMutation.isPending}
+			/>
 		</AdminPageLayout>
 	);
 }

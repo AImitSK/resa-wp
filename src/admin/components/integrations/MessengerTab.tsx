@@ -48,6 +48,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { LoadingState } from '../LoadingState';
 import { toast } from '../../lib/toast';
+import { ConfirmDeleteDialog } from '../ConfirmDeleteDialog';
 
 // ─── Styled Button Components ────────────────────────────
 
@@ -152,6 +153,8 @@ export function MessengerTab() {
 
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [editingMessenger, setEditingMessenger] = useState<MessengerConfig | null>(null);
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+	const [messengerToDelete, setMessengerToDelete] = useState<MessengerConfig | null>(null);
 
 	// Form state.
 	const [formName, setFormName] = useState('');
@@ -216,10 +219,17 @@ export function MessengerTab() {
 		}
 	};
 
-	const handleDelete = async (id: number) => {
+	const handleDeleteClick = (messenger: MessengerConfig) => {
+		setMessengerToDelete(messenger);
+		setDeleteDialogOpen(true);
+	};
+
+	const handleConfirmDelete = async () => {
+		if (!messengerToDelete) return;
 		try {
-			await deleteMutation.mutateAsync(id);
+			await deleteMutation.mutateAsync(messengerToDelete.id);
 			toast.success(__('Verbindung gelöscht.', 'resa'));
+			setDeleteDialogOpen(false);
 		} catch {
 			toast.error(__('Fehler beim Löschen der Verbindung.', 'resa'));
 		}
@@ -553,7 +563,7 @@ export function MessengerTab() {
 												</DropdownMenuItem>
 												<DropdownMenuSeparator />
 												<DropdownMenuItem
-													onClick={() => handleDelete(messenger.id)}
+													onClick={() => handleDeleteClick(messenger)}
 													disabled={deleteMutation.isPending}
 													style={{ color: '#dc2626' }}
 												>
@@ -728,6 +738,17 @@ export function MessengerTab() {
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
+
+			{/* Delete Confirmation Dialog */}
+			<ConfirmDeleteDialog
+				open={deleteDialogOpen}
+				onOpenChange={setDeleteDialogOpen}
+				title={__('Verbindung löschen?', 'resa')}
+				description={__('Die Messenger-Verbindung wird unwiderruflich gelöscht.', 'resa')}
+				onConfirm={handleConfirmDelete}
+				isLoading={deleteMutation.isPending}
+				itemName={messengerToDelete?.name}
+			/>
 		</>
 	);
 }
