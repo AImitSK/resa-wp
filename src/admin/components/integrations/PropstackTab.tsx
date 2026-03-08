@@ -31,6 +31,7 @@ import {
 } from '../../hooks/usePropstack';
 import { useLocations } from '../../hooks/useLocations';
 import type { PropstackSettings } from '../../types';
+import { toast } from '../../lib/toast';
 
 // ─── Design Tokens (concrete values) ─────────────────────
 
@@ -361,6 +362,10 @@ export function PropstackTab() {
 				if (form.api_key) {
 					setConnectionStatus('connected');
 				}
+				toast.success(__('Einstellungen gespeichert.', 'resa-propstack'));
+			},
+			onError: () => {
+				toast.error(__('Fehler beim Speichern.', 'resa-propstack'));
 			},
 		});
 	};
@@ -978,21 +983,9 @@ export function PropstackTab() {
 				style={{
 					display: 'flex',
 					alignItems: 'center',
-					justifyContent: 'space-between',
+					justifyContent: 'flex-end',
 				}}
 			>
-				<p
-					style={{
-						margin: 0,
-						fontSize: '13px',
-						color: colors.primary,
-						fontWeight: 500,
-					}}
-				>
-					{saveMutation.isSuccess &&
-						!isDirty &&
-						__('Einstellungen gespeichert.', 'resa-propstack')}
-				</p>
 				<PrimaryButton onClick={handleSave} disabled={!isDirty || saveMutation.isPending}>
 					{saveMutation.isPending && (
 						<Spinner style={{ width: '14px', height: '14px', marginRight: '8px' }} />

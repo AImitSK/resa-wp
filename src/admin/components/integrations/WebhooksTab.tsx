@@ -17,6 +17,7 @@ import {
 	useTestWebhook,
 } from '../../hooks/useWebhooks';
 import type { WebhookConfig, WebhookFormData } from '../../types';
+import { toast } from '../../lib/toast';
 
 import {
 	Dialog,
@@ -45,7 +46,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingState } from '../LoadingState';
 
 // ─── Styled Button Components ────────────────────────────
@@ -141,10 +141,6 @@ export function WebhooksTab() {
 
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [editingWebhook, setEditingWebhook] = useState<WebhookConfig | null>(null);
-	const [feedback, setFeedback] = useState<{
-		type: 'success' | 'error';
-		message: string;
-	} | null>(null);
 
 	// Form state.
 	const [formName, setFormName] = useState('');
@@ -153,10 +149,6 @@ export function WebhooksTab() {
 	const [formEvents, setFormEvents] = useState<string[]>(['lead.created']);
 	const [formActive, setFormActive] = useState(true);
 	const [copied, setCopied] = useState(false);
-
-	const clearFeedback = () => {
-		setTimeout(() => setFeedback(null), 5000);
-	};
 
 	const openCreateDialog = () => {
 		setEditingWebhook(null);
@@ -190,25 +182,15 @@ export function WebhooksTab() {
 		try {
 			if (editingWebhook) {
 				await updateMutation.mutateAsync({ id: editingWebhook.id, data });
-				setFeedback({
-					type: 'success',
-					message: __('Webhook aktualisiert.', 'resa'),
-				});
+				toast.success(__('Webhook aktualisiert.', 'resa'));
 			} else {
 				await createMutation.mutateAsync(data);
-				setFeedback({
-					type: 'success',
-					message: __('Webhook erstellt.', 'resa'),
-				});
+				toast.success(__('Webhook erstellt.', 'resa'));
 			}
 			setDialogOpen(false);
 		} catch {
-			setFeedback({
-				type: 'error',
-				message: __('Fehler beim Speichern des Webhooks.', 'resa'),
-			});
+			toast.error(__('Fehler beim Speichern des Webhooks.', 'resa'));
 		}
-		clearFeedback();
 	};
 
 	const handleToggle = async (webhook: WebhookConfig) => {
@@ -218,53 +200,34 @@ export function WebhooksTab() {
 				data: { isActive: !webhook.isActive },
 			});
 		} catch {
-			setFeedback({
-				type: 'error',
-				message: __('Fehler beim Ändern des Status.', 'resa'),
-			});
-			clearFeedback();
+			toast.error(__('Fehler beim Ändern des Status.', 'resa'));
 		}
 	};
 
 	const handleDelete = async (id: number) => {
 		try {
 			await deleteMutation.mutateAsync(id);
-			setFeedback({
-				type: 'success',
-				message: __('Webhook gelöscht.', 'resa'),
-			});
+			toast.success(__('Webhook gelöscht.', 'resa'));
 		} catch {
-			setFeedback({
-				type: 'error',
-				message: __('Fehler beim Löschen des Webhooks.', 'resa'),
-			});
+			toast.error(__('Fehler beim Löschen des Webhooks.', 'resa'));
 		}
-		clearFeedback();
 	};
 
 	const handleTest = async (id: number) => {
 		try {
 			const result = await testMutation.mutateAsync(id);
 			if (result.success) {
-				setFeedback({
-					type: 'success',
-					message: `${__('Test erfolgreich', 'resa')} (HTTP ${result.statusCode})`,
-				});
+				toast.success(`${__('Test erfolgreich', 'resa')} (HTTP ${result.statusCode})`);
 			} else {
-				setFeedback({
-					type: 'error',
-					message: result.error
+				toast.error(
+					result.error
 						? `${__('Test fehlgeschlagen', 'resa')}: ${result.error}`
 						: `${__('Test fehlgeschlagen', 'resa')} (HTTP ${result.statusCode})`,
-				});
+				);
 			}
 		} catch {
-			setFeedback({
-				type: 'error',
-				message: __('Fehler beim Senden des Tests.', 'resa'),
-			});
+			toast.error(__('Fehler beim Senden des Tests.', 'resa'));
 		}
-		clearFeedback();
 	};
 
 	const copySecret = () => {
@@ -310,16 +273,6 @@ export function WebhooksTab() {
 
 	return (
 		<>
-			{/* Feedback Alert */}
-			{feedback && (
-				<Alert
-					variant={feedback.type === 'error' ? 'destructive' : 'default'}
-					style={{ marginBottom: '16px' }}
-				>
-					<AlertDescription>{feedback.message}</AlertDescription>
-				</Alert>
-			)}
-
 			{/* Header */}
 			<div style={headerStyle}>
 				<div>

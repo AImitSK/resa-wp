@@ -9,6 +9,7 @@
 import { MemoryRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Layout } from './components/Layout';
+import { Toaster } from './components/Toaster';
 import { Dashboard } from './pages/Dashboard';
 import { Leads } from './pages/Leads';
 import { ModuleStore } from './pages/ModuleStore';
@@ -63,6 +64,7 @@ export function App() {
 					</Route>
 				</Routes>
 			</MemoryRouter>
+			<Toaster />
 		</QueryClientProvider>
 	);
 }

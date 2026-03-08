@@ -25,6 +25,7 @@ import {
 	useDeleteApiKey,
 } from '../../hooks/useApiKeys';
 import type { ApiKeyConfig, ApiKeyCreateResponse } from '../../types';
+import { toast } from '../../lib/toast';
 
 import {
 	Dialog,
@@ -131,14 +132,6 @@ export function ApiKeysTab() {
 	const [createdKey, setCreatedKey] = useState<ApiKeyCreateResponse | null>(null);
 	const [formName, setFormName] = useState('');
 	const [copied, setCopied] = useState(false);
-	const [feedback, setFeedback] = useState<{
-		type: 'success' | 'error';
-		message: string;
-	} | null>(null);
-
-	const clearFeedback = () => {
-		setTimeout(() => setFeedback(null), 5000);
-	};
 
 	const openCreateDialog = () => {
 		setFormName('');
@@ -152,11 +145,7 @@ export function ApiKeysTab() {
 			setCreatedKey(result);
 			setRevealDialogOpen(true);
 		} catch {
-			setFeedback({
-				type: 'error',
-				message: __('Fehler beim Erstellen des API-Schlüssels.', 'resa'),
-			});
-			clearFeedback();
+			toast.error(__('Fehler beim Erstellen des API-Schlüssels.', 'resa'));
 		}
 	};
 
@@ -167,28 +156,17 @@ export function ApiKeysTab() {
 				data: { isActive: !apiKey.isActive },
 			});
 		} catch {
-			setFeedback({
-				type: 'error',
-				message: __('Fehler beim Ändern des Status.', 'resa'),
-			});
-			clearFeedback();
+			toast.error(__('Fehler beim Ändern des Status.', 'resa'));
 		}
 	};
 
 	const handleDelete = async (id: number) => {
 		try {
 			await deleteMutation.mutateAsync(id);
-			setFeedback({
-				type: 'success',
-				message: __('API-Schlüssel gelöscht.', 'resa'),
-			});
+			toast.success(__('API-Schlüssel gelöscht.', 'resa'));
 		} catch {
-			setFeedback({
-				type: 'error',
-				message: __('Fehler beim Löschen des API-Schlüssels.', 'resa'),
-			});
+			toast.error(__('Fehler beim Löschen des API-Schlüssels.', 'resa'));
 		}
-		clearFeedback();
 	};
 
 	const copyKey = () => {
@@ -235,16 +213,6 @@ export function ApiKeysTab() {
 
 	return (
 		<>
-			{/* Feedback Alert */}
-			{feedback && (
-				<Alert
-					variant={feedback.type === 'error' ? 'destructive' : 'default'}
-					style={{ marginBottom: '16px' }}
-				>
-					<AlertDescription>{feedback.message}</AlertDescription>
-				</Alert>
-			)}
-
 			{/* Header */}
 			<div style={headerStyle}>
 				<div>

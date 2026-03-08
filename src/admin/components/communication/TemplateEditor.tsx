@@ -20,6 +20,7 @@ import {
 	useResetEmailTemplate,
 	useSendTestEmail,
 } from '../../hooks/useEmailTemplates';
+import { toast } from '../../lib/toast';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -227,26 +228,35 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 	const [resetDialogOpen, setResetDialogOpen] = useState(false);
 	const [testDialogOpen, setTestDialogOpen] = useState(false);
 	const [testEmail, setTestEmail] = useState('');
-	const [testMessage, setTestMessage] = useState('');
 
 	const handleSave = async () => {
-		await saveMutation.mutateAsync({ subject, body, is_active: isActive });
-		setIsDirty(false);
+		try {
+			await saveMutation.mutateAsync({ subject, body, is_active: isActive });
+			setIsDirty(false);
+			toast.success(__('Vorlage gespeichert.', 'resa'));
+		} catch {
+			toast.error(__('Fehler beim Speichern.', 'resa'));
+		}
 	};
 
 	const handleReset = async () => {
-		await resetMutation.mutateAsync();
-		setResetDialogOpen(false);
-		setIsDirty(false);
+		try {
+			await resetMutation.mutateAsync();
+			setResetDialogOpen(false);
+			setIsDirty(false);
+			toast.success(__('Vorlage zurückgesetzt.', 'resa'));
+		} catch {
+			toast.error(__('Fehler beim Zurücksetzen.', 'resa'));
+		}
 	};
 
 	const handleTest = async () => {
-		setTestMessage('');
 		try {
-			const result = await testMutation.mutateAsync(testEmail);
-			setTestMessage(result.message);
+			await testMutation.mutateAsync(testEmail);
+			setTestDialogOpen(false);
+			toast.success(__('Test-Mail gesendet.', 'resa'));
 		} catch (e) {
-			setTestMessage(e instanceof Error ? e.message : __('Fehler beim Versand.', 'resa'));
+			toast.error(e instanceof Error ? e.message : __('Fehler beim Versand.', 'resa'));
 		}
 	};
 
@@ -415,7 +425,6 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 					<OutlineButton
 						onClick={() => {
 							setTestEmail(window.resaAdmin?.adminEmail || '');
-							setTestMessage('');
 							setTestDialogOpen(true);
 						}}
 					>
@@ -477,31 +486,18 @@ function TemplateEditorInner({ template, templateId, onBack }: TemplateEditorInn
 							)}
 						</DialogDescription>
 					</DialogHeader>
-					<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-						<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-							<Label htmlFor="test-email" style={labelStyles}>
-								{__('Empfänger', 'resa')}
-							</Label>
-							<Input
-								id="test-email"
-								type="email"
-								value={testEmail}
-								onChange={(e) => setTestEmail(e.target.value)}
-								placeholder="test@example.com"
-								style={inputStyles}
-							/>
-						</div>
-						{testMessage && (
-							<p
-								style={{
-									margin: 0,
-									fontSize: '13px',
-									color: 'hsl(215.4 16.3% 46.9%)',
-								}}
-							>
-								{testMessage}
-							</p>
-						)}
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+						<Label htmlFor="test-email" style={labelStyles}>
+							{__('Empfänger', 'resa')}
+						</Label>
+						<Input
+							id="test-email"
+							type="email"
+							value={testEmail}
+							onChange={(e) => setTestEmail(e.target.value)}
+							placeholder="test@example.com"
+							style={inputStyles}
+						/>
 					</div>
 					<DialogFooter>
 						<OutlineButton onClick={() => setTestDialogOpen(false)}>
