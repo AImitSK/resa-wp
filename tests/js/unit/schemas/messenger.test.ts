@@ -44,7 +44,7 @@ describe('messengerFormSchema', () => {
 		const validSlackData = {
 			name: 'Slack Benachrichtigungen',
 			platform: 'slack' as const,
-			webhookUrl: 'https://hooks.example.com/services/TXXXXXXXX/BXXXXXXXX/XXXXXXXXXXXXXXX',
+			webhookUrl: 'https://hooks.slack.com/services/TTEST/BTEST/testtoken',
 			isActive: true,
 		};
 
@@ -104,8 +104,7 @@ describe('messengerFormSchema', () => {
 		it('lehnt Slack-URL für Teams ab', () => {
 			const result = messengerFormSchema.safeParse({
 				...validTeamsData,
-				webhookUrl:
-					'https://hooks.example.com/services/TXXXXXXXX/BXXXXXXXX/XXXXXXXXXXXXXXX',
+				webhookUrl: 'https://hooks.slack.com/services/TTEST/BTEST/testtoken',
 			});
 			expect(result.success).toBe(false);
 		});
@@ -149,7 +148,7 @@ describe('messengerFormSchema', () => {
 	describe('name', () => {
 		const baseData = {
 			platform: 'slack' as const,
-			webhookUrl: 'https://hooks.example.com/services/TXXXXXXXX/BXXXXXXXX/XXXXXXXXXXXXXXX',
+			webhookUrl: 'https://hooks.slack.com/services/TTEST/BTEST/testtoken',
 			isActive: true,
 		};
 
@@ -239,7 +238,7 @@ describe('messengerFormSchema', () => {
 		const baseData = {
 			name: 'Test',
 			platform: 'slack' as const,
-			webhookUrl: 'https://hooks.example.com/services/TXXXXXXXX/BXXXXXXXX/XXXXXXXXXXXXXXX',
+			webhookUrl: 'https://hooks.slack.com/services/TTEST/BTEST/testtoken',
 		};
 
 		it('akzeptiert true', () => {
@@ -278,7 +277,7 @@ describe('messengerFormSchema', () => {
 	describe('platform', () => {
 		const baseData = {
 			name: 'Test',
-			webhookUrl: 'https://hooks.example.com/services/TXXXXXXXX/BXXXXXXXX/XXXXXXXXXXXXXXX',
+			webhookUrl: 'https://hooks.slack.com/services/TTEST/BTEST/testtoken',
 			isActive: true,
 		};
 
@@ -305,8 +304,7 @@ describe('messengerFormSchema', () => {
 		it('lehnt fehlendes name ab', () => {
 			const result = messengerFormSchema.safeParse({
 				platform: 'slack',
-				webhookUrl:
-					'https://hooks.example.com/services/TXXXXXXXX/BXXXXXXXX/XXXXXXXXXXXXXXX',
+				webhookUrl: 'https://hooks.slack.com/services/TTEST/BTEST/testtoken',
 				isActive: true,
 			});
 			expect(result.success).toBe(false);
@@ -325,8 +323,7 @@ describe('messengerFormSchema', () => {
 			const result = messengerFormSchema.safeParse({
 				name: 'Test',
 				platform: 'slack',
-				webhookUrl:
-					'https://hooks.example.com/services/TXXXXXXXX/BXXXXXXXX/XXXXXXXXXXXXXXX',
+				webhookUrl: 'https://hooks.slack.com/services/TTEST/BTEST/testtoken',
 			});
 			expect(result.success).toBe(false);
 		});
@@ -370,8 +367,7 @@ describe('messengerFormSchema', () => {
 			const result = messengerFormSchema.safeParse({
 				name: 'Deaktivierte Verbindung',
 				platform: 'slack',
-				webhookUrl:
-					'https://hooks.example.com/services/TXXXXXXXX/BXXXXXXXX/XXXXXXXXXXXXXXX',
+				webhookUrl: 'https://hooks.slack.com/services/TTEST/BTEST/testtoken',
 				isActive: false,
 			});
 			expect(result.success).toBe(true);
