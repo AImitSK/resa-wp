@@ -623,8 +623,8 @@ export default defineConfig({
 - [x] Phase 5: 10 PHP Integration Tests ✅ (110 Tests, 2026-03-09)
 - [x] Phase 6: 8 Playwright E2E Tests ✅ (36 Tests, 2026-03-09)
 - [x] CI/CD Pipeline Update ✅ (2026-03-09)
-- [ ] Coverage Badges einrichten
-- [ ] Documentation Update
+- [x] Coverage Badges — übersprungen (kein Bedarf für privates Projekt)
+- [x] Documentation Update ✅ (2026-03-09)
 
 ---
 
@@ -764,3 +764,18 @@ export default defineConfig({
 - `fixtures/base.ts` — Custom Test-Fixtures
 
 **Stand:** 36 E2E Tests bestanden gegen Docker-WordPress-Instanz
+
+---
+
+## Abschluss (2026-03-09)
+
+**Alle Phasen abgeschlossen.** Gesamtübersicht:
+
+| Bereich                | Dateien  | Tests      | Assertions |
+| ---------------------- | -------- | ---------- | ---------- |
+| JS Unit + Integration  | 85       | 1.317      | —          |
+| PHP Unit + Integration | ~50      | 759        | 2.100      |
+| E2E (Playwright)       | 8        | 36         | —          |
+| **Gesamt**             | **~143** | **~2.112** | —          |
+
+**CI/CD Pipeline:** `.github/workflows/test.yml` mit 4 Jobs (Lint, PHP Tests, JS Tests, E2E nur bei PRs).
