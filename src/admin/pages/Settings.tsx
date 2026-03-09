@@ -348,6 +348,7 @@ function AgentDataForm({
 				branding: initialBrandingData ?? defaults.branding,
 			});
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [initialAgentData, initialBrandingData, form]);
 
 	// Free plan cannot disable "Powered by RESA".

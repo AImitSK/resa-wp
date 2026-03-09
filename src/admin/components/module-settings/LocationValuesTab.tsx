@@ -107,13 +107,16 @@ export function LocationValuesTab({
 	}, [locations]);
 
 	// Translate region_type to German
-	const regionTypeLabels: Record<string, string> = {
-		city_center: __('Innenstadt', 'resa'),
-		urban: __('Städtisch', 'resa'),
-		suburban: __('Stadtrand', 'resa'),
-		small_town: __('Kleinstadt / Stadtrand', 'resa'),
-		rural: __('Ländlich', 'resa'),
-	};
+	const regionTypeLabels = useMemo<Record<string, string>>(
+		() => ({
+			city_center: __('Innenstadt', 'resa'),
+			urban: __('Städtisch', 'resa'),
+			suburban: __('Stadtrand', 'resa'),
+			small_town: __('Kleinstadt / Stadtrand', 'resa'),
+			rural: __('Ländlich', 'resa'),
+		}),
+		[],
+	);
 
 	// Get default values from global factors
 	const defaultValues = useMemo(() => {
