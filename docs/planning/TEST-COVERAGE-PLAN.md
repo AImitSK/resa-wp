@@ -621,8 +621,8 @@ export default defineConfig({
 - [x] Phase 3: 7 Admin Page Tests ✅ (117 Tests, 2026-03-09)
 - [x] Phase 4: 17 Admin Component Tests ✅ (132 Tests, 2026-03-09)
 - [x] Phase 5: 10 PHP Integration Tests ✅ (110 Tests, 2026-03-09)
-- [ ] Phase 6: 8 E2E Tests
-- [ ] CI/CD Pipeline Update
+- [x] Phase 6: 8 Playwright E2E Tests ✅ (36 Tests, 2026-03-09)
+- [x] CI/CD Pipeline Update ✅ (2026-03-09)
 - [ ] Coverage Badges einrichten
 - [ ] Documentation Update
 
@@ -741,3 +741,26 @@ export default defineConfig({
 - `ExportIntegrationTest.php` (9 Tests) ✅
 
 **Stand:** 110 PHP Integration Tests bestanden (335 Assertions)
+
+### Phase 6 abgeschlossen (2026-03-09)
+
+**Playwright E2E Tests (8 Dateien, 36 Tests):**
+
+- `admin-auth.spec.ts` (5 Tests) ✅
+- `lead-flow.spec.ts` (5 Tests) ✅
+- `admin-leads.spec.ts` (6 Tests) ✅
+- `admin-locations.spec.ts` (5 Tests) ✅
+- `admin-modules.spec.ts` (4 Tests) ✅
+- `admin-settings.spec.ts` (4 Tests) ✅
+- `pdf-download.spec.ts` (2 Tests) ✅
+- `mobile.spec.ts` (4 Tests) ✅
+
+**Infrastruktur:**
+
+- `playwright.config.ts` — Chromium + Auth-Setup-Projekt
+- `auth.setup.ts` — WP-Login → storageState
+- `global-setup.ts` / `global-teardown.ts` — Test-Seite mit [resa] Shortcode
+- `helpers/` — wp-cli.ts, api-client.ts, selectors.ts
+- `fixtures/base.ts` — Custom Test-Fixtures
+
+**Stand:** 36 E2E Tests bestanden gegen Docker-WordPress-Instanz
