@@ -13,6 +13,9 @@
 		"format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"tests/js/**/*.{ts,tsx}\"",
 		"test": "vitest",
 		"test:coverage": "vitest --coverage",
+		"test:e2e": "playwright test",
+		"test:e2e:ui": "playwright test --ui",
+		"test:php": "docker compose exec -T wordpress bash -c 'cd /var/www/html/wp-content/plugins/resa && php vendor/bin/phpunit'",
 		"i18n:pot": "wp i18n make-pot . languages/resa.pot --domain=resa --exclude=node_modules,vendor,dist,tests",
 		"i18n:update": "wp i18n update-po languages/resa.pot languages/",
 		"i18n:mo": "wp i18n make-mo languages/",
@@ -72,6 +75,7 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.39.3",
+		"@playwright/test": "^1.58.2",
 		"@testing-library/jest-dom": "^6.9.1",
 		"@testing-library/react": "^16.3.2",
 		"@testing-library/user-event": "^14.6.1",
