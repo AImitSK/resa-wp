@@ -21,6 +21,11 @@ class LeadPdfServiceTest extends TestCase {
 		parent::setUp();
 		Monkey\setUp();
 
+		// Create temp PDF directory so file_put_contents doesn't warn.
+		if ( ! is_dir( '/tmp/wp-uploads/resa-pdfs' ) ) {
+			mkdir( '/tmp/wp-uploads/resa-pdfs', 0777, true );
+		}
+
 		// Stub DB calls.
 		global $wpdb;
 		$wpdb            = Mockery::mock( 'wpdb' );
