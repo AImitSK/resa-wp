@@ -547,6 +547,7 @@ export function Dashboard() {
 									style={{
 										backgroundColor: 'white',
 										width: 'auto',
+										minWidth: '620px',
 										maxWidth: 'none',
 										border: '1px solid hsl(214.3 31.8% 91.4%)',
 										boxShadow:
@@ -595,7 +596,7 @@ export function Dashboard() {
 										</div>
 
 										{/* Calendar */}
-										<div style={{ padding: '8px' }}>
+										<div style={{ padding: '8px', flex: 1 }}>
 											<Calendar
 												mode="range"
 												selected={tempCustomRange}

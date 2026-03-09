@@ -18,6 +18,14 @@ docker/mysql/data/
 *.swp
 *.swo
 
+# Claude Code
+.claude/settings.local.json
+.mcp.json
+
+# Debug/Utility Scripts
+check-freemius.php
+reset-freemius.php
+
 # OS
 .DS_Store
 Thumbs.db

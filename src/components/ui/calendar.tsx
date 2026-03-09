@@ -6,8 +6,28 @@ import { DayButton, DayPicker, getDefaultClassNames } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 import { Button, buttonVariants } from '@/components/ui/button';
 
-// CSS for range highlighting
+// CSS for range highlighting + WP-Admin table override
 const rangeStyles = `
+  [data-slot="calendar"] table,
+  [data-slot="calendar"] thead,
+  [data-slot="calendar"] tbody {
+    display: block !important;
+    width: 100% !important;
+    border: none !important;
+  }
+  [data-slot="calendar"] tr {
+    display: flex !important;
+    width: 100% !important;
+  }
+  [data-slot="calendar"] th,
+  [data-slot="calendar"] td {
+    display: block !important;
+    flex: 1 1 0% !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    text-align: center !important;
+  }
   .rdp-range_start,
   .rdp-range_end {
     position: relative;
@@ -77,13 +97,13 @@ function Calendar({
 					...formatters,
 				}}
 				classNames={{
-					root: cn('resa-w-fit', defaultClassNames.root),
+					root: cn('resa-w-full', defaultClassNames.root),
 					months: cn(
 						'resa-relative resa-flex resa-flex-col resa-gap-4 md:resa-flex-row',
 						defaultClassNames.months,
 					),
 					month: cn(
-						'resa-flex resa-w-full resa-flex-col resa-gap-4',
+						'resa-flex resa-flex-1 resa-min-w-0 resa-flex-col resa-gap-4',
 						defaultClassNames.month,
 					),
 					nav: cn(
@@ -139,7 +159,7 @@ function Calendar({
 						defaultClassNames.week_number,
 					),
 					day: cn(
-						'resa-group/day resa-relative resa-aspect-square resa-h-full resa-w-full resa-select-none resa-p-0 resa-text-center',
+						'resa-group/day resa-relative resa-flex-1 resa-aspect-square resa-h-full resa-w-full resa-select-none resa-p-0 resa-text-center',
 						defaultClassNames.day,
 					),
 					range_start: 'rdp-range_start',
