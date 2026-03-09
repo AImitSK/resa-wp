@@ -13,7 +13,7 @@ use Resa\Models\Agent;
  * Tries Puppeteer first (better quality), falls back to DOMPDF.
  * Both Free and Premium users get the best available engine.
  */
-final class PdfGenerator {
+class PdfGenerator {
 
 	/**
 	 * Puppeteer engine instance.

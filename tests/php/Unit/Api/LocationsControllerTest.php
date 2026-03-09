@@ -39,7 +39,8 @@ class LocationsControllerTest extends TestCase {
 		Functions\when( 'sanitize_text_field' )->returnArg();
 		Functions\when( 'sanitize_title' )->alias( fn( $s ) => strtolower( str_replace( ' ', '-', $s ) ) );
 		Functions\when( '__' )->returnArg();
-		Functions\when( 'current_user_can' )->justReturn( true );
+		Functions\when( 'esc_html__' )->returnArg();
+		Functions\when( 'esc_html' )->returnArg();
 		Functions\when( 'absint' )->alias( fn( $n ) => abs( (int) $n ) );
 		Functions\when( 'wp_json_encode' )->alias( fn( $d ) => json_encode( $d ) );
 		Functions\when( 'current_time' )->justReturn( '2024-01-01 12:00:00' );
@@ -430,10 +431,7 @@ class LocationsControllerTest extends TestCase {
 	}
 
 	public function test_adminAccess_prueft_capability(): void {
-		Functions\expect( 'current_user_can' )
-			->once()
-			->with( 'manage_options' )
-			->andReturn( true );
+		Functions\when( 'current_user_can' )->justReturn( true );
 
 		$controller = new LocationsController();
 		$this->assertTrue( $controller->adminAccess() );

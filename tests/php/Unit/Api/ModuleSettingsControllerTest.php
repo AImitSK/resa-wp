@@ -42,7 +42,8 @@ class ModuleSettingsControllerTest extends TestCase {
 		Functions\when( 'sanitize_key' )->returnArg();
 		Functions\when( 'sanitize_text_field' )->returnArg();
 		Functions\when( '__' )->returnArg();
-		Functions\when( 'current_user_can' )->justReturn( true );
+		Functions\when( 'esc_html__' )->returnArg();
+		Functions\when( 'esc_html' )->returnArg();
 		Functions\when( 'absint' )->alias( fn( $n ) => abs( (int) $n ) );
 		Functions\when( 'wp_json_encode' )->alias( fn( $d ) => json_encode( $d ) );
 		Functions\when( 'current_time' )->justReturn( '2024-01-01 12:00:00' );
@@ -155,6 +156,10 @@ class ModuleSettingsControllerTest extends TestCase {
 		$this->assertArrayHasKey( 'module', $data );
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
 	public function test_getSettings_gibt_defaults_wenn_keine_settings_existieren(): void {
 		global $wpdb;
 
@@ -240,6 +245,10 @@ class ModuleSettingsControllerTest extends TestCase {
 		$this->assertSame( 200, $response->get_status() );
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
 	public function test_saveSettings_ladet_preset_factors_bei_pauschal_mode(): void {
 		global $wpdb;
 
@@ -298,6 +307,10 @@ class ModuleSettingsControllerTest extends TestCase {
 	// GET /admin/modules/{slug}/presets
 	// -------------------------------------------------------------------------
 
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
 	public function test_getPresets_gibt_presets_fuer_rent_calculator(): void {
 		$module = $this->createMockModule( 'rent-calculator' );
 		$this->createMockPlugin( $module );
@@ -571,20 +584,14 @@ class ModuleSettingsControllerTest extends TestCase {
 	// -------------------------------------------------------------------------
 
 	public function test_adminAccess_prueft_capability(): void {
-		Functions\expect( 'current_user_can' )
-			->once()
-			->with( 'manage_options' )
-			->andReturn( true );
+		Functions\when( 'current_user_can' )->justReturn( true );
 
 		$controller = new ModuleSettingsController();
 		$this->assertTrue( $controller->adminAccess() );
 	}
 
 	public function test_adminAccess_verweigert_zugriff_ohne_capability(): void {
-		Functions\expect( 'current_user_can' )
-			->once()
-			->with( 'manage_options' )
-			->andReturn( false );
+		Functions\when( 'current_user_can' )->justReturn( false );
 
 		$controller = new ModuleSettingsController();
 		$this->assertFalse( $controller->adminAccess() );

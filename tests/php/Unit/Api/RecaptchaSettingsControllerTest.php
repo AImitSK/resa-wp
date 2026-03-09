@@ -18,6 +18,10 @@ class RecaptchaSettingsControllerTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 		Monkey\setUp();
+
+		Functions\when( '__' )->returnArg();
+		Functions\when( 'esc_html__' )->returnArg();
+		Functions\when( 'esc_html' )->returnArg();
 	}
 
 	protected function tearDown(): void {
@@ -127,7 +131,7 @@ class RecaptchaSettingsControllerTest extends TestCase {
 
 	public function test_update_clampt_threshold_auf_0_bis_1(): void {
 		Functions\expect( 'get_option' )->andReturn( [] );
-		Functions\expect( 'sanitize_text_field' )->andReturnFirstArg();
+		Functions\when( 'sanitize_text_field' )->returnArg();
 		Functions\expect( 'update_option' )->once();
 
 		$request = Mockery::mock( 'WP_REST_Request' );

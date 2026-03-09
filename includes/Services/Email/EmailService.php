@@ -15,7 +15,7 @@ namespace Resa\Services\Email;
  * Handles template variable replacement, PDF attachments,
  * and logging to resa_email_log.
  */
-final class EmailService {
+class EmailService {
 
 	/**
 	 * Available transports in priority order.

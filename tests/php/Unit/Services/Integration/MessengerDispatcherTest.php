@@ -75,6 +75,8 @@ class MessengerDispatcherTest extends TestCase {
 				];
 			} );
 
+		Functions\expect( 'is_wp_error' )->andReturn( false );
+
 		Functions\expect( 'wp_remote_retrieve_response_code' )
 			->once()
 			->andReturn( 200 );
@@ -118,6 +120,8 @@ class MessengerDispatcherTest extends TestCase {
 				];
 			} );
 
+		Functions\expect( 'is_wp_error' )->andReturn( false );
+
 		Functions\expect( 'wp_remote_retrieve_response_code' )
 			->once()
 			->andReturn( 200 );
@@ -137,9 +141,6 @@ class MessengerDispatcherTest extends TestCase {
 		Functions\expect( 'wp_json_encode' )
 			->once()
 			->andReturnUsing( fn( $v ) => json_encode( $v ) );
-		Functions\expect( 'wp_date' )
-			->once()
-			->andReturn( '04.03.2026, 14:32' );
 
 		Functions\expect( 'wp_remote_post' )
 			->once()
@@ -156,6 +157,8 @@ class MessengerDispatcherTest extends TestCase {
 					'body'     => '',
 				];
 			} );
+
+		Functions\expect( 'is_wp_error' )->andReturn( false );
 
 		Functions\expect( 'wp_remote_retrieve_response_code' )
 			->once()

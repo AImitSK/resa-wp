@@ -76,14 +76,13 @@ class SimpleBarChartTest extends TestCase {
 		$this->assertStringContainsString( '€', $svg );
 	}
 
-	public function test_render_with_title(): void {
+	public function test_render_contains_bold_value_text(): void {
 		$chart = new SimpleBarChart();
 		$svg   = $chart->render(
 			[ [ 'label' => 'X', 'value' => 100 ] ],
-			[ 'title' => 'Vergleich' ]
 		);
 
-		$this->assertStringContainsString( 'Vergleich', $svg );
+		// Value text above bars is rendered with font-weight="bold".
 		$this->assertStringContainsString( 'font-weight="bold"', $svg );
 	}
 

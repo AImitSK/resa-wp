@@ -61,6 +61,8 @@ class SpamGuardTest extends TestCase {
 		Functions\when( 'wp_unslash' )->returnArg();
 		Functions\when( 'get_transient' )->justReturn( false );
 		Functions\when( 'set_transient' )->justReturn( true );
+		// reCAPTCHA check (#5) calls RecaptchaSettingsController::isEnabled() -> get_option.
+		Functions\when( 'get_option' )->justReturn( [] );
 	}
 
 	public function test_check_akzeptiert_gueltigen_request(): void {

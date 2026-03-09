@@ -6,16 +6,19 @@ namespace Resa\Tests\Unit\Modules\RentCalculator;
 
 use Brain\Monkey;
 use Brain\Monkey\Functions;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Resa\Modules\RentCalculator\RentCalculatorService;
 
 class RentCalculatorServiceTest extends TestCase {
 
+	use MockeryPHPUnitIntegration;
+
 	protected function setUp(): void {
 		parent::setUp();
 		Monkey\setUp();
 		// Mock WordPress translation functions for getRegionPresets().
-		Functions\when( '__' )->returnArg( 1 );
+		Functions\stubTranslationFunctions();
 	}
 
 	protected function tearDown(): void {
@@ -171,7 +174,7 @@ class RentCalculatorServiceTest extends TestCase {
 			$this->mittelstadtData()
 		);
 
-		// Features: balcony (0.50) + fitted_kitchen (0.50) = 1.00 €/m²
+		// Features: balcony (0.50) + fitted_kitchen (0.50) = 1.00 EUR/m²
 		$diff = $resultWithFeatures['price_per_sqm'] - $resultNoFeatures['price_per_sqm'];
 		$this->assertEquals( 1.00, $diff );
 	}

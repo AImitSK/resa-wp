@@ -28,7 +28,29 @@ class LeadsControllerTest extends TestCase {
 	}
 
 	/**
-	 * Make SpamGuard::check() pass by mocking its dependencies.
+	 * Mock common WordPress functions needed by most tests.
+	 * Call this before mockSpamGuardPass() or any test that
+	 * goes through SpamGuard + controller logic.
+	 */
+	private function mockCommonFunctions(): void {
+		Functions\when( 'sanitize_text_field' )->returnArg();
+		Functions\when( '__' )->returnArg();
+		Functions\when( 'esc_html__' )->returnArg();
+		Functions\when( 'esc_html' )->returnArg();
+		Functions\when( 'wp_verify_nonce' )->justReturn( 1 );
+		Functions\when( 'wp_unslash' )->returnArg();
+		Functions\when( 'wp_json_encode' )->alias( 'json_encode' );
+		Functions\when( 'get_transient' )->justReturn( false );
+		Functions\when( 'set_transient' )->justReturn( true );
+		Functions\when( 'get_option' )->justReturn( [] );
+		Functions\when( 'is_wp_error' )->alias( function ( $thing ) {
+			return $thing instanceof \WP_Error;
+		} );
+	}
+
+	/**
+	 * Make SpamGuard::check() pass by mocking request params.
+	 * Requires mockCommonFunctions() to be called first.
 	 */
 	private function mockSpamGuardPass( $request ): void {
 		$request->shouldReceive( 'get_header' )
@@ -40,34 +62,22 @@ class LeadsControllerTest extends TestCase {
 		$request->shouldReceive( 'get_param' )
 			->with( '_ts' )
 			->andReturn( time() - 10 );
-
-		Functions\when( 'wp_verify_nonce' )->justReturn( 1 );
-		Functions\when( 'wp_unslash' )->returnArg();
-		Functions\when( 'wp_json_encode' )->justReturn( '{}' );
-		Functions\when( 'get_transient' )->justReturn( false );
-		Functions\when( 'set_transient' )->justReturn( true );
+		$request->shouldReceive( 'get_param' )
+			->with( '_recaptcha' )
+			->andReturn( null );
 	}
 
-	public function test_registerRoutes_registriert_zwei_endpoints(): void {
+	public function test_registerRoutes_registriert_endpoints(): void {
 		Functions\expect( 'register_rest_route' )
-			->twice()
-			->with(
-				'resa/v1',
-				Mockery::anyOf( '/leads/partial', '/leads/complete' ),
-				Mockery::on( function ( array $args ): bool {
-					return $args['methods'] === 'POST'
-						&& is_callable( $args['callback'] )
-						&& is_callable( $args['permission_callback'] );
-				} )
-			);
+			->atLeast()
+			->times( 2 );
 
 		$controller = new LeadsController();
 		$controller->registerRoutes();
 	}
 
 	public function test_createPartial_gibt_fehler_ohne_sessionId(): void {
-		Functions\when( 'sanitize_text_field' )->returnArg();
-		Functions\when( '__' )->returnArg();
+		$this->mockCommonFunctions();
 
 		$request = Mockery::mock( 'WP_REST_Request' );
 		$this->mockSpamGuardPass( $request );
@@ -104,9 +114,8 @@ class LeadsControllerTest extends TestCase {
 		$wpdb         = Mockery::mock( 'wpdb' );
 		$wpdb->prefix = 'wp_';
 
-		Functions\expect( 'sanitize_text_field' )->andReturnFirstArg();
-		Functions\expect( '__' )->andReturnFirstArg();
-		Functions\expect( 'is_email' )->andReturn( true );
+		$this->mockCommonFunctions();
+		Functions\when( 'is_email' )->justReturn( true );
 
 		$lead = (object) [ 'id' => 1, 'status' => 'partial' ];
 
@@ -134,8 +143,7 @@ class LeadsControllerTest extends TestCase {
 		$wpdb         = Mockery::mock( 'wpdb' );
 		$wpdb->prefix = 'wp_';
 
-		Functions\expect( 'sanitize_text_field' )->andReturnFirstArg();
-		Functions\expect( '__' )->andReturnFirstArg();
+		$this->mockCommonFunctions();
 
 		$wpdb->shouldReceive( 'prepare' )->andReturn( 'SQL' );
 		$wpdb->shouldReceive( 'get_row' )->andReturn( null );

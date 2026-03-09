@@ -224,7 +224,7 @@ class AgentTest extends TestCase {
 		global $wpdb;
 
 		Functions\expect( 'sanitize_text_field' )
-			->times( 3 ) // name, phone, company
+			->times( 4 ) // name, position, phone, company
 			->andReturnFirstArg();
 		Functions\expect( 'sanitize_email' )
 			->once()

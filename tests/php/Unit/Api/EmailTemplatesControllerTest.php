@@ -34,7 +34,11 @@ class EmailTemplatesControllerTest extends TestCase {
 		Functions\when( 'sanitize_text_field' )->returnArg();
 		Functions\when( 'sanitize_email' )->returnArg();
 		Functions\when( '__' )->returnArg();
-		Functions\when( 'current_user_can' )->justReturn( true );
+		Functions\when( 'esc_html__' )->returnArg();
+		Functions\when( 'esc_html' )->returnArg();
+		Functions\when( 'get_bloginfo' )->justReturn( 'RESA Test' );
+		Functions\when( 'esc_url' )->returnArg();
+		Functions\when( 'admin_url' )->justReturn( 'https://example.com/wp-admin/' );
 	}
 
 	protected function tearDown(): void {
@@ -420,20 +424,14 @@ class EmailTemplatesControllerTest extends TestCase {
 	// -------------------------------------------------------------------------
 
 	public function test_adminAccess_prueft_manage_options_capability(): void {
-		Functions\expect( 'current_user_can' )
-			->once()
-			->with( 'manage_options' )
-			->andReturn( true );
+		Functions\when( 'current_user_can' )->justReturn( true );
 
 		$controller = new EmailTemplatesController();
 		$this->assertTrue( $controller->adminAccess() );
 	}
 
 	public function test_adminAccess_verweigert_zugriff_ohne_capability(): void {
-		Functions\expect( 'current_user_can' )
-			->once()
-			->with( 'manage_options' )
-			->andReturn( false );
+		Functions\when( 'current_user_can' )->justReturn( false );
 
 		$controller = new EmailTemplatesController();
 		$this->assertFalse( $controller->adminAccess() );

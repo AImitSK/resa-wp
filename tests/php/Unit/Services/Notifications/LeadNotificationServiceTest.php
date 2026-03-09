@@ -43,6 +43,7 @@ class LeadNotificationServiceTest extends TestCase {
 		Functions\when( 'esc_attr' )->returnArg();
 		Functions\when( '__' )->returnArg();
 		Functions\when( 'esc_html__' )->returnArg();
+		Functions\when( 'esc_html_e' )->alias( function ( $text ) { echo $text; } );
 		Functions\when( 'wp_json_encode' )->alias( 'json_encode' );
 		Functions\when( 'wp_date' )->justReturn( '26.02.2026 12:00' );
 	}
@@ -53,7 +54,7 @@ class LeadNotificationServiceTest extends TestCase {
 	}
 
 	public function test_notifyAgent_returns_false_when_disabled(): void {
-		Functions\when( 'get_option' )->alias( function ( $key, $default = '' ) {
+		Functions\when( 'get_option' )->alias( function ( $key, $default = false ) {
 			if ( $key === 'resa_notification_enabled' ) {
 				return false;
 			}
@@ -127,7 +128,7 @@ class LeadNotificationServiceTest extends TestCase {
 			->with( 'SELECT * FROM wp_resa_locations WHERE id = 5 LIMIT 1' )
 			->andReturn( $location );
 
-		Functions\when( 'get_option' )->alias( function ( $key, $default = '' ) {
+		Functions\when( 'get_option' )->alias( function ( $key, $default = false ) {
 			$options = [
 				'resa_notification_enabled'        => true,
 				'resa_notification_fallback_email' => '',
@@ -135,7 +136,7 @@ class LeadNotificationServiceTest extends TestCase {
 				'date_format'                      => 'd.m.Y',
 				'time_format'                      => 'H:i',
 			];
-			return $options[ $key ] ?? $default;
+			return array_key_exists( $key, $options ) ? $options[ $key ] : $default;
 		} );
 
 		Functions\when( 'get_user_by' )->justReturn( $agent );
@@ -175,7 +176,7 @@ class LeadNotificationServiceTest extends TestCase {
 		$wpdb->shouldReceive( 'prepare' )->andReturn( 'SELECT ...' );
 		$wpdb->shouldReceive( 'get_row' )->andReturn( $lead );
 
-		Functions\when( 'get_option' )->alias( function ( $key, $default = '' ) {
+		Functions\when( 'get_option' )->alias( function ( $key, $default = false ) {
 			$options = [
 				'resa_notification_enabled'        => true,
 				'resa_notification_fallback_email' => '',
@@ -183,7 +184,7 @@ class LeadNotificationServiceTest extends TestCase {
 				'date_format'                      => 'd.m.Y',
 				'time_format'                      => 'H:i',
 			];
-			return $options[ $key ] ?? $default;
+			return array_key_exists( $key, $options ) ? $options[ $key ] : $default;
 		} );
 
 		$emailService = Mockery::mock( EmailService::class );
@@ -227,7 +228,7 @@ class LeadNotificationServiceTest extends TestCase {
 		$wpdb->shouldReceive( 'get_row' )
 			->andReturn( $lead, $location );
 
-		Functions\when( 'get_option' )->alias( function ( $key, $default = '' ) {
+		Functions\when( 'get_option' )->alias( function ( $key, $default = false ) {
 			$options = [
 				'resa_notification_enabled'        => true,
 				'resa_notification_fallback_email' => 'fallback@immobilien.de',
@@ -235,7 +236,7 @@ class LeadNotificationServiceTest extends TestCase {
 				'date_format'                      => 'd.m.Y',
 				'time_format'                      => 'H:i',
 			];
-			return $options[ $key ] ?? $default;
+			return array_key_exists( $key, $options ) ? $options[ $key ] : $default;
 		} );
 
 		// Invalid user ID returns false.
@@ -275,14 +276,14 @@ class LeadNotificationServiceTest extends TestCase {
 		$wpdb->shouldReceive( 'prepare' )->andReturn( 'SELECT ...' );
 		$wpdb->shouldReceive( 'get_row' )->andReturn( $lead );
 
-		Functions\when( 'get_option' )->alias( function ( $key, $default = '' ) {
+		Functions\when( 'get_option' )->alias( function ( $key, $default = false ) {
 			$options = [
 				'resa_notification_enabled' => true,
 				'admin_email'               => 'admin@test.de',
 				'date_format'               => 'd.m.Y',
 				'time_format'               => 'H:i',
 			];
-			return $options[ $key ] ?? $default;
+			return array_key_exists( $key, $options ) ? $options[ $key ] : $default;
 		} );
 
 		$emailService = Mockery::mock( EmailService::class );
@@ -312,14 +313,14 @@ class LeadNotificationServiceTest extends TestCase {
 		$wpdb->shouldReceive( 'prepare' )->andReturn( 'SELECT ...' );
 		$wpdb->shouldReceive( 'get_row' )->andReturn( $lead );
 
-		Functions\when( 'get_option' )->alias( function ( $key, $default = '' ) {
+		Functions\when( 'get_option' )->alias( function ( $key, $default = false ) {
 			$options = [
 				'resa_notification_enabled' => true,
 				'admin_email'               => 'admin@test.de',
 				'date_format'               => 'd.m.Y',
 				'time_format'               => 'H:i',
 			];
-			return $options[ $key ] ?? $default;
+			return array_key_exists( $key, $options ) ? $options[ $key ] : $default;
 		} );
 
 		$capturedSubject = '';

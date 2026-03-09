@@ -43,6 +43,9 @@ class LeadPdfServiceTest extends TestCase {
 		Functions\when( 'esc_attr' )->returnArg();
 		Functions\when( '__' )->returnArg();
 		Functions\when( 'esc_html__' )->returnArg();
+		Functions\when( 'esc_html_e' )->alias( function ( $text ) {
+			echo $text;
+		} );
 		Functions\when( 'wp_json_encode' )->alias( 'json_encode' );
 		Functions\when( 'wp_date' )->justReturn( '26.02.2026' );
 		Functions\when( 'wp_generate_password' )->justReturn( 'abc12345' );
@@ -51,6 +54,17 @@ class LeadPdfServiceTest extends TestCase {
 			'basedir' => '/tmp/wp-uploads',
 			'baseurl' => 'https://example.com/wp-content/uploads',
 		] );
+		Functions\when( 'wp_remote_get' )->justReturn( new \WP_Error( 'test', 'mocked' ) );
+		Functions\when( 'wp_remote_retrieve_response_code' )->justReturn( 200 );
+		Functions\when( 'wp_remote_retrieve_body' )->justReturn( '' );
+		Functions\when( 'wp_remote_retrieve_header' )->justReturn( '' );
+		Functions\when( 'admin_url' )->justReturn( 'https://example.com/wp-admin/' );
+		Functions\when( 'is_wp_error' )->alias( function ( $thing ) {
+			return $thing instanceof \WP_Error;
+		} );
+		Functions\when( 'number_format_i18n' )->alias( function ( $number, $decimals = 0 ) {
+			return number_format( (float) $number, $decimals, ',', '.' );
+		} );
 	}
 
 	protected function tearDown(): void {
@@ -59,7 +73,7 @@ class LeadPdfServiceTest extends TestCase {
 	}
 
 	public function test_generateAndSend_returns_false_when_disabled(): void {
-		Functions\when( 'get_option' )->alias( function ( $key, $default = '' ) {
+		Functions\when( 'get_option' )->alias( function ( $key, $default = false ) {
 			if ( $key === 'resa_lead_pdf_enabled' ) {
 				return false;
 			}
@@ -169,19 +183,17 @@ class LeadPdfServiceTest extends TestCase {
 			->with( 'SELECT * FROM wp_resa_locations WHERE id = 5 LIMIT 1' )
 			->andReturn( $location );
 
-		Functions\when( 'get_option' )->alias( function ( $key, $default = '' ) {
+		Functions\when( 'get_option' )->alias( function ( $key, $default = false ) {
 			$options = [
 				'resa_lead_pdf_enabled'        => true,
 				'resa_branding_logo_url'       => 'https://example.com/logo.png',
 				'resa_branding_primary_color'  => '#3b82f6',
 			];
-			return $options[ $key ] ?? $default;
+			return array_key_exists( $key, $options ) ? $options[ $key ] : $default;
 		} );
 
 		Functions\when( 'get_user_by' )->justReturn( $agent );
 		Functions\when( 'get_user_meta' )->justReturn( '' );
-		Functions\when( 'file_exists' )->justReturn( true );
-
 		$pdfGenerator = Mockery::mock( PdfGenerator::class );
 		$pdfGenerator->shouldReceive( 'generateToFile' )
 			->once()
@@ -230,8 +242,6 @@ class LeadPdfServiceTest extends TestCase {
 		$wpdb->shouldReceive( 'get_row' )->andReturn( $lead );
 
 		Functions\when( 'get_option' )->justReturn( true );
-		Functions\when( 'file_exists' )->justReturn( true );
-
 		$pdfGenerator = Mockery::mock( PdfGenerator::class );
 		$pdfGenerator->shouldReceive( 'generateToFile' )
 			->andThrow( new \RuntimeException( 'PDF generation failed' ) );
@@ -262,8 +272,6 @@ class LeadPdfServiceTest extends TestCase {
 		$wpdb->shouldReceive( 'get_row' )->andReturn( $lead );
 
 		Functions\when( 'get_option' )->justReturn( true );
-		Functions\when( 'file_exists' )->justReturn( true );
-
 		$pdfGenerator = Mockery::mock( PdfGenerator::class );
 		$pdfGenerator->shouldReceive( 'generateToFile' )->andReturn( true );
 
@@ -295,7 +303,7 @@ class LeadPdfServiceTest extends TestCase {
 		$wpdb->shouldReceive( 'get_row' )->andReturn( $lead );
 
 		Functions\when( 'get_option' )->justReturn( true );
-		Functions\when( 'file_exists' )->justReturn( true );
+
 
 		$capturedTemplate = '';
 
@@ -334,7 +342,7 @@ class LeadPdfServiceTest extends TestCase {
 		$wpdb->shouldReceive( 'get_row' )->andReturn( $lead );
 
 		Functions\when( 'get_option' )->justReturn( true );
-		Functions\when( 'file_exists' )->justReturn( true );
+
 
 		$capturedData = [];
 
@@ -373,8 +381,13 @@ class LeadPdfServiceTest extends TestCase {
 		$wpdb->shouldReceive( 'prepare' )->andReturn( 'SELECT ...' );
 		$wpdb->shouldReceive( 'get_row' )->andReturn( $lead );
 
-		Functions\when( 'get_option' )->justReturn( true );
-		Functions\when( 'file_exists' )->justReturn( true );
+		Functions\when( 'get_option' )->alias( function ( $key, $default = false ) {
+			// Return false for email template to use legacy PHP template path.
+			if ( str_starts_with( $key, 'resa_email_template_' ) ) {
+				return false;
+			}
+			return true;
+		} );
 
 		$capturedHtml = '';
 
@@ -423,7 +436,7 @@ class LeadPdfServiceTest extends TestCase {
 			];
 			return $options[ $key ] ?? $default;
 		} );
-		Functions\when( 'file_exists' )->justReturn( true );
+
 
 		$capturedData = [];
 

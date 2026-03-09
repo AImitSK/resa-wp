@@ -5,7 +5,7 @@ declare( strict_types=1 );
 namespace Resa\Tests\Unit\Freemius;
 
 use Brain\Monkey;
-use Brain\Monkey\Functions;
+use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Resa\Core\ModuleInterface;
@@ -13,6 +13,10 @@ use Resa\Core\ModuleRegistry;
 use Resa\Freemius\FeatureGate;
 use Resa\Freemius\FreemiusInit;
 
+/**
+ * @runTestsInSeparateProcesses
+ * @preserveGlobalState disabled
+ */
 class FeatureGateTest extends TestCase {
 
 	use MockeryPHPUnitIntegration;
@@ -51,14 +55,14 @@ class FeatureGateTest extends TestCase {
 	// ─── Module Gating ──────────────────────────────────────
 
 	public function test_canUseModule_true_fuer_free_modul(): void {
-		$module = $this->createModule( 'calc', 'free' );
+		$module = $this->createModuleMock( 'calc', 'free' );
 		$this->registry->register( $module );
 
 		$this->assertTrue( $this->gate->canUseModule( 'calc' ) );
 	}
 
 	public function test_canUseModule_false_fuer_pro_modul_ohne_premium(): void {
-		$module = $this->createModule( 'pro-calc', 'pro' );
+		$module = $this->createModuleMock( 'pro-calc', 'pro' );
 		$this->registry->register( $module );
 
 		// SDK not available → always free.
@@ -66,7 +70,7 @@ class FeatureGateTest extends TestCase {
 	}
 
 	public function test_canUseModule_false_fuer_paid_modul(): void {
-		$module = $this->createModule( 'addon', 'paid' );
+		$module = $this->createModuleMock( 'addon', 'paid' );
 		$this->registry->register( $module );
 
 		$this->assertFalse( $this->gate->canUseModule( 'addon' ) );
@@ -80,25 +84,25 @@ class FeatureGateTest extends TestCase {
 
 	public function test_canActivateModule_respektiert_free_limit(): void {
 		// Register 3 free modules, activate 2.
-		$this->registry->register( $this->createModule( 'a', 'free', true ) );
-		$this->registry->register( $this->createModule( 'b', 'free', true ) );
-		$this->registry->register( $this->createModule( 'c', 'free', false ) );
+		$this->registry->register( $this->createModuleMock( 'a', 'free', true ) );
+		$this->registry->register( $this->createModuleMock( 'b', 'free', true ) );
+		$this->registry->register( $this->createModuleMock( 'c', 'free', false ) );
 
 		// Module c cannot be activated (limit = 2, already 2 active).
 		$this->assertFalse( $this->gate->canActivateModule( 'c' ) );
 	}
 
 	public function test_canActivateModule_erlaubt_bereits_aktives_modul(): void {
-		$this->registry->register( $this->createModule( 'a', 'free', true ) );
-		$this->registry->register( $this->createModule( 'b', 'free', true ) );
+		$this->registry->register( $this->createModuleMock( 'a', 'free', true ) );
+		$this->registry->register( $this->createModuleMock( 'b', 'free', true ) );
 
 		// Module a is already active → toggling should work.
 		$this->assertTrue( $this->gate->canActivateModule( 'a' ) );
 	}
 
 	public function test_canActivateModule_erlaubt_unter_limit(): void {
-		$this->registry->register( $this->createModule( 'a', 'free', true ) );
-		$this->registry->register( $this->createModule( 'b', 'free', false ) );
+		$this->registry->register( $this->createModuleMock( 'a', 'free', true ) );
+		$this->registry->register( $this->createModuleMock( 'b', 'free', false ) );
 
 		// Only 1 active, limit is 2 → ok.
 		$this->assertTrue( $this->gate->canActivateModule( 'b' ) );
@@ -142,11 +146,11 @@ class FeatureGateTest extends TestCase {
 
 	// ─── Helpers ────────────────────────────────────────────
 
-	private function createModule( string $slug, string $flag, bool $active = false ): ModuleInterface {
-		$mock = $this->createMock( ModuleInterface::class );
-		$mock->method( 'getSlug' )->willReturn( $slug );
-		$mock->method( 'getFlag' )->willReturn( $flag );
-		$mock->method( 'isActive' )->willReturn( $active );
+	private function createModuleMock( string $slug, string $flag, bool $active = false ): ModuleInterface {
+		$mock = Mockery::mock( ModuleInterface::class );
+		$mock->shouldReceive( 'getSlug' )->andReturn( $slug );
+		$mock->shouldReceive( 'getFlag' )->andReturn( $flag );
+		$mock->shouldReceive( 'isActive' )->andReturn( $active );
 
 		return $mock;
 	}

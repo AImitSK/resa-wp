@@ -172,10 +172,11 @@ final class LeadPdfService {
 	 */
 	private function getTemplateForAssetType( string $assetType ): string {
 		$templates = [
-			'rent-calculator'   => 'rent-analysis',
-			'purchase-costs'    => 'purchase-costs',
-			'budget-calculator' => 'budget-analysis',
-			'roi-calculator'    => 'roi-analysis',
+			'rent-calculator'    => 'rent-analysis',
+			'value-calculator'   => 'value-analysis',
+			'purchase-costs'     => 'purchase-costs',
+			'budget-calculator'  => 'budget-analysis',
+			'roi-calculator'     => 'roi-analysis',
 		];
 
 		return $templates[ $assetType ] ?? 'rent-analysis';

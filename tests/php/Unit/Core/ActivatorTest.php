@@ -17,6 +17,18 @@ class ActivatorTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 		Monkey\setUp();
+
+		// Define constants needed by Activator.
+		if ( ! defined( 'RESA_VERSION' ) ) {
+			define( 'RESA_VERSION', '1.0.0' );
+		}
+		if ( ! defined( 'RESA_PLUGIN_BASENAME' ) ) {
+			define( 'RESA_PLUGIN_BASENAME', 'resa/resa.php' );
+		}
+
+		// Activator uses esc_html__() and deactivate_plugins/wp_die in PHP version guard.
+		Functions\when( 'esc_html__' )->returnArg();
+
 		$this->setupWpdb();
 	}
 
@@ -88,6 +100,7 @@ class ActivatorTest extends TestCase {
 			->andReturn( 'DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci' );
 
 		$mock->shouldReceive( 'get_var' )->andReturn( '0' );
+		$mock->shouldReceive( 'query' )->andReturn( true );
 
 		$wpdb = $mock;
 	}

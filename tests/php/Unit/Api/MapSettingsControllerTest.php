@@ -430,7 +430,7 @@ class MapSettingsControllerTest extends TestCase {
 	public function test_update_erlaubt_leeren_google_api_key(): void {
 		$this->mock_get_option_defaults();
 		$this->mock_premium_plan();
-		Functions\expect( 'sanitize_text_field' )->andReturnFirstArg();
+		Functions\when( 'sanitize_text_field' )->returnArg();
 		Functions\expect( 'update_option' )
 			->once()
 			->with( 'resa_map_google_api_key', '' );
@@ -590,9 +590,23 @@ class MapSettingsControllerTest extends TestCase {
 	// Freemius Feature Flags
 	// ──────────────────────────────────────────────────────────────────────────
 
+	/**
+	 * When resa_fs() is not defined, canUseGoogleMaps() and canSelectTileStyle()
+	 * return false (free plan behavior).
+	 *
+	 * We run this in a separate process so that resa_fs() has NOT been defined
+	 * by Brain Monkey stubs from other tests, and function_exists('resa_fs')
+	 * naturally returns false.
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
 	public function test_ohne_freemius_funktion_ist_free_plan(): void {
+		// Separate process: need to re-init Brain Monkey.
+		Monkey\setUp();
+
 		$this->mock_get_option_defaults();
-		Functions\when( 'function_exists' )->justReturn( false );
+		// Do NOT define resa_fs — function_exists('resa_fs') will naturally return false.
 
 		$controller = new MapSettingsController();
 		$response   = $controller->show();
@@ -600,6 +614,8 @@ class MapSettingsControllerTest extends TestCase {
 		$data = $response->get_data();
 		$this->assertFalse( $data['canUseGoogle'] );
 		$this->assertFalse( $data['canSelectStyle'] );
+
+		Monkey\tearDown();
 	}
 
 	// ──────────────────────────────────────────────────────────────────────────
@@ -620,16 +636,14 @@ class MapSettingsControllerTest extends TestCase {
 	}
 
 	private function mock_free_plan(): void {
-		Functions\when( 'function_exists' )->justReturn( true );
-
+		// Define resa_fs() via Brain Monkey so function_exists('resa_fs') returns true.
 		$freemius_mock = Mockery::mock( 'Freemius' );
 		$freemius_mock->shouldReceive( 'can_use_premium_code' )->andReturn( false );
 		Functions\when( 'resa_fs' )->justReturn( $freemius_mock );
 	}
 
 	private function mock_premium_plan(): void {
-		Functions\when( 'function_exists' )->justReturn( true );
-
+		// Define resa_fs() via Brain Monkey so function_exists('resa_fs') returns true.
 		$freemius_mock = Mockery::mock( 'Freemius' );
 		$freemius_mock->shouldReceive( 'can_use_premium_code' )->andReturn( true );
 		Functions\when( 'resa_fs' )->justReturn( $freemius_mock );

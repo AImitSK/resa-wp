@@ -26,15 +26,11 @@ class PdfGeneratorTest extends TestCase {
 		parent::tearDown();
 	}
 
-	public function test_detectEngine_prefers_puppeteer_when_premium(): void {
+	public function test_detectEngine_prefers_puppeteer_when_available(): void {
 		$puppeteer = Mockery::mock( PdfEngineInterface::class );
 		$puppeteer->shouldReceive( 'isAvailable' )->andReturn( true );
 
 		$dompdf = Mockery::mock( PdfEngineInterface::class );
-
-		Functions\when( 'resa_fs' )->justReturn(
-			Mockery::mock( [ 'can_use_premium_code' => true ] )
-		);
 
 		$generator = new PdfGenerator( $puppeteer, $dompdf );
 		$engine    = $generator->detectEngine();
@@ -42,24 +38,7 @@ class PdfGeneratorTest extends TestCase {
 		$this->assertSame( $puppeteer, $engine );
 	}
 
-	public function test_detectEngine_falls_back_to_dompdf_for_free(): void {
-		$puppeteer = Mockery::mock( PdfEngineInterface::class );
-		$puppeteer->shouldReceive( 'isAvailable' )->andReturn( true );
-
-		$dompdf = Mockery::mock( PdfEngineInterface::class );
-		$dompdf->shouldReceive( 'isAvailable' )->andReturn( true );
-
-		Functions\when( 'resa_fs' )->justReturn(
-			Mockery::mock( [ 'can_use_premium_code' => false ] )
-		);
-
-		$generator = new PdfGenerator( $puppeteer, $dompdf );
-		$engine    = $generator->detectEngine();
-
-		$this->assertSame( $dompdf, $engine );
-	}
-
-	public function test_detectEngine_uses_dompdf_when_puppeteer_unavailable(): void {
+	public function test_detectEngine_falls_back_to_dompdf_when_puppeteer_unavailable(): void {
 		$puppeteer = Mockery::mock( PdfEngineInterface::class );
 		$puppeteer->shouldReceive( 'isAvailable' )->andReturn( false );
 
@@ -103,8 +82,24 @@ class PdfGeneratorTest extends TestCase {
 		$this->assertArrayHasKey( 'dompdf', $info );
 		$this->assertTrue( $info['puppeteer']['available'] );
 		$this->assertTrue( $info['dompdf']['available'] );
-		$this->assertTrue( $info['puppeteer']['premium'] );
-		$this->assertFalse( $info['dompdf']['premium'] );
+		$this->assertSame( 'puppeteer', $info['puppeteer']['name'] );
+		$this->assertSame( 'dompdf', $info['dompdf']['name'] );
+	}
+
+	private function mockCommonPdfFunctions(): void {
+		Functions\when( 'apply_filters' )->alias(
+			function ( string $tag, $value ) {
+				return $value;
+			}
+		);
+		Functions\when( '__' )->returnArg();
+		Functions\when( 'sanitize_file_name' )->returnArg();
+		Functions\when( 'get_option' )->justReturn( false );
+		Functions\when( 'esc_html' )->returnArg();
+		Functions\when( 'wp_upload_dir' )->justReturn( [
+			'basedir' => sys_get_temp_dir(),
+			'baseurl' => 'http://localhost/wp-content/uploads',
+		] );
 	}
 
 	public function test_generate_uses_detected_engine(): void {
@@ -118,13 +113,7 @@ class PdfGeneratorTest extends TestCase {
 		$dompdf->shouldReceive( 'getName' )->andReturn( 'dompdf' );
 		$dompdf->shouldReceive( 'generate' )->once()->andReturn( $pdfBinary );
 
-		Functions\when( 'apply_filters' )->alias(
-			function ( string $tag, $value ) {
-				return $value;
-			}
-		);
-		Functions\when( '__' )->returnArg();
-		Functions\when( 'sanitize_file_name' )->returnArg();
+		$this->mockCommonPdfFunctions();
 
 		$generator = new PdfGenerator( $puppeteer, $dompdf );
 
@@ -155,16 +144,7 @@ class PdfGeneratorTest extends TestCase {
 		$dompdf->shouldReceive( 'isAvailable' )->andReturn( true );
 		$dompdf->shouldReceive( 'generate' )->once()->andReturn( $pdfBinary );
 
-		Functions\when( 'resa_fs' )->justReturn(
-			Mockery::mock( [ 'can_use_premium_code' => true ] )
-		);
-		Functions\when( 'apply_filters' )->alias(
-			function ( string $tag, $value ) {
-				return $value;
-			}
-		);
-		Functions\when( '__' )->returnArg();
-		Functions\when( 'sanitize_file_name' )->returnArg();
+		$this->mockCommonPdfFunctions();
 
 		$generator = new PdfGenerator( $puppeteer, $dompdf );
 

@@ -10,6 +10,10 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Resa\Core\Plugin;
 
+/**
+ * @runTestsInSeparateProcesses
+ * @preserveGlobalState disabled
+ */
 class PluginTest extends TestCase {
 
 	use MockeryPHPUnitIntegration;
@@ -17,6 +21,15 @@ class PluginTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 		Monkey\setUp();
+
+		// Define constants needed by Plugin.
+		if ( ! defined( 'RESA_PLUGIN_FILE' ) ) {
+			define( 'RESA_PLUGIN_FILE', '/path/to/resa.php' );
+		}
+		if ( ! defined( 'RESA_PLUGIN_BASENAME' ) ) {
+			define( 'RESA_PLUGIN_BASENAME', 'resa/resa.php' );
+		}
+
 		$this->resetPluginSingleton();
 	}
 

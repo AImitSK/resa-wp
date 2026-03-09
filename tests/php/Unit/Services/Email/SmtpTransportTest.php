@@ -18,6 +18,9 @@ class SmtpTransportTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 		Monkey\setUp();
+
+		// Source code uses __() for exception messages.
+		Functions\when( '__' )->returnArg();
 	}
 
 	protected function tearDown(): void {
