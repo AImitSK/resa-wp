@@ -3,8 +3,8 @@
  */
 
 import { __ } from '@wordpress/i18n';
-import { ResaIcon } from '@/components/icons/ResaIcon';
-import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+import { SelectionCard } from '@frontend/components/shared/SelectionCard';
 import type { StepProps } from '@frontend/types/wizard';
 
 const getOptions = () =>
@@ -21,37 +21,37 @@ export function PropertyTypeStep({ data, updateData, errors }: StepProps) {
 		<div className="resa-space-y-4">
 			<div className="resa-text-center">
 				<h3 className="resa-text-lg resa-font-semibold">
-					{__('Welche Art von Immobilie?', 'resa')}
+					{__('Um welche Immobilie geht es?', 'resa')}
 				</h3>
-				<p className="resa-text-sm resa-text-muted-foreground resa-mt-1">
-					{__('Wählen Sie den Immobilientyp aus.', 'resa')}
-				</p>
 			</div>
 
-			<div className="resa-grid resa-grid-cols-2 resa-gap-4">
+			<div className="resa-mx-auto resa-grid resa-max-w-md resa-grid-cols-2 resa-gap-4">
 				{options.map((option) => (
-					<button
+					<SelectionCard
 						key={option.value}
-						type="button"
+						icon={option.icon}
+						label={option.label}
+						iconSize={64}
+						selected={selected === option.value}
 						onClick={() => updateData({ property_type: option.value })}
-						className={cn(
-							'resa-flex resa-flex-col resa-items-center resa-gap-3 resa-rounded-xl resa-border resa-bg-card resa-p-6 resa-transition-all resa-cursor-pointer focus:resa-outline-none',
-							selected === option.value
-								? 'resa-border-primary'
-								: 'resa-border-input hover:resa-border-primary/50',
-						)}
-					>
-						<ResaIcon name={option.icon} size={48} />
-						<span className="resa-text-sm resa-font-medium">{option.label}</span>
-					</button>
+					/>
 				))}
 			</div>
 
-			{errors.property_type && (
-				<p role="alert" className="resa-text-xs resa-text-destructive resa-text-center">
-					{errors.property_type}
-				</p>
-			)}
+			<AnimatePresence>
+				{errors.property_type && (
+					<motion.p
+						role="alert"
+						initial={{ opacity: 0, x: -4 }}
+						animate={{ opacity: 1, x: [0, -4, 4, -4, 4, 0] }}
+						exit={{ opacity: 0 }}
+						transition={{ duration: 0.4 }}
+						className="resa-text-xs resa-text-destructive resa-text-center"
+					>
+						{errors.property_type}
+					</motion.p>
+				)}
+			</AnimatePresence>
 		</div>
 	);
 }

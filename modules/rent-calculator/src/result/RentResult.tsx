@@ -6,7 +6,8 @@
  */
 
 import { __ } from '@wordpress/i18n';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { motion } from 'framer-motion';
+import { ResaIcon } from '@/components/icons';
 import { ResaMap } from '@frontend/components/map';
 import { ComparisonBarChart } from '@frontend/components/charts';
 import { MarketPositionGauge } from './MarketPositionGauge';
@@ -62,6 +63,20 @@ const getFeatureLabels = (): Record<string, string> => ({
 	barrier_free: __('Barrierefrei', 'resa'),
 });
 
+const stagger = {
+	hidden: {},
+	show: {
+		transition: {
+			staggerChildren: 0.1,
+		},
+	},
+};
+
+const fadeUp = {
+	hidden: { opacity: 0, y: 12 },
+	show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' as const } },
+};
+
 export function RentResult({ result, inputs }: RentResultProps) {
 	const {
 		monthly_rent,
@@ -75,138 +90,156 @@ export function RentResult({ result, inputs }: RentResultProps) {
 	const conditionLabels = getConditionLabels();
 	const featureLabels = getFeatureLabels();
 
-	return (
-		<div className="resa-space-y-4">
-			{/* Main result */}
-			<Card>
-				<CardHeader className="resa-text-center resa-pb-2">
-					<CardTitle className="resa-text-base">
-						{__('Geschätzte Monatsmiete', 'resa')}
-					</CardTitle>
-				</CardHeader>
-				<CardContent className="resa-text-center">
-					<div className="resa-text-4xl resa-font-bold resa-text-primary">
-						{formatCurrency(monthly_rent.estimate)}
-					</div>
-					<div className="resa-text-sm resa-text-muted-foreground resa-mt-1">
-						({formatCurrency(monthly_rent.low)} – {formatCurrency(monthly_rent.high)})
-					</div>
-				</CardContent>
-			</Card>
+	// ComparisonBarChart needs at least 2 non-zero values to render
+	const comparisonBars = [price_per_sqm, city_average, county_average].filter(
+		(v) => v > 0,
+	).length;
+	const showMarketComparison = comparisonBars >= 2;
 
-			{/* Details grid */}
-			<div className="resa-grid resa-grid-cols-2 resa-gap-3">
-				<Card>
-					<CardContent className="resa-p-4 resa-text-center">
+	return (
+		<motion.div className="resa-space-y-6" variants={stagger} initial="hidden" animate="show">
+			{/* Hero — Main result */}
+			<motion.div
+				variants={fadeUp}
+				className="resa-bg-primary/5 resa-rounded-2xl resa-p-8 resa-text-center"
+			>
+				<div className="resa-text-sm resa-text-muted-foreground resa-mb-2">
+					{__('Geschätzte Monatsmiete', 'resa')}
+				</div>
+				<div className="resa-text-5xl resa-font-bold resa-text-primary">
+					{formatCurrency(monthly_rent.estimate)}
+				</div>
+				<div className="resa-text-sm resa-text-muted-foreground resa-mt-2">
+					{formatCurrency(monthly_rent.low)} – {formatCurrency(monthly_rent.high)}
+				</div>
+			</motion.div>
+
+			{/* Detail stats */}
+			<motion.div variants={fadeUp} className="resa-grid resa-grid-cols-2 resa-gap-3">
+				<div className="resa-bg-muted/30 resa-rounded-lg resa-p-4 resa-flex resa-items-center resa-gap-3">
+					<ResaIcon
+						name="wohnung"
+						size={28}
+						className="resa-text-muted-foreground resa-shrink-0"
+					/>
+					<div>
 						<div className="resa-text-xs resa-text-muted-foreground">
 							{__('Preis pro m²', 'resa')}
 						</div>
 						<div className="resa-text-lg resa-font-semibold">
 							{formatCurrencyPrecise(price_per_sqm)}/m²
 						</div>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardContent className="resa-p-4 resa-text-center">
+					</div>
+				</div>
+				<div className="resa-bg-muted/30 resa-rounded-lg resa-p-4 resa-flex resa-items-center resa-gap-3">
+					<ResaIcon
+						name="zeitrahmen"
+						size={28}
+						className="resa-text-muted-foreground resa-shrink-0"
+					/>
+					<div>
 						<div className="resa-text-xs resa-text-muted-foreground">
 							{__('Jährliche Mieteinnahmen', 'resa')}
 						</div>
 						<div className="resa-text-lg resa-font-semibold">
 							{formatCurrency(annual_rent)}
 						</div>
-					</CardContent>
-				</Card>
-			</div>
+					</div>
+				</div>
+			</motion.div>
 
 			{/* Market position */}
-			<Card>
-				<CardContent className="resa-p-4">
-					<div className="resa-text-xs resa-text-muted-foreground resa-text-center resa-mb-2">
-						{__('Marktposition', 'resa')}
-					</div>
-					<MarketPositionGauge
-						percentile={market_position.percentile}
-						label={market_position.label}
-					/>
-				</CardContent>
-			</Card>
+			<motion.div variants={fadeUp} className="resa-border-b resa-border-border resa-pb-6">
+				<div className="resa-text-xs resa-text-muted-foreground resa-text-center resa-mb-2">
+					{__('Marktposition', 'resa')}
+				</div>
+				<MarketPositionGauge
+					percentile={market_position.percentile}
+					label={market_position.label}
+				/>
+			</motion.div>
 
-			{/* Market comparison chart */}
-			{(city_average > 0 || county_average > 0) && (
-				<Card>
-					<CardContent className="resa-p-4">
-						<div className="resa-text-xs resa-font-medium resa-text-muted-foreground resa-mb-3">
-							{__('Marktvergleich (€/m²)', 'resa')}
-						</div>
-						<ComparisonBarChart
-							propertyValue={price_per_sqm}
-							cityAverage={city_average}
-							cityName={inputs.city_name}
-							countyAverage={county_average}
-							unit="€/m²"
-							height={140}
-						/>
-					</CardContent>
-				</Card>
+			{/* Market comparison — only if data available */}
+			{showMarketComparison && (
+				<motion.div
+					variants={fadeUp}
+					className="resa-border-b resa-border-border resa-pb-6"
+				>
+					<div className="resa-text-xs resa-font-medium resa-text-muted-foreground resa-mb-3">
+						{__('Marktvergleich (€/m²)', 'resa')}
+					</div>
+					<ComparisonBarChart
+						propertyValue={price_per_sqm}
+						cityAverage={city_average}
+						cityName={inputs.city_name}
+						countyAverage={county_average}
+						unit="€/m²"
+						height={140}
+					/>
+				</motion.div>
 			)}
 
 			{/* Input summary */}
-			<Card>
-				<CardContent className="resa-p-4">
-					<div className="resa-text-xs resa-font-medium resa-text-muted-foreground resa-mb-2">
-						{__('Ihre Eingaben', 'resa')}
-					</div>
-					<ul className="resa-space-y-1 resa-text-sm">
-						<li>
-							{propertyTypeLabels[inputs.property_type ?? ''] ?? inputs.property_type}
-							, {inputs.size} m²
-							{inputs.city_name && `, ${inputs.city_name}`}
-						</li>
-						<li>
-							{conditionLabels[inputs.condition ?? ''] ?? inputs.condition},{' '}
-							{__('Lage', 'resa')} {inputs.location_rating}/5
-						</li>
-						{inputs.features && inputs.features.length > 0 && (
-							<li>{inputs.features.map((f) => featureLabels[f] ?? f).join(', ')}</li>
-						)}
-					</ul>
-				</CardContent>
-			</Card>
+			<motion.div variants={fadeUp} className="resa-bg-muted/20 resa-rounded-lg resa-p-4">
+				<div className="resa-text-xs resa-font-medium resa-text-muted-foreground resa-mb-2">
+					{__('Ihre Eingaben', 'resa')}
+				</div>
+				<div className="resa-text-sm resa-space-y-0.5">
+					<p>
+						{propertyTypeLabels[inputs.property_type ?? ''] ?? inputs.property_type}
+						{' · '}
+						{inputs.size} m²
+						{inputs.city_name && ` · ${inputs.city_name}`}
+					</p>
+					<p>
+						{conditionLabels[inputs.condition ?? ''] ?? inputs.condition}
+						{' · '}
+						{__('Lage', 'resa')} {inputs.location_rating}/5
+					</p>
+					{inputs.features && inputs.features.length > 0 && (
+						<p>{inputs.features.map((f) => featureLabels[f] ?? f).join(', ')}</p>
+					)}
+				</div>
+			</motion.div>
 
-			{/* Location map — show if address coordinates available */}
+			{/* Location map */}
 			{inputs.address_lat && inputs.address_lng && (
-				<Card>
-					<CardContent className="resa-p-4">
-						<div className="resa-text-xs resa-font-medium resa-text-muted-foreground resa-mb-2">
-							{__('Standort', 'resa')}
-						</div>
-						<div className="resa-rounded-lg resa-overflow-hidden">
-							<ResaMap
-								center={{ lat: inputs.address_lat, lng: inputs.address_lng }}
-								zoom={15}
-								showMarker
-								height={180}
-								lazyLoad={false}
-							/>
-						</div>
-						{inputs.address && (
-							<p className="resa-text-xs resa-text-muted-foreground resa-text-center resa-mt-2">
-								{inputs.address}
-							</p>
-						)}
-					</CardContent>
-				</Card>
+				<motion.div
+					variants={fadeUp}
+					className="resa-border-b resa-border-border resa-pb-6"
+				>
+					<div className="resa-text-xs resa-font-medium resa-text-muted-foreground resa-mb-2">
+						{__('Standort', 'resa')}
+					</div>
+					<div className="resa-rounded-lg resa-overflow-hidden">
+						<ResaMap
+							center={{ lat: inputs.address_lat, lng: inputs.address_lng }}
+							zoom={15}
+							showMarker
+							height={180}
+							lazyLoad={false}
+						/>
+					</div>
+					{inputs.address && (
+						<p className="resa-text-xs resa-text-muted-foreground resa-text-center resa-mt-2">
+							{inputs.address}
+						</p>
+					)}
+				</motion.div>
 			)}
 
-			{/* Agent hint */}
-			<div className="resa-rounded-lg resa-bg-muted/50 resa-p-4 resa-text-center">
-				<p className="resa-text-sm resa-text-muted-foreground">
+			{/* Agent hint — CTA style */}
+			<motion.div
+				variants={fadeUp}
+				className="resa-bg-primary resa-text-primary-foreground resa-rounded-xl resa-p-5 resa-text-center"
+			>
+				<p className="resa-text-sm">
 					{__(
 						'Ein Immobilienexperte analysiert Ihre Daten und meldet sich in Kürze bei Ihnen.',
 						'resa',
 					)}
 				</p>
-			</div>
-		</div>
+			</motion.div>
+		</motion.div>
 	);
 }

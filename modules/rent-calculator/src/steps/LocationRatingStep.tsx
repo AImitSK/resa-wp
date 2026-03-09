@@ -48,9 +48,6 @@ export function LocationRatingStep({ data, updateData, errors }: StepProps) {
 				<h3 className="resa-text-lg resa-font-semibold">
 					{__('Wie bewerten Sie die Lage?', 'resa')}
 				</h3>
-				<p className="resa-text-sm resa-text-muted-foreground resa-mt-1">
-					{__('Bewerten Sie die Wohnlage auf einer Skala von 1 bis 5.', 'resa')}
-				</p>
 			</div>
 
 			<div className="resa-space-y-4">

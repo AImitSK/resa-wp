@@ -17,10 +17,11 @@ const SelectTrigger = React.forwardRef<
 	<SelectPrimitive.Trigger
 		ref={ref}
 		className={cn(
-			'resa-flex resa-h-9 resa-w-full resa-items-center resa-justify-between resa-whitespace-nowrap resa-rounded-md resa-border resa-border-input resa-bg-transparent resa-px-3 resa-py-2 resa-text-sm resa-shadow-sm data-[placeholder]:resa-text-muted-foreground disabled:resa-cursor-not-allowed disabled:resa-opacity-50 [&>span]:resa-line-clamp-1',
+			'resa-flex resa-h-9 resa-w-full resa-items-center resa-justify-between resa-whitespace-nowrap resa-rounded-md resa-border resa-border-input resa-bg-background resa-px-3 resa-py-2 resa-text-sm resa-shadow-sm resa-cursor-pointer data-[placeholder]:resa-text-muted-foreground disabled:resa-cursor-not-allowed disabled:resa-opacity-50 [&>span]:resa-line-clamp-1',
 			className,
 		)}
 		{...props}
+		style={{ backgroundColor: 'white' }}
 	>
 		{children}
 		<SelectPrimitive.Icon asChild>
@@ -72,12 +73,12 @@ const SelectContent = React.forwardRef<
 		<SelectPrimitive.Content
 			ref={ref}
 			className={cn(
-				'resa-relative resa-z-50 resa-max-h-[--radix-select-content-available-height] resa-min-w-[8rem] resa-overflow-y-auto resa-overflow-x-hidden resa-rounded-md resa-border resa-bg-popover resa-text-popover-foreground resa-shadow-md data-[state=open]:resa-animate-in data-[state=closed]:resa-animate-out data-[state=closed]:resa-fade-out-0 data-[state=open]:resa-fade-in-0 data-[state=closed]:resa-zoom-out-95 data-[state=open]:resa-zoom-in-95 data-[side=bottom]:resa-slide-in-from-top-2 data-[side=left]:resa-slide-in-from-right-2 data-[side=right]:resa-slide-in-from-left-2 data-[side=top]:resa-slide-in-from-bottom-2 resa-origin-[--radix-select-content-transform-origin]',
+				'resa-relative resa-z-50 resa-max-h-[--radix-select-content-available-height] resa-min-w-[8rem] resa-overflow-y-auto resa-overflow-x-hidden resa-rounded-md resa-border resa-shadow-md data-[state=open]:resa-animate-in data-[state=closed]:resa-animate-out data-[state=closed]:resa-fade-out-0 data-[state=open]:resa-fade-in-0 data-[state=closed]:resa-zoom-out-95 data-[state=open]:resa-zoom-in-95 data-[side=bottom]:resa-slide-in-from-top-2 data-[side=left]:resa-slide-in-from-right-2 data-[side=right]:resa-slide-in-from-left-2 data-[side=top]:resa-slide-in-from-bottom-2 resa-origin-[--radix-select-content-transform-origin]',
 				position === 'popper' &&
 					'data-[side=bottom]:resa-translate-y-1 data-[side=left]:resa--translate-x-1 data-[side=right]:resa-translate-x-1 data-[side=top]:resa--translate-y-1',
 				className,
 			)}
-			style={{ backgroundColor: 'white' }}
+			style={{ backgroundColor: 'white', color: 'hsl(0 0% 15%)' }}
 			position={position}
 			{...props}
 		>
@@ -88,6 +89,7 @@ const SelectContent = React.forwardRef<
 					position === 'popper' &&
 						'resa-h-[var(--radix-select-trigger-height)] resa-w-full resa-min-w-[var(--radix-select-trigger-width)]',
 				)}
+				style={{ backgroundColor: 'white' }}
 			>
 				{children}
 			</SelectPrimitive.Viewport>

@@ -110,9 +110,9 @@ describe('CityStep', () => {
 		expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 	});
 
-	it('zeigt Beschreibungstext', () => {
+	it('zeigt Titel', () => {
 		render(<CityStep {...defaultProps} />);
 
-		expect(screen.getByText(/Standort der Immobilie/)).toBeInTheDocument();
+		expect(screen.getByRole('heading')).toHaveTextContent('In welcher Stadt?');
 	});
 });

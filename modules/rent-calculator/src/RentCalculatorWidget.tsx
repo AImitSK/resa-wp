@@ -218,26 +218,31 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 			);
 			setResult(calcResult);
 
-			// Create partial lead with captured URL parameters.
-			const sessionId = getSessionId();
-			const urlParams = getCapturedParams();
-			await api.postLead('leads/partial', {
-				sessionId,
-				assetType: 'rent-calculator',
-				locationId: formData.city_id ?? 0,
-				inputs: formData,
-				result: calcResult,
-				gclid: urlParams.gclid,
-				fbclid: urlParams.fbclid,
-				msclkid: urlParams.msclkid,
-				meta: {
-					utm_source: urlParams.utm_source,
-					utm_medium: urlParams.utm_medium,
-					utm_campaign: urlParams.utm_campaign,
-					utm_content: urlParams.utm_content,
-					utm_term: urlParams.utm_term,
-				},
-			});
+			// Create partial lead (non-blocking — must not prevent user from seeing the form).
+			try {
+				const sessionId = getSessionId();
+				const urlParams = getCapturedParams();
+				await api.postLead('leads/partial', {
+					sessionId,
+					assetType: 'rent-calculator',
+					locationId: formData.city_id ?? 0,
+					inputs: formData,
+					result: calcResult,
+					gclid: urlParams.gclid,
+					fbclid: urlParams.fbclid,
+					msclkid: urlParams.msclkid,
+					meta: {
+						utm_source: urlParams.utm_source,
+						utm_medium: urlParams.utm_medium,
+						utm_campaign: urlParams.utm_campaign,
+						utm_content: urlParams.utm_content,
+						utm_term: urlParams.utm_term,
+					},
+				});
+			} catch {
+				// Partial lead is best-effort — log but don't block the flow.
+				console.warn('Partial lead creation failed');
+			}
 
 			trackEvent('form_view', 'rent-calculator', {
 				location_id: formData.city_id,

@@ -63,11 +63,10 @@ describe('AddressStep', () => {
 		vi.restoreAllMocks();
 	});
 
-	it('rendert Titel und Beschreibung', () => {
+	it('rendert Titel', () => {
 		render(<AddressStep {...defaultProps} />);
 
 		expect(screen.getByRole('heading')).toHaveTextContent('Wo befindet sich die Immobilie?');
-		expect(screen.getByText(/Optional: Für eine genauere Bewertung/)).toBeInTheDocument();
 	});
 
 	it('zeigt stadtspezifischen Placeholder wenn cityBounds angegeben', () => {
@@ -138,10 +137,10 @@ describe('AddressStep', () => {
 		);
 	});
 
-	it('zeigt dass Adresse optional ist', () => {
+	it('zeigt Standard-Placeholder ohne cityBounds', () => {
 		render(<AddressStep {...defaultProps} />);
 
-		expect(screen.getByText(/Optional/)).toBeInTheDocument();
+		expect(screen.getByPlaceholderText(/Straße und Hausnummer/)).toBeInTheDocument();
 	});
 
 	it('ruft updateData mit undefined Werten auf bei Löschen', () => {

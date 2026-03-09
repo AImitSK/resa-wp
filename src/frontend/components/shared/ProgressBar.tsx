@@ -72,7 +72,7 @@ export function ProgressBar({ steps, current, labels }: ProgressBarProps) {
 
 			{/* Labels row */}
 			{labels && labels.length > 0 && (
-				<div className="resa-flex resa-justify-between resa-mt-2">
+				<div className="resa-hidden resa-justify-between resa-mt-2 sm:resa-flex">
 					{labels.map((label, i) => (
 						<span
 							key={i}

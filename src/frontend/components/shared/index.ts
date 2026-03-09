@@ -17,3 +17,4 @@ export {
 	type AddressData,
 	type AddressBounds,
 } from './AddressInput';
+export { SelectionCard, type SelectionCardProps } from './SelectionCard';

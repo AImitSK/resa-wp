@@ -51,9 +51,6 @@ export function CityStep({ data, updateData, errors, cities }: CityStepProps) {
 				<h3 className="resa-text-lg resa-font-semibold">
 					{__('In welcher Stadt?', 'resa')}
 				</h3>
-				<p className="resa-text-sm resa-text-muted-foreground resa-mt-1">
-					{__('Wählen Sie den Standort der Immobilie.', 'resa')}
-				</p>
 			</div>
 
 			<div>

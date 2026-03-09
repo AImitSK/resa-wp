@@ -3,6 +3,7 @@
  */
 
 import { __ } from '@wordpress/i18n';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ResaIcon } from '@/components/icons/ResaIcon';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -52,31 +53,62 @@ export function FeaturesStep({ data, updateData, featureOptions }: FeaturesStepP
 				<h3 className="resa-text-lg resa-font-semibold">
 					{__('Ausstattungsmerkmale', 'resa')}
 				</h3>
-				<p className="resa-text-sm resa-text-muted-foreground resa-mt-1">
-					{__('Welche Ausstattung hat die Immobilie? (optional)', 'resa')}
-				</p>
 			</div>
 
-			<div className="resa-grid resa-grid-cols-2 resa-gap-2">
+			<div className="resa-grid resa-grid-cols-2 resa-gap-2 sm:resa-grid-cols-3">
 				{features.map((feature) => {
 					const isSelected = selected.includes(feature.key);
 					return (
-						<button
+						<motion.button
 							key={feature.key}
 							type="button"
 							onClick={() => toggle(feature.key)}
+							whileHover={{
+								scale: 1.03,
+								zIndex: 10,
+								...(!isSelected && {
+									background:
+										'linear-gradient(to bottom, hsl(0 0% 100%), hsl(0 0% 96%))',
+								}),
+							}}
+							whileTap={{ scale: 0.97 }}
 							className={cn(
-								'resa-flex resa-flex-row resa-items-center resa-gap-2 resa-rounded-xl resa-border resa-bg-card resa-p-3 resa-transition-all resa-cursor-pointer focus:resa-outline-none',
+								'resa-relative resa-flex resa-flex-row resa-items-center resa-gap-2 resa-rounded-xl resa-border resa-bg-card resa-p-3 resa-cursor-pointer resa-transition-colors',
+								'focus-visible:resa-outline-none focus-visible:resa-ring-2 focus-visible:resa-ring-primary focus-visible:resa-ring-offset-2',
 								isSelected
-									? 'resa-border-primary'
-									: 'resa-border-input hover:resa-border-primary/50',
+									? 'resa-border-2 resa-border-primary resa-bg-primary/10 resa-shadow-sm'
+									: 'resa-border-input hover:resa-border-primary/40 hover:resa-shadow-md',
 							)}
 						>
+							<AnimatePresence>
+								{isSelected && (
+									<motion.span
+										initial={{ scale: 0, opacity: 0 }}
+										animate={{ scale: 1, opacity: 1 }}
+										exit={{ scale: 0, opacity: 0 }}
+										transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+										className="resa-absolute resa-right-1.5 resa-top-1.5 resa-flex resa-h-4 resa-w-4 resa-items-center resa-justify-center resa-rounded-full resa-bg-primary resa-text-primary-foreground"
+									>
+										<svg
+											width="10"
+											height="10"
+											viewBox="0 0 12 12"
+											fill="none"
+											stroke="currentColor"
+											strokeWidth="2"
+											strokeLinecap="round"
+											strokeLinejoin="round"
+										>
+											<polyline points="2,6 5,9 10,3" />
+										</svg>
+									</motion.span>
+								)}
+							</AnimatePresence>
 							<ResaIcon name={feature.icon} size={20} />
 							<span className="resa-text-xs resa-font-medium resa-text-left resa-leading-tight">
 								{feature.label}
 							</span>
-						</button>
+						</motion.button>
 					);
 				})}
 			</div>

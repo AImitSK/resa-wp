@@ -10,6 +10,7 @@ import { __ } from '@wordpress/i18n';
 import { useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ZodError } from 'zod';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProgressBar } from './ProgressBar';
 import type { StepWizardProps, WizardData } from '../../types/wizard';
@@ -119,7 +120,7 @@ export function StepWizard({
 				labels={steps.map((s) => s.label)}
 			/>
 
-			<div className="resa-relative resa-overflow-hidden resa-min-h-[320px] resa-py-4">
+			<div className="resa-relative resa-overflow-hidden resa-min-h-[320px] resa-px-2 resa-py-4">
 				<AnimatePresence mode="wait" custom={direction}>
 					<motion.div
 						key={currentStep.id}
@@ -137,11 +138,13 @@ export function StepWizard({
 
 			<div className="resa-flex resa-justify-between resa-mt-6">
 				<Button type="button" variant="ghost" onClick={goBack} disabled={isFirst}>
+					<ChevronLeft className="resa-h-4 resa-w-4" />
 					{back}
 				</Button>
 
 				<Button type="button" onClick={goNext}>
 					{isLast ? complete : next}
+					<ChevronRight className="resa-h-4 resa-w-4" />
 				</Button>
 			</div>
 		</div>

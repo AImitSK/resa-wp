@@ -114,7 +114,7 @@ export function LeadForm({
 			<button
 				type="submit"
 				disabled={isSubmitting}
-				className="resa-w-full resa-py-3 resa-px-6 resa-rounded-md resa-text-sm resa-font-medium resa-bg-primary resa-text-primary-foreground hover:resa-bg-primary/90 resa-transition-colors disabled:resa-opacity-50 disabled:resa-cursor-not-allowed"
+				className="resa-w-full resa-py-3 resa-px-6 resa-rounded-md resa-text-sm resa-font-medium resa-bg-primary resa-text-primary-foreground hover:resa-bg-primary/90 resa-transition-colors resa-cursor-pointer disabled:resa-opacity-50 disabled:resa-cursor-not-allowed"
 			>
 				{isSubmitting ? (
 					<span className="resa-inline-flex resa-items-center resa-gap-2">

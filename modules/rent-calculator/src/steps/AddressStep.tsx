@@ -54,9 +54,6 @@ export function AddressStep({ data, updateData, errors, cityBounds }: AddressSte
 				<h3 className="resa-text-lg resa-font-semibold">
 					{__('Wo befindet sich die Immobilie?', 'resa')}
 				</h3>
-				<p className="resa-text-sm resa-text-muted-foreground resa-mt-1">
-					{__('Optional: Für eine genauere Bewertung.', 'resa')}
-				</p>
 			</div>
 
 			<AddressInput

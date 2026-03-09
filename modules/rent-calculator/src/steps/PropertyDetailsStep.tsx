@@ -27,9 +27,6 @@ export function PropertyDetailsStep({ data, updateData, errors }: StepProps) {
 				<h3 className="resa-text-lg resa-font-semibold">
 					{__('Grunddaten der Immobilie', 'resa')}
 				</h3>
-				<p className="resa-text-sm resa-text-muted-foreground resa-mt-1">
-					{__('Geben Sie die wichtigsten Eckdaten ein.', 'resa')}
-				</p>
 			</div>
 
 			<div className="resa-space-y-4">
