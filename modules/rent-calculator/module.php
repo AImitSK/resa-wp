@@ -8,10 +8,6 @@
 
 declare( strict_types=1 );
 
-require_once __DIR__ . '/RentCalculatorModule.php';
-require_once __DIR__ . '/RentCalculatorService.php';
-require_once __DIR__ . '/RentCalculatorController.php';
-
 use Resa\Core\ModuleRegistry;
 use Resa\Modules\RentCalculator\RentCalculatorModule;
 

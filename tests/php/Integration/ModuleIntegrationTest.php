@@ -116,9 +116,18 @@ class ModuleIntegrationTest extends TestCase {
 
 	// ── Discovery ────────────────────────────────────────────
 
-	public function test_discover_gibt_leise_zurueck_ohne_modules_dir(): void {
-		// discover() returns early when modules directory doesn't exist.
-		// No exception should be thrown.
+	public function test_discover_laedt_module_dateien(): void {
+		// discover() scans modules/ directory, loads module.php files,
+		// and fires resa_register_modules. Brain Monkey intercepts
+		// add_action + do_action, so no modules actually register.
+		Functions\expect( 'add_action' )
+			->atLeast()
+			->once();
+
+		Functions\expect( 'do_action' )
+			->once()
+			->with( 'resa_register_modules', $this->registry );
+
 		$this->registry->discover();
 
 		$this->assertSame( [], $this->registry->getAll() );

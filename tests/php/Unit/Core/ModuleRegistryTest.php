@@ -98,7 +98,14 @@ class ModuleRegistryTest extends TestCase {
 	}
 
 	public function test_discover_laedt_module_und_feuert_action(): void {
-		// RESA_PLUGIN_DIR points to project root which has modules/demo/.
+		// RESA_PLUGIN_DIR points to project root. discover() loads
+		// modules/*/module.php and fires resa_register_modules.
+		// Brain Monkey intercepts add_action + do_action, so no
+		// real WordPress hooks fire and no modules get registered.
+		Functions\expect( 'add_action' )
+			->atLeast()
+			->once();
+
 		Functions\expect( 'do_action' )
 			->once()
 			->with( 'resa_register_modules', $this->registry );
@@ -106,7 +113,6 @@ class ModuleRegistryTest extends TestCase {
 		$this->registry->discover();
 
 		// Brain Monkey mocks do_action, so callbacks don't fire.
-		// We verify the action was triggered with the registry.
 		$this->assertCount( 0, $this->registry->getAll() );
 	}
 
