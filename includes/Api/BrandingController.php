@@ -19,13 +19,15 @@ class BrandingController extends RestController {
 	private const OPT_LOGO_ID        = 'resa_branding_logo_id';
 	private const OPT_PRIMARY_COLOR  = 'resa_branding_primary_color';
 	private const OPT_SECONDARY_COLOR = 'resa_branding_secondary_color';
-	private const OPT_SHOW_POWERED_BY = 'resa_branding_show_powered_by';
+	private const OPT_SHOW_POWERED_BY  = 'resa_branding_show_powered_by';
+	private const OPT_EMAIL_HEADER_BG  = 'resa_branding_email_header_bg';
 
 	/**
 	 * Default branding values.
 	 */
-	private const DEFAULT_PRIMARY_COLOR   = '#a9e43f';
-	private const DEFAULT_SECONDARY_COLOR = '#1e303a';
+	private const DEFAULT_PRIMARY_COLOR    = '#a9e43f';
+	private const DEFAULT_SECONDARY_COLOR  = '#1e303a';
+	private const DEFAULT_EMAIL_HEADER_BG  = '#ffffff';
 
 	/**
 	 * @inheritDoc
@@ -75,6 +77,12 @@ class BrandingController extends RestController {
 			] );
 		}
 
+		if ( isset( $params['emailHeaderBg'] ) && ! $this->isValidHexColor( $params['emailHeaderBg'] ) ) {
+			return $this->validationError( [
+				'emailHeaderBg' => __( 'Ungültiger Hex-Farbwert.', 'resa' ),
+			] );
+		}
+
 		// Validate logo ID (must be a valid attachment if provided).
 		if ( isset( $params['logoId'] ) && $params['logoId'] !== null && $params['logoId'] !== 0 ) {
 			$logoId = absint( $params['logoId'] );
@@ -104,6 +112,10 @@ class BrandingController extends RestController {
 			update_option( self::OPT_SECONDARY_COLOR, sanitize_hex_color( $params['secondaryColor'] ) );
 		}
 
+		if ( isset( $params['emailHeaderBg'] ) ) {
+			update_option( self::OPT_EMAIL_HEADER_BG, sanitize_hex_color( $params['emailHeaderBg'] ) );
+		}
+
 		if ( isset( $params['showPoweredBy'] ) ) {
 			// Free plan always shows "Powered by RESA" — enforce on backend.
 			$showPoweredBy = $this->canDisablePoweredBy() ? (bool) $params['showPoweredBy'] : true;
@@ -124,6 +136,7 @@ class BrandingController extends RestController {
 			'logoId'         => (int) get_option( self::OPT_LOGO_ID, 0 ),
 			'primaryColor'   => (string) get_option( self::OPT_PRIMARY_COLOR, self::DEFAULT_PRIMARY_COLOR ),
 			'secondaryColor' => (string) get_option( self::OPT_SECONDARY_COLOR, self::DEFAULT_SECONDARY_COLOR ),
+			'emailHeaderBg'  => (string) get_option( self::OPT_EMAIL_HEADER_BG, self::DEFAULT_EMAIL_HEADER_BG ),
 			'showPoweredBy'  => get_option( self::OPT_SHOW_POWERED_BY, '1' ) === '1',
 		];
 	}

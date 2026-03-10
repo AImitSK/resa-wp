@@ -10,6 +10,7 @@ export interface BrandingSettings {
 	logoId: number;
 	primaryColor: string;
 	secondaryColor: string;
+	emailHeaderBg: string;
 	showPoweredBy: boolean;
 }
 
@@ -18,6 +19,7 @@ interface SaveBrandingData {
 	logoId?: number;
 	primaryColor?: string;
 	secondaryColor?: string;
+	emailHeaderBg?: string;
 	showPoweredBy?: boolean;
 }
 

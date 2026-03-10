@@ -126,6 +126,7 @@ final class AdminPage {
 				'siteName'          => get_bloginfo( 'name' ),
 				'adminEmail'        => get_option( 'admin_email', '' ),
 				'integrationTabs'   => $addon_tabs,
+				'branding'          => $this->getBrandingForPreview(),
 			]
 		);
 	}
@@ -194,5 +195,25 @@ final class AdminPage {
 		$featureGate = new FeatureGate( $plugin->getModuleRegistry() );
 
 		return $featureGate->toArray();
+	}
+
+	/**
+	 * Get branding data for email template preview.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function getBrandingForPreview(): array {
+		$branding = \Resa\Services\Email\EmailService::getBrandingVars();
+
+		return [
+			'logoUrl'        => $branding['logo_url'],
+			'primaryColor'   => $branding['primary_color'],
+			'secondaryColor' => $branding['secondary_color'],
+			'emailHeaderBg'  => $branding['email_header_bg'],
+			'showPoweredBy'  => $branding['show_powered_by'],
+			'agentCompany'   => $branding['agent_company'],
+			'agentWebsite'   => $branding['agent_website'],
+			'imprintUrl'     => $branding['imprint_url'],
+		];
 	}
 }

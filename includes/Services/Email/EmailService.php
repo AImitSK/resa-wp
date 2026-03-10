@@ -4,6 +4,8 @@ declare( strict_types=1 );
 
 namespace Resa\Services\Email;
 
+use Resa\Models\Agent;
+
 /**
  * Email service — main orchestrator for sending emails.
  *
@@ -112,17 +114,128 @@ class EmailService {
 	}
 
 	/**
+	 * Get all email-relevant branding data.
+	 *
+	 * Reads from wp_options and resa_agents to provide logo, colors,
+	 * and company info for email templates.
+	 *
+	 * @return array<string,mixed> Branding variables.
+	 */
+	public static function getBrandingVars(): array {
+		$logoUrl        = (string) get_option( 'resa_branding_logo_url', '' );
+		$primaryColor   = (string) get_option( 'resa_branding_primary_color', '#a9e43f' );
+		$secondaryColor = (string) get_option( 'resa_branding_secondary_color', '#1e303a' );
+		$emailHeaderBg  = (string) get_option( 'resa_branding_email_header_bg', '#ffffff' );
+		$showPoweredBy  = get_option( 'resa_branding_show_powered_by', '1' ) === '1';
+
+		// Primary agent from resa_agents.
+		$agent        = Agent::getDefault();
+		$agentCompany = '';
+		$agentWebsite = '';
+		$imprintUrl   = '';
+
+		if ( $agent !== null ) {
+			$agentCompany = $agent->company ?? '';
+			$agentWebsite = $agent->website ?? '';
+			$imprintUrl   = $agent->imprint_url ?? '';
+		}
+
+		return [
+			'logo_url'        => $logoUrl,
+			'primary_color'   => $primaryColor,
+			'secondary_color' => $secondaryColor,
+			'email_header_bg' => $emailHeaderBg,
+			'show_powered_by' => $showPoweredBy,
+			'agent_company'   => $agentCompany,
+			'agent_website'   => $agentWebsite,
+			'imprint_url'     => $imprintUrl,
+		];
+	}
+
+	/**
+	 * Calculate whether text on a background should be light or dark.
+	 *
+	 * Uses relative luminance (WCAG) to determine contrast.
+	 *
+	 * @param string $hex Hex color (e.g. '#ffffff').
+	 * @return string '#1e293b' for light backgrounds, '#ffffff' for dark.
+	 */
+	public static function getContrastColor( string $hex ): string {
+		$hex = ltrim( $hex, '#' );
+
+		// Expand shorthand (#fff → #ffffff).
+		if ( strlen( $hex ) === 3 ) {
+			$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+		}
+
+		$r = hexdec( substr( $hex, 0, 2 ) ) / 255;
+		$g = hexdec( substr( $hex, 2, 2 ) ) / 255;
+		$b = hexdec( substr( $hex, 4, 2 ) ) / 255;
+
+		// sRGB luminance.
+		$r = $r <= 0.03928 ? $r / 12.92 : pow( ( $r + 0.055 ) / 1.055, 2.4 );
+		$g = $g <= 0.03928 ? $g / 12.92 : pow( ( $g + 0.055 ) / 1.055, 2.4 );
+		$b = $b <= 0.03928 ? $b / 12.92 : pow( ( $b + 0.055 ) / 1.055, 2.4 );
+
+		$luminance = 0.2126 * $r + 0.7152 * $g + 0.0722 * $b;
+
+		return $luminance > 0.179 ? '#1e293b' : '#ffffff';
+	}
+
+	/**
 	 * Wrap a body HTML string in the responsive email layout.
 	 *
-	 * Extracts the layout from the existing PHP templates (responsive table layout,
-	 * header, footer) and wraps the TipTap-generated body content.
+	 * Applies branding (logo, header color, footer with company info).
 	 *
 	 * @param string $bodyHtml Body HTML content.
 	 * @return string Complete email HTML.
 	 */
 	public static function wrapInLayout( string $bodyHtml ): string {
-		$siteName    = esc_html( (string) get_bloginfo( 'name' ) );
-		$settingsUrl = esc_url( admin_url( 'admin.php?page=resa-settings' ) );
+		$siteName = esc_html( (string) get_bloginfo( 'name' ) );
+		$branding = self::getBrandingVars();
+
+		$headerBg    = esc_attr( $branding['email_header_bg'] );
+		$headerColor = self::getContrastColor( $branding['email_header_bg'] );
+		$subColor    = $headerColor === '#ffffff' ? 'rgba(255,255,255,0.6)' : 'rgba(30,41,59,0.5)';
+
+		// Logo HTML.
+		$logoHtml = '';
+		if ( ! empty( $branding['logo_url'] ) ) {
+			$logoUrl  = esc_url( $branding['logo_url'] );
+			$logoHtml = '<img src="' . $logoUrl . '" alt="' . $siteName . '" style="max-height: 50px; max-width: 200px; margin-bottom: 8px;" /><br />';
+		}
+
+		// Footer company info.
+		$footerLines = [];
+
+		$company = $branding['agent_company'];
+		if ( ! empty( $company ) ) {
+			$footerLines[] = esc_html( $company );
+		}
+
+		$website = $branding['agent_website'];
+		if ( ! empty( $website ) ) {
+			$footerLines[] = '<a href="' . esc_url( $website ) . '" style="color: #64748b; text-decoration: underline;">' . esc_html( $website ) . '</a>';
+		}
+
+		$imprintUrl = $branding['imprint_url'];
+		if ( ! empty( $imprintUrl ) ) {
+			$footerLines[] = '<a href="' . esc_url( $imprintUrl ) . '" style="color: #64748b; text-decoration: underline;">' . esc_html__( 'Impressum', 'resa' ) . '</a>';
+		}
+
+		$footerCompanyHtml = '';
+		if ( ! empty( $footerLines ) ) {
+			$footerCompanyHtml = '<p style="margin: 0 0 8px; color: #64748b; font-size: 13px; text-align: center; line-height: 1.6;">'
+				. implode( ' &middot; ', $footerLines )
+				. '</p>';
+		}
+
+		$poweredByHtml = '';
+		if ( $branding['show_powered_by'] ) {
+			$poweredByHtml = '<p style="margin: 0; color: #94a3b8; font-size: 11px; text-align: center;">'
+				. esc_html__( 'Powered by RESA', 'resa' )
+				. '</p>';
+		}
 
 		return '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -137,8 +250,9 @@ class EmailService {
 				<table role="presentation" cellpadding="0" cellspacing="0" width="600" align="center" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
 					<!-- Header -->
 					<tr>
-						<td style="background-color: #0f172a; padding: 24px 40px; text-align: center;">
-							<p style="margin: 0; color: #94a3b8; font-size: 14px;">' . $siteName . '</p>
+						<td style="background-color: ' . $headerBg . '; padding: 24px 40px; text-align: center;">
+							' . $logoHtml . '
+							<p style="margin: 0; color: ' . $subColor . '; font-size: 14px;">' . $siteName . '</p>
 						</td>
 					</tr>
 					<!-- Body -->
@@ -150,9 +264,8 @@ class EmailService {
 					<!-- Footer -->
 					<tr>
 						<td style="background-color: #f8fafc; padding: 25px 40px; border-top: 1px solid #e2e8f0;">
-							<p style="margin: 0; color: #64748b; font-size: 13px; text-align: center; line-height: 1.6;">
-								' . esc_html__( 'Diese E-Mail wurde automatisch von RESA gesendet.', 'resa' ) . '
-							</p>
+							' . $footerCompanyHtml . '
+							' . $poweredByHtml . '
 						</td>
 					</tr>
 				</table>

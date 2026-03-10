@@ -72,6 +72,9 @@ export const brandingSchema = z.object({
 	/** Sekundärfarbe (Hex) */
 	secondaryColor: hexColorSchema,
 
+	/** E-Mail Header Hintergrundfarbe (Hex) */
+	emailHeaderBg: hexColorSchema,
+
 	/** "Powered by RESA" anzeigen */
 	showPoweredBy: z.boolean(),
 });

@@ -28,6 +28,20 @@ export interface IntegrationTab {
 /**
  * Admin context injected by PHP via wp_localize_script.
  */
+/**
+ * Branding data for email template preview.
+ */
+export interface ResaAdminBranding {
+	logoUrl: string;
+	primaryColor: string;
+	secondaryColor: string;
+	emailHeaderBg: string;
+	showPoweredBy: boolean;
+	agentCompany: string;
+	agentWebsite: string;
+	imprintUrl: string;
+}
+
 export interface ResaAdminContext {
 	restUrl: string;
 	nonce: string;
@@ -40,6 +54,7 @@ export interface ResaAdminContext {
 	siteName: string;
 	adminEmail: string;
 	integrationTabs: IntegrationTab[];
+	branding: ResaAdminBranding;
 }
 
 /**

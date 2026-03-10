@@ -22,6 +22,14 @@
  */
 
 defined( 'ABSPATH' ) || exit;
+
+$branding       = \Resa\Services\Email\EmailService::getBrandingVars();
+$headerBg       = esc_attr( $branding['email_header_bg'] );
+$headerColor    = \Resa\Services\Email\EmailService::getContrastColor( $branding['email_header_bg'] );
+$subColor       = $headerColor === '#ffffff' ? 'rgba(255,255,255,0.6)' : 'rgba(30,41,59,0.5)';
+$primaryColor   = esc_attr( $branding['primary_color'] );
+$logoUrl        = $branding['logo_url'];
+$showPoweredBy  = $branding['show_powered_by'];
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -38,11 +46,14 @@ defined( 'ABSPATH' ) || exit;
 
 					<!-- Header -->
 					<tr>
-						<td style="background-color: #0f172a; padding: 30px 40px; text-align: center;">
-							<h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600;">
+						<td style="background-color: <?php echo $headerBg; ?>; padding: 30px 40px; text-align: center;">
+							<?php if ( ! empty( $logoUrl ) ) : ?>
+								<img src="<?php echo esc_url( $logoUrl ); ?>" alt="<?php echo esc_attr( $site_name ); ?>" style="max-height: 50px; max-width: 200px; margin-bottom: 8px;" /><br />
+							<?php endif; ?>
+							<h1 style="margin: 0; color: <?php echo $headerColor; ?>; font-size: 24px; font-weight: 600;">
 								<?php esc_html_e( 'Neuer Lead eingegangen', 'resa' ); ?>
 							</h1>
-							<p style="margin: 10px 0 0; color: #94a3b8; font-size: 14px;">
+							<p style="margin: 10px 0 0; color: <?php echo $subColor; ?>; font-size: 14px;">
 								<?php echo esc_html( $site_name ); ?>
 							</p>
 						</td>
@@ -74,7 +85,7 @@ defined( 'ABSPATH' ) || exit;
 										<table role="presentation" cellpadding="0" cellspacing="0" width="100%">
 											<tr>
 												<td>
-													<span style="display: inline-block; background-color: #3b82f6; color: #ffffff; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+													<span style="display: inline-block; background-color: <?php echo $primaryColor; ?>; color: #ffffff; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
 														<?php echo esc_html( $asset_type ); ?>
 													</span>
 												</td>
@@ -92,14 +103,14 @@ defined( 'ABSPATH' ) || exit;
 											<tr>
 												<td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
 													<span style="color: #64748b; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;"><?php esc_html_e( 'E-Mail', 'resa' ); ?></span><br />
-													<a href="mailto:<?php echo esc_attr( $lead_email ); ?>" style="color: #3b82f6; font-size: 15px; text-decoration: none;"><?php echo esc_html( $lead_email ); ?></a>
+													<a href="mailto:<?php echo esc_attr( $lead_email ); ?>" style="color: <?php echo $primaryColor; ?>; font-size: 15px; text-decoration: none;"><?php echo esc_html( $lead_email ); ?></a>
 												</td>
 											</tr>
 											<?php if ( ! empty( $lead_phone ) ) : ?>
 											<tr>
 												<td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
 													<span style="color: #64748b; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;"><?php esc_html_e( 'Telefon', 'resa' ); ?></span><br />
-													<a href="tel:<?php echo esc_attr( $lead_phone ); ?>" style="color: #3b82f6; font-size: 15px; text-decoration: none;"><?php echo esc_html( $lead_phone ); ?></a>
+													<a href="tel:<?php echo esc_attr( $lead_phone ); ?>" style="color: <?php echo $primaryColor; ?>; font-size: 15px; text-decoration: none;"><?php echo esc_html( $lead_phone ); ?></a>
 												</td>
 											</tr>
 											<?php endif; ?>
@@ -161,7 +172,7 @@ defined( 'ABSPATH' ) || exit;
 					<!-- CTA Button -->
 					<tr>
 						<td style="padding: 10px 40px 30px; text-align: center;">
-							<a href="<?php echo esc_url( $admin_url ); ?>" style="display: inline-block; background-color: #3b82f6; color: #ffffff; font-size: 15px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 6px;">
+							<a href="<?php echo esc_url( $admin_url ); ?>" style="display: inline-block; background-color: <?php echo $primaryColor; ?>; color: #ffffff; font-size: 15px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 6px;">
 								<?php esc_html_e( 'Lead im Admin ansehen', 'resa' ); ?>
 							</a>
 						</td>
@@ -182,12 +193,27 @@ defined( 'ABSPATH' ) || exit;
 					<!-- Footer -->
 					<tr>
 						<td style="background-color: #f8fafc; padding: 25px 40px; border-top: 1px solid #e2e8f0;">
-							<p style="margin: 0; color: #64748b; font-size: 13px; text-align: center; line-height: 1.6;">
-								<?php esc_html_e( 'Diese E-Mail wurde automatisch von RESA gesendet.', 'resa' ); ?><br />
-								<a href="<?php echo esc_url( admin_url( 'admin.php?page=resa-settings' ) ); ?>" style="color: #3b82f6; text-decoration: none;">
+							<?php if ( ! empty( $branding['agent_company'] ) ) : ?>
+								<p style="margin: 0 0 8px; color: #64748b; font-size: 13px; text-align: center; line-height: 1.6;">
+									<?php echo esc_html( $branding['agent_company'] ); ?>
+									<?php if ( ! empty( $branding['agent_website'] ) ) : ?>
+										&middot; <a href="<?php echo esc_url( $branding['agent_website'] ); ?>" style="color: #64748b; text-decoration: underline;"><?php echo esc_html( $branding['agent_website'] ); ?></a>
+									<?php endif; ?>
+									<?php if ( ! empty( $branding['imprint_url'] ) ) : ?>
+										&middot; <a href="<?php echo esc_url( $branding['imprint_url'] ); ?>" style="color: #64748b; text-decoration: underline;"><?php esc_html_e( 'Impressum', 'resa' ); ?></a>
+									<?php endif; ?>
+								</p>
+							<?php endif; ?>
+							<p style="margin: 0 0 4px; color: #64748b; font-size: 13px; text-align: center; line-height: 1.6;">
+								<a href="<?php echo esc_url( admin_url( 'admin.php?page=resa-settings' ) ); ?>" style="color: <?php echo $primaryColor; ?>; text-decoration: none;">
 									<?php esc_html_e( 'Benachrichtigungseinstellungen anpassen', 'resa' ); ?>
 								</a>
 							</p>
+							<?php if ( $showPoweredBy ) : ?>
+								<p style="margin: 0; color: #94a3b8; font-size: 11px; text-align: center;">
+									<?php esc_html_e( 'Powered by RESA', 'resa' ); ?>
+								</p>
+							<?php endif; ?>
 						</td>
 					</tr>
 
