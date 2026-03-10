@@ -103,6 +103,7 @@ class FreemiusInit {
 				],
 				'menu'           => [
 					'slug'    => 'resa',
+					'contact' => false,
 					'support' => false,
 				],
 			]

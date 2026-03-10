@@ -214,6 +214,7 @@ describe('brandingSchema', () => {
 		logoId: 123,
 		primaryColor: '#a9e43f',
 		secondaryColor: '#2d3748',
+		emailHeaderBg: '#ffffff',
 		showPoweredBy: true,
 	};
 
@@ -415,6 +416,7 @@ describe('generalSettingsSchema', () => {
 			logoId: 123,
 			primaryColor: '#a9e43f',
 			secondaryColor: '#2d3748',
+			emailHeaderBg: '#ffffff',
 			showPoweredBy: true,
 		},
 	};
@@ -441,6 +443,7 @@ describe('generalSettingsSchema', () => {
 					logoId: 0,
 					primaryColor: '#000',
 					secondaryColor: '#fff',
+					emailHeaderBg: '#fff',
 					showPoweredBy: false,
 				},
 			});
