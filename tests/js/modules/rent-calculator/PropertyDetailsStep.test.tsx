@@ -1,13 +1,12 @@
 /**
  * Tests for PropertyDetailsStep component.
  *
- * Note: The rooms field uses Radix UI Select which renders differently
- * from native HTML select elements.
+ * The component uses SliderInput for all numeric fields (Wohnfläche, Zimmer, Baujahr).
+ * SliderInput renders range inputs + number inputs, not labels/selects.
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { PropertyDetailsStep } from '@modules/rent-calculator/src/steps/PropertyDetailsStep';
 
 describe('PropertyDetailsStep', () => {
@@ -17,66 +16,85 @@ describe('PropertyDetailsStep', () => {
 		errors: {},
 	};
 
-	it('rendert Titel und alle Felder', () => {
+	it('rendert Titel und alle Feld-Ueberschriften', () => {
 		render(<PropertyDetailsStep {...defaultProps} />);
 
-		expect(screen.getByRole('heading')).toBeInTheDocument();
-		expect(screen.getByLabelText(/Wohnfläche/)).toBeInTheDocument();
-		// Radix UI Select uses combobox role
-		expect(screen.getByRole('combobox')).toBeInTheDocument();
-		expect(screen.getByLabelText(/Baujahr/)).toBeInTheDocument();
+		expect(screen.getByText('Grunddaten der Immobilie')).toBeInTheDocument();
+		expect(screen.getByText(/Wohnfläche/)).toBeInTheDocument();
+		expect(screen.getByText('Zimmer')).toBeInTheDocument();
+		expect(screen.getByText('Baujahr')).toBeInTheDocument();
 	});
 
-	it('ruft updateData bei Eingabe Wohnfläche auf', () => {
+	it('rendert drei SliderInputs (range + number)', () => {
+		const { container } = render(<PropertyDetailsStep {...defaultProps} />);
+
+		// 3 range inputs (sliders)
+		const sliders = container.querySelectorAll('input[type="range"]');
+		expect(sliders).toHaveLength(3);
+
+		// 3 number inputs (alternative input)
+		const numberInputs = container.querySelectorAll('input[type="number"]');
+		expect(numberInputs).toHaveLength(3);
+	});
+
+	it('ruft updateData bei Aenderung des Wohnflaeche-Sliders auf', () => {
 		const updateData = vi.fn();
-		render(<PropertyDetailsStep {...defaultProps} updateData={updateData} />);
+		const { container } = render(
+			<PropertyDetailsStep {...defaultProps} updateData={updateData} />,
+		);
 
-		fireEvent.change(screen.getByLabelText(/Wohnfläche/), { target: { value: '75' } });
+		// SliderInput writes default on mount
+		updateData.mockClear();
 
-		expect(updateData).toHaveBeenCalledWith({ size: 75 });
+		const sliders = container.querySelectorAll('input[type="range"]');
+		fireEvent.change(sliders[0], { target: { value: '85' } });
+
+		expect(updateData).toHaveBeenCalledWith({ size: 85 });
 	});
 
-	it('ruft updateData bei Auswahl Zimmer auf', async () => {
-		const user = userEvent.setup();
+	it('ruft updateData bei Aenderung des Zimmer-Sliders auf', () => {
 		const updateData = vi.fn();
-		render(<PropertyDetailsStep {...defaultProps} updateData={updateData} />);
+		const { container } = render(
+			<PropertyDetailsStep {...defaultProps} updateData={updateData} />,
+		);
 
-		// Click to open dropdown
-		await user.click(screen.getByRole('combobox'));
+		updateData.mockClear();
 
-		// Wait for options and click "3"
-		await waitFor(() => {
-			expect(screen.getByRole('option', { name: '3' })).toBeInTheDocument();
-		});
-		await user.click(screen.getByRole('option', { name: '3' }));
+		const sliders = container.querySelectorAll('input[type="range"]');
+		fireEvent.change(sliders[1], { target: { value: '4' } });
 
-		expect(updateData).toHaveBeenCalledWith({ rooms: 3 });
+		expect(updateData).toHaveBeenCalledWith({ rooms: 4 });
 	});
 
-	it('ruft updateData bei Eingabe Baujahr auf', () => {
+	it('ruft updateData bei Aenderung des Baujahr-Sliders auf', () => {
 		const updateData = vi.fn();
-		render(<PropertyDetailsStep {...defaultProps} updateData={updateData} />);
+		const { container } = render(
+			<PropertyDetailsStep {...defaultProps} updateData={updateData} />,
+		);
 
-		fireEvent.change(screen.getByLabelText(/Baujahr/), { target: { value: '1990' } });
+		updateData.mockClear();
 
-		expect(updateData).toHaveBeenCalledWith({ year_built: 1990 });
+		const sliders = container.querySelectorAll('input[type="range"]');
+		fireEvent.change(sliders[2], { target: { value: '2005' } });
+
+		expect(updateData).toHaveBeenCalledWith({ year_built: 2005 });
 	});
 
-	it('zeigt bestehende Daten an', () => {
-		render(
+	it('zeigt bestehende Daten in den number inputs', () => {
+		const { container } = render(
 			<PropertyDetailsStep
 				{...defaultProps}
 				data={{ size: 80, rooms: 3, year_built: 2010 }}
 			/>,
 		);
 
-		expect(screen.getByLabelText(/Wohnfläche/)).toHaveValue(80);
-		// Radix UI Select shows selected value in the trigger
-		expect(screen.getByRole('combobox')).toHaveTextContent('3');
-		expect(screen.getByLabelText(/Baujahr/)).toHaveValue(2010);
+		const numberInputs = container.querySelectorAll('input[type="number"]');
+		expect(numberInputs[0]).toHaveValue(80);
+		expect(numberInputs[1]).toHaveValue(3);
+		expect(numberInputs[2]).toHaveValue(2010);
 	});
 
-	it('zeigt Fehler für Wohnfläche an', () => {
+	it('zeigt Fehler fuer Wohnflaeche an', () => {
 		render(
 			<PropertyDetailsStep
 				{...defaultProps}
@@ -87,7 +105,7 @@ describe('PropertyDetailsStep', () => {
 		expect(screen.getByRole('alert')).toHaveTextContent('Wohnfläche ist erforderlich.');
 	});
 
-	it('zeigt Fehler für Baujahr an', () => {
+	it('zeigt Fehler fuer Baujahr an', () => {
 		render(
 			<PropertyDetailsStep
 				{...defaultProps}
@@ -98,14 +116,13 @@ describe('PropertyDetailsStep', () => {
 		expect(screen.getByRole('alert')).toHaveTextContent('Ungültiges Baujahr.');
 	});
 
-	it('setzt size auf undefined bei leerer Eingabe', () => {
+	it('schreibt Default-Werte beim Mount in wizard data', () => {
 		const updateData = vi.fn();
-		render(
-			<PropertyDetailsStep {...defaultProps} updateData={updateData} data={{ size: 70 }} />,
-		);
+		render(<PropertyDetailsStep {...defaultProps} updateData={updateData} />);
 
-		fireEvent.change(screen.getByLabelText(/Wohnfläche/), { target: { value: '' } });
-
-		expect(updateData).toHaveBeenCalledWith({ size: undefined });
+		// SliderInput calls onChange(default) on mount for each undefined field
+		expect(updateData).toHaveBeenCalledWith({ size: 70 });
+		expect(updateData).toHaveBeenCalledWith({ rooms: 3 });
+		expect(updateData).toHaveBeenCalledWith({ year_built: 1990 });
 	});
 });

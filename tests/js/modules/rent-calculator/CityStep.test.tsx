@@ -8,7 +8,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { CityStep } from '@modules/rent-calculator/src/steps/CityStep';
+import { CityStep } from '@frontend/components/shared/steps/CityStep';
 import type { CityOption } from '@modules/rent-calculator/src/types';
 
 const mockCities: CityOption[] = [

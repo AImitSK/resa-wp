@@ -4,7 +4,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { AddressStep } from '@modules/rent-calculator/src/steps/AddressStep';
+import { AddressStep } from '@frontend/components/shared/steps/AddressStep';
 
 // Mock AddressInput component
 vi.mock('@frontend/components/shared', () => ({

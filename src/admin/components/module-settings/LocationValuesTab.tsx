@@ -404,7 +404,7 @@ export function LocationValuesTab({
 				),
 			},
 		],
-		[handleEdit, handleDelete],
+		[handleEdit, handleDelete, regionTypeLabels],
 	);
 
 	const table = useReactTable({
