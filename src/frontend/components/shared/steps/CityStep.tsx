@@ -1,5 +1,5 @@
 /**
- * Step 3: Standort — Location Dropdown.
+ * Shared Step: Standort — Location Dropdown.
  *
  * Skipped if city is pre-selected via shortcode attribute.
  */
@@ -14,7 +14,15 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 import type { StepProps } from '@frontend/types/wizard';
-import type { CityOption } from '../types';
+
+export interface CityOption {
+	id: number;
+	slug: string;
+	name: string;
+	latitude?: number | null;
+	longitude?: number | null;
+	zoomLevel?: number;
+}
 
 interface CityStepProps extends StepProps {
 	cities: CityOption[];

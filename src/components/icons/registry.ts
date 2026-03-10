@@ -29,6 +29,14 @@ import einfamilienhaus from './svg/haustypen/einfamilienhaus.svg?raw';
 import endreihenhaus from './svg/haustypen/endreihenhaus.svg?raw';
 import mehrfamilienhaus from './svg/haustypen/mehrfamilienhaus.svg?raw';
 import mittelreihenhaus from './svg/haustypen/mittelreihenhaus.svg?raw';
+import zweifamilienhaus from './svg/haustypen/zweifamilienhaus.svg?raw';
+
+// --- Wohnungstypen ---
+import erdgeschoss from './svg/wohnungstypen/erdgeschoss.svg?raw';
+import etagenwohnung from './svg/wohnungstypen/etagenwohnung.svg?raw';
+import dachgeschoss from './svg/wohnungstypen/dachgeschoss.svg?raw';
+import maisonette from './svg/wohnungstypen/maisonette.svg?raw';
+import penthouse from './svg/wohnungstypen/penthouse.svg?raw';
 
 // --- Ausstattung ---
 import aufzug from './svg/ausstattung/aufzug.svg?raw';
@@ -66,6 +74,9 @@ import selbstgenutzt from './svg/nutzung/selbstgenutzt.svg?raw';
 import verkaufen from './svg/nutzung/verkaufen.svg?raw';
 import vermietet from './svg/nutzung/vermietet.svg?raw';
 
+// --- Immobilientyp (zusätzlich) ---
+import hausEuro from './svg/immobilientyp/haus-euro.svg?raw';
+
 // --- Sonstige ---
 import modernisierung from './svg/modernisierung/modernisierung.svg?raw';
 import zeitrahmen from './svg/zeitrahmen/zeitrahmen.svg?raw';
@@ -80,6 +91,7 @@ export const icons: Record<string, string> = {
 	grundstueck,
 	haus,
 	wohnung,
+	'haus-euro': hausEuro,
 
 	// Haustypen
 	bungalow,
@@ -88,6 +100,14 @@ export const icons: Record<string, string> = {
 	endreihenhaus,
 	mehrfamilienhaus,
 	mittelreihenhaus,
+	zweifamilienhaus,
+
+	// Wohnungstypen
+	erdgeschoss,
+	etagenwohnung,
+	dachgeschoss,
+	maisonette,
+	penthouse,
 
 	// Ausstattung
 	aufzug,
@@ -128,6 +148,12 @@ export const icons: Record<string, string> = {
 	// Sonstige
 	modernisierung,
 	zeitrahmen,
+
+	// Aliase
+	solar: solaranlage,
+	reihenhaus: mittelreihenhaus,
+	premium: gehoben,
+	standard: normal,
 };
 
 /**

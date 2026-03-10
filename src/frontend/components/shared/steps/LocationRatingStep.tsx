@@ -1,5 +1,5 @@
 /**
- * Step 5: Lage-Bewertung — Slider 1-5 mit dynamischem Label.
+ * Shared Step: Lage-Bewertung — Slider 1-5 mit dynamischem Label.
  */
 
 import { useEffect } from 'react';

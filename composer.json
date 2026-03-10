@@ -21,7 +21,8 @@
 	"autoload": {
 		"psr-4": {
 			"Resa\\": "includes/",
-			"Resa\\Modules\\RentCalculator\\": "modules/rent-calculator/"
+			"Resa\\Modules\\RentCalculator\\": "modules/rent-calculator/",
+			"Resa\\Modules\\PropertyValue\\": "modules/property-value/"
 		}
 	},
 	"autoload-dev": {

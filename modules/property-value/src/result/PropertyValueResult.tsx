@@ -1,8 +1,9 @@
 /**
- * Rent calculation result display.
+ * Property value result display.
  *
- * Shows monthly rent estimate with range, price per m²,
- * annual rent, and market position gauge.
+ * Shows estimated market value with range, price per m²,
+ * plot value (houses only), market position, comparison chart,
+ * factor breakdown, and input summary.
  */
 
 import { __ } from '@wordpress/i18n';
@@ -11,14 +12,14 @@ import { ResaIcon } from '@/components/icons';
 import { ResaMap } from '@frontend/components/map';
 import { ComparisonBarChart } from '@frontend/components/charts';
 import { MarketPositionGauge } from '@frontend/components/shared/MarketPositionGauge';
-import type { RentCalculationResult, RentCalculatorData } from '../types';
+import { FactorBreakdownChart } from './FactorBreakdownChart';
+import type { PropertyValueResult as PropertyValueResultType, PropertyValueData } from '../types';
 
-interface RentResultProps {
-	result: RentCalculationResult;
-	inputs: RentCalculatorData;
+interface PropertyValueResultProps {
+	result: PropertyValueResultType;
+	inputs: PropertyValueData;
 }
 
-/** Format number in DACH style (comma decimal, dot thousands). */
 function formatCurrency(value: number): string {
 	return value.toLocaleString('de-DE', {
 		style: 'currency',
@@ -42,11 +43,30 @@ const getPropertyTypeLabels = (): Record<string, string> => ({
 	house: __('Haus', 'resa'),
 });
 
+const getSubtypeLabels = (): Record<string, string> => ({
+	efh: __('Einfamilienhaus', 'resa'),
+	rh: __('Reihenhaus', 'resa'),
+	dhh: __('Doppelhaushälfte', 'resa'),
+	zfh: __('Zweifamilienhaus', 'resa'),
+	mfh: __('Mehrfamilienhaus', 'resa'),
+	eg: __('Erdgeschosswohnung', 'resa'),
+	etage: __('Etagenwohnung', 'resa'),
+	dg: __('Dachgeschosswohnung', 'resa'),
+	maisonette: __('Maisonette', 'resa'),
+	penthouse: __('Penthouse', 'resa'),
+});
+
 const getConditionLabels = (): Record<string, string> => ({
 	new: __('Neubau / Kernsaniert', 'resa'),
 	renovated: __('Kürzlich renoviert', 'resa'),
 	good: __('Guter Zustand', 'resa'),
 	needs_renovation: __('Renovierungsbedürftig', 'resa'),
+});
+
+const getQualityLabels = (): Record<string, string> => ({
+	premium: __('Gehobene Ausstattung', 'resa'),
+	normal: __('Normale Ausstattung', 'resa'),
+	basic: __('Einfache Ausstattung', 'resa'),
 });
 
 const getFeatureLabels = (): Record<string, string> => ({
@@ -61,6 +81,7 @@ const getFeatureLabels = (): Record<string, string> => ({
 	floor_heating: __('Fußbodenheizung', 'resa'),
 	guest_toilet: __('Gäste-WC', 'resa'),
 	barrier_free: __('Barrierefrei', 'resa'),
+	solar: __('Solar/PV-Anlage', 'resa'),
 });
 
 const stagger = {
@@ -77,24 +98,38 @@ const fadeUp = {
 	show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' as const } },
 };
 
-export function RentResult({ result, inputs }: RentResultProps) {
+export function PropertyValueResult({ result, inputs }: PropertyValueResultProps) {
 	const {
-		monthly_rent,
-		annual_rent,
+		estimated_value,
 		price_per_sqm,
+		plot_value,
 		market_position,
 		city_average,
 		county_average,
+		factors,
 	} = result;
+
 	const propertyTypeLabels = getPropertyTypeLabels();
+	const subtypeLabels = getSubtypeLabels();
 	const conditionLabels = getConditionLabels();
+	const qualityLabels = getQualityLabels();
 	const featureLabels = getFeatureLabels();
 
-	// ComparisonBarChart needs at least 2 non-zero values to render
 	const comparisonBars = [price_per_sqm, city_average, county_average].filter(
 		(v) => v > 0,
 	).length;
 	const showMarketComparison = comparisonBars >= 2;
+
+	// Build factor breakdown data.
+	const factorItems = [
+		{ label: __('Lage', 'resa'), impact: factors.location_impact },
+		{ label: __('Ausstattung', 'resa'), impact: factors.quality_impact },
+		{ label: __('Zustand', 'resa'), impact: factors.condition_impact },
+		{ label: __('Alter', 'resa'), impact: factors.age_impact },
+		{ label: __('Vermietung', 'resa'), impact: factors.rental_impact },
+		{ label: __('Unterart', 'resa'), impact: factors.subtype_impact },
+		{ label: __('Typ', 'resa'), impact: factors.type_impact },
+	];
 
 	return (
 		<motion.div className="resa-space-y-6" variants={stagger} initial="hidden" animate="show">
@@ -104,18 +139,21 @@ export function RentResult({ result, inputs }: RentResultProps) {
 				className="resa-bg-primary/5 resa-rounded-2xl resa-p-8 resa-text-center"
 			>
 				<div className="resa-text-sm resa-text-muted-foreground resa-mb-2">
-					{__('Geschätzte Monatsmiete', 'resa')}
+					{__('Geschätzter Marktwert', 'resa')}
 				</div>
 				<div className="resa-text-5xl resa-font-bold resa-text-primary">
-					{formatCurrency(monthly_rent.estimate)}
+					{formatCurrency(estimated_value.estimate)}
 				</div>
 				<div className="resa-text-sm resa-text-muted-foreground resa-mt-2">
-					{formatCurrency(monthly_rent.low)} – {formatCurrency(monthly_rent.high)}
+					{formatCurrency(estimated_value.low)} – {formatCurrency(estimated_value.high)}
 				</div>
 			</motion.div>
 
 			{/* Detail stats */}
-			<motion.div variants={fadeUp} className="resa-grid resa-grid-cols-2 resa-gap-3">
+			<motion.div
+				variants={fadeUp}
+				className={`resa-grid resa-gap-3 ${plot_value ? 'resa-grid-cols-2' : 'resa-grid-cols-1'}`}
+			>
 				<div className="resa-bg-muted/30 resa-rounded-lg resa-p-4 resa-flex resa-items-center resa-gap-3">
 					<ResaIcon
 						name="wohnung"
@@ -124,28 +162,30 @@ export function RentResult({ result, inputs }: RentResultProps) {
 					/>
 					<div>
 						<div className="resa-text-xs resa-text-muted-foreground">
-							{__('Preis pro m²', 'resa')}
+							{__('Kaufpreis pro m²', 'resa')}
 						</div>
 						<div className="resa-text-lg resa-font-semibold">
 							{formatCurrencyPrecise(price_per_sqm)}/m²
 						</div>
 					</div>
 				</div>
-				<div className="resa-bg-muted/30 resa-rounded-lg resa-p-4 resa-flex resa-items-center resa-gap-3">
-					<ResaIcon
-						name="zeitrahmen"
-						size={28}
-						className="resa-text-muted-foreground resa-shrink-0"
-					/>
-					<div>
-						<div className="resa-text-xs resa-text-muted-foreground">
-							{__('Jährliche Mieteinnahmen', 'resa')}
-						</div>
-						<div className="resa-text-lg resa-font-semibold">
-							{formatCurrency(annual_rent)}
+				{plot_value !== null && plot_value > 0 && (
+					<div className="resa-bg-muted/30 resa-rounded-lg resa-p-4 resa-flex resa-items-center resa-gap-3">
+						<ResaIcon
+							name="grundstueck"
+							size={28}
+							className="resa-text-muted-foreground resa-shrink-0"
+						/>
+						<div>
+							<div className="resa-text-xs resa-text-muted-foreground">
+								{__('Grundstückswert', 'resa')}
+							</div>
+							<div className="resa-text-lg resa-font-semibold">
+								{formatCurrency(plot_value)}
+							</div>
 						</div>
 					</div>
-				</div>
+				)}
 			</motion.div>
 
 			{/* Market position */}
@@ -159,25 +199,33 @@ export function RentResult({ result, inputs }: RentResultProps) {
 				/>
 			</motion.div>
 
-			{/* Market comparison — only if data available */}
+			{/* Market comparison */}
 			{showMarketComparison && (
 				<motion.div
 					variants={fadeUp}
 					className="resa-border-b resa-border-border resa-pb-6"
 				>
 					<div className="resa-text-xs resa-font-medium resa-text-muted-foreground resa-mb-3">
-						{__('Marktvergleich (€/m²)', 'resa')}
+						{__('Marktvergleich (EUR/m²)', 'resa')}
 					</div>
 					<ComparisonBarChart
 						propertyValue={price_per_sqm}
 						cityAverage={city_average}
 						cityName={inputs.city_name}
 						countyAverage={county_average}
-						unit="€/m²"
+						unit="EUR/m²"
 						height={140}
 					/>
 				</motion.div>
 			)}
+
+			{/* Factor breakdown */}
+			<motion.div variants={fadeUp} className="resa-border-b resa-border-border resa-pb-6">
+				<div className="resa-text-xs resa-font-medium resa-text-muted-foreground resa-mb-3">
+					{__('Wertfaktoren', 'resa')}
+				</div>
+				<FactorBreakdownChart factors={factorItems} height={factorItems.length * 28} />
+			</motion.div>
 
 			{/* Input summary */}
 			<motion.div variants={fadeUp} className="resa-bg-muted/20 resa-rounded-lg resa-p-4">
@@ -186,13 +234,20 @@ export function RentResult({ result, inputs }: RentResultProps) {
 				</div>
 				<div className="resa-text-sm resa-space-y-0.5">
 					<p>
-						{propertyTypeLabels[inputs.property_type ?? ''] ?? inputs.property_type}
+						{subtypeLabels[inputs.property_subtype ?? ''] ??
+							propertyTypeLabels[inputs.property_type ?? ''] ??
+							inputs.property_type}
 						{' · '}
 						{inputs.size} m²
+						{inputs.plot_size
+							? ` · ${inputs.plot_size} m² ${__('Grundstück', 'resa')}`
+							: ''}
 						{inputs.city_name && ` · ${inputs.city_name}`}
 					</p>
 					<p>
 						{conditionLabels[inputs.condition ?? ''] ?? inputs.condition}
+						{' · '}
+						{qualityLabels[inputs.quality ?? ''] ?? inputs.quality}
 						{' · '}
 						{__('Lage', 'resa')} {inputs.location_rating}/5
 					</p>
@@ -228,7 +283,7 @@ export function RentResult({ result, inputs }: RentResultProps) {
 				</motion.div>
 			)}
 
-			{/* Agent hint — CTA style */}
+			{/* Agent hint */}
 			<motion.div
 				variants={fadeUp}
 				className="resa-bg-primary resa-text-primary-foreground resa-rounded-xl resa-p-5 resa-text-center"

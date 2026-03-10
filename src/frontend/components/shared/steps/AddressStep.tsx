@@ -1,5 +1,5 @@
 /**
- * AddressStep — Collects property address within selected city bounds.
+ * Shared Step: AddressStep — Collects property address within selected city bounds.
  *
  * Uses AddressInput component from core with city-bounded autocomplete.
  * The address is optional — user can skip this step.
@@ -9,7 +9,6 @@ import { useCallback } from 'react';
 import { __ } from '@wordpress/i18n';
 import type { StepProps } from '@frontend/types/wizard';
 import { AddressInput, type AddressData, type AddressBounds } from '@frontend/components/shared';
-import type { RentCalculatorData } from '../types';
 
 interface AddressStepProps extends StepProps {
 	/** City data for bounding the address search. */
@@ -17,15 +16,13 @@ interface AddressStepProps extends StepProps {
 }
 
 export function AddressStep({ data, updateData, errors, cityBounds }: AddressStepProps) {
-	const formData = data as RentCalculatorData;
-
 	// Build current value from form data.
 	const currentValue: AddressData | undefined =
-		formData.address && formData.address_lat && formData.address_lng
+		data.address && data.address_lat && data.address_lng
 			? {
-					displayName: formData.address,
-					lat: formData.address_lat,
-					lng: formData.address_lng,
+					displayName: data.address as string,
+					lat: data.address_lat as number,
+					lng: data.address_lng as number,
 				}
 			: undefined;
 

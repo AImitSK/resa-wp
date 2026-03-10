@@ -1,13 +1,13 @@
 /**
- * Rent Calculator Widget — Orchestrates the full flow:
+ * Property Value Widget — Orchestrates the full flow:
  *
- * 1. Load config (cities list)
- * 2. Render StepWizard with 6 steps (or 5 if city preset)
+ * 1. Load config (cities, subtypes, features)
+ * 2. Render StepWizard with 10 steps (or 9 if city preset)
  * 3. POST /calculate → get result
  * 4. POST /leads/partial → save inputs + result
  * 5. Show LeadForm
  * 6. POST /leads/complete → save contact data
- * 7. Show RentResult
+ * 7. Show PropertyValueResult
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -26,61 +26,63 @@ import { trackEvent } from '@frontend/lib/tracking';
 import { captureUrlParams, getCapturedParams } from '@frontend/lib/url-params';
 
 import { PropertyTypeStep } from './steps/PropertyTypeStep';
+import { PropertySubtypeStep } from './steps/PropertySubtypeStep';
 import { PropertyDetailsStep } from './steps/PropertyDetailsStep';
+import { YearBuiltStep } from './steps/YearBuiltStep';
+import { ConditionStep } from './steps/ConditionStep';
+import { QualityStep } from './steps/QualityStep';
+import { FeaturesStep } from './steps/FeaturesStep';
 import { CityStep } from '@frontend/components/shared/steps/CityStep';
 import { AddressStep } from '@frontend/components/shared/steps/AddressStep';
-import { ConditionStep } from './steps/ConditionStep';
 import { LocationRatingStep } from '@frontend/components/shared/steps/LocationRatingStep';
-import { FeaturesStep } from './steps/FeaturesStep';
-import { RentResult } from './result/RentResult';
+import { PropertyValueResult } from './result/PropertyValueResult';
 
 import {
-	propertyTypeSchema,
-	propertyDetailsSchema,
-	citySchema,
-	addressSchema,
-	conditionSchema,
-	locationRatingSchema,
-	featuresSchema,
+	getPropertyTypeSchema,
+	getPropertySubtypeSchema,
+	getPropertyDetailsSchema,
+	getYearBuiltSchema,
+	getConditionWithRentalSchema,
+	getQualitySchema,
+	getCitySchema,
+	getAddressSchema,
+	getLocationRatingSchema,
+	getFeaturesSchema,
 } from './validation/schemas';
 
-import type { ModuleConfig, RentCalculationResult, RentCalculatorData } from './types';
+import type {
+	ModuleConfig,
+	PropertyValueResult as PropertyValueResultType,
+	PropertyValueData,
+} from './types';
 
-/**
- * Type guard to validate wizard data conforms to RentCalculatorData.
- * Since all fields are optional, we just verify it's a valid object.
- */
-function isRentCalculatorData(data: unknown): data is RentCalculatorData {
+function isPropertyValueData(data: unknown): data is PropertyValueData {
 	return typeof data === 'object' && data !== null;
 }
 
 type Phase = 'loading' | 'wizard' | 'calculating' | 'lead-form' | 'result' | 'error';
 
-interface RentCalculatorWidgetProps {
-	/** Pre-selected city slug from shortcode attribute. */
+interface PropertyValueWidgetProps {
 	presetCity?: string;
 }
 
-export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) {
+export function PropertyValueWidget({ presetCity }: PropertyValueWidgetProps) {
 	const [phase, setPhase] = useState<Phase>('loading');
 	const [config, setConfig] = useState<ModuleConfig | null>(null);
-	const [wizardData, setWizardData] = useState<RentCalculatorData>({});
-	const [result, setResult] = useState<RentCalculationResult | null>(null);
+	const [wizardData, setWizardData] = useState<PropertyValueData>({});
+	const [result, setResult] = useState<PropertyValueResultType | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [errorMessage, setErrorMessage] = useState('');
 
-	// Capture URL parameters (GCLID, UTM, etc.) on mount.
 	useEffect(() => {
 		captureUrlParams();
 	}, []);
 
-	// Load module config on mount.
 	useEffect(() => {
-		api.get<ModuleConfig>('modules/rent-calculator/config')
+		api.get<ModuleConfig>('modules/property-value/config')
 			.then((cfg) => {
 				setConfig(cfg);
 
-				// Pre-select city if provided via shortcode.
 				if (presetCity && cfg.cities.length > 0) {
 					const city = cfg.cities.find((c) => c.slug === presetCity);
 					if (city) {
@@ -96,7 +98,7 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 				}
 
 				setPhase('wizard');
-				trackEvent('asset_view', 'rent-calculator');
+				trackEvent('asset_view', 'property-value');
 			})
 			.catch(() => {
 				setErrorMessage(__('Konfiguration konnte nicht geladen werden.', 'resa'));
@@ -104,39 +106,76 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 			});
 	}, [presetCity]);
 
-	// Build steps dynamically (skip city step if preset).
 	const steps: StepConfig[] = useMemo(() => {
 		if (!config) return [];
 
 		const cities = config.cities;
 		const features = config.features;
+		const subtypesHouse = config.subtypes_house;
+		const subtypesApartment = config.subtypes_apartment;
 
 		const allSteps: StepConfig[] = [
 			{
 				id: 'property_type',
 				label: __('Immobilienart', 'resa'),
 				component: PropertyTypeStep,
-				schema: propertyTypeSchema,
+				schema: getPropertyTypeSchema(),
+			},
+			{
+				id: 'property_subtype',
+				label: __('Unterart', 'resa'),
+				component: (props) => (
+					<PropertySubtypeStep
+						{...props}
+						subtypesHouse={subtypesHouse}
+						subtypesApartment={subtypesApartment}
+					/>
+				),
+				schema: getPropertySubtypeSchema(),
 			},
 			{
 				id: 'details',
-				label: __('Grunddaten', 'resa'),
+				label: __('Fläche & Zimmer', 'resa'),
 				component: PropertyDetailsStep,
-				schema: propertyDetailsSchema,
+				schema: getPropertyDetailsSchema(),
+			},
+			{
+				id: 'year_built',
+				label: __('Baujahr', 'resa'),
+				component: YearBuiltStep,
+				schema: getYearBuiltSchema(),
+			},
+			{
+				id: 'condition',
+				label: __('Zustand & Nutzung', 'resa'),
+				component: ConditionStep,
+				schema: getConditionWithRentalSchema(),
+			},
+			{
+				id: 'quality',
+				label: __('Ausstattungsqualität', 'resa'),
+				component: QualityStep,
+				schema: getQualitySchema(),
+			},
+			{
+				id: 'features',
+				label: __('Extras', 'resa'),
+				component: (props) => <FeaturesStep {...props} featureOptions={features} />,
+				schema: getFeaturesSchema(),
 			},
 		];
 
-		// Only include city step if no city preset and multiple cities available.
+		// City step — skip if preset.
 		if (!presetCity || !wizardData.city_id) {
 			allSteps.push({
 				id: 'city',
 				label: __('Standort', 'resa'),
 				component: (props) => <CityStep {...props} cities={cities} />,
-				schema: citySchema,
+				schema: getCitySchema(),
 			});
 		}
 
-		// Address step — bounded to selected city.
+		// Address step.
 		allSteps.push({
 			id: 'address',
 			label: __('Adresse', 'resa'),
@@ -145,7 +184,7 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 				updateData: (data: Partial<WizardData>) => void;
 				errors: Record<string, string>;
 			}) => {
-				const formData = props.data as RentCalculatorData;
+				const formData = props.data as PropertyValueData;
 				const cityBounds =
 					formData.city_name && formData.city_lat && formData.city_lng
 						? {
@@ -158,73 +197,59 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 							: undefined;
 				return <AddressStep {...props} cityBounds={cityBounds} />;
 			},
-			schema: addressSchema,
+			schema: getAddressSchema(),
 		});
 
-		allSteps.push(
-			{
-				id: 'condition',
-				label: __('Zustand', 'resa'),
-				component: ConditionStep,
-				schema: conditionSchema,
-			},
-			{
-				id: 'location_rating',
-				label: __('Lage', 'resa'),
-				component: (props) => <LocationRatingStep {...props} />,
-				schema: locationRatingSchema,
-			},
-			{
-				id: 'features',
-				label: __('Ausstattung', 'resa'),
-				component: (props) => <FeaturesStep {...props} featureOptions={features} />,
-				schema: featuresSchema,
-			},
-		);
+		allSteps.push({
+			id: 'location_rating',
+			label: __('Lage', 'resa'),
+			component: (props) => <LocationRatingStep {...props} />,
+			schema: getLocationRatingSchema(),
+		});
 
 		return allSteps;
 	}, [config, presetCity, wizardData.city_id]);
 
-	// Handle wizard completion → calculate + create partial lead.
 	const handleWizardComplete = useCallback(async (data: WizardData) => {
-		if (!isRentCalculatorData(data)) {
+		if (!isPropertyValueData(data)) {
 			setErrorMessage(__('Ungültige Formulardaten', 'resa'));
 			setPhase('error');
 			return;
 		}
-		// Cast to RentCalculatorData after validation (Zod schemas validate the actual values).
-		const formData = data as RentCalculatorData;
+		const formData = data as PropertyValueData;
 		setWizardData(formData);
 		setPhase('calculating');
 
-		trackEvent('asset_start', 'rent-calculator', {
+		trackEvent('asset_start', 'property-value', {
 			location_id: formData.city_id,
 		});
 
 		try {
-			// Calculate.
-			const calcResult = await api.post<RentCalculationResult>(
-				'modules/rent-calculator/calculate',
+			const calcResult = await api.post<PropertyValueResultType>(
+				'modules/property-value/calculate',
 				{
 					city_id: formData.city_id,
 					size: formData.size,
 					property_type: formData.property_type,
+					property_subtype: formData.property_subtype,
 					condition: formData.condition,
+					quality: formData.quality,
+					rental_status: formData.rental_status ?? 'owner_occupied',
 					location_rating: formData.location_rating,
 					features: formData.features ?? [],
 					year_built: formData.year_built,
+					plot_size: formData.plot_size,
 					rooms: formData.rooms,
 				},
 			);
 			setResult(calcResult);
 
-			// Create partial lead (non-blocking — must not prevent user from seeing the form).
 			try {
 				const sessionId = getSessionId();
 				const urlParams = getCapturedParams();
 				await api.postLead('leads/partial', {
 					sessionId,
-					assetType: 'rent-calculator',
+					assetType: 'property-value',
 					locationId: formData.city_id ?? 0,
 					inputs: formData,
 					result: calcResult,
@@ -240,11 +265,10 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 					},
 				});
 			} catch {
-				// Partial lead is best-effort — log but don't block the flow.
 				console.warn('Partial lead creation failed');
 			}
 
-			trackEvent('form_view', 'rent-calculator', {
+			trackEvent('form_view', 'property-value', {
 				location_id: formData.city_id,
 			});
 
@@ -257,7 +281,6 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 		}
 	}, []);
 
-	// Handle lead form submission.
 	const handleLeadSubmit = useCallback(
 		async (formData: Record<string, unknown>) => {
 			setIsSubmitting(true);
@@ -269,17 +292,15 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 					...formData,
 				});
 
-				trackEvent('form_submit', 'rent-calculator', {
+				trackEvent('form_submit', 'property-value', {
 					location_id: wizardData.city_id,
 				});
 
-				trackEvent('result_view', 'rent-calculator', {
+				trackEvent('result_view', 'property-value', {
 					location_id: wizardData.city_id,
 				});
 
-				// Reset session so next wizard run gets a fresh session ID.
 				resetSession();
-
 				setPhase('result');
 			} catch {
 				setErrorMessage(__('Formular konnte nicht gesendet werden.', 'resa'));
@@ -291,7 +312,6 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 		[wizardData.city_id],
 	);
 
-	// Render content based on phase.
 	const renderContent = () => {
 		if (phase === 'loading') {
 			return (
@@ -336,7 +356,7 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 				<div className="resa-flex resa-flex-col resa-items-center resa-justify-center resa-py-12 resa-gap-3">
 					<Spinner className="resa-size-8" />
 					<p className="resa-text-sm resa-text-muted-foreground">
-						{__('Mietpreis wird berechnet...', 'resa')}
+						{__('Immobilienwert wird berechnet...', 'resa')}
 					</p>
 				</div>
 			);
@@ -347,7 +367,7 @@ export function RentCalculatorWidget({ presetCity }: RentCalculatorWidgetProps) 
 		}
 
 		if (phase === 'result' && result) {
-			return <RentResult result={result} inputs={wizardData} />;
+			return <PropertyValueResult result={result} inputs={wizardData} />;
 		}
 
 		return null;

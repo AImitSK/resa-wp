@@ -19,6 +19,7 @@ import {
 	CheckCircle2,
 } from 'lucide-react';
 import { useModules, useToggleModule } from '../hooks/useModules';
+import { useIsPremium } from '../hooks/useFeatures';
 import type { ModuleSummary } from '../types';
 import { AdminPageLayout } from '../components/AdminPageLayout';
 
@@ -68,6 +69,7 @@ function GhostButton({ children, onClick }: { children: React.ReactNode; onClick
 /** Module icons by slug */
 const MODULE_ICONS: Record<string, React.ElementType> = {
 	'rent-calculator': Calculator,
+	'property-value': Calculator,
 	'purchase-costs': BarChart3,
 	'budget-calculator': Calculator,
 	'roi-calculator': BarChart3,
@@ -83,6 +85,7 @@ export function ModuleStore() {
 
 	const { data: modules, isLoading, error } = useModules();
 	const toggleMutation = useToggleModule();
+	const isPremiumUser = useIsPremium();
 
 	// Sort: active modules first, then by name
 	const filteredModules = useMemo(() => {
@@ -316,6 +319,7 @@ export function ModuleStore() {
 							onToggle={handleToggle}
 							onOpenSettings={() => openModuleSettings(module.slug)}
 							isToggling={toggleMutation.isPending}
+							isPremiumUser={isPremiumUser}
 						/>
 					))}
 				</div>
@@ -329,13 +333,16 @@ function ModuleCard({
 	onToggle,
 	onOpenSettings,
 	isToggling,
+	isPremiumUser,
 }: {
 	module: ModuleSummary;
 	onToggle: (slug: string) => void;
 	onOpenSettings: () => void;
 	isToggling: boolean;
+	isPremiumUser: boolean;
 }) {
-	const isPro = module.flag === 'pro' && !module.active;
+	// Show lock only for pro modules when user is NOT premium.
+	const isLocked = module.flag === 'pro' && !isPremiumUser;
 	const IconComponent = MODULE_ICONS[module.slug] ?? Zap;
 
 	return (
@@ -395,8 +402,10 @@ function ModuleCard({
 									style={{
 										fontSize: '10px',
 										padding: '0 8px 2px 8px',
-										backgroundColor: '#1e303a',
-										color: module.flag === 'free' ? '#ffffff' : '#a9e43f',
+										backgroundColor:
+											module.flag === 'free' ? '#1e303a' : '#a9e43f',
+										color: module.flag === 'free' ? '#ffffff' : '#1e303a',
+										border: 'none',
 									}}
 								>
 									{module.flag === 'free'
@@ -419,7 +428,7 @@ function ModuleCard({
 			</CardContent>
 
 			<CardFooter style={{ paddingTop: 0, display: 'flex', justifyContent: 'space-between' }}>
-				{isPro ? (
+				{isLocked ? (
 					<Button variant="outline" size="sm" disabled style={{ gap: '4px' }}>
 						<Lock style={{ width: '12px', height: '12px' }} />
 						{__('Premium erforderlich', 'resa')}
