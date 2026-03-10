@@ -21,7 +21,13 @@ export { webhookSchema, type WebhookFormData } from './webhook';
 export { trackingSettingsSchema, type TrackingSettingsFormData } from './tracking';
 export { propstackSettingsSchema, type PropstackSettingsFormData } from './propstack';
 export { locationSchema, type LocationFormData } from './location';
-export { factorSchema, type FactorFormData, defaultFactors } from './factor';
+export {
+	factorSchema,
+	type FactorFormData,
+	defaultFactors,
+	defaultPropertyValueFactors,
+	defaultFactorsByModule,
+} from './factor';
 export { pdfTemplateSchema, type PdfTemplateFormData } from './pdfTemplate';
 export {
 	agentDataSchema,

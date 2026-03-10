@@ -6,10 +6,12 @@
 
 import { z } from 'zod';
 import { __ } from '@wordpress/i18n';
-import { factorSchema } from './factor';
 
 /**
  * Schema für Module Setup Settings.
+ *
+ * factors ist ein flexibles Record, da jedes Modul eigene Faktorstrukturen hat
+ * (z.B. Mietpreis: base_price 0-50 EUR/m², Immobilienwert: base_price 1000-10000 EUR/m²).
  */
 export const moduleSetupSchema = z.object({
 	/** Einrichtungsmodus: pauschal (Preset) oder individuell (manuelle Faktoren) */
@@ -18,8 +20,8 @@ export const moduleSetupSchema = z.object({
 	/** Ausgewähltes Region-Preset (nur bei setup_mode='pauschal' relevant) */
 	region_preset: z.string().min(1, __('Bitte einen Regionstyp wählen', 'resa')),
 
-	/** Berechnungsfaktoren (bei individuell manuell bearbeitet, bei pauschal aus Preset) */
-	factors: factorSchema.partial(),
+	/** Berechnungsfaktoren — flexibles Schema, modulspezifisch validiert */
+	factors: z.record(z.string(), z.unknown()),
 });
 
 /**

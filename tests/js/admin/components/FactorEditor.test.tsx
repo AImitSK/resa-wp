@@ -53,7 +53,7 @@ describe('FactorEditor', () => {
 		it('zeigt Basiswert-Felder', () => {
 			render(<FactorEditorWrapper />);
 			expect(screen.getByText(/Basismietpreis/)).toBeInTheDocument();
-			expect(screen.getByText(/Grossendegression/)).toBeInTheDocument();
+			expect(screen.getByText(/ßendegression/)).toBeInTheDocument();
 		});
 
 		it('zeigt alle 5 Faktor-Gruppen', () => {
@@ -61,7 +61,7 @@ describe('FactorEditor', () => {
 			expect(screen.getByText('Lage-Faktoren')).toBeInTheDocument();
 			expect(screen.getByText('Zustands-Faktoren')).toBeInTheDocument();
 			expect(screen.getByText('Immobilientyp-Faktoren')).toBeInTheDocument();
-			expect(screen.getByText(/Ausstattungs-Zuschlage/)).toBeInTheDocument();
+			expect(screen.getByText(/Ausstattungs-Zuschläge/)).toBeInTheDocument();
 			expect(screen.getByText('Alter-Faktoren')).toBeInTheDocument();
 		});
 
@@ -81,7 +81,7 @@ describe('FactorEditor', () => {
 			expect(neubauItems.length).toBeGreaterThanOrEqual(2);
 			expect(screen.getByText(/Renoviert$/)).toBeInTheDocument();
 			expect(screen.getByText(/Guter Zustand/)).toBeInTheDocument();
-			expect(screen.getByText(/Renovierungsbedurftig/)).toBeInTheDocument();
+			expect(screen.getByText(/Renovierungsbedürftig/)).toBeInTheDocument();
 		});
 
 		it('zeigt Immobilientyp-Items', () => {

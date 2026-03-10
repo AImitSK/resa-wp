@@ -76,7 +76,7 @@ export const factorSchema = z.object({
 export type FactorFormData = z.infer<typeof factorSchema>;
 
 /**
- * Default-Werte für eine neue Faktorenstruktur.
+ * Default-Werte für den Mietpreis-Kalkulator.
  */
 export const defaultFactors: FactorFormData = {
 	base_price: 12.5,
@@ -120,4 +120,61 @@ export const defaultFactors: FactorFormData = {
 		'2000_2014': 1.0,
 		'2015_plus': 1.1,
 	},
+};
+
+/**
+ * Default-Werte für den Immobilienwert-Kalkulator (basierend auf Preset "Mittelstadt").
+ */
+export const defaultPropertyValueFactors: Record<string, unknown> = {
+	base_price: 3200,
+	plot_price_per_sqm: 180,
+	size_degression: 0.18,
+	type_multipliers: { house: 1.0, apartment: 0.95 },
+	subtype_multipliers: {
+		efh: 1.0,
+		rh: 0.9,
+		dhh: 0.95,
+		zfh: 1.05,
+		mfh: 1.1,
+		eg: 0.95,
+		etage: 1.0,
+		dg: 0.98,
+		maisonette: 1.05,
+		penthouse: 1.2,
+	},
+	condition_multipliers: { new: 1.25, renovated: 1.1, good: 1.0, needs_renovation: 0.75 },
+	quality_multipliers: { premium: 1.25, normal: 1.0, basic: 0.8 },
+	rental_discount: { owner_occupied: 1.0, rented: 0.92, vacant: 1.0 },
+	location_ratings: { '1': 0.8, '2': 0.92, '3': 1.0, '4': 1.12, '5': 1.3 },
+	age_multipliers: {
+		before_1946: 1.05,
+		'1946_1959': 0.9,
+		'1960_1979': 0.85,
+		'1980_1989': 0.92,
+		'1990_1999': 1.0,
+		'2000_2014': 1.08,
+		'2015_plus': 1.15,
+	},
+	feature_premiums: {
+		balcony: 15,
+		terrace: 25,
+		garden: 30,
+		elevator: 10,
+		parking: 12,
+		garage: 20,
+		cellar: 8,
+		fitted_kitchen: 15,
+		floor_heating: 18,
+		guest_toilet: 8,
+		barrier_free: 10,
+		solar: 20,
+	},
+};
+
+/**
+ * Default-Faktoren nach Modul-Slug.
+ */
+export const defaultFactorsByModule: Record<string, Record<string, unknown>> = {
+	'rent-calculator': defaultFactors as unknown as Record<string, unknown>,
+	'property-value': defaultPropertyValueFactors,
 };

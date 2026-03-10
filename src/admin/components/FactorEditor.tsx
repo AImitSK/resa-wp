@@ -174,27 +174,55 @@ function FactorGroup<T extends FormDataWithFactors>({
 
 interface FactorEditorProps<T extends FormDataWithFactors> {
 	form: UseFormReturn<T>;
+	/** Module slug to render module-specific factor groups. */
+	moduleSlug?: string;
 }
 
 /**
- * Full factor editor with all factor groups for rent calculator.
+ * Full factor editor with all factor groups.
+ * Renders module-specific fields based on moduleSlug.
  * Integrates with React Hook Form from parent component.
  */
-export function FactorEditor<T extends FormDataWithFactors>({ form }: FactorEditorProps<T>) {
+export function FactorEditor<T extends FormDataWithFactors>({
+	form,
+	moduleSlug,
+}: FactorEditorProps<T>) {
 	const {
 		setValue,
 		watch,
 		formState: { errors },
 	} = form;
 
+	const isPropertyValue = moduleSlug === 'property-value';
+
 	// Watch base values
 	const basePrice = (watch('factors.base_price' as Path<T>) as number | undefined) ?? 0;
 	const sizeDegression = (watch('factors.size_degression' as Path<T>) as number | undefined) ?? 0;
+	const plotPrice = isPropertyValue
+		? ((watch('factors.plot_price_per_sqm' as Path<T>) as number | undefined) ?? 0)
+		: 0;
 
 	// Get errors for base fields
 	const factorsErrors = errors?.factors as Record<string, { message?: string }> | undefined;
 	const basePriceError = factorsErrors?.base_price;
 	const sizeDegresssionError = factorsErrors?.size_degression;
+	const plotPriceError = factorsErrors?.plot_price_per_sqm;
+
+	// Feature items — property-value includes solar
+	const featureItems: FactorGroupItem[] = [
+		{ key: 'balcony', label: __('Balkon', 'resa') },
+		{ key: 'terrace', label: __('Terrasse', 'resa') },
+		{ key: 'garden', label: __('Garten', 'resa') },
+		{ key: 'elevator', label: __('Aufzug', 'resa') },
+		{ key: 'parking', label: __('Stellplatz', 'resa') },
+		{ key: 'garage', label: __('Garage', 'resa') },
+		{ key: 'cellar', label: __('Keller', 'resa') },
+		{ key: 'fitted_kitchen', label: __('Einbaukuche', 'resa') },
+		{ key: 'floor_heating', label: __('Fussbodenheizung', 'resa') },
+		{ key: 'guest_toilet', label: __('Gaste-WC', 'resa') },
+		{ key: 'barrier_free', label: __('Barrierefrei', 'resa') },
+		...(isPropertyValue ? [{ key: 'solar', label: __('Solaranlage', 'resa') }] : []),
+	];
 
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -202,15 +230,19 @@ export function FactorEditor<T extends FormDataWithFactors>({ form }: FactorEdit
 			<div
 				style={{
 					display: 'grid',
-					gridTemplateColumns: 'repeat(2, 1fr)',
+					gridTemplateColumns: isPropertyValue ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)',
 					gap: '16px',
 				}}
 			>
 				<div>
-					<label style={labelStyles}>{__('Basismietpreis/m2 (EUR)', 'resa')}</label>
+					<label style={labelStyles}>
+						{isPropertyValue
+							? __('Basis-Kaufpreis/m² (EUR)', 'resa')
+							: __('Basismietpreis/m² (EUR)', 'resa')}
+					</label>
 					<input
 						type="number"
-						step="0.01"
+						step={isPropertyValue ? '10' : '0.01'}
 						value={basePrice}
 						onChange={(e) => {
 							const value = parseFloat(e.target.value) || 0;
@@ -227,8 +259,31 @@ export function FactorEditor<T extends FormDataWithFactors>({ form }: FactorEdit
 					/>
 					{basePriceError && <p style={errorStyles}>{basePriceError.message}</p>}
 				</div>
+				{isPropertyValue && (
+					<div>
+						<label style={labelStyles}>{__('Grundstückspreis/m² (EUR)', 'resa')}</label>
+						<input
+							type="number"
+							step="1"
+							value={plotPrice}
+							onChange={(e) => {
+								const value = parseFloat(e.target.value) || 0;
+								setValue(
+									'factors.plot_price_per_sqm' as Path<T>,
+									value as PathValue<T, Path<T>>,
+									{ shouldDirty: true, shouldValidate: true },
+								);
+							}}
+							style={{
+								...inputFullStyles,
+								borderColor: plotPriceError ? '#ef4444' : undefined,
+							}}
+						/>
+						{plotPriceError && <p style={errorStyles}>{plotPriceError.message}</p>}
+					</div>
+				)}
 				<div>
-					<label style={labelStyles}>{__('Grossendegression', 'resa')}</label>
+					<label style={labelStyles}>{__('Größendegression', 'resa')}</label>
 					<input
 						type="number"
 						step="0.01"
@@ -274,7 +329,7 @@ export function FactorEditor<T extends FormDataWithFactors>({ form }: FactorEdit
 					{ key: 'new', label: __('Neubau/Kernsaniert', 'resa') },
 					{ key: 'renovated', label: __('Renoviert', 'resa') },
 					{ key: 'good', label: __('Guter Zustand', 'resa') },
-					{ key: 'needs_renovation', label: __('Renovierungsbedurftig', 'resa') },
+					{ key: 'needs_renovation', label: __('Renovierungsbedürftig', 'resa') },
 				]}
 				groupName="condition_multipliers"
 				form={form}
@@ -293,22 +348,66 @@ export function FactorEditor<T extends FormDataWithFactors>({ form }: FactorEdit
 				errors={errors}
 			/>
 
+			{/* Property-value: Subtype multipliers */}
+			{isPropertyValue && (
+				<FactorGroup
+					title={__('Unterart-Faktoren', 'resa')}
+					items={[
+						{ key: 'efh', label: __('Einfamilienhaus', 'resa') },
+						{ key: 'rh', label: __('Reihenhaus', 'resa') },
+						{ key: 'dhh', label: __('Doppelhaushälfte', 'resa') },
+						{ key: 'zfh', label: __('Zweifamilienhaus', 'resa') },
+						{ key: 'mfh', label: __('Mehrfamilienhaus', 'resa') },
+						{ key: 'eg', label: __('Erdgeschosswohnung', 'resa') },
+						{ key: 'etage', label: __('Etagenwohnung', 'resa') },
+						{ key: 'dg', label: __('Dachgeschosswohnung', 'resa') },
+						{ key: 'maisonette', label: __('Maisonette', 'resa') },
+						{ key: 'penthouse', label: __('Penthouse', 'resa') },
+					]}
+					groupName="subtype_multipliers"
+					form={form}
+					errors={errors}
+				/>
+			)}
+
+			{/* Property-value: Quality multipliers */}
+			{isPropertyValue && (
+				<FactorGroup
+					title={__('Ausstattungsqualität-Faktoren', 'resa')}
+					items={[
+						{ key: 'premium', label: __('Gehoben', 'resa') },
+						{ key: 'normal', label: __('Normal', 'resa') },
+						{ key: 'basic', label: __('Einfach', 'resa') },
+					]}
+					groupName="quality_multipliers"
+					form={form}
+					errors={errors}
+				/>
+			)}
+
+			{/* Property-value: Rental discount */}
+			{isPropertyValue && (
+				<FactorGroup
+					title={__('Vermietungsstatus-Faktoren', 'resa')}
+					items={[
+						{ key: 'owner_occupied', label: __('Eigennutzung', 'resa') },
+						{ key: 'rented', label: __('Vermietet', 'resa') },
+						{ key: 'vacant', label: __('Leerstand', 'resa') },
+					]}
+					groupName="rental_discount"
+					form={form}
+					errors={errors}
+				/>
+			)}
+
 			{/* Feature premiums */}
 			<FactorGroup
-				title={__('Ausstattungs-Zuschlage (EUR/m2)', 'resa')}
-				items={[
-					{ key: 'balcony', label: __('Balkon', 'resa') },
-					{ key: 'terrace', label: __('Terrasse', 'resa') },
-					{ key: 'garden', label: __('Garten', 'resa') },
-					{ key: 'elevator', label: __('Aufzug', 'resa') },
-					{ key: 'parking', label: __('Stellplatz', 'resa') },
-					{ key: 'garage', label: __('Garage', 'resa') },
-					{ key: 'cellar', label: __('Keller', 'resa') },
-					{ key: 'fitted_kitchen', label: __('Einbaukuche', 'resa') },
-					{ key: 'floor_heating', label: __('Fussbodenheizung', 'resa') },
-					{ key: 'guest_toilet', label: __('Gaste-WC', 'resa') },
-					{ key: 'barrier_free', label: __('Barrierefrei', 'resa') },
-				]}
+				title={
+					isPropertyValue
+						? __('Ausstattungs-Zuschläge (EUR)', 'resa')
+						: __('Ausstattungs-Zuschläge (EUR/m²)', 'resa')
+				}
+				items={featureItems}
 				groupName="feature_premiums"
 				form={form}
 				errors={errors}

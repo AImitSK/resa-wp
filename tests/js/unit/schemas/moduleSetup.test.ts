@@ -172,35 +172,40 @@ describe('moduleSetupSchema', () => {
 			expect(result.success).toBe(true);
 		});
 
-		it('validiert Werte auch wenn partial', () => {
+		it('akzeptiert hohe base_price fuer Immobilienwert-Module', () => {
 			const data = {
 				...validData,
-				factors: { base_price: 100 }, // ueber Maximum von 50
+				factors: { base_price: 3200 },
 			};
 			const result = moduleSetupSchema.safeParse(data);
-			expect(result.success).toBe(false);
+			expect(result.success).toBe(true);
 		});
 
-		it('validiert Multiplikatoren auch wenn partial', () => {
+		it('akzeptiert property-value spezifische Felder', () => {
 			const data = {
 				...validData,
 				factors: {
-					location_ratings: { '1': 5.0 }, // ueber Maximum von 3.0
+					base_price: 3200,
+					plot_price_per_sqm: 180,
+					subtype_multipliers: { efh: 1.0, rh: 0.9 },
+					quality_multipliers: { premium: 1.25 },
+					rental_discount: { owner_occupied: 1.0, rented: 0.92 },
 				},
 			};
 			const result = moduleSetupSchema.safeParse(data);
-			expect(result.success).toBe(false);
+			expect(result.success).toBe(true);
 		});
 
-		it('validiert Premiums auch wenn partial', () => {
+		it('akzeptiert beliebige Multiplikator-Werte (modulspezifisch)', () => {
 			const data = {
 				...validData,
 				factors: {
-					feature_premiums: { balcony: 15 }, // ueber Maximum von 10
+					location_ratings: { '1': 5.0 },
+					feature_premiums: { balcony: 25 },
 				},
 			};
 			const result = moduleSetupSchema.safeParse(data);
-			expect(result.success).toBe(false);
+			expect(result.success).toBe(true);
 		});
 	});
 

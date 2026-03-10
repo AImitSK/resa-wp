@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { FactorEditor } from '../FactorEditor';
 import { moduleSetupSchema, type ModuleSetupFormData } from '../../schemas/moduleSetup';
-import { defaultFactors } from '../../schemas/factor';
+import { defaultFactorsByModule, defaultFactors } from '../../schemas/factor';
 import type {
 	ModuleSettingsData,
 	RegionPreset,
@@ -42,6 +42,7 @@ export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps)
 	const [saveHover, setSaveHover] = useState(false);
 	const [previewHover, setPreviewHover] = useState(false);
 	const [resetHover, setResetHover] = useState(false);
+	const moduleSlug = settings.module_slug;
 
 	const defaults: ModuleSetupFormData = {
 		setup_mode: settings.setup_mode ?? 'pauschal',
@@ -335,7 +336,10 @@ export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps)
 							variant="outline"
 							size="sm"
 							onClick={() => {
-								setValue('factors', { ...defaultFactors }, { shouldDirty: true });
+								const moduleDefaults =
+									defaultFactorsByModule[moduleSlug] ??
+									(defaultFactors as unknown as Record<string, unknown>);
+								setValue('factors', { ...moduleDefaults }, { shouldDirty: true });
 							}}
 							onMouseEnter={() => setResetHover(true)}
 							onMouseLeave={() => setResetHover(false)}
@@ -353,7 +357,7 @@ export function SetupTab({ settings, presets, onSave, isSaving }: SetupTabProps)
 							{__('Auf Standardwerte zurücksetzen', 'resa')}
 						</Button>
 					</div>
-					<FactorEditor form={form} />
+					<FactorEditor form={form} moduleSlug={moduleSlug} />
 				</div>
 			)}
 
