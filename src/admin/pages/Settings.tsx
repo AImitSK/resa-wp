@@ -916,75 +916,74 @@ function AgentDataForm({
 											</div>
 										)}
 									/>
-								</div>
-
-								{/* Email Header Background */}
-								<Controller
-									name="branding.emailHeaderBg"
-									control={form.control}
-									render={({ field }) => (
-										<div
-											style={{
-												display: 'flex',
-												flexDirection: 'column',
-												gap: '6px',
-											}}
-										>
-											<Label htmlFor="email-header-bg">
-												{__('E-Mail Header Hintergrund', 'resa')}
-											</Label>
+									<Controller
+										name="branding.emailHeaderBg"
+										control={form.control}
+										render={({ field }) => (
 											<div
 												style={{
 													display: 'flex',
-													alignItems: 'center',
-													gap: '8px',
+													flexDirection: 'column',
+													gap: '6px',
 												}}
 											>
-												<input
-													id="email-header-bg"
-													type="color"
-													value={field.value}
-													onChange={field.onChange}
+												<Label htmlFor="email-header-bg">
+													{__('E-Mail Header Hintergrund', 'resa')}
+												</Label>
+												<div
 													style={{
-														width: '36px',
-														height: '36px',
-														padding: 0,
-														border: '1px solid hsl(214.3 31.8% 91.4%)',
-														borderRadius: '6px',
-														cursor: 'pointer',
-														backgroundColor: 'transparent',
-													}}
-												/>
-												<Input
-													type="text"
-													value={field.value}
-													onChange={field.onChange}
-													style={{
-														...inputStyles,
-														width: '90px',
-														fontFamily: 'monospace',
-														fontSize: '12px',
-														borderColor: errors.branding?.emailHeaderBg
-															? '#ef4444'
-															: undefined,
-													}}
-													maxLength={7}
-												/>
-											</div>
-											{errors.branding?.emailHeaderBg && (
-												<p
-													style={{
-														fontSize: '13px',
-														color: '#ef4444',
-														margin: 0,
+														display: 'flex',
+														alignItems: 'center',
+														gap: '8px',
 													}}
 												>
-													{errors.branding.emailHeaderBg.message}
-												</p>
-											)}
-										</div>
-									)}
-								/>
+													<input
+														id="email-header-bg"
+														type="color"
+														value={field.value}
+														onChange={field.onChange}
+														style={{
+															width: '36px',
+															height: '36px',
+															padding: 0,
+															border: '1px solid hsl(214.3 31.8% 91.4%)',
+															borderRadius: '6px',
+															cursor: 'pointer',
+															backgroundColor: 'transparent',
+														}}
+													/>
+													<Input
+														type="text"
+														value={field.value}
+														onChange={field.onChange}
+														style={{
+															...inputStyles,
+															width: '90px',
+															fontFamily: 'monospace',
+															fontSize: '12px',
+															borderColor: errors.branding
+																?.emailHeaderBg
+																? '#ef4444'
+																: undefined,
+														}}
+														maxLength={7}
+													/>
+												</div>
+												{errors.branding?.emailHeaderBg && (
+													<p
+														style={{
+															fontSize: '13px',
+															color: '#ef4444',
+															margin: 0,
+														}}
+													>
+														{errors.branding.emailHeaderBg.message}
+													</p>
+												)}
+											</div>
+										)}
+									/>
+								</div>
 							</div>
 						</div>
 
