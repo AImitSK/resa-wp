@@ -8,7 +8,8 @@ import {
 	getPropertySubtypeSchema,
 	getPropertyDetailsSchema,
 	getYearBuiltSchema,
-	getConditionWithRentalSchema,
+	getConditionSchema,
+	getRentalStatusSchema,
 	getQualitySchema,
 	getCitySchema,
 	getLocationRatingSchema,
@@ -121,14 +122,13 @@ describe('getYearBuiltSchema', () => {
 	});
 });
 
-describe('getConditionWithRentalSchema', () => {
-	const schema = getConditionWithRentalSchema();
+describe('getConditionSchema', () => {
+	const schema = getConditionSchema();
 
 	it.each(['new', 'renovated', 'good', 'needs_renovation'])(
 		'accepts condition %s',
 		(condition) => {
-			const result = schema.parse({ condition });
-			expect(result.condition).toBe(condition);
+			expect(schema.parse({ condition })).toEqual({ condition });
 		},
 	);
 
@@ -136,18 +136,26 @@ describe('getConditionWithRentalSchema', () => {
 		expect(() => schema.parse({ condition: 'destroyed' })).toThrow();
 	});
 
-	it('rental_status defaults to owner_occupied', () => {
-		const result = schema.parse({ condition: 'good' });
+	it('rejects missing condition', () => {
+		expect(() => schema.parse({})).toThrow();
+	});
+});
+
+describe('getRentalStatusSchema', () => {
+	const schema = getRentalStatusSchema();
+
+	it('defaults to owner_occupied', () => {
+		const result = schema.parse({});
 		expect(result.rental_status).toBe('owner_occupied');
 	});
 
 	it.each(['owner_occupied', 'rented', 'vacant'])('accepts rental_status %s', (rental_status) => {
-		const result = schema.parse({ condition: 'good', rental_status });
+		const result = schema.parse({ rental_status });
 		expect(result.rental_status).toBe(rental_status);
 	});
 
 	it('rejects invalid rental_status', () => {
-		expect(() => schema.parse({ condition: 'good', rental_status: 'unknown' })).toThrow();
+		expect(() => schema.parse({ rental_status: 'unknown' })).toThrow();
 	});
 });
 

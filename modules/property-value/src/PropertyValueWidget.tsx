@@ -30,6 +30,7 @@ import { PropertySubtypeStep } from './steps/PropertySubtypeStep';
 import { PropertyDetailsStep } from './steps/PropertyDetailsStep';
 import { YearBuiltStep } from './steps/YearBuiltStep';
 import { ConditionStep } from './steps/ConditionStep';
+import { RentalStatusStep } from './steps/RentalStatusStep';
 import { QualityStep } from './steps/QualityStep';
 import { FeaturesStep } from './steps/FeaturesStep';
 import { CityStep } from '@frontend/components/shared/steps/CityStep';
@@ -42,7 +43,8 @@ import {
 	getPropertySubtypeSchema,
 	getPropertyDetailsSchema,
 	getYearBuiltSchema,
-	getConditionWithRentalSchema,
+	getConditionSchema,
+	getRentalStatusSchema,
 	getQualitySchema,
 	getCitySchema,
 	getAddressSchema,
@@ -147,9 +149,15 @@ export function PropertyValueWidget({ presetCity }: PropertyValueWidgetProps) {
 			},
 			{
 				id: 'condition',
-				label: __('Zustand & Nutzung', 'resa'),
+				label: __('Zustand', 'resa'),
 				component: ConditionStep,
-				schema: getConditionWithRentalSchema(),
+				schema: getConditionSchema(),
+			},
+			{
+				id: 'rental_status',
+				label: __('Nutzung', 'resa'),
+				component: RentalStatusStep,
+				schema: getRentalStatusSchema(),
 			},
 			{
 				id: 'quality',

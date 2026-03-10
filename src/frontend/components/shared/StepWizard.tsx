@@ -114,12 +114,6 @@ export function StepWizard({
 
 	return (
 		<div className="resa-w-full">
-			<ProgressBar
-				steps={steps.length}
-				current={currentIndex}
-				labels={steps.map((s) => s.label)}
-			/>
-
 			<div className="resa-relative resa-overflow-hidden resa-min-h-[320px] resa-px-2 resa-py-4">
 				<AnimatePresence mode="wait" custom={direction}>
 					<motion.div
@@ -136,16 +130,20 @@ export function StepWizard({
 				</AnimatePresence>
 			</div>
 
-			<div className="resa-flex resa-justify-between resa-mt-6">
-				<Button type="button" variant="ghost" onClick={goBack} disabled={isFirst}>
-					<ChevronLeft className="resa-h-4 resa-w-4" />
-					{back}
-				</Button>
+			<div className="resa-rounded-b-lg resa-bg-muted/50 resa-px-4 resa-pt-4 resa-pb-3 -resa-mx-6 -resa-mb-6">
+				<div className="resa-flex resa-justify-between">
+					<Button type="button" variant="ghost" onClick={goBack} disabled={isFirst}>
+						<ChevronLeft className="resa-h-4 resa-w-4" />
+						{back}
+					</Button>
 
-				<Button type="button" onClick={goNext}>
-					{isLast ? complete : next}
-					<ChevronRight className="resa-h-4 resa-w-4" />
-				</Button>
+					<Button type="button" onClick={goNext}>
+						{isLast ? complete : next}
+						<ChevronRight className="resa-h-4 resa-w-4" />
+					</Button>
+				</div>
+
+				<ProgressBar steps={steps.length} current={currentIndex} />
 			</div>
 		</div>
 	);

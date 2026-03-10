@@ -51,11 +51,15 @@ export const getYearBuiltSchema = () =>
 			.max(new Date().getFullYear() + 5, __('Ungültiges Baujahr.', 'resa')),
 	});
 
-export const getConditionWithRentalSchema = () =>
+export const getConditionSchema = () =>
 	z.object({
 		condition: z.enum(['new', 'renovated', 'good', 'needs_renovation'], {
 			message: __('Bitte wählen Sie den Zustand.', 'resa'),
 		}),
+	});
+
+export const getRentalStatusSchema = () =>
+	z.object({
 		rental_status: z.enum(['owner_occupied', 'rented', 'vacant']).default('owner_occupied'),
 	});
 

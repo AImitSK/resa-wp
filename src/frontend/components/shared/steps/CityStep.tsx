@@ -56,7 +56,7 @@ export function CityStep({ data, updateData, errors, cities }: CityStepProps) {
 	return (
 		<div className="resa-space-y-4">
 			<div className="resa-text-center">
-				<h3 className="resa-text-lg resa-font-semibold">
+				<h3 className="resa-text-xl resa-font-semibold">
 					{__('In welcher Stadt?', 'resa')}
 				</h3>
 			</div>

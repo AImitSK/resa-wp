@@ -1,5 +1,5 @@
 /**
- * Step 6: Ausstattungsqualität — Gehoben / Normal / Einfach.
+ * Step 7: Ausstattungsqualität — Gehoben / Normal / Einfach.
  */
 
 import { __ } from '@wordpress/i18n';
@@ -9,24 +9,9 @@ import type { StepProps } from '@frontend/types/wizard';
 
 const getOptions = () =>
 	[
-		{
-			value: 'premium',
-			label: __('Gehoben', 'resa'),
-			icon: 'gehoben',
-			description: __('Hochwertige Materialien, Designer-Küche, Smart Home', 'resa'),
-		},
-		{
-			value: 'normal',
-			label: __('Normal', 'resa'),
-			icon: 'normal',
-			description: __('Zeitgemäße Ausstattung, guter Standard', 'resa'),
-		},
-		{
-			value: 'basic',
-			label: __('Einfach', 'resa'),
-			icon: 'einfach',
-			description: __('Einfache, zweckmäßige Ausstattung', 'resa'),
-		},
+		{ value: 'premium', label: __('Gehoben', 'resa'), icon: 'gehoben' },
+		{ value: 'normal', label: __('Normal', 'resa'), icon: 'normal' },
+		{ value: 'basic', label: __('Einfach', 'resa'), icon: 'einfach' },
 	] as const;
 
 export function QualityStep({ data, updateData, errors }: StepProps) {
@@ -36,27 +21,21 @@ export function QualityStep({ data, updateData, errors }: StepProps) {
 	return (
 		<div className="resa-space-y-4">
 			<div className="resa-text-center">
-				<h3 className="resa-text-lg resa-font-semibold">
+				<h3 className="resa-text-xl resa-font-semibold">
 					{__('Wie ist die Ausstattung Ihrer Immobilie?', 'resa')}
 				</h3>
 			</div>
 
-			<div className="resa-mx-auto resa-grid resa-max-w-lg resa-grid-cols-3 resa-gap-3">
+			<div className="resa-flex resa-flex-wrap resa-justify-center resa-gap-4">
 				{options.map((option) => (
-					<div
-						key={option.value}
-						className="resa-flex resa-flex-col resa-items-center resa-gap-1"
-					>
+					<div key={option.value} style={{ width: 170 }}>
 						<SelectionCard
 							icon={option.icon}
 							label={option.label}
-							iconSize={48}
+							iconSize={64}
 							selected={selected === option.value}
 							onClick={() => updateData({ quality: option.value })}
 						/>
-						<p className="resa-text-[10px] resa-text-muted-foreground resa-text-center resa-leading-tight resa-px-1">
-							{option.description}
-						</p>
 					</div>
 				))}
 			</div>

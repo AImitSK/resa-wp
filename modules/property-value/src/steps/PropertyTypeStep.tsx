@@ -20,28 +20,29 @@ export function PropertyTypeStep({ data, updateData, errors }: StepProps) {
 	return (
 		<div className="resa-space-y-4">
 			<div className="resa-text-center">
-				<h3 className="resa-text-lg resa-font-semibold">
+				<h3 className="resa-text-xl resa-font-semibold">
 					{__('Um welche Immobilie geht es?', 'resa')}
 				</h3>
 			</div>
 
-			<div className="resa-mx-auto resa-grid resa-max-w-md resa-grid-cols-2 resa-gap-4">
+			<div className="resa-flex resa-flex-wrap resa-justify-center resa-gap-4">
 				{options.map((option) => (
-					<SelectionCard
-						key={option.value}
-						icon={option.icon}
-						label={option.label}
-						iconSize={64}
-						selected={selected === option.value}
-						onClick={() => {
-							updateData({
-								property_type: option.value,
-								// Reset subtype when type changes.
-								property_subtype: undefined,
-								plot_size: undefined,
-							});
-						}}
-					/>
+					<div key={option.value} style={{ width: 170 }}>
+						<SelectionCard
+							icon={option.icon}
+							label={option.label}
+							iconSize={64}
+							selected={selected === option.value}
+							onClick={() => {
+								updateData({
+									property_type: option.value,
+									// Reset subtype when type changes.
+									property_subtype: undefined,
+									plot_size: undefined,
+								});
+							}}
+						/>
+					</div>
 				))}
 			</div>
 

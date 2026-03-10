@@ -32,19 +32,20 @@ export function PropertySubtypeStep({
 	return (
 		<div className="resa-space-y-4">
 			<div className="resa-text-center">
-				<h3 className="resa-text-lg resa-font-semibold">{heading}</h3>
+				<h3 className="resa-text-xl resa-font-semibold">{heading}</h3>
 			</div>
 
-			<div className="resa-mx-auto resa-grid resa-max-w-lg resa-grid-cols-2 resa-gap-3 sm:resa-grid-cols-3">
+			<div className="resa-flex resa-flex-wrap resa-justify-center resa-gap-4">
 				{subtypes.map((subtype) => (
-					<SelectionCard
-						key={subtype.key}
-						icon={subtype.icon}
-						label={subtype.label}
-						iconSize={48}
-						selected={selected === subtype.key}
-						onClick={() => updateData({ property_subtype: subtype.key })}
-					/>
+					<div key={subtype.key} style={{ width: 170 }}>
+						<SelectionCard
+							icon={subtype.icon}
+							label={subtype.label}
+							iconSize={64}
+							selected={selected === subtype.key}
+							onClick={() => updateData({ property_subtype: subtype.key })}
+						/>
+					</div>
 				))}
 			</div>
 

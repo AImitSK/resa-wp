@@ -50,7 +50,7 @@ export function FeaturesStep({ data, updateData, featureOptions }: FeaturesStepP
 	return (
 		<div className="resa-space-y-4">
 			<div className="resa-text-center">
-				<h3 className="resa-text-lg resa-font-semibold">
+				<h3 className="resa-text-xl resa-font-semibold">
 					{__('Welche Extras hat Ihre Immobilie?', 'resa')}
 				</h3>
 			</div>
