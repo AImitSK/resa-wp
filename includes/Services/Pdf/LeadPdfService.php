@@ -803,9 +803,14 @@ final class LeadPdfService {
 		}
 
 		ob_start();
-		// phpcs:ignore WordPress.PHP.DontExtract.extract_extract -- Template rendering requires extract.
-		extract( $vars, EXTR_SKIP );
-		include $templatePath;
+		try {
+			// phpcs:ignore WordPress.PHP.DontExtract.extract_extract -- Template rendering requires extract.
+			extract( $vars, EXTR_SKIP );
+			include $templatePath;
+		} catch ( \Throwable $e ) {
+			ob_end_clean();
+			return $this->buildFallbackHtml( $vars );
+		}
 		$html = ob_get_clean();
 
 		return $html ?: $this->buildFallbackHtml( $vars );

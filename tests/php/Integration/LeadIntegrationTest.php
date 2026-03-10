@@ -289,6 +289,10 @@ class LeadIntegrationTest extends TestCase {
 				(object) [ 'status' => 'completed', 'count' => '2' ],
 			] );
 
+		// countByStatus('partial') is called inside getStats().
+		$wpdb->shouldReceive( 'prepare' )->once()->andReturn( 'prepared' );
+		$wpdb->shouldReceive( 'get_var' )->with( 'prepared' )->once()->andReturn( '1' );
+
 		$stats = Lead::getStats();
 
 		$this->assertSame( 10, $stats['all'] );
@@ -296,6 +300,7 @@ class LeadIntegrationTest extends TestCase {
 		$this->assertSame( 3, $stats['contacted'] );
 		$this->assertSame( 2, $stats['completed'] );
 		$this->assertSame( 0, $stats['lost'] );
+		$this->assertSame( 1, $stats['partial'] );
 	}
 
 	// ── countByStatus ────────────────────────────────────────

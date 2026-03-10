@@ -38,6 +38,8 @@ class EmailTemplatesControllerTest extends TestCase {
 		Functions\when( 'esc_html' )->returnArg();
 		Functions\when( 'get_bloginfo' )->justReturn( 'RESA Test' );
 		Functions\when( 'esc_url' )->returnArg();
+		Functions\when( 'esc_attr' )->returnArg();
+		Functions\when( 'esc_html_e' )->alias( function ( $text ) { echo $text; } );
 		Functions\when( 'admin_url' )->justReturn( 'https://example.com/wp-admin/' );
 	}
 
@@ -359,6 +361,13 @@ class EmailTemplatesControllerTest extends TestCase {
 	public function test_preview_gibt_html_mit_ersetzten_variablen_zurueck(): void {
 		Functions\when( 'get_option' )->justReturn( false );
 
+		// Agent::getDefault() is called by EmailService::getBrandingVars() in wrapInLayout().
+		global $wpdb;
+		$wpdb         = Mockery::mock( 'wpdb' );
+		$wpdb->prefix = 'wp_';
+		$wpdb->shouldReceive( 'prepare' )->andReturn( 'SELECT ...' );
+		$wpdb->shouldReceive( 'get_row' )->andReturn( null );
+
 		$request = Mockery::mock( 'WP_REST_Request' );
 		$request->shouldReceive( 'get_param' )
 			->with( 'id' )
@@ -383,6 +392,13 @@ class EmailTemplatesControllerTest extends TestCase {
 
 	public function test_preview_verwendet_uebergebene_werte(): void {
 		Functions\when( 'get_option' )->justReturn( false );
+
+		// Agent::getDefault() is called by EmailService::getBrandingVars() in wrapInLayout().
+		global $wpdb;
+		$wpdb         = Mockery::mock( 'wpdb' );
+		$wpdb->prefix = 'wp_';
+		$wpdb->shouldReceive( 'prepare' )->andReturn( 'SELECT ...' );
+		$wpdb->shouldReceive( 'get_row' )->andReturn( null );
 
 		$request = Mockery::mock( 'WP_REST_Request' );
 		$request->shouldReceive( 'get_param' )

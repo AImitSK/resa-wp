@@ -130,14 +130,27 @@ class LeadNotificationServiceTest extends TestCase {
 
 		Functions\when( 'get_option' )->alias( function ( $key, $default = false ) {
 			$options = [
-				'resa_notification_enabled'        => true,
-				'resa_notification_fallback_email' => '',
-				'admin_email'                      => 'admin@test.de',
-				'date_format'                      => 'd.m.Y',
-				'time_format'                      => 'H:i',
+				'resa_notification_enabled'          => true,
+				'resa_notification_fallback_email'   => '',
+				'admin_email'                        => 'admin@test.de',
+				'date_format'                        => 'd.m.Y',
+				'time_format'                        => 'H:i',
+				'resa_branding_logo_url'             => '',
+				'resa_branding_primary_color'        => '#a9e43f',
+				'resa_branding_secondary_color'      => '#1e303a',
+				'resa_branding_email_header_bg'      => '#ffffff',
+				'resa_branding_show_powered_by'      => '1',
 			];
 			return array_key_exists( $key, $options ) ? $options[ $key ] : $default;
 		} );
+
+		// Agent::getDefault() is called by EmailService::getBrandingVars() in the email template.
+		$wpdb->shouldReceive( 'prepare' )
+			->with( Mockery::pattern( '/resa_agents/' ), Mockery::any() )
+			->andReturn( 'SELECT * FROM wp_resa_agents WHERE is_active = 1 ORDER BY id ASC LIMIT 1' );
+		$wpdb->shouldReceive( 'get_row' )
+			->with( 'SELECT * FROM wp_resa_agents WHERE is_active = 1 ORDER BY id ASC LIMIT 1' )
+			->andReturn( null );
 
 		Functions\when( 'get_user_by' )->justReturn( $agent );
 
