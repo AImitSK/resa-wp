@@ -42,7 +42,7 @@ export function SelectionCard({
 			}}
 			whileTap={{ scale: 0.97 }}
 			className={cn(
-				'resa-relative resa-flex resa-aspect-square resa-flex-col resa-items-center resa-justify-center resa-gap-3 resa-rounded-xl resa-border resa-bg-card resa-p-4 resa-cursor-pointer resa-transition-colors',
+				'resa-relative resa-flex resa-w-full resa-aspect-square resa-flex-col resa-items-center resa-justify-center resa-gap-3 resa-rounded-xl resa-border resa-bg-card resa-p-4 resa-cursor-pointer resa-transition-colors',
 				'focus-visible:resa-outline-none focus-visible:resa-ring-2 focus-visible:resa-ring-primary focus-visible:resa-ring-offset-2',
 				selected
 					? 'resa-border-2 resa-border-primary resa-bg-primary/10 resa-shadow-sm'
