@@ -7,7 +7,7 @@ import { apiClient } from '../lib/api-client';
 
 // ─── Types ──────────────────────────────────────────────
 
-export type LeadStatus = 'new' | 'contacted' | 'qualified' | 'completed' | 'lost';
+export type LeadStatus = 'partial' | 'new' | 'contacted' | 'qualified' | 'completed' | 'lost';
 
 export interface LeadAdmin {
 	id: number;
@@ -72,6 +72,7 @@ export interface LeadsResponse {
 
 export interface LeadStats {
 	all: number;
+	partial: number;
 	new: number;
 	contacted: number;
 	qualified: number;

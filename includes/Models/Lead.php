@@ -239,14 +239,22 @@ final class Lead {
 		$where   = [ '1=1' ];
 		$prepare = [];
 
-		// Exclude partial and anonymized leads from admin view by default.
-		$where[]   = 'l.status NOT IN (%s, %s)';
-		$prepare[] = 'partial';
-		$prepare[] = 'anonymized';
+		// When filtering by 'partial', show partial leads. Otherwise exclude them.
+		$statusFilter = ! empty( $filters['status'] ) ? sanitize_text_field( $filters['status'] ) : '';
 
-		if ( ! empty( $filters['status'] ) ) {
+		if ( $statusFilter === 'partial' ) {
 			$where[]   = 'l.status = %s';
-			$prepare[] = sanitize_text_field( $filters['status'] );
+			$prepare[] = 'partial';
+		} else {
+			// Exclude partial and anonymized leads from admin view by default.
+			$where[]   = 'l.status NOT IN (%s, %s)';
+			$prepare[] = 'partial';
+			$prepare[] = 'anonymized';
+
+			if ( $statusFilter !== '' ) {
+				$where[]   = 'l.status = %s';
+				$prepare[] = $statusFilter;
+			}
 		}
 
 		if ( ! empty( $filters['asset_type'] ) ) {
@@ -347,6 +355,9 @@ final class Lead {
 			$stats[ $row->status ] = (int) $row->count;
 			$stats['all']         += (int) $row->count;
 		}
+
+		// Add partial count separately (not included in 'all').
+		$stats['partial'] = self::countByStatus( 'partial' );
 
 		return $stats;
 	}

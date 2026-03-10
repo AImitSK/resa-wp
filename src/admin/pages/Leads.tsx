@@ -193,6 +193,7 @@ type StatusFilter = 'all' | LeadStatus;
 // ─── Constants ──────────────────────────────────────────
 
 const STATUS_CONFIG: Record<LeadStatus, { label: string; color: string }> = {
+	partial: { label: __('Unvollständig', 'resa'), color: '#f59e0b' },
 	new: { label: __('Neu', 'resa'), color: '#22c55e' },
 	contacted: { label: __('Kontaktiert', 'resa'), color: '#6b7280' },
 	qualified: { label: __('Qualifiziert', 'resa'), color: '#3b82f6' },
@@ -1391,118 +1392,136 @@ export function Leads() {
 				</div>
 			)}
 
-			{/* Toolbar */}
-			<div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '16px' }}>
-				{/* Filter tabs */}
-				<Tabs value={statusFilter} onValueChange={handleStatusFilter}>
-					<TabsList
+			{/* Status Tabs */}
+			<Tabs value={statusFilter} onValueChange={handleStatusFilter}>
+				<TabsList
+					style={{
+						display: 'inline-flex',
+						height: '36px',
+						alignItems: 'center',
+						justifyContent: 'center',
+						borderRadius: '8px',
+						backgroundColor: 'hsl(210 40% 96.1%)',
+						padding: '4px',
+						marginBottom: '16px',
+					}}
+				>
+					<TabsTrigger
+						value="all"
 						style={{
 							display: 'inline-flex',
-							height: '36px',
 							alignItems: 'center',
 							justifyContent: 'center',
-							borderRadius: '8px',
-							backgroundColor: 'hsl(210 40% 96.1%)',
-							padding: '4px',
+							whiteSpace: 'nowrap',
+							borderRadius: '6px',
+							padding: '6px 12px',
+							fontSize: '14px',
+							fontWeight: 500,
+							transition: 'all 150ms',
+							backgroundColor: statusFilter === 'all' ? 'white' : 'transparent',
+							color: statusFilter === 'all' ? '#1e303a' : '#1e303a',
+							boxShadow:
+								statusFilter === 'all' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none',
 						}}
 					>
-						<TabsTrigger
-							value="all"
-							style={{
-								display: 'inline-flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								whiteSpace: 'nowrap',
-								borderRadius: '6px',
-								padding: '6px 12px',
-								fontSize: '14px',
-								fontWeight: 500,
-								transition: 'all 150ms',
-								backgroundColor: statusFilter === 'all' ? 'white' : 'transparent',
-								color: statusFilter === 'all' ? '#1e303a' : '#1e303a',
-								boxShadow:
-									statusFilter === 'all'
-										? '0 1px 2px 0 rgb(0 0 0 / 0.05)'
-										: 'none',
-							}}
-						>
-							{__('alle', 'resa')}
-							<span style={counterBadgeStyle}>{stats?.all ?? 0}</span>
-						</TabsTrigger>
-						<TabsTrigger
-							value="new"
-							style={{
-								display: 'inline-flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								whiteSpace: 'nowrap',
-								borderRadius: '6px',
-								padding: '6px 12px',
-								fontSize: '14px',
-								fontWeight: 500,
-								transition: 'all 150ms',
-								backgroundColor: statusFilter === 'new' ? 'white' : 'transparent',
-								color: statusFilter === 'new' ? '#1e303a' : '#1e303a',
-								boxShadow:
-									statusFilter === 'new'
-										? '0 1px 2px 0 rgb(0 0 0 / 0.05)'
-										: 'none',
-							}}
-						>
-							{__('neu', 'resa')}
-							<span style={counterBadgeStyle}>{stats?.new ?? 0}</span>
-						</TabsTrigger>
-						<TabsTrigger
-							value="contacted"
-							style={{
-								display: 'inline-flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								whiteSpace: 'nowrap',
-								borderRadius: '6px',
-								padding: '6px 12px',
-								fontSize: '14px',
-								fontWeight: 500,
-								transition: 'all 150ms',
-								backgroundColor:
-									statusFilter === 'contacted' ? 'white' : 'transparent',
-								color: statusFilter === 'contacted' ? '#1e303a' : '#1e303a',
-								boxShadow:
-									statusFilter === 'contacted'
-										? '0 1px 2px 0 rgb(0 0 0 / 0.05)'
-										: 'none',
-							}}
-						>
-							{__('kontaktiert', 'resa')}
-							<span style={counterBadgeStyle}>{stats?.contacted ?? 0}</span>
-						</TabsTrigger>
-						<TabsTrigger
-							value="qualified"
-							style={{
-								display: 'inline-flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								whiteSpace: 'nowrap',
-								borderRadius: '6px',
-								padding: '6px 12px',
-								fontSize: '14px',
-								fontWeight: 500,
-								transition: 'all 150ms',
-								backgroundColor:
-									statusFilter === 'qualified' ? 'white' : 'transparent',
-								color: statusFilter === 'qualified' ? '#1e303a' : '#1e303a',
-								boxShadow:
-									statusFilter === 'qualified'
-										? '0 1px 2px 0 rgb(0 0 0 / 0.05)'
-										: 'none',
-							}}
-						>
-							{__('qualifiziert', 'resa')}
-							<span style={counterBadgeStyle}>{stats?.qualified ?? 0}</span>
-						</TabsTrigger>
-					</TabsList>
-				</Tabs>
+						{__('alle', 'resa')}
+						<span style={counterBadgeStyle}>{stats?.all ?? 0}</span>
+					</TabsTrigger>
+					<TabsTrigger
+						value="new"
+						style={{
+							display: 'inline-flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							whiteSpace: 'nowrap',
+							borderRadius: '6px',
+							padding: '6px 12px',
+							fontSize: '14px',
+							fontWeight: 500,
+							transition: 'all 150ms',
+							backgroundColor: statusFilter === 'new' ? 'white' : 'transparent',
+							color: statusFilter === 'new' ? '#1e303a' : '#1e303a',
+							boxShadow:
+								statusFilter === 'new' ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : 'none',
+						}}
+					>
+						{__('neu', 'resa')}
+						<span style={counterBadgeStyle}>{stats?.new ?? 0}</span>
+					</TabsTrigger>
+					<TabsTrigger
+						value="contacted"
+						style={{
+							display: 'inline-flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							whiteSpace: 'nowrap',
+							borderRadius: '6px',
+							padding: '6px 12px',
+							fontSize: '14px',
+							fontWeight: 500,
+							transition: 'all 150ms',
+							backgroundColor: statusFilter === 'contacted' ? 'white' : 'transparent',
+							color: statusFilter === 'contacted' ? '#1e303a' : '#1e303a',
+							boxShadow:
+								statusFilter === 'contacted'
+									? '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+									: 'none',
+						}}
+					>
+						{__('kontaktiert', 'resa')}
+						<span style={counterBadgeStyle}>{stats?.contacted ?? 0}</span>
+					</TabsTrigger>
+					<TabsTrigger
+						value="qualified"
+						style={{
+							display: 'inline-flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							whiteSpace: 'nowrap',
+							borderRadius: '6px',
+							padding: '6px 12px',
+							fontSize: '14px',
+							fontWeight: 500,
+							transition: 'all 150ms',
+							backgroundColor: statusFilter === 'qualified' ? 'white' : 'transparent',
+							color: statusFilter === 'qualified' ? '#1e303a' : '#1e303a',
+							boxShadow:
+								statusFilter === 'qualified'
+									? '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+									: 'none',
+						}}
+					>
+						{__('qualifiziert', 'resa')}
+						<span style={counterBadgeStyle}>{stats?.qualified ?? 0}</span>
+					</TabsTrigger>
+					<TabsTrigger
+						value="partial"
+						style={{
+							display: 'inline-flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							whiteSpace: 'nowrap',
+							borderRadius: '6px',
+							padding: '6px 12px',
+							fontSize: '14px',
+							fontWeight: 500,
+							transition: 'all 150ms',
+							backgroundColor: statusFilter === 'partial' ? 'white' : 'transparent',
+							color: statusFilter === 'partial' ? '#1e303a' : '#1e303a',
+							boxShadow:
+								statusFilter === 'partial'
+									? '0 1px 2px 0 rgb(0 0 0 / 0.05)'
+									: 'none',
+						}}
+					>
+						{__('unvollständig', 'resa')}
+						<span style={counterBadgeStyle}>{stats?.partial ?? 0}</span>
+					</TabsTrigger>
+				</TabsList>
+			</Tabs>
 
+			{/* Toolbar */}
+			<div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '16px' }}>
 				{/* Search */}
 				<div style={{ position: 'relative', flex: 1, maxWidth: '320px' }}>
 					<Search
@@ -1770,9 +1789,10 @@ export function Leads() {
 							</TableHeader>
 							<TableBody>
 								{leadsData.items.map((lead) => {
-									const fullName = [lead.firstName, lead.lastName]
-										.filter(Boolean)
-										.join(' ');
+									const isPartial = lead.status === 'partial';
+									const fullName = isPartial
+										? __('— Kein Kontakt —', 'resa')
+										: [lead.firstName, lead.lastName].filter(Boolean).join(' ');
 									const statusConfig =
 										STATUS_CONFIG[lead.status] || STATUS_CONFIG.new;
 									const moduleName =
@@ -1821,20 +1841,27 @@ export function Leads() {
 													paddingBottom: '12px',
 													borderBottom:
 														'1px solid hsl(214.3 31.8% 91.4%)',
+													...(isPartial
+														? {
+																fontStyle: 'italic',
+																color: '#94a3b8',
+															}
+														: {}),
 												}}
 											>
 												{fullName}
 											</TableCell>
 											<TableCell
 												style={{
-													color: '#1e303a',
+													color: isPartial ? '#94a3b8' : '#1e303a',
 													paddingTop: '12px',
 													paddingBottom: '12px',
 													borderBottom:
 														'1px solid hsl(214.3 31.8% 91.4%)',
+													...(isPartial ? { fontStyle: 'italic' } : {}),
 												}}
 											>
-												{lead.email}
+												{isPartial ? '—' : lead.email}
 											</TableCell>
 											<TableCell
 												style={{

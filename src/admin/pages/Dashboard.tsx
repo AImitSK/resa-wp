@@ -52,6 +52,7 @@ type TimeRange =
 // ─── Constants ──────────────────────────────────────────
 
 const STATUS_CONFIG: Record<LeadStatus, { label: string; color: string }> = {
+	partial: { label: __('Unvollständig', 'resa'), color: '#f59e0b' },
 	new: { label: __('Neu', 'resa'), color: '#22c55e' },
 	contacted: { label: __('Kontaktiert', 'resa'), color: '#6b7280' },
 	qualified: { label: __('Qualifiziert', 'resa'), color: '#3b82f6' },
