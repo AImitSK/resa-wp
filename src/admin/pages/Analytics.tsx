@@ -25,13 +25,6 @@ import { AdminPageLayout } from '../components/AdminPageLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@/components/ui/select';
 import { useFunnelData } from '../hooks/useAnalytics';
 import { useLocations } from '../hooks/useLocations';
 import { useFeatures } from '../hooks/useFeatures';
@@ -214,8 +207,34 @@ export function Analytics() {
 				</div>
 				<div>
 					<span style={filterLabelStyles}>{__('Smart Asset', 'resa')}</span>
-					<Select value={assetType} onValueChange={setAssetType}>
-						<SelectTrigger
+					<select
+						value={assetType}
+						onChange={(e) => setAssetType(e.target.value)}
+						style={{
+							width: '200px',
+							height: '36px',
+							backgroundColor: 'white',
+							border: '1px solid hsl(214.3 31.8% 91.4%)',
+							borderRadius: '6px',
+							fontSize: '13px',
+							padding: '0 12px',
+							color: '#1e303a',
+						}}
+					>
+						<option value="all">{__('Alle', 'resa')}</option>
+						{Object.entries(MODULE_NAMES).map(([slug, name]) => (
+							<option key={slug} value={slug}>
+								{name}
+							</option>
+						))}
+					</select>
+				</div>
+				{locations && locations.length > 0 && (
+					<div>
+						<span style={filterLabelStyles}>{__('Standort', 'resa')}</span>
+						<select
+							value={locationId}
+							onChange={(e) => setLocationId(e.target.value)}
 							style={{
 								width: '200px',
 								height: '36px',
@@ -223,45 +242,17 @@ export function Analytics() {
 								border: '1px solid hsl(214.3 31.8% 91.4%)',
 								borderRadius: '6px',
 								fontSize: '13px',
+								padding: '0 12px',
+								color: '#1e303a',
 							}}
 						>
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="all">{__('Alle', 'resa')}</SelectItem>
-							{Object.entries(MODULE_NAMES).map(([slug, name]) => (
-								<SelectItem key={slug} value={slug}>
-									{name}
-								</SelectItem>
+							<option value="all">{__('Alle', 'resa')}</option>
+							{locations.map((loc) => (
+								<option key={loc.id} value={String(loc.id)}>
+									{loc.name}
+								</option>
 							))}
-						</SelectContent>
-					</Select>
-				</div>
-				{locations && locations.length > 0 && (
-					<div>
-						<span style={filterLabelStyles}>{__('Standort', 'resa')}</span>
-						<Select value={locationId} onValueChange={setLocationId}>
-							<SelectTrigger
-								style={{
-									width: '200px',
-									height: '36px',
-									backgroundColor: 'white',
-									border: '1px solid hsl(214.3 31.8% 91.4%)',
-									borderRadius: '6px',
-									fontSize: '13px',
-								}}
-							>
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="all">{__('Alle', 'resa')}</SelectItem>
-								{locations.map((loc) => (
-									<SelectItem key={loc.id} value={String(loc.id)}>
-										{loc.name}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
+						</select>
 					</div>
 				)}
 			</div>

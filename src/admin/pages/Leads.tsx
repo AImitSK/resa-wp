@@ -1534,57 +1534,50 @@ export function Leads() {
 				</div>
 
 				{/* Location filter */}
-				<Select
+				<select
 					value={String(filters.locationId ?? 'all')}
-					onValueChange={handleLocationFilter}
+					onChange={(e) => handleLocationFilter(e.target.value)}
+					style={{
+						width: '160px',
+						height: '36px',
+						backgroundColor: 'white',
+						padding: '0 12px',
+						border: '1px solid hsl(214.3 31.8% 91.4%)',
+						borderRadius: '6px',
+						fontSize: '14px',
+						color: '#1e303a',
+					}}
 				>
-					<SelectTrigger
-						style={{
-							width: '160px',
-							height: '36px',
-							backgroundColor: 'white',
-							paddingLeft: '12px',
-							paddingRight: '12px',
-							border: '1px solid hsl(214.3 31.8% 91.4%)',
-							borderRadius: '6px',
-						}}
-					>
-						<SelectValue placeholder={__('Standort', 'resa')} />
-					</SelectTrigger>
-					<SelectContent style={{ backgroundColor: 'white' }}>
-						<SelectItem value="all">{__('Alle Standorte', 'resa')}</SelectItem>
-						{locations?.map((loc) => (
-							<SelectItem key={loc.id} value={String(loc.id)}>
-								{loc.name}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
+					<option value="all">{__('Alle Standorte', 'resa')}</option>
+					{locations?.map((loc) => (
+						<option key={loc.id} value={String(loc.id)}>
+							{loc.name}
+						</option>
+					))}
+				</select>
 
 				{/* Module filter */}
-				<Select value={filters.assetType ?? 'all'} onValueChange={handleAssetTypeFilter}>
-					<SelectTrigger
-						style={{
-							width: '200px',
-							height: '36px',
-							backgroundColor: 'white',
-							paddingLeft: '12px',
-							paddingRight: '12px',
-							border: '1px solid hsl(214.3 31.8% 91.4%)',
-							borderRadius: '6px',
-						}}
-					>
-						<SelectValue placeholder={__('Modul', 'resa')} />
-					</SelectTrigger>
-					<SelectContent style={{ backgroundColor: 'white' }}>
-						<SelectItem value="all">{__('Alle Module', 'resa')}</SelectItem>
-						{Object.entries(MODULE_NAMES).map(([slug, name]) => (
-							<SelectItem key={slug} value={slug}>
-								{name}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
+				<select
+					value={filters.assetType ?? 'all'}
+					onChange={(e) => handleAssetTypeFilter(e.target.value)}
+					style={{
+						width: '200px',
+						height: '36px',
+						backgroundColor: 'white',
+						padding: '0 12px',
+						border: '1px solid hsl(214.3 31.8% 91.4%)',
+						borderRadius: '6px',
+						fontSize: '14px',
+						color: '#1e303a',
+					}}
+				>
+					<option value="all">{__('Alle Module', 'resa')}</option>
+					{Object.entries(MODULE_NAMES).map(([slug, name]) => (
+						<option key={slug} value={slug}>
+							{name}
+						</option>
+					))}
+				</select>
 
 				{/* Export button */}
 				<div style={{ marginLeft: 'auto' }}>
