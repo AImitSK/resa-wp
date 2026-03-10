@@ -46,6 +46,8 @@ wordpress-sdk-master.zip
 .phpunit.cache/
 
 # Playwright E2E
+playwright-report/
+test-results/
 tests/e2e/test-results/
 tests/e2e/playwright-report/
 tests/e2e/.auth/

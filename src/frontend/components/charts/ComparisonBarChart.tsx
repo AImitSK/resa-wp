@@ -1,22 +1,16 @@
 /**
- * ComparisonBarChart — Horizontal bar chart for market comparison.
+ * ComparisonBarChart — Pure CSS horizontal bar chart for market comparison.
  *
  * Shows property value vs. city average vs. county average.
- * Used in RentResult and ValueResult components.
- *
- * Features:
- * - Responsive design
- * - DACH number formatting
- * - Animated on mount (via Framer Motion container)
- * - Accessible with ARIA labels
+ * Uses simple CSS bars instead of Nivo to avoid SVG measurement
+ * issues with the widget's CSS isolation reset.
  */
 
 import { __ } from '@wordpress/i18n';
-import { ResponsiveBar } from '@nivo/bar';
-import { resaChartTheme, resaColors, formatChartValue } from '@frontend/lib/chart-theme';
+import { resaColors, formatChartValue } from '@frontend/lib/chart-theme';
 
 export interface ComparisonBarChartProps {
-	/** Label for the property bar (e.g., "Ihr Objekt") */
+	/** Label for the property bar */
 	propertyLabel?: string;
 	/** Property value (€/m²) */
 	propertyValue: number;
@@ -28,16 +22,14 @@ export interface ComparisonBarChartProps {
 	countyAverage: number;
 	/** Unit suffix for values */
 	unit?: string;
-	/** Chart height in pixels */
+	/** Chart height in pixels (unused, kept for API compat) */
 	height?: number;
 }
 
-interface ChartDatum {
-	id: string;
+interface BarEntry {
 	label: string;
 	value: number;
 	color: string;
-	[key: string]: string | number;
 }
 
 export function ComparisonBarChart({
@@ -47,88 +39,66 @@ export function ComparisonBarChart({
 	cityName,
 	countyAverage,
 	unit = '€/m²',
-	height = 160,
 }: ComparisonBarChartProps) {
-	// Don't render if no valid data
-	if (propertyValue <= 0 && cityAverage <= 0 && countyAverage <= 0) {
-		return null;
-	}
-
-	// Build data array with only non-zero values
-	const data: ChartDatum[] = [];
+	// Build data array with only non-zero values.
+	const bars: BarEntry[] = [];
 
 	if (propertyValue > 0) {
-		data.push({
-			id: 'property',
-			label: propertyLabel,
-			value: propertyValue,
-			color: resaColors.comparison[0], // Blue - primary
-		});
+		bars.push({ label: propertyLabel, value: propertyValue, color: resaColors.comparison[0] });
 	}
-
 	if (cityAverage > 0) {
-		data.push({
-			id: 'city',
+		bars.push({
 			label: cityName || __('Stadt', 'resa'),
 			value: cityAverage,
-			color: resaColors.comparison[1], // Gray - secondary
+			color: resaColors.comparison[1],
 		});
 	}
-
 	if (countyAverage > 0) {
-		data.push({
-			id: 'county',
+		bars.push({
 			label: __('Landkreis', 'resa'),
 			value: countyAverage,
-			color: resaColors.comparison[2], // Light gray - tertiary
+			color: resaColors.comparison[2],
 		});
 	}
 
-	// Need at least 2 bars for meaningful comparison
-	if (data.length < 2) {
+	// Need at least 2 bars for meaningful comparison.
+	if (bars.length < 2) {
 		return null;
 	}
 
-	// Calculate max value for axis domain (add 15% padding)
-	const maxValue = Math.max(...data.map((d) => d.value)) * 1.15;
+	const maxValue = Math.max(...bars.map((b) => b.value));
 
 	return (
 		<div
 			role="img"
 			aria-label={__('Marktvergleich Balkendiagramm', 'resa')}
-			style={{ height, width: '100%' }}
+			className="resa-space-y-3"
 		>
-			<ResponsiveBar
-				data={data}
-				keys={['value']}
-				indexBy="label"
-				layout="horizontal"
-				margin={{ top: 10, right: 60, bottom: 10, left: 90 }}
-				padding={0.35}
-				valueScale={{ type: 'linear', max: maxValue }}
-				indexScale={{ type: 'band', round: true }}
-				colors={(d) => d.data.color as string}
-				borderRadius={4}
-				borderWidth={0}
-				enableGridX={true}
-				enableGridY={false}
-				axisTop={null}
-				axisRight={null}
-				axisBottom={null}
-				axisLeft={{
-					tickSize: 0,
-					tickPadding: 8,
-				}}
-				labelSkipWidth={60}
-				labelSkipHeight={0}
-				label={(d) => formatChartValue(d.value as number, 2, ` ${unit}`)}
-				labelTextColor="#ffffff"
-				theme={resaChartTheme}
-				animate={true}
-				motionConfig="gentle"
-				role="img"
-				ariaLabel={__('Marktvergleich', 'resa')}
-			/>
+			{bars.map((bar) => {
+				const widthPercent = maxValue > 0 ? (bar.value / maxValue) * 100 : 0;
+
+				return (
+					<div key={bar.label}>
+						<div className="resa-flex resa-justify-between resa-items-baseline resa-mb-1">
+							<span className="resa-text-xs resa-text-muted-foreground resa-truncate resa-mr-2">
+								{bar.label}
+							</span>
+							<span className="resa-text-xs resa-font-semibold resa-text-foreground resa-whitespace-nowrap">
+								{formatChartValue(bar.value, 2, ` ${unit}`)}
+							</span>
+						</div>
+						<div className="resa-h-3 resa-w-full resa-rounded-full resa-bg-muted/40">
+							<div
+								className="resa-h-3 resa-rounded-full resa-transition-all resa-duration-700 resa-ease-out"
+								style={{
+									width: `${widthPercent}%`,
+									backgroundColor: bar.color,
+								}}
+							/>
+						</div>
+					</div>
+				);
+			})}
 		</div>
 	);
 }
