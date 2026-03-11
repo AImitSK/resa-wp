@@ -523,7 +523,7 @@ export function OverviewTab({ module }: OverviewTabProps) {
 									}}
 								>
 									{__(
-										'Layout-Modus. "fullpage" füllt die gesamte Seite aus (100% Höhe, ohne Card-Rahmen).',
+										'Layout-Modus. "fullpage" füllt den Eltern-Container zu 100% aus (ohne Card-Rahmen). Container-Größe im Pagebuilder festlegen.',
 										'resa',
 									)}
 								</td>
