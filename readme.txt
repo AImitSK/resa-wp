@@ -4,7 +4,7 @@ Tags: real estate, calculator, lead generation, immobilien, makler
 Requires at least: 6.4
 Tested up to: 6.7
 Requires PHP: 8.1
-Stable tag: 0.5.2
+Stable tag: 0.5.3
 License: Proprietary
 License URI: https://resa-wt.com/lizenz
 

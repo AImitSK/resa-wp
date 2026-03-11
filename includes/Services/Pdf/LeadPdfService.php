@@ -173,6 +173,7 @@ final class LeadPdfService {
 	private function getTemplateForAssetType( string $assetType ): string {
 		$templates = [
 			'rent-calculator'    => 'rent-analysis',
+			'property-value'     => 'rent-analysis',
 			'value-calculator'   => 'value-analysis',
 			'purchase-costs'     => 'purchase-costs',
 			'budget-calculator'  => 'budget-analysis',
@@ -739,6 +740,7 @@ final class LeadPdfService {
 	private function getAssetTypeLabel( string $assetType ): string {
 		$labels = [
 			'rent-calculator'   => __( 'Mietpreis-Analyse', 'resa' ),
+			'property-value'    => __( 'Immobilienwert-Analyse', 'resa' ),
 			'purchase-costs'    => __( 'Kaufnebenkosten-Berechnung', 'resa' ),
 			'budget-calculator' => __( 'Budget-Analyse', 'resa' ),
 			'roi-calculator'    => __( 'Rendite-Analyse', 'resa' ),
@@ -763,7 +765,7 @@ final class LeadPdfService {
 
 		$lines = [];
 
-		// Primary result fields for rent calculator.
+		// Rent calculator fields.
 		if ( isset( $result['estimatedRent'] ) || isset( $result['monthlyRent'] ) ) {
 			$rent = $result['estimatedRent'] ?? $result['monthlyRent'] ?? 0;
 			/* translators: %s: Monthly rent amount */
@@ -779,6 +781,44 @@ final class LeadPdfService {
 			$lines[] = sprintf(
 				esc_html__( 'Preis pro m²: %s', 'resa' ),
 				esc_html( number_format( (float) $sqm, 2, ',', '.' ) . ' €' )
+			);
+		}
+
+		// Property value fields (estimated_value is an object with estimate/low/high).
+		if ( isset( $result['estimated_value']['estimate'] ) ) {
+			$estimate = (float) $result['estimated_value']['estimate'];
+			$low      = (float) ( $result['estimated_value']['low'] ?? 0 );
+			$high     = (float) ( $result['estimated_value']['high'] ?? 0 );
+
+			/* translators: %s: Estimated property value */
+			$lines[] = sprintf(
+				esc_html__( 'Geschätzter Immobilienwert: %s', 'resa' ),
+				esc_html( number_format( $estimate, 0, ',', '.' ) . ' €' )
+			);
+
+			if ( $low > 0 && $high > 0 ) {
+				/* translators: %1$s: Low estimate, %2$s: High estimate */
+				$lines[] = sprintf(
+					esc_html__( 'Wertspanne: %1$s – %2$s', 'resa' ),
+					esc_html( number_format( $low, 0, ',', '.' ) . ' €' ),
+					esc_html( number_format( $high, 0, ',', '.' ) . ' €' )
+				);
+			}
+		}
+
+		if ( isset( $result['price_per_sqm']['value'] ) ) {
+			/* translators: %s: Price per square meter */
+			$lines[] = sprintf(
+				esc_html__( 'Preis pro m²: %s', 'resa' ),
+				esc_html( number_format( (float) $result['price_per_sqm']['value'], 0, ',', '.' ) . ' €' )
+			);
+		}
+
+		if ( isset( $result['market_position']['label'] ) ) {
+			/* translators: %s: Market position label */
+			$lines[] = sprintf(
+				esc_html__( 'Marktposition: %s', 'resa' ),
+				esc_html( (string) $result['market_position']['label'] )
 			);
 		}
 

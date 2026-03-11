@@ -288,6 +288,7 @@ final class LeadNotificationService {
 	private function getAssetTypeLabel( string $assetType ): string {
 		$labels = [
 			'rent-calculator'   => __( 'Mietpreis-Kalkulator', 'resa' ),
+			'property-value'    => __( 'Immobilienwert-Kalkulator', 'resa' ),
 			'purchase-costs'    => __( 'Kaufnebenkosten-Rechner', 'resa' ),
 			'budget-calculator' => __( 'Budgetrechner', 'resa' ),
 			'roi-calculator'    => __( 'Renditerechner', 'resa' ),
@@ -314,10 +315,9 @@ final class LeadNotificationService {
 
 		$lines = [];
 
-		// Common result fields.
+		// Common scalar result fields.
 		$fieldLabels = [
 			'estimatedRent'    => __( 'Geschätzte Miete', 'resa' ),
-			'estimatedValue'   => __( 'Geschätzter Wert', 'resa' ),
 			'purchaseCosts'    => __( 'Kaufnebenkosten', 'resa' ),
 			'totalBudget'      => __( 'Gesamtbudget', 'resa' ),
 			'roi'              => __( 'Rendite', 'resa' ),
@@ -331,6 +331,23 @@ final class LeadNotificationService {
 				$value   = $this->formatResultValue( $result[ $key ] );
 				$lines[] = esc_html( $label ) . ': ' . esc_html( $value );
 			}
+		}
+
+		// Property value fields (nested objects).
+		if ( isset( $result['estimated_value']['estimate'] ) ) {
+			$estimate = (float) $result['estimated_value']['estimate'];
+			$lines[]  = esc_html__( 'Geschätzter Immobilienwert', 'resa' ) . ': '
+				. esc_html( number_format( $estimate, 0, ',', '.' ) . ' €' );
+		}
+
+		if ( isset( $result['price_per_sqm']['value'] ) ) {
+			$lines[] = esc_html__( 'Preis pro m²', 'resa' ) . ': '
+				. esc_html( number_format( (float) $result['price_per_sqm']['value'], 0, ',', '.' ) . ' €' );
+		}
+
+		if ( isset( $result['market_position']['label'] ) ) {
+			$lines[] = esc_html__( 'Marktposition', 'resa' ) . ': '
+				. esc_html( (string) $result['market_position']['label'] );
 		}
 
 		if ( empty( $lines ) ) {

@@ -216,29 +216,19 @@ final class LeadsController extends RestController {
 			return $spam;
 		}
 
-		// DEBUG: Log all received parameters.
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log( 'RESA DEBUG leads/complete: ' . wp_json_encode( $request->get_params() ) );
-
 		$sessionId = $this->requiredString( $request, 'sessionId' );
 		if ( is_wp_error( $sessionId ) ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( 'RESA DEBUG: sessionId error: ' . $sessionId->get_error_message() );
 			return $sessionId;
 		}
 
 		// Verify partial lead exists.
 		$lead = Lead::findBySession( $sessionId );
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log( 'RESA DEBUG: findBySession result: ' . ( $lead ? 'found (id=' . $lead->id . ', status=' . $lead->status . ')' : 'null' ) );
 
 		if ( $lead === null ) {
 			return $this->notFound( ErrorMessages::get( ErrorMessages::LEAD_NOT_FOUND ) );
 		}
 
 		if ( $lead->status !== 'partial' ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( 'RESA DEBUG: Lead already completed, status=' . $lead->status );
 			return $this->error(
 				ErrorMessages::LEAD_ALREADY_COMPLETED,
 				ErrorMessages::get( ErrorMessages::LEAD_ALREADY_COMPLETED )
@@ -248,26 +238,16 @@ final class LeadsController extends RestController {
 		// Validate required contact fields.
 		$firstName = $this->requiredString( $request, 'firstName' );
 		if ( is_wp_error( $firstName ) ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( 'RESA DEBUG: firstName validation failed: ' . $firstName->get_error_message() );
 			return $firstName;
 		}
 
 		$email = $request->get_param( 'email' );
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log( 'RESA DEBUG: email=' . ( is_string( $email ) ? $email : gettype( $email ) ) );
 		if ( ! is_email( $email ) ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( 'RESA DEBUG: email validation failed' );
 			return $this->validationError( [ 'email' => ErrorMessages::get( ErrorMessages::INVALID_EMAIL ) ] );
 		}
 
 		$consent = (bool) $request->get_param( 'consent' );
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		error_log( 'RESA DEBUG: consent=' . ( $consent ? 'true' : 'false' ) . ', raw=' . wp_json_encode( $request->get_param( 'consent' ) ) );
 		if ( ! $consent ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( 'RESA DEBUG: consent validation failed' );
 			return $this->validationError( [ 'consent' => ErrorMessages::get( ErrorMessages::CONSENT_REQUIRED ) ] );
 		}
 
@@ -900,6 +880,11 @@ final class LeadsController extends RestController {
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
 			],
+			'msclkid'    => [
+				'required'          => false,
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+			],
 		];
 	}
 
@@ -960,6 +945,12 @@ final class LeadsController extends RestController {
 				'required'          => false,
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_textarea_field',
+			],
+			'newsletter'  => [
+				'required'          => false,
+				'type'              => 'boolean',
+				'default'           => false,
+				'sanitize_callback' => 'rest_sanitize_boolean',
 			],
 		];
 	}
