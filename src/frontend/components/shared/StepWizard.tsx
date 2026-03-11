@@ -114,7 +114,7 @@ export function StepWizard({
 
 	return (
 		<div className="resa-w-full">
-			<div className="resa-relative resa-overflow-hidden resa-min-h-[320px] resa-px-2 resa-py-4">
+			<div className="resa-relative resa-overflow-hidden resa-min-h-[450px] resa-px-2 resa-py-4">
 				<AnimatePresence mode="wait" custom={direction}>
 					<motion.div
 						key={currentStep.id}

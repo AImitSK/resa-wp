@@ -46,6 +46,7 @@ final class ResaShortcode {
 			[
 				'module' => '',
 				'city'   => '',
+				'mode'   => '',
 			],
 			$atts,
 			'resa'
@@ -53,9 +54,16 @@ final class ResaShortcode {
 
 		$module = sanitize_text_field( $atts['module'] );
 		$city   = sanitize_text_field( $atts['city'] );
+		$mode   = sanitize_text_field( $atts['mode'] );
 
 		if ( $module === '' ) {
 			return '<!-- RESA: module attribute required -->';
+		}
+
+		// Only allow known mode values.
+		$allowedModes = [ 'fullpage' ];
+		if ( $mode !== '' && ! in_array( $mode, $allowedModes, true ) ) {
+			$mode = '';
 		}
 
 		$this->enqueueAssets( $module, $city );
@@ -64,11 +72,20 @@ final class ResaShortcode {
 		if ( $city !== '' ) {
 			$dataAttrs .= sprintf( ' data-city="%s"', esc_attr( $city ) );
 		}
+		if ( $mode !== '' ) {
+			$dataAttrs .= sprintf( ' data-mode="%s"', esc_attr( $mode ) );
+		}
+
+		$cssClass  = 'resa-widget-root';
+		if ( $mode !== '' ) {
+			$cssClass .= ' resa-mode-' . $mode;
+		}
 
 		$styleAttr = $this->buildColorStyle();
 
 		return sprintf(
-			'<div class="resa-widget-root" %s%s></div>',
+			'<div class="%s" %s%s></div>',
+			esc_attr( $cssClass ),
 			$dataAttrs,
 			$styleAttr
 		);

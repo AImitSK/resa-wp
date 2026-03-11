@@ -486,6 +486,64 @@ export function OverviewTab({ module }: OverviewTabProps) {
 									</code>
 								</td>
 							</tr>
+							<tr>
+								<td
+									style={{
+										padding: '8px 12px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+									}}
+								>
+									<code
+										style={{
+											backgroundColor: 'hsl(210 40% 96.1%)',
+											padding: '2px 6px',
+											borderRadius: '3px',
+											fontSize: '12px',
+											fontFamily: 'ui-monospace, monospace',
+											color: '#1e303a',
+										}}
+									>
+										mode
+									</code>
+								</td>
+								<td
+									style={{
+										padding: '8px 12px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+										color: '#1e303a',
+									}}
+								>
+									{__('Nein', 'resa')}
+								</td>
+								<td
+									style={{
+										padding: '8px 12px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+										color: '#1e303a',
+									}}
+								>
+									{__(
+										'Layout-Modus. "fullpage" füllt die gesamte Seite aus (100% Höhe, ohne Card-Rahmen).',
+										'resa',
+									)}
+								</td>
+								<td
+									style={{
+										padding: '8px 12px',
+										borderBottom: '1px solid hsl(214.3 31.8% 91.4%)',
+									}}
+								>
+									<code
+										style={{
+											fontSize: '12px',
+											fontFamily: 'ui-monospace, monospace',
+											color: '#1e303a',
+										}}
+									>
+										fullpage
+									</code>
+								</td>
+							</tr>
 						</tbody>
 					</table>
 				</div>
