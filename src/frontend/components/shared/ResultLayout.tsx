@@ -172,12 +172,22 @@ export function ResultLayout({
 						</div>
 					</div>
 				) : (
-					<p className="resa-text-sm resa-text-center">
-						{__(
-							'Ein Immobilienexperte analysiert Ihre Daten und meldet sich in Kürze bei Ihnen.',
-							'resa',
-						)}
-					</p>
+					<div className="resa-flex resa-flex-col resa-items-center resa-text-center resa-gap-3">
+						<div className="resa-w-12 resa-h-12 resa-rounded-full resa-bg-primary-foreground/20 resa-flex resa-items-center resa-justify-center">
+							<ResaIcon name="check" size={24} />
+						</div>
+						<div>
+							<p className="resa-font-semibold resa-text-base resa-mb-1">
+								{__('Vielen Dank für Ihre Anfrage!', 'resa')}
+							</p>
+							<p className="resa-text-sm resa-opacity-90">
+								{__(
+									'Ein Immobilienexperte analysiert Ihre Daten und meldet sich in Kürze bei Ihnen.',
+									'resa',
+								)}
+							</p>
+						</div>
+					</div>
 				)}
 			</motion.div>
 		</motion.div>
