@@ -58,36 +58,56 @@ final class LeadPdfService {
 	public function generateAndSend( int $leadId ): bool {
 		// Check if PDF sending is enabled.
 		if ( ! $this->isEnabled() ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'RESA DEBUG: LeadPdfService - PDF sending disabled (resa_lead_pdf_enabled = false)' );
 			return false;
 		}
 
 		// Check if the email template is active.
 		$emailTemplate = EmailTemplate::get( self::TEMPLATE_ID );
 		if ( $emailTemplate !== null && ( $emailTemplate['is_active'] ?? true ) === false ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'RESA DEBUG: LeadPdfService - email template is_active = false' );
 			return false;
 		}
 
 		$lead = Lead::findById( $leadId );
 		if ( $lead === null ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'RESA DEBUG: LeadPdfService - lead not found for ID ' . $leadId );
 			return false;
 		}
 
 		// Only process completed leads with valid email.
 		if ( empty( $lead->email ) || ! is_email( $lead->email ) ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'RESA DEBUG: LeadPdfService - invalid email: ' . ( $lead->email ?? 'empty' ) );
 			return false;
 		}
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( 'RESA DEBUG: LeadPdfService - generating PDF for lead ' . $leadId . ' to ' . $lead->email );
 
 		$location = $this->getLocation( (int) ( $lead->location_id ?? 0 ) );
 
 		try {
 			// Generate PDF.
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'RESA DEBUG: LeadPdfService - calling generatePdf...' );
 			$pdfPath = $this->generatePdf( $lead, $location );
 			if ( $pdfPath === null ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( 'RESA DEBUG: LeadPdfService - generatePdf returned null' );
 				return false;
 			}
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'RESA DEBUG: LeadPdfService - PDF generated at: ' . $pdfPath );
 
 			// Send email with PDF attachment.
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'RESA DEBUG: LeadPdfService - calling sendEmail...' );
 			$sent = $this->sendEmail( $lead, $location, $pdfPath );
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'RESA DEBUG: LeadPdfService - sendEmail returned: ' . ( $sent ? 'true' : 'false' ) );
 
 			// Clean up temporary PDF file.
 			$this->cleanupPdf( $pdfPath );
@@ -97,6 +117,8 @@ final class LeadPdfService {
 			// Log error but don't propagate — lead completion should not fail.
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log( 'RESA: Lead PDF generation failed: ' . $e->getMessage() );
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'RESA DEBUG: Stack trace: ' . $e->getTraceAsString() );
 			return false;
 		}
 	}

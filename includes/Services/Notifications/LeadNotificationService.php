@@ -47,17 +47,23 @@ final class LeadNotificationService {
 	public function notifyAgent( int $leadId ): bool {
 		// Check if notifications are enabled.
 		if ( ! $this->isEnabled() ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'RESA DEBUG: LeadNotificationService - notifications disabled (resa_notification_enabled = false)' );
 			return false;
 		}
 
 		// Check if template is active.
 		$template = EmailTemplate::get( self::TEMPLATE_ID );
 		if ( $template !== null && ( $template['is_active'] ?? true ) === false ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'RESA DEBUG: LeadNotificationService - template is_active = false' );
 			return false;
 		}
 
 		$lead = Lead::findById( $leadId );
 		if ( $lead === null ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'RESA DEBUG: LeadNotificationService - lead not found for ID ' . $leadId );
 			return false;
 		}
 
@@ -65,8 +71,12 @@ final class LeadNotificationService {
 
 		$agentEmail = $this->getAgentEmail( $location );
 		if ( $agentEmail === null ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'RESA DEBUG: LeadNotificationService - no agent email found' );
 			return false;
 		}
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( 'RESA DEBUG: LeadNotificationService - sending to: ' . $agentEmail );
 
 		$agentName = $this->getAgentName( $location );
 		$vars      = $this->buildTemplateVariables( $lead, $location, $agentName );
