@@ -21,6 +21,10 @@ docker/mysql/data/
 # Claude Code
 .claude/settings.local.json
 .mcp.json
+skills-lock.json
+
+# WP-CLI
+wp-cli.phar
 
 # Debug/Utility Scripts
 check-freemius.php
