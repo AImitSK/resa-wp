@@ -13,7 +13,9 @@ use Resa\Services\Pdf\PdfGenerator;
 use Resa\Services\Pdf\PdfEngineInterface;
 
 /**
- * Integration test: PDF generation with engine detection and fallback.
+ * Integration test: PDF generation with mPDF engine.
+ *
+ * Tests the PdfGenerator class which uses a single PDF engine (mPDF by default).
  */
 class PdfIntegrationTest extends TestCase {
 
@@ -32,120 +34,90 @@ class PdfIntegrationTest extends TestCase {
 		parent::tearDown();
 	}
 
-	// ── Engine Detection ─────────────────────────────────────
+	// ── Engine Access ───────────────────────────────────────────
 
-	public function test_detectEngine_bevorzugt_puppeteer(): void {
-		$puppeteer = Mockery::mock( PdfEngineInterface::class );
-		$puppeteer->shouldReceive( 'isAvailable' )->once()->andReturn( true );
-		$puppeteer->shouldReceive( 'getName' )->andReturn( 'puppeteer' );
+	public function test_getEngine_returns_injected_engine(): void {
+		$engine = Mockery::mock( PdfEngineInterface::class );
+		$engine->shouldReceive( 'getName' )->andReturn( 'mpdf' );
 
-		$dompdf = Mockery::mock( PdfEngineInterface::class );
-		$dompdf->shouldReceive( 'getName' )->andReturn( 'dompdf' );
+		$generator = new PdfGenerator( $engine );
 
-		$generator = new PdfGenerator( $puppeteer, $dompdf );
-		$engine    = $generator->detectEngine();
-
-		$this->assertSame( 'puppeteer', $engine->getName() );
+		$this->assertSame( $engine, $generator->getEngine() );
+		$this->assertSame( 'mpdf', $generator->getEngine()->getName() );
 	}
 
-	public function test_detectEngine_fallback_auf_dompdf(): void {
-		$puppeteer = Mockery::mock( PdfEngineInterface::class );
-		$puppeteer->shouldReceive( 'isAvailable' )->once()->andReturn( false );
+	public function test_constructor_uses_default_engine_when_null(): void {
+		// When no engine is passed, MpdfEngine is used by default.
+		$generator = new PdfGenerator();
 
-		$dompdf = Mockery::mock( PdfEngineInterface::class );
-		$dompdf->shouldReceive( 'isAvailable' )->once()->andReturn( true );
-		$dompdf->shouldReceive( 'getName' )->andReturn( 'dompdf' );
-
-		$generator = new PdfGenerator( $puppeteer, $dompdf );
-		$engine    = $generator->detectEngine();
-
-		$this->assertSame( 'dompdf', $engine->getName() );
+		$this->assertSame( 'mpdf', $generator->getEngine()->getName() );
 	}
 
-	public function test_detectEngine_wirft_exception_ohne_engine(): void {
-		$puppeteer = Mockery::mock( PdfEngineInterface::class );
-		$puppeteer->shouldReceive( 'isAvailable' )->once()->andReturn( false );
+	// ── Engine Info ──────────────────────────────────────────────
 
-		$dompdf = Mockery::mock( PdfEngineInterface::class );
-		$dompdf->shouldReceive( 'isAvailable' )->once()->andReturn( false );
+	public function test_getEngineInfo_returns_engine_status(): void {
+		$engine = Mockery::mock( PdfEngineInterface::class );
+		$engine->shouldReceive( 'isAvailable' )->andReturn( true );
+		$engine->shouldReceive( 'getName' )->andReturn( 'mpdf' );
 
-		$generator = new PdfGenerator( $puppeteer, $dompdf );
+		$generator = new PdfGenerator( $engine );
+		$info      = $generator->getEngineInfo();
+
+		$this->assertSame( 'mpdf', $info['engine'] );
+		$this->assertTrue( $info['available'] );
+	}
+
+	public function test_getEngineInfo_shows_unavailable_engine(): void {
+		$engine = Mockery::mock( PdfEngineInterface::class );
+		$engine->shouldReceive( 'isAvailable' )->andReturn( false );
+		$engine->shouldReceive( 'getName' )->andReturn( 'mpdf' );
+
+		$generator = new PdfGenerator( $engine );
+		$info      = $generator->getEngineInfo();
+
+		$this->assertSame( 'mpdf', $info['engine'] );
+		$this->assertFalse( $info['available'] );
+	}
+
+	// ── Generate ─────────────────────────────────────────────────
+
+	public function test_generate_throws_exception_for_missing_template(): void {
+		$engine = Mockery::mock( PdfEngineInterface::class );
+		$engine->shouldReceive( 'getName' )->andReturn( 'mpdf' );
+
+		$generator = new PdfGenerator( $engine );
 
 		$this->expectException( \RuntimeException::class );
-		$this->expectExceptionMessage( 'Keine PDF-Engine' );
+		$this->expectExceptionMessage( 'PDF-Template nicht gefunden' );
 
-		$generator->detectEngine();
+		$generator->generate( 'non-existent-template', [] );
 	}
 
-	// ── Engine Info ──────────────────────────────────────────
+	// ── GenerateToFile ───────────────────────────────────────────
 
-	public function test_getEngineInfo_zeigt_verfuegbarkeit(): void {
-		$puppeteer = Mockery::mock( PdfEngineInterface::class );
-		$puppeteer->shouldReceive( 'isAvailable' )->andReturn( true );
-		$puppeteer->shouldReceive( 'getName' )->andReturn( 'puppeteer' );
-
-		$dompdf = Mockery::mock( PdfEngineInterface::class );
-		$dompdf->shouldReceive( 'isAvailable' )->andReturn( false );
-		$dompdf->shouldReceive( 'getName' )->andReturn( 'dompdf' );
-
-		$generator = new PdfGenerator( $puppeteer, $dompdf );
-		$info      = $generator->getEngineInfo();
-
-		$this->assertTrue( $info['puppeteer']['available'] );
-		$this->assertFalse( $info['dompdf']['available'] );
-	}
-
-	// ── Generate with Fallback ───────────────────────────────
-
-	public function test_generate_waehlt_puppeteer_engine(): void {
-		$puppeteer = Mockery::mock( PdfEngineInterface::class );
-		$puppeteer->shouldReceive( 'isAvailable' )->andReturn( true );
-		$puppeteer->shouldReceive( 'getName' )->andReturn( 'puppeteer' );
-
-		$dompdf = Mockery::mock( PdfEngineInterface::class );
-		$dompdf->shouldReceive( 'getName' )->andReturn( 'dompdf' );
-
-		$generator = new PdfGenerator( $puppeteer, $dompdf );
-
-		// Verify engine selection without needing template files.
-		$this->assertSame( 'puppeteer', $generator->detectEngine()->getName() );
-	}
-
-	public function test_generate_fallback_wenn_puppeteer_fehlschlaegt(): void {
-		$puppeteer = Mockery::mock( PdfEngineInterface::class );
-		$puppeteer->shouldReceive( 'isAvailable' )->andReturn( true );
-		$puppeteer->shouldReceive( 'getName' )->andReturn( 'puppeteer' );
-
-		$dompdf = Mockery::mock( PdfEngineInterface::class );
-		$dompdf->shouldReceive( 'isAvailable' )->andReturn( true );
-		$dompdf->shouldReceive( 'getName' )->andReturn( 'dompdf' );
-
-		$generator = new PdfGenerator( $puppeteer, $dompdf );
-		$info      = $generator->getEngineInfo();
-
-		// Both engines available — fallback possible.
-		$this->assertTrue( $info['puppeteer']['available'] );
-		$this->assertTrue( $info['dompdf']['available'] );
-	}
-
-	// ── GenerateToFile ───────────────────────────────────────
-
-	public function test_generateToFile_erstellt_verzeichnis(): void {
-		// This test verifies the file write logic concept.
-		// Actual file I/O is tested via the method signature.
+	public function test_generateToFile_creates_directory(): void {
 		Functions\when( 'wp_mkdir_p' )->justReturn( true );
 
-		$puppeteer = Mockery::mock( PdfEngineInterface::class );
-		$puppeteer->shouldReceive( 'isAvailable' )->andReturn( true );
-		$puppeteer->shouldReceive( 'getName' )->andReturn( 'puppeteer' );
+		$engine = Mockery::mock( PdfEngineInterface::class );
+		$engine->shouldReceive( 'getName' )->andReturn( 'mpdf' );
 
-		$dompdf = Mockery::mock( PdfEngineInterface::class );
-		$dompdf->shouldReceive( 'getName' )->andReturn( 'dompdf' );
+		$generator = new PdfGenerator( $engine );
 
-		$generator = new PdfGenerator( $puppeteer, $dompdf );
+		// Verify the generator was created with the engine.
+		$this->assertSame( 'mpdf', $generator->getEngine()->getName() );
+	}
 
-		// Verify the generator was created and engine detection works.
-		$engine = $generator->detectEngine();
-		$this->assertSame( 'puppeteer', $engine->getName() );
+	// ── Custom Engine ────────────────────────────────────────────
+
+	public function test_custom_engine_can_be_injected(): void {
+		$customEngine = Mockery::mock( PdfEngineInterface::class );
+		$customEngine->shouldReceive( 'isAvailable' )->andReturn( true );
+		$customEngine->shouldReceive( 'getName' )->andReturn( 'custom-engine' );
+
+		$generator = new PdfGenerator( $customEngine );
+		$info      = $generator->getEngineInfo();
+
+		$this->assertSame( 'custom-engine', $info['engine'] );
+		$this->assertTrue( $info['available'] );
 	}
 }
