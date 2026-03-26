@@ -466,7 +466,7 @@ export function Dashboard() {
 			)}
 
 			{/* KPI Cards */}
-			<div className="resa-grid resa-grid-cols-1 md:resa-grid-cols-2 lg:resa-grid-cols-4 resa-gap-4">
+			<div className="resa-grid resa-grid-cols-2 lg:resa-grid-cols-4 resa-gap-4">
 				{/* Card 1: Leads gesamt */}
 				<Card
 					style={{

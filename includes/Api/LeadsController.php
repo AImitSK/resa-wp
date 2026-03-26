@@ -288,32 +288,19 @@ final class LeadsController extends RestController {
 		if ( $updatedLead !== null ) {
 			$emailService = new EmailService();
 
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log( 'RESA DEBUG: Starting email process for lead ID ' . $updatedLead->id );
-
 			try {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( 'RESA DEBUG: Creating LeadNotificationService...' );
 				$notificationService = new LeadNotificationService( $emailService );
-				$notifyResult        = $notificationService->notifyAgent( (int) $updatedLead->id );
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( 'RESA DEBUG: notifyAgent returned: ' . ( $notifyResult ? 'true' : 'false' ) );
+				$notificationService->notifyAgent( (int) $updatedLead->id );
 			} catch ( \Throwable $e ) {
 				// Log error but don't fail the lead completion.
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 				error_log( 'RESA: Lead notification failed: ' . $e->getMessage() );
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( 'RESA DEBUG: Stack trace: ' . $e->getTraceAsString() );
 			}
 
 			// Send PDF analysis to lead (non-blocking — errors are logged, not propagated).
 			try {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( 'RESA DEBUG: Creating LeadPdfService...' );
 				$pdfService = new LeadPdfService( new PdfGenerator(), $emailService );
 				$pdfSent    = $pdfService->generateAndSend( (int) $updatedLead->id );
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( 'RESA DEBUG: generateAndSend returned: ' . ( $pdfSent ? 'true' : 'false' ) );
 
 				// Update pdf_sent flag if successful.
 				if ( $pdfSent ) {
@@ -323,8 +310,6 @@ final class LeadsController extends RestController {
 				// Log error but don't fail the lead completion.
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 				error_log( 'RESA: Lead PDF sending failed: ' . $e->getMessage() );
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( 'RESA DEBUG: Stack trace: ' . $e->getTraceAsString() );
 			}
 		}
 
