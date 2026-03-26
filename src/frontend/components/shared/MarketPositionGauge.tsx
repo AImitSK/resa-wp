@@ -1,123 +1,111 @@
 /**
- * Market position gauge — semi-circle radial indicator.
+ * Market position gauge — horizontal segmented progress indicator.
  *
- * Uses a simple SVG arc instead of Nivo to keep the bundle small.
- * Shows percentile (0-100) with color-coded indicator.
+ * Modern alternative to the semicircle gauge. Shows percentile (0-100)
+ * with color-coded segments and animated marker.
  */
+
+import { __ } from '@wordpress/i18n';
+import { motion } from 'framer-motion';
 
 interface MarketPositionGaugeProps {
 	percentile: number;
 	label: string;
 }
 
-function getColor(percentile: number): string {
-	if (percentile <= 20) return '#64748b'; // Slate
-	if (percentile <= 35) return '#06b6d4'; // Cyan
-	if (percentile <= 50) return '#3b82f6'; // Blue
-	if (percentile <= 65) return '#22c55e'; // Green
-	if (percentile <= 80) return '#f97316'; // Orange
-	return '#ef4444'; // Red
-}
+/** Segment definitions with color and label */
+const segments = [
+	{ min: 0, max: 20, color: 'hsl(var(--resa-muted-foreground))', label: __('Niedrig', 'resa') },
+	{ min: 20, max: 40, color: '#06b6d4', label: __('Unterdurchschnittlich', 'resa') },
+	{ min: 40, max: 60, color: '#3b82f6', label: __('Durchschnitt', 'resa') },
+	{ min: 60, max: 80, color: '#22c55e', label: __('Überdurchschnittlich', 'resa') },
+	{ min: 80, max: 100, color: '#f97316', label: __('Hoch', 'resa') },
+];
 
-export function MarketPositionGauge({ percentile, label }: MarketPositionGaugeProps) {
-	const color = getColor(percentile);
-	const angle = (percentile / 100) * 180;
-	const radians = (angle * Math.PI) / 180;
-
-	// SVG arc for the filled portion (180° semicircle).
-	const radius = 80;
-	const cx = 100;
-	const cy = 100;
-
-	// Calculate needle endpoint.
-	const needleAngle = Math.PI - radians; // Start from left (180°) to right (0°).
-	const needleX = cx + radius * 0.85 * Math.cos(needleAngle);
-	const needleY = cy - radius * 0.85 * Math.sin(needleAngle);
-
+function getSegmentForPercentile(percentile: number) {
 	return (
-		<div className="resa-flex resa-flex-col resa-items-center">
-			<svg viewBox="0 0 200 120" className="resa-w-48 resa-h-auto">
-				{/* Background arc */}
-				<path
-					d="M 20 100 A 80 80 0 0 1 180 100"
-					fill="none"
-					stroke="hsl(var(--resa-muted))"
-					strokeWidth="12"
-					strokeLinecap="round"
-				/>
-
-				{/* Colored arc */}
-				{percentile > 0 && (
-					<path
-						d={describeArc(cx, cy, radius, 180, 180 - angle)}
-						fill="none"
-						stroke={color}
-						strokeWidth="12"
-						strokeLinecap="round"
-					/>
-				)}
-
-				{/* Needle */}
-				<line
-					x1={cx}
-					y1={cy}
-					x2={needleX}
-					y2={needleY}
-					stroke="hsl(var(--resa-foreground))"
-					strokeWidth="2"
-					strokeLinecap="round"
-				/>
-
-				{/* Center dot */}
-				<circle cx={cx} cy={cy} r="4" fill="hsl(var(--resa-foreground))" />
-
-				{/* Percentile text */}
-				<text
-					x={cx}
-					y={cy - 20}
-					textAnchor="middle"
-					className="resa-text-2xl resa-font-bold"
-					fill="hsl(var(--resa-foreground))"
-					fontSize="24"
-					fontWeight="bold"
-				>
-					{percentile}%
-				</text>
-			</svg>
-
-			<span className="resa-text-sm resa-font-medium resa-text-muted-foreground -resa-mt-2">
-				{label}
-			</span>
-		</div>
+		segments.find((s) => percentile >= s.min && percentile < s.max) ??
+		segments[segments.length - 1]
 	);
 }
 
-/**
- * Generate an SVG arc path.
- */
-function describeArc(
-	cx: number,
-	cy: number,
-	radius: number,
-	startAngle: number,
-	endAngle: number,
-): string {
-	const start = polarToCartesian(cx, cy, radius, endAngle);
-	const end = polarToCartesian(cx, cy, radius, startAngle);
-	const largeArcFlag = startAngle - endAngle <= 180 ? '0' : '1';
+export function MarketPositionGauge({ percentile, label }: MarketPositionGaugeProps) {
+	const clampedPercentile = Math.max(0, Math.min(100, percentile));
+	const activeSegment = getSegmentForPercentile(clampedPercentile);
 
-	return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
-}
+	return (
+		<div className="resa-flex resa-flex-col resa-items-center resa-gap-3">
+			{/* Percentile display */}
+			<div className="resa-text-center">
+				<motion.span
+					className="resa-text-3xl resa-font-bold"
+					style={{ color: activeSegment.color }}
+					initial={{ opacity: 0, scale: 0.8 }}
+					animate={{ opacity: 1, scale: 1 }}
+					transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
+				>
+					{clampedPercentile}%
+				</motion.span>
+			</div>
 
-function polarToCartesian(
-	cx: number,
-	cy: number,
-	radius: number,
-	angleDegrees: number,
-): { x: number; y: number } {
-	const angleRadians = ((angleDegrees - 0) * Math.PI) / 180;
-	return {
-		x: cx + radius * Math.cos(angleRadians),
-		y: cy - radius * Math.sin(angleRadians),
-	};
+			{/* Segmented bar */}
+			<div className="resa-w-full resa-max-w-xs">
+				<div className="resa-relative resa-h-3 resa-flex resa-gap-0.5 resa-rounded-full resa-overflow-hidden">
+					{segments.map((segment, index) => {
+						const isActive = clampedPercentile >= segment.min;
+						const isCurrent =
+							clampedPercentile >= segment.min && clampedPercentile < segment.max;
+
+						return (
+							<motion.div
+								key={index}
+								className="resa-flex-1 resa-relative"
+								style={{
+									backgroundColor: isActive
+										? segment.color
+										: 'hsl(var(--resa-muted) / 0.5)',
+									opacity: isActive ? 1 : 0.3,
+								}}
+								initial={{ scaleX: 0 }}
+								animate={{ scaleX: 1 }}
+								transition={{ delay: index * 0.08, duration: 0.3 }}
+							>
+								{/* Marker on current segment */}
+								{isCurrent && (
+									<motion.div
+										className="resa-absolute resa-top-1/2 resa-w-1 resa-h-5 resa-bg-foreground resa-rounded-full"
+										style={{
+											left: `${((clampedPercentile - segment.min) / (segment.max - segment.min)) * 100}%`,
+											transform: 'translate(-50%, -50%)',
+										}}
+										initial={{ opacity: 0, scale: 0 }}
+										animate={{ opacity: 1, scale: 1 }}
+										transition={{ delay: 0.5, type: 'spring' }}
+									/>
+								)}
+							</motion.div>
+						);
+					})}
+				</div>
+
+				{/* Labels */}
+				<div className="resa-flex resa-justify-between resa-mt-1.5 resa-px-0.5">
+					<span className="resa-text-[10px] resa-text-muted-foreground">0%</span>
+					<span className="resa-text-[10px] resa-text-muted-foreground">50%</span>
+					<span className="resa-text-[10px] resa-text-muted-foreground">100%</span>
+				</div>
+			</div>
+
+			{/* Status label */}
+			<motion.span
+				className="resa-text-sm resa-font-medium"
+				style={{ color: activeSegment.color }}
+				initial={{ opacity: 0, y: 4 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ delay: 0.3 }}
+			>
+				{label || activeSegment.label}
+			</motion.span>
+		</div>
+	);
 }
