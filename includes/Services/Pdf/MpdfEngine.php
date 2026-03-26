@@ -88,8 +88,20 @@ final class MpdfEngine implements PdfEngineInterface {
 		$uploadDir        = wp_upload_dir();
 		$config['tempDir'] = $uploadDir['basedir'] . '/resa-mpdf-tmp';
 
+		// Ensure main temp dir exists.
 		if ( ! is_dir( $config['tempDir'] ) ) {
 			wp_mkdir_p( $config['tempDir'] );
+		}
+
+		// mPDF creates a 'mpdf' subdirectory — ensure it exists and is writable.
+		$mpdfSubDir = $config['tempDir'] . '/mpdf';
+		if ( ! is_dir( $mpdfSubDir ) ) {
+			wp_mkdir_p( $mpdfSubDir );
+		}
+		// Ensure the subdirectory is writable (Docker/permissions issue workaround).
+		if ( is_dir( $mpdfSubDir ) && ! is_writable( $mpdfSubDir ) ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_chmod
+			chmod( $mpdfSubDir, 0755 );
 		}
 
 		// Override margins from options if provided.
