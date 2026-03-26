@@ -1,12 +1,12 @@
 /**
- * ComparisonBarChart — Pure CSS horizontal bar chart for market comparison.
+ * ComparisonBarChart — Animated horizontal bar chart for market comparison.
  *
  * Shows property value vs. city average vs. county average.
- * Uses simple CSS bars instead of Nivo to avoid SVG measurement
- * issues with the widget's CSS isolation reset.
+ * Uses CSS transitions with staggered entry animation.
  */
 
 import { __ } from '@wordpress/i18n';
+import { motion } from 'framer-motion';
 import { resaColors, formatChartValue } from '@frontend/lib/chart-theme';
 
 export interface ComparisonBarChartProps {
@@ -31,6 +31,36 @@ interface BarEntry {
 	value: number;
 	color: string;
 }
+
+const barVariants = {
+	hidden: { width: 0, opacity: 0 },
+	visible: (widthPercent: number) => ({
+		width: `${widthPercent}%`,
+		opacity: 1,
+		transition: {
+			width: { duration: 0.6, ease: 'easeOut' as const },
+			opacity: { duration: 0.3 },
+		},
+	}),
+};
+
+const containerVariants = {
+	hidden: {},
+	visible: {
+		transition: {
+			staggerChildren: 0.15,
+		},
+	},
+};
+
+const itemVariants = {
+	hidden: { opacity: 0, x: -8 },
+	visible: {
+		opacity: 1,
+		x: 0,
+		transition: { duration: 0.3 },
+	},
+};
 
 export function ComparisonBarChart({
 	propertyLabel = __('Ihr Objekt', 'resa'),
@@ -68,37 +98,63 @@ export function ComparisonBarChart({
 
 	const maxValue = Math.max(...bars.map((b) => b.value));
 
+	// Calculate difference to first bar (property) for context
+	const propertyVal = bars[0]?.value ?? 0;
+
 	return (
-		<div
+		<motion.div
 			role="img"
 			aria-label={__('Marktvergleich Balkendiagramm', 'resa')}
 			className="resa-space-y-3"
+			variants={containerVariants}
+			initial="hidden"
+			animate="visible"
 		>
-			{bars.map((bar) => {
+			{bars.map((bar, index) => {
 				const widthPercent = maxValue > 0 ? (bar.value / maxValue) * 100 : 0;
+				const isProperty = index === 0;
+				const diffPercent =
+					!isProperty && propertyVal > 0
+						? Math.round(((bar.value - propertyVal) / propertyVal) * 100)
+						: null;
 
 				return (
-					<div key={bar.label}>
+					<motion.div key={bar.label} variants={itemVariants}>
 						<div className="resa-flex resa-justify-between resa-items-baseline resa-mb-1">
 							<span className="resa-text-xs resa-text-muted-foreground resa-truncate resa-mr-2">
 								{bar.label}
 							</span>
-							<span className="resa-text-xs resa-font-semibold resa-text-foreground resa-whitespace-nowrap">
-								{formatChartValue(bar.value, 2, ` ${unit}`)}
+							<span className="resa-flex resa-items-baseline resa-gap-2">
+								{diffPercent !== null && (
+									<span
+										className={`resa-text-[10px] resa-font-medium ${
+											diffPercent > 0
+												? 'resa-text-red-500'
+												: diffPercent < 0
+													? 'resa-text-green-600'
+													: 'resa-text-muted-foreground'
+										}`}
+									>
+										{diffPercent > 0 ? '+' : ''}
+										{diffPercent}%
+									</span>
+								)}
+								<span className="resa-text-xs resa-font-semibold resa-text-foreground resa-whitespace-nowrap">
+									{formatChartValue(bar.value, 2, ` ${unit}`)}
+								</span>
 							</span>
 						</div>
-						<div className="resa-h-3 resa-w-full resa-rounded-full resa-bg-muted/40">
-							<div
-								className="resa-h-3 resa-rounded-full resa-transition-all resa-duration-700 resa-ease-out"
-								style={{
-									width: `${widthPercent}%`,
-									backgroundColor: bar.color,
-								}}
+						<div className="resa-h-3 resa-w-full resa-rounded-full resa-bg-muted/40 resa-overflow-hidden">
+							<motion.div
+								className="resa-h-3 resa-rounded-full"
+								style={{ backgroundColor: bar.color }}
+								variants={barVariants}
+								custom={widthPercent}
 							/>
 						</div>
-					</div>
+					</motion.div>
 				);
 			})}
-		</div>
+		</motion.div>
 	);
 }

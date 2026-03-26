@@ -18,6 +18,12 @@ import type { PropertyValueResult as PropertyValueResultType, PropertyValueData 
 interface PropertyValueResultProps {
 	result: PropertyValueResultType;
 	inputs: PropertyValueData;
+	/** Optional agent info for personalized CTA */
+	agent?: {
+		name?: string;
+		photo_url?: string;
+		phone?: string;
+	};
 }
 
 function formatCurrency(value: number): string {
@@ -98,7 +104,7 @@ const fadeUp = {
 	show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' as const } },
 };
 
-export function PropertyValueResult({ result, inputs }: PropertyValueResultProps) {
+export function PropertyValueResult({ result, inputs, agent }: PropertyValueResultProps) {
 	const {
 		estimated_value,
 		price_per_sqm,
@@ -133,19 +139,50 @@ export function PropertyValueResult({ result, inputs }: PropertyValueResultProps
 
 	return (
 		<motion.div className="resa-space-y-6" variants={stagger} initial="hidden" animate="show">
-			{/* Hero — Main result */}
+			{/* Hero — Main result with gradient background */}
 			<motion.div
 				variants={fadeUp}
-				className="resa-bg-primary/5 resa-rounded-2xl resa-p-8 resa-text-center"
+				className="resa-relative resa-overflow-hidden resa-rounded-2xl resa-p-8 resa-text-center"
+				style={{
+					background:
+						'linear-gradient(135deg, hsl(var(--resa-primary) / 0.08) 0%, hsl(var(--resa-primary) / 0.18) 100%)',
+				}}
 			>
-				<div className="resa-text-sm resa-text-muted-foreground resa-mb-2">
-					{__('Geschätzter Marktwert', 'resa')}
-				</div>
-				<div className="resa-text-5xl resa-font-bold resa-text-primary">
-					{formatCurrency(estimated_value.estimate)}
-				</div>
-				<div className="resa-text-sm resa-text-muted-foreground resa-mt-2">
-					{formatCurrency(estimated_value.low)} – {formatCurrency(estimated_value.high)}
+				{/* Decorative background circles */}
+				<div
+					className="resa-absolute resa-w-32 resa-h-32 resa-rounded-full resa-opacity-20 resa-pointer-events-none"
+					style={{
+						background: 'hsl(var(--resa-primary))',
+						top: '-4rem',
+						right: '-4rem',
+					}}
+				/>
+				<div
+					className="resa-absolute resa-w-24 resa-h-24 resa-rounded-full resa-opacity-10 resa-pointer-events-none"
+					style={{
+						background: 'hsl(var(--resa-primary))',
+						bottom: '-3rem',
+						left: '-3rem',
+					}}
+				/>
+
+				<div className="resa-relative">
+					<div className="resa-inline-flex resa-items-center resa-gap-2 resa-text-sm resa-text-muted-foreground resa-mb-3">
+						<ResaIcon name="haus" size={16} className="resa-text-primary" />
+						{__('Geschätzter Marktwert', 'resa')}
+					</div>
+					<motion.div
+						className="resa-text-5xl resa-font-bold resa-text-primary resa-tracking-tight"
+						initial={{ scale: 0.8, opacity: 0 }}
+						animate={{ scale: 1, opacity: 1 }}
+						transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+					>
+						{formatCurrency(estimated_value.estimate)}
+					</motion.div>
+					<div className="resa-text-sm resa-text-muted-foreground resa-mt-3 resa-font-medium">
+						{__('Spanne:', 'resa')} {formatCurrency(estimated_value.low)} –{' '}
+						{formatCurrency(estimated_value.high)}
+					</div>
 				</div>
 			</motion.div>
 
@@ -283,17 +320,44 @@ export function PropertyValueResult({ result, inputs }: PropertyValueResultProps
 				</motion.div>
 			)}
 
-			{/* Agent hint */}
+			{/* Agent CTA — personalized if agent data available */}
 			<motion.div
 				variants={fadeUp}
-				className="resa-bg-primary resa-text-primary-foreground resa-rounded-xl resa-p-5 resa-text-center"
+				className="resa-bg-primary resa-text-primary-foreground resa-rounded-xl resa-p-5"
 			>
-				<p className="resa-text-sm">
-					{__(
-						'Ein Immobilienexperte analysiert Ihre Daten und meldet sich in Kürze bei Ihnen.',
-						'resa',
-					)}
-				</p>
+				{agent?.name ? (
+					<div className="resa-flex resa-items-center resa-gap-4">
+						{agent.photo_url ? (
+							<img
+								src={agent.photo_url}
+								alt={agent.name}
+								className="resa-w-14 resa-h-14 resa-rounded-full resa-object-cover resa-border-2 resa-border-primary-foreground/20 resa-shrink-0"
+							/>
+						) : (
+							<div className="resa-w-14 resa-h-14 resa-rounded-full resa-bg-primary-foreground/20 resa-flex resa-items-center resa-justify-center resa-shrink-0">
+								<ResaIcon name="user" size={24} />
+							</div>
+						)}
+						<div className="resa-flex-1 resa-min-w-0">
+							<p className="resa-text-sm resa-opacity-90">
+								{__('Ihr Ansprechpartner', 'resa')}
+							</p>
+							<p className="resa-font-semibold resa-truncate">{agent.name}</p>
+							{agent.phone && (
+								<p className="resa-text-sm resa-font-medium resa-mt-1">
+									{agent.phone}
+								</p>
+							)}
+						</div>
+					</div>
+				) : (
+					<p className="resa-text-sm resa-text-center">
+						{__(
+							'Ein Immobilienexperte analysiert Ihre Daten und meldet sich in Kürze bei Ihnen.',
+							'resa',
+						)}
+					</p>
+				)}
 			</motion.div>
 		</motion.div>
 	);
