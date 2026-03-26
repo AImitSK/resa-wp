@@ -5,10 +5,9 @@ declare( strict_types=1 );
 namespace Resa\Services\Pdf\Charts;
 
 /**
- * Simple bar chart with dual rendering.
+ * Simple bar chart rendered as SVG.
  *
- * - render()    → Inline SVG for Puppeteer (Chrome-quality).
- * - renderPng() → GD-based PNG data URI for DOMPDF fallback.
+ * Used for PDF generation with mPDF, which natively supports SVG rendering.
  */
 final class SimpleBarChart {
 
@@ -18,7 +17,7 @@ final class SimpleBarChart {
 	/**
 	 * Render a bar chart as inline SVG markup.
 	 *
-	 * Used by Puppeteer — Chromium renders SVG natively.
+	 * mPDF natively renders SVG, so no fallback (PNG) is needed.
 	 *
 	 * @param array<int,array{label:string,value:float,color?:string}> $bars   Bar data.
 	 * @param array<string,mixed>                                      $config Chart config.
@@ -111,170 +110,5 @@ final class SimpleBarChart {
 		$svg .= '</svg>';
 
 		return $svg;
-	}
-
-	/**
-	 * Render a bar chart as base64 PNG data URI (DOMPDF fallback).
-	 *
-	 * @param array<int,array{label:string,value:float,color?:string}> $bars   Bar data.
-	 * @param array<string,mixed>                                      $config Chart config.
-	 * @return string Base64 data URI string for <img src="...">, or empty on failure.
-	 */
-	public function renderPng( array $bars, array $config = [] ): string {
-		if ( count( $bars ) === 0 || ! function_exists( 'imagecreatetruecolor' ) ) {
-			return '';
-		}
-
-		$width  = (int) ( $config['width'] ?? self::DEFAULT_WIDTH );
-		$height = (int) ( $config['height'] ?? self::DEFAULT_HEIGHT );
-		$unit   = (string) ( $config['unit'] ?? '' );
-
-		// Scale factor for sharper rendering.
-		$scale = 2;
-		$w     = $width * $scale;
-		$h     = $height * $scale;
-
-		$image = imagecreatetruecolor( $w, $h );
-		if ( $image === false ) {
-			return '';
-		}
-
-		imageantialias( $image, true );
-
-		// Colors.
-		$bgColor       = (int) imagecolorallocate( $image, 255, 255, 255 );
-		$textColor     = (int) imagecolorallocate( $image, 30, 41, 59 );
-		$labelColor    = (int) imagecolorallocate( $image, 100, 116, 139 );
-		$lineColor     = (int) imagecolorallocate( $image, 226, 232, 240 );
-		$gridLineColor = (int) imagecolorallocate( $image, 241, 245, 249 );
-
-		imagefilledrectangle( $image, 0, 0, $w - 1, $h - 1, $bgColor );
-
-		// Chart area.
-		$paddingLeft   = 20 * $scale;
-		$paddingRight  = 20 * $scale;
-		$paddingTop    = 30 * $scale;
-		$paddingBottom = 40 * $scale;
-
-		$chartLeft   = $paddingLeft;
-		$chartRight  = $w - $paddingRight;
-		$chartTop    = $paddingTop;
-		$chartBottom = $h - $paddingBottom;
-		$chartWidth  = $chartRight - $chartLeft;
-		$chartHeight = $chartBottom - $chartTop;
-
-		$barCount = count( $bars );
-		$barGap   = (int) ( 20 * $scale );
-		$totalGap = ( $barCount + 1 ) * $barGap;
-		$barWidth = (int) ( ( $chartWidth - $totalGap ) / $barCount );
-
-		$maxBarWidth = 80 * $scale;
-		if ( $barWidth > $maxBarWidth ) {
-			$barWidth = $maxBarWidth;
-			$totalGap = $chartWidth - ( $barCount * $barWidth );
-			$barGap   = (int) ( $totalGap / ( $barCount + 1 ) );
-		}
-
-		$maxValue = max( array_column( $bars, 'value' ) );
-		if ( $maxValue <= 0 ) {
-			$maxValue = 1;
-		}
-		$maxValue *= 1.15;
-
-		// Grid lines.
-		$gridSteps = 4;
-		for ( $i = 1; $i <= $gridSteps; $i++ ) {
-			$gridY = $chartBottom - (int) ( ( $i / $gridSteps ) * $chartHeight );
-			imageline( $image, $chartLeft, $gridY, $chartRight, $gridY, $gridLineColor );
-		}
-
-		// Baseline.
-		imageline( $image, $chartLeft, $chartBottom, $chartRight, $chartBottom, $lineColor );
-
-		$valueFontSize = (int) ( 5 * $scale );
-		$labelFontSize = (int) ( 4 * $scale );
-
-		// Bars.
-		foreach ( $bars as $index => $bar ) {
-			$value    = (float) $bar['value'];
-			$label    = (string) $bar['label'];
-			$barColor = $bar['color'] ?? '#3b82f6';
-
-			$rgb     = $this->hexToRgb( $barColor );
-			$gdColor = (int) imagecolorallocate( $image, $rgb[0], $rgb[1], $rgb[2] );
-
-			$barHeight = (int) ( ( $value / $maxValue ) * $chartHeight );
-			$x1        = $chartLeft + $barGap + $index * ( $barWidth + $barGap );
-			$y1        = $chartBottom - $barHeight;
-			$x2        = $x1 + $barWidth;
-			$y2        = $chartBottom;
-
-			imagefilledrectangle( $image, $x1, $y1, $x2, $y2, $gdColor );
-
-			// Round top corners.
-			$radius = min( 6 * $scale, $barWidth / 4, $barHeight / 4 );
-			if ( $radius > 2 ) {
-				imagefilledarc( $image, $x1 + $radius, $y1 + $radius, $radius * 2, $radius * 2, 180, 270, $gdColor, IMG_ARC_PIE );
-				imagefilledarc( $image, $x2 - $radius, $y1 + $radius, $radius * 2, $radius * 2, 270, 360, $gdColor, IMG_ARC_PIE );
-				imagefilledrectangle( $image, $x1, $y1, $x1 + $radius, $y1 + $radius, $bgColor );
-				imagefilledrectangle( $image, $x2 - $radius, $y1, $x2, $y1 + $radius, $bgColor );
-				imagefilledarc( $image, $x1 + $radius, $y1 + $radius, $radius * 2, $radius * 2, 180, 270, $gdColor, IMG_ARC_PIE );
-				imagefilledarc( $image, $x2 - $radius, $y1 + $radius, $radius * 2, $radius * 2, 270, 360, $gdColor, IMG_ARC_PIE );
-			}
-
-			// Value text above bar.
-			$valueText = number_format( $value, 1, ',', '.' );
-			if ( $unit !== '' ) {
-				$valueText .= ' ' . $unit;
-			}
-			$this->drawCenteredText( $image, $valueText, $x1, $x2, $y1 - (int) ( 8 * $scale ), $valueFontSize, $textColor );
-
-			// Label below bar.
-			$this->drawCenteredText( $image, $label, $x1, $x2, $chartBottom + (int) ( 12 * $scale ), $labelFontSize, $labelColor );
-		}
-
-		// Convert to PNG data URI.
-		ob_start();
-		imagepng( $image, null, 6 );
-		$pngData = ob_get_clean();
-		imagedestroy( $image );
-
-		if ( $pngData === false || $pngData === '' ) {
-			return '';
-		}
-
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-		return 'data:image/png;base64,' . base64_encode( $pngData );
-	}
-
-	/**
-	 * Draw centered text between two x positions using GD built-in fonts.
-	 */
-	private function drawCenteredText( \GdImage $image, string $text, int $x1, int $x2, int $y, int $fontSize, int $color ): void {
-		$font      = min( 5, max( 1, (int) round( $fontSize / 3 ) ) );
-		$charWidth = imagefontwidth( $font );
-		$textWidth = $charWidth * strlen( $text );
-		$centerX   = $x1 + (int) ( ( $x2 - $x1 ) / 2 );
-		$textX     = $centerX - (int) ( $textWidth / 2 );
-
-		imagestring( $image, $font, $textX, $y, $text, $color );
-	}
-
-	/**
-	 * Convert hex color to RGB array.
-	 *
-	 * @param string $hex Hex color (e.g. "#3b82f6").
-	 * @return array{0:int,1:int,2:int} RGB values.
-	 */
-	private function hexToRgb( string $hex ): array {
-		$hex = ltrim( $hex, '#' );
-		if ( strlen( $hex ) === 3 ) {
-			$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
-		}
-		return [
-			(int) hexdec( substr( $hex, 0, 2 ) ),
-			(int) hexdec( substr( $hex, 2, 2 ) ),
-			(int) hexdec( substr( $hex, 4, 2 ) ),
-		];
 	}
 }

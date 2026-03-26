@@ -197,12 +197,12 @@ final class LeadPdfService {
 
 		$leadName = trim( ( $lead->first_name ?? '' ) . ' ' . ( $lead->last_name ?? '' ) );
 
-		// Extract result values - handle nested monthly_rent structure.
+		// Extract result values - handle nested monthly_rent structure and various field names.
 		$monthlyRent   = $result['monthly_rent'] ?? [];
-		$estimatedRent = (float) ( $monthlyRent['estimate'] ?? $result['estimatedRent'] ?? $result['monthly_rent'] ?? 0 );
+		$estimatedRent = (float) ( $monthlyRent['estimate'] ?? $result['estimatedRent'] ?? $result['totalRent'] ?? $result['monthly_rent'] ?? 0 );
 		$rentMin       = (float) ( $monthlyRent['low'] ?? $result['rentMin'] ?? 0 );
 		$rentMax       = (float) ( $monthlyRent['high'] ?? $result['rentMax'] ?? 0 );
-		$pricePerSqm   = (float) ( $result['price_per_sqm'] ?? $result['pricePerSqm'] ?? 0 );
+		$pricePerSqm   = (float) ( $result['price_per_sqm'] ?? $result['pricePerSqm'] ?? $result['rentPerSqm'] ?? 0 );
 
 		// Property value fields (optional).
 		$propertyValue    = $result['property_value'] ?? [];
@@ -219,16 +219,14 @@ final class LeadPdfService {
 		$cityAverage   = (float) ( $result['cityAverage'] ?? $result['city_average'] ?? 0 );
 		$countyAverage = (float) ( $result['countyAverage'] ?? $result['county_average'] ?? 0 );
 
-		// Build comparison charts (SVG for Puppeteer, PNG for DOMPDF).
-		$barChartSvg      = $this->buildComparisonChart( $pricePerSqm, $cityAverage, $countyAverage, false );
-		$barChartPng      = $this->buildComparisonChart( $pricePerSqm, $cityAverage, $countyAverage, true );
+		// Build comparison bar chart (SVG only — mPDF handles SVG natively).
+		$barChart = $this->buildComparisonChart( $pricePerSqm, $cityAverage, $countyAverage );
 
-		// Build market position gauge (SVG for Puppeteer, PNG for DOMPDF).
+		// Build market position gauge (SVG only).
 		$marketPercentile = (int) ( $result['market_position']['percentile'] ?? 50 );
 		$marketLabel      = $result['market_position']['label'] ?? '';
 		$gaugeChart       = new SimpleGaugeChart();
-		$gaugeSvg         = $gaugeChart->render( $marketPercentile, $marketLabel, [ 'size' => 200 ] );
-		$gaugePng         = $gaugeChart->renderPng( $marketPercentile, $marketLabel, [ 'size' => 200 ] );
+		$gauge            = $gaugeChart->render( $marketPercentile, $marketLabel, [ 'size' => 200 ] );
 
 		// Build factors array from result.factors object.
 		$factors = $this->buildFactorsArray( $result, $inputs );
@@ -246,12 +244,15 @@ final class LeadPdfService {
 			$addressLng = isset( $location->longitude ) ? (float) $location->longitude : null;
 		}
 
-		// Get logo URL and convert to base64 for DOMPDF reliability.
+		// Get logo URL and convert to base64 for reliable rendering.
 		$logoUrl      = (string) get_option( 'resa_branding_logo_url', '' );
 		$logoDataUri  = $this->convertImageToDataUri( $logoUrl );
 
-		// Static map via GD disabled — Puppeteer renders Leaflet maps natively.
-		// Coordinates are passed to the template for Leaflet initialization.
+		// Generate static map via GD (mPDF doesn't support JavaScript/Leaflet).
+		$staticMap = '';
+		if ( $addressLat !== null && $addressLng !== null ) {
+			$staticMap = $this->generateStaticMap( $addressLat, $addressLng );
+		}
 
 		return [
 			'lead_name'         => $leadName,
@@ -260,6 +261,7 @@ final class LeadPdfService {
 			'property_address'  => $inputs['address'] ?? $inputs['address_display'] ?? $cityName,
 			'address_lat'       => $addressLat,
 			'address_lng'       => $addressLng,
+			'static_map'        => $staticMap,
 			'living_area'       => (float) ( $inputs['size'] ?? $inputs['livingArea'] ?? 0 ),
 			'rooms'             => (float) ( $inputs['rooms'] ?? 0 ),
 			'construction_year' => (int) ( $inputs['year_built'] ?? $inputs['constructionYear'] ?? 0 ),
@@ -292,25 +294,22 @@ final class LeadPdfService {
 			'location_id'       => (int) ( $lead->location_id ?? 0 ),
 			'logo_url'          => $logoDataUri ?: $logoUrl,
 			'primary_color'     => (string) get_option( 'resa_branding_primary_color', '#3b82f6' ),
-			// Dual-rendering: SVG for Puppeteer, PNG data URI for DOMPDF.
-			'bar_chart_svg'     => $barChartSvg,
-			'bar_chart_png'     => $barChartPng,
-			'gauge_svg'         => $gaugeSvg,
-			'gauge_png'         => $gaugePng,
+			// Charts as SVG (mPDF renders SVG natively).
+			'bar_chart'         => $barChart,
+			'gauge'             => $gauge,
 			'market_percentile' => $marketPercentile,
 		];
 	}
 
 	/**
-	 * Build comparison bar chart (SVG or PNG).
+	 * Build comparison bar chart as SVG.
 	 *
 	 * @param float $propertyValue  Property price per sqm.
 	 * @param float $cityAverage    City average.
 	 * @param float $countyAverage  County average.
-	 * @param bool  $asPng          True for GD-PNG (DOMPDF), false for SVG (Puppeteer).
-	 * @return string SVG markup or base64 PNG data URI.
+	 * @return string SVG markup.
 	 */
-	private function buildComparisonChart( float $propertyValue, float $cityAverage, float $countyAverage, bool $asPng = false ): string {
+	private function buildComparisonChart( float $propertyValue, float $cityAverage, float $countyAverage ): string {
 		if ( $propertyValue <= 0 && $cityAverage <= 0 && $countyAverage <= 0 ) {
 			return '';
 		}
@@ -353,7 +352,7 @@ final class LeadPdfService {
 			'unit'   => '€/m²',
 		];
 
-		return $asPng ? $chart->renderPng( $bars, $config ) : $chart->render( $bars, $config );
+		return $chart->render( $bars, $config );
 	}
 
 	/**
@@ -920,18 +919,28 @@ final class LeadPdfService {
 			return '';
 		}
 
-		$zoom   = 15;
-		$width  = 500;
-		$height = 200;
+		$zoom     = 15;
+		$width    = 500;
+		$height   = 140;
+		$tileSize = 256;
 
-		// Convert lat/lng to tile coordinates.
-		$tileSize   = 256;
-		$centerX    = $this->lngToTileX( $lng, $zoom );
-		$centerY    = $this->latToTileY( $lat, $zoom );
+		// Convert lat/lng to pixel coordinates at this zoom level.
+		$centerTileX = $this->lngToTileX( $lng, $zoom );
+		$centerTileY = $this->latToTileY( $lat, $zoom );
 
-		// Calculate how many tiles we need.
-		$tilesX = (int) ceil( $width / $tileSize ) + 1;
-		$tilesY = (int) ceil( $height / $tileSize ) + 1;
+		// Center pixel in world coordinates.
+		$centerPixelX = $centerTileX * $tileSize;
+		$centerPixelY = $centerTileY * $tileSize;
+
+		// Top-left pixel of the output image in world coordinates.
+		$topLeftPixelX = $centerPixelX - ( $width / 2 );
+		$topLeftPixelY = $centerPixelY - ( $height / 2 );
+
+		// Which tiles do we need?
+		$startTileX = (int) floor( $topLeftPixelX / $tileSize );
+		$startTileY = (int) floor( $topLeftPixelY / $tileSize );
+		$endTileX   = (int) floor( ( $topLeftPixelX + $width ) / $tileSize );
+		$endTileY   = (int) floor( ( $topLeftPixelY + $height ) / $tileSize );
 
 		// Create the output image.
 		$image = imagecreatetruecolor( $width, $height );
@@ -943,27 +952,13 @@ final class LeadPdfService {
 		$bgColor = imagecolorallocate( $image, 240, 240, 240 );
 		imagefill( $image, 0, 0, $bgColor );
 
-		// Calculate the offset for centering.
-		$offsetX = (int) ( ( $centerX - floor( $centerX ) ) * $tileSize );
-		$offsetY = (int) ( ( $centerY - floor( $centerY ) ) * $tileSize );
-
-		// Starting tile.
-		$startTileX = (int) floor( $centerX ) - (int) floor( $tilesX / 2 );
-		$startTileY = (int) floor( $centerY ) - (int) floor( $tilesY / 2 );
-
-		// Starting position on canvas.
-		$startPosX = (int) ( $width / 2 ) - $offsetX - (int) floor( $tilesX / 2 ) * $tileSize;
-		$startPosY = (int) ( $height / 2 ) - $offsetY - (int) floor( $tilesY / 2 ) * $tileSize;
+		$maxTile = (int) pow( 2, $zoom );
 
 		// Fetch and draw tiles.
-		for ( $y = 0; $y < $tilesY; $y++ ) {
-			for ( $x = 0; $x < $tilesX; $x++ ) {
-				$tileX = $startTileX + $x;
-				$tileY = $startTileY + $y;
-
+		for ( $tileY = $startTileY; $tileY <= $endTileY; $tileY++ ) {
+			for ( $tileX = $startTileX; $tileX <= $endTileX; $tileX++ ) {
 				// Wrap tile X coordinate.
-				$maxTile = pow( 2, $zoom );
-				$tileX   = ( $tileX % $maxTile + $maxTile ) % $maxTile;
+				$wrappedTileX = ( $tileX % $maxTile + $maxTile ) % $maxTile;
 
 				// Skip invalid Y coordinates.
 				if ( $tileY < 0 || $tileY >= $maxTile ) {
@@ -973,7 +968,7 @@ final class LeadPdfService {
 				$tileUrl = sprintf(
 					'https://tile.openstreetmap.org/%d/%d/%d.png',
 					$zoom,
-					$tileX,
+					$wrappedTileX,
 					$tileY
 				);
 
@@ -981,8 +976,9 @@ final class LeadPdfService {
 				if ( $tileData !== '' ) {
 					$tile = @imagecreatefromstring( $tileData );
 					if ( $tile !== false ) {
-						$destX = $startPosX + ( $x * $tileSize );
-						$destY = $startPosY + ( $y * $tileSize );
+						// Where does this tile appear on our output image?
+						$destX = (int) ( ( $tileX * $tileSize ) - $topLeftPixelX );
+						$destY = (int) ( ( $tileY * $tileSize ) - $topLeftPixelY );
 						imagecopy( $image, $tile, $destX, $destY, 0, 0, $tileSize, $tileSize );
 						imagedestroy( $tile );
 					}
@@ -1082,30 +1078,9 @@ final class LeadPdfService {
 	}
 
 	/**
-	 * Legacy method for backwards compatibility.
+	 * Convert an image URL to a base64 data URI for reliable rendering.
 	 *
-	 * @param float $lat Latitude.
-	 * @param float $lng Longitude.
-	 * @return string Static map image URL (external service).
-	 * @deprecated Use generateStaticMap() instead.
-	 */
-	private function getStaticMapUrl( float $lat, float $lng ): string {
-		// OpenStreetMap Static Maps API.
-		// Format: center lat,lng; zoom; size; marker position.
-		return sprintf(
-			'https://staticmap.openstreetmap.de/staticmap.php?center=%f,%f&zoom=15&size=500x200&markers=%f,%f,red-pushpin',
-			$lat,
-			$lng,
-			$lat,
-			$lng
-		);
-	}
-
-	/**
-	 * Convert an image URL to a base64 data URI for DOMPDF reliability.
-	 *
-	 * DOMPDF has issues with remote URLs (timeouts, SSL, redirects).
-	 * Converting to base64 data URIs ensures reliable image embedding.
+	 * Converting to base64 data URIs ensures reliable image embedding in PDF.
 	 *
 	 * @param string $url Image URL (can be local path, WordPress upload URL, or external).
 	 * @return string Base64 data URI, or empty string on failure.

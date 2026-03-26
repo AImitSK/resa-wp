@@ -56,14 +56,20 @@ $pdfService->generateAndSend(int $leadId): bool;
 - **Logo:** Wird automatisch zu Base64-Data-URI konvertiert
 - **Karten:** Statische Karten via PHP GD + OSM Tiles (ohne Puppeteer möglich)
 
-### PDF-Engines
+### PDF-Engine
 
-| Engine        | Beschreibung                | Einschränkungen                                  |
-| ------------- | --------------------------- | ------------------------------------------------ |
-| **DOMPDF**    | Standard, rein PHP          | Kein Flexbox/Grid, eingeschränktes CSS           |
-| **Puppeteer** | Empfohlen, via Node-Service | Benötigt Node-Container, volle CSS-Unterstützung |
+| Engine   | Beschreibung              | Vorteile                                         |
+| -------- | ------------------------- | ------------------------------------------------ |
+| **mPDF** | Standard-Engine, rein PHP | Native SVG-Unterstützung, bessere CSS als DOMPDF |
 
-Konfiguriert über `RESA_PDF_SERVICE_URL` Environment-Variable.
+Konfiguration über WordPress `wp_upload_dir()` für Temp-Verzeichnis (`resa-mpdf-tmp`).
+
+### Charts
+
+- **SimpleBarChart** — SVG-Balkendiagramm für Preisvergleiche
+- **SimpleGaugeChart** — SVG-Gauge für Perzentil-Anzeige
+
+Beide werden als Inline-SVG in die PDF-Templates eingebettet. mPDF rendert SVG nativ.
 
 ---
 

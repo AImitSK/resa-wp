@@ -53,6 +53,7 @@ Je nach Umfang können Schritte übersprungen werden (siehe [Wann welchen Schrit
 - **User-Freigabe einholen**
 
 **Bei Modul-Features zusätzlich klären:**
+
 - Gehört das Feature in den Kern oder in ein Modul?
 - Falls neues Modul: `modules/{slug}/` Struktur mit `module.php` + `ModuleInterface`
 - REST-Endpoints unter `/resa/v1/modules/{slug}/*`
@@ -73,17 +74,18 @@ Je nach Umfang können Schritte übersprungen werden (siehe [Wann welchen Schrit
 
 Diese Skills sind passiv und werden **immer** beim Coden beachtet — nicht erst am Ende:
 
-| Skill | Wann | Was beachten |
-|---|---|---|
-| **wp-security** | Bei jedem PHP-Code | Sanitization, Escaping, Nonces, Capabilities, $wpdb->prepare(), REST permission_callback |
-| **wp-i18n** | Bei jedem User-facing String | Text-Domain `'resa'`, esc_html__(), Translator-Kommentare, _n() für Plurale, DACH-Formatierung |
-| **freemius** | Bei Premium/Free-Logik | can_use_premium_code(), FeatureGate, Free-Limits, Upgrade-CTAs |
-| **dompdf** | Bei PDF-Templates & -Code | DOMPDF CSS-Limits (kein Flex/Grid), Table-Layout, Inline-SVG nur einfach, Puppeteer-Fallback, `animate={false}` |
-| **nivo-charts** | Bei Charts & Visualisierungen | resaChartTheme, resaColors, Dual-Rendering (Web/PDF), DACH-Formatierung (Komma-Dezimal, €/m²), Framer Motion |
+| Skill           | Wann                          | Was beachten                                                                                                                   |
+| --------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **wp-security** | Bei jedem PHP-Code            | Sanitization, Escaping, Nonces, Capabilities, $wpdb->prepare(), REST permission_callback                                       |
+| **wp-i18n**     | Bei jedem User-facing String  | Text-Domain `'resa'`, esc_html\_\_(), Translator-Kommentare, \_n() für Plurale, DACH-Formatierung                              |
+| **freemius**    | Bei Premium/Free-Logik        | can_use_premium_code(), FeatureGate, Free-Limits, Upgrade-CTAs                                                                 |
+| **mpdf**        | Bei PDF-Templates & -Code     | mPDF mit nativer SVG-Unterstützung, bessere CSS-Unterstützung als DOMPDF, SimpleBarChart/SimpleGaugeChart für statische Charts |
+| **nivo-charts** | Bei Charts & Visualisierungen | resaChartTheme, resaColors, Dual-Rendering (Web/PDF), DACH-Formatierung (Komma-Dezimal, €/m²), Framer Motion                   |
 
 ### Implementierungsreihenfolge
 
 **Kern-Features (typisch):**
+
 1. **Datenbank/Migration** — Neue Tabellen oder Spalten
 2. **Models/Repository** — Daten-Zugriff
 3. **Services** — Geschäftslogik
@@ -92,6 +94,7 @@ Diese Skills sind passiv und werden **immer** beim Coden beachtet — nicht erst
 6. **Integration** — Alles zusammenführen (Shortcode, Admin-Menu, etc.)
 
 **Lead Tool Module:**
+
 1. **Modul-Verzeichnis** — `modules/{slug}/module.php` + `{Name}Module.php` (ModuleInterface)
 2. **Calculator-Service** — `{Name}Service.php` (CalculatorInterface)
 3. **Settings-Schema** — `getSettingsSchema()` im Modul definieren
@@ -101,6 +104,7 @@ Diese Skills sind passiv und werden **immer** beim Coden beachtet — nicht erst
 7. **Tests** — `modules/{slug}/tests/`
 
 **Integration Add-ons (separates Plugin):**
+
 1. **Plugin-Bootstrap** — `resa-{name}/resa-{name}.php` mit Freemius Add-on Init
 2. **Integration-Klasse** — `IntegrationInterface` implementieren
 3. **Hook-Registrierung** — `add_action( 'resa_register_integrations', ... )`
@@ -126,8 +130,8 @@ Diese Skills sind passiv und werden **immer** beim Coden beachtet — nicht erst
 
 - `/test [Datei]` für jede relevante Datei ausführen
 - Tests werden generiert in:
-  - `tests/php/` — PHPUnit + Brain Monkey für PHP
-  - `tests/js/` — Vitest + React Testing Library für TypeScript
+    - `tests/php/` — PHPUnit + Brain Monkey für PHP
+    - `tests/js/` — Vitest + React Testing Library für TypeScript
 - Tests lokal ausführen und sicherstellen dass sie grün sind
 
 ### Was getestet wird
@@ -150,9 +154,9 @@ Diese Skills sind passiv und werden **immer** beim Coden beachtet — nicht erst
 
 - `/review staged` (oder `/review [Datei]`) ausführen
 - Checkliste wird automatisch geprüft:
-  - 🔴 **Critical:** Security-Lücken, fehlende Permission-Callbacks
-  - 🟡 **Warning:** Fehlende i18n, unvollständige Typen
-  - 🔵 **Info:** Verbesserungsvorschläge
+    - 🔴 **Critical:** Security-Lücken, fehlende Permission-Callbacks
+    - 🟡 **Warning:** Fehlende i18n, unvollständige Typen
+    - 🔵 **Info:** Verbesserungsvorschläge
 - Alle Critical-Findings fixen, Warnings nach Möglichkeit
 
 **Ergebnis:** Review-bereiter Code ohne Critical-Findings.
@@ -172,25 +176,27 @@ Diese Skills sind passiv und werden **immer** beim Coden beachtet — nicht erst
 
 ## Wann welchen Schritt?
 
-| Aufgabe | Spec | Plan | Impl | Test | Review |
-|---|---|---|---|---|---|
-| **Neues Feature (groß)** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Neues Lead Tool Modul** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Neue Integration** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Neues Feature (klein)** | ❌ | ✅ | ✅ | ✅ | ✅ |
-| **Bugfix** | ❌ | ❌* | ✅ | ✅ | ✅ |
-| **Refactoring** | ❌ | ✅ | ✅ | ✅ | ✅ |
-| **Typo/Config** | ❌ | ❌ | ✅ | ❌ | ❌ |
+| Aufgabe                   | Spec | Plan | Impl | Test | Review |
+| ------------------------- | ---- | ---- | ---- | ---- | ------ |
+| **Neues Feature (groß)**  | ✅   | ✅   | ✅   | ✅   | ✅     |
+| **Neues Lead Tool Modul** | ✅   | ✅   | ✅   | ✅   | ✅     |
+| **Neue Integration**      | ✅   | ✅   | ✅   | ✅   | ✅     |
+| **Neues Feature (klein)** | ❌   | ✅   | ✅   | ✅   | ✅     |
+| **Bugfix**                | ❌   | ❌\* | ✅   | ✅   | ✅     |
+| **Refactoring**           | ❌   | ✅   | ✅   | ✅   | ✅     |
+| **Typo/Config**           | ❌   | ❌   | ✅   | ❌   | ❌     |
 
-*Plan bei komplexen Bugs die mehrere Dateien betreffen.
+\*Plan bei komplexen Bugs die mehrere Dateien betreffen.
 
 ### Indikatoren für "großes Feature"
+
 - Betrifft > 5 Dateien
 - Neue DB-Tabellen oder API-Endpoints
 - Neue Admin-Seite oder Widget-Komponente
 - Free/Premium-Unterscheidung relevant
 
 ### Indikatoren für "kleines Feature"
+
 - 2-5 Dateien betroffen
 - Erweiterung bestehender Funktionalität
 - Keine DB/API-Änderungen
@@ -209,17 +215,18 @@ Diese Skills sind passiv und werden **immer** beim Coden beachtet — nicht erst
 
 ## Slash-Commands Übersicht
 
-| Command | Wann verwenden |
-|---|---|
-| `/spec [Feature]` | Neues Feature spezifizieren (vor Implementierung) |
-| `/review [Datei\|staged]` | Code reviewen (nach Implementierung) |
-| `/test [Datei]` | Tests generieren (nach Implementierung) |
+| Command                   | Wann verwenden                                    |
+| ------------------------- | ------------------------------------------------- |
+| `/spec [Feature]`         | Neues Feature spezifizieren (vor Implementierung) |
+| `/review [Datei\|staged]` | Code reviewen (nach Implementierung)              |
+| `/test [Datei]`           | Tests generieren (nach Implementierung)           |
 
 ---
 
 ## Cheat Sheet: Was prüfe ich wann?
 
 ### Beim Schreiben von PHP
+
 - [ ] Inputs sanitized? (`sanitize_text_field()`, `absint()`, etc.)
 - [ ] Outputs escaped? (`esc_html()`, `esc_attr()`, `esc_url()`)
 - [ ] Nonces bei Formularen/AJAX?
@@ -231,6 +238,7 @@ Diese Skills sind passiv und werden **immer** beim Coden beachtet — nicht erst
 - [ ] Premium-Check wo nötig?
 
 ### Beim Schreiben von TypeScript/React
+
 - [ ] Keine `any` Types?
 - [ ] i18n: `__()` / `_n()` aus `@wordpress/i18n`?
 - [ ] Loading/Error States?
@@ -239,6 +247,7 @@ Diese Skills sind passiv und werden **immer** beim Coden beachtet — nicht erst
 - [ ] CSS-Klassen mit `resa-` Prefix (Widget)?
 
 ### Bei Charts (Nivo)
+
 - [ ] `resaChartTheme` als Theme gesetzt?
 - [ ] `resaColors.*` Palette semantisch gewählt?
 - [ ] DACH-Formatierung in Achsen/Tooltips (Komma-Dezimal, €, m²)?
@@ -247,16 +256,17 @@ Diese Skills sind passiv und werden **immer** beim Coden beachtet — nicht erst
 - [ ] Framer Motion Eintritts-Animation (nur Web)?
 - [ ] PDF-Variante: `animate={false}`, `isInteractive={false}`, feste Größe?
 
-### Bei PDF-Templates
-- [ ] Layout mit `<table>` statt Flex/Grid (DOMPDF)?
+### Bei PDF-Templates (mPDF)
+
 - [ ] Inline-Styles oder `<style>`-Block (keine externen CSS)?
-- [ ] Keine `var()`, `calc()`, Gradienten, box-shadow?
-- [ ] Bilder mit absolutem Pfad oder Data-URI?
-- [ ] SVGs nur einfache Elemente (rect, text, line, path)?
+- [ ] Bilder mit absolutem Pfad oder Data-URI (Base64)?
+- [ ] SVGs nativ unterstützt (keine PNG-Konvertierung nötig)
 - [ ] Seitenumbrüche mit `page-break-before/after`?
-- [ ] Template in BEIDEN Engines getestet (DOMPDF + Puppeteer)?
+- [ ] UTF-8 und DejaVu-Fonts für Sonderzeichen (€, m², ä/ö/ü)?
+- [ ] tempDir in WordPress uploads konfiguriert?
 
 ### Bei DB-Änderungen
+
 - [ ] Migration via `dbDelta()`?
 - [ ] Versionierung in `resa_db_version` Option?
 - [ ] Cleanup in Freemius `after_uninstall` Hook?

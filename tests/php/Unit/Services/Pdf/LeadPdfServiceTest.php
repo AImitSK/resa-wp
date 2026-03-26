@@ -377,8 +377,8 @@ class LeadPdfServiceTest extends TestCase {
 		$service = new LeadPdfService( $pdfGenerator, $emailService );
 		$service->generateAndSend( 5 );
 
-		$this->assertArrayHasKey( 'bar_chart_svg', $capturedData );
-		$this->assertStringContainsString( '<svg', $capturedData['bar_chart_svg'] );
+		$this->assertArrayHasKey( 'bar_chart', $capturedData );
+		$this->assertStringContainsString( '<svg', $capturedData['bar_chart'] );
 	}
 
 	public function test_result_summary_formats_rent_correctly(): void {

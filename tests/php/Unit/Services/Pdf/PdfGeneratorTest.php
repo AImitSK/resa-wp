@@ -26,64 +26,26 @@ class PdfGeneratorTest extends TestCase {
 		parent::tearDown();
 	}
 
-	public function test_detectEngine_prefers_puppeteer_when_available(): void {
-		$puppeteer = Mockery::mock( PdfEngineInterface::class );
-		$puppeteer->shouldReceive( 'isAvailable' )->andReturn( true );
+	public function test_getEngine_returns_injected_engine(): void {
+		$engine = Mockery::mock( PdfEngineInterface::class );
 
-		$dompdf = Mockery::mock( PdfEngineInterface::class );
+		$generator = new PdfGenerator( $engine );
 
-		$generator = new PdfGenerator( $puppeteer, $dompdf );
-		$engine    = $generator->detectEngine();
-
-		$this->assertSame( $puppeteer, $engine );
+		$this->assertSame( $engine, $generator->getEngine() );
 	}
 
-	public function test_detectEngine_falls_back_to_dompdf_when_puppeteer_unavailable(): void {
-		$puppeteer = Mockery::mock( PdfEngineInterface::class );
-		$puppeteer->shouldReceive( 'isAvailable' )->andReturn( false );
+	public function test_getEngineInfo_returns_engine_name_and_availability(): void {
+		$engine = Mockery::mock( PdfEngineInterface::class );
+		$engine->shouldReceive( 'isAvailable' )->andReturn( true );
+		$engine->shouldReceive( 'getName' )->andReturn( 'mpdf' );
 
-		$dompdf = Mockery::mock( PdfEngineInterface::class );
-		$dompdf->shouldReceive( 'isAvailable' )->andReturn( true );
-
-		$generator = new PdfGenerator( $puppeteer, $dompdf );
-		$engine    = $generator->detectEngine();
-
-		$this->assertSame( $dompdf, $engine );
-	}
-
-	public function test_detectEngine_throws_when_no_engine_available(): void {
-		$puppeteer = Mockery::mock( PdfEngineInterface::class );
-		$puppeteer->shouldReceive( 'isAvailable' )->andReturn( false );
-
-		$dompdf = Mockery::mock( PdfEngineInterface::class );
-		$dompdf->shouldReceive( 'isAvailable' )->andReturn( false );
-
-		Functions\when( '__' )->returnArg();
-
-		$generator = new PdfGenerator( $puppeteer, $dompdf );
-
-		$this->expectException( \RuntimeException::class );
-		$generator->detectEngine();
-	}
-
-	public function test_getEngineInfo_returns_both_engines(): void {
-		$puppeteer = Mockery::mock( PdfEngineInterface::class );
-		$puppeteer->shouldReceive( 'isAvailable' )->andReturn( true );
-		$puppeteer->shouldReceive( 'getName' )->andReturn( 'puppeteer' );
-
-		$dompdf = Mockery::mock( PdfEngineInterface::class );
-		$dompdf->shouldReceive( 'isAvailable' )->andReturn( true );
-		$dompdf->shouldReceive( 'getName' )->andReturn( 'dompdf' );
-
-		$generator = new PdfGenerator( $puppeteer, $dompdf );
+		$generator = new PdfGenerator( $engine );
 		$info      = $generator->getEngineInfo();
 
-		$this->assertArrayHasKey( 'puppeteer', $info );
-		$this->assertArrayHasKey( 'dompdf', $info );
-		$this->assertTrue( $info['puppeteer']['available'] );
-		$this->assertTrue( $info['dompdf']['available'] );
-		$this->assertSame( 'puppeteer', $info['puppeteer']['name'] );
-		$this->assertSame( 'dompdf', $info['dompdf']['name'] );
+		$this->assertArrayHasKey( 'engine', $info );
+		$this->assertArrayHasKey( 'available', $info );
+		$this->assertSame( 'mpdf', $info['engine'] );
+		$this->assertTrue( $info['available'] );
 	}
 
 	private function mockCommonPdfFunctions(): void {
@@ -102,22 +64,17 @@ class PdfGeneratorTest extends TestCase {
 		] );
 	}
 
-	public function test_generate_uses_detected_engine(): void {
+	public function test_generate_uses_injected_engine(): void {
 		$pdfBinary = '%PDF-1.4 fake content';
 
-		$puppeteer = Mockery::mock( PdfEngineInterface::class );
-		$puppeteer->shouldReceive( 'isAvailable' )->andReturn( false );
-
-		$dompdf = Mockery::mock( PdfEngineInterface::class );
-		$dompdf->shouldReceive( 'isAvailable' )->andReturn( true );
-		$dompdf->shouldReceive( 'getName' )->andReturn( 'dompdf' );
-		$dompdf->shouldReceive( 'generate' )->once()->andReturn( $pdfBinary );
+		$engine = Mockery::mock( PdfEngineInterface::class );
+		$engine->shouldReceive( 'generate' )->once()->andReturn( $pdfBinary );
 
 		$this->mockCommonPdfFunctions();
 
-		$generator = new PdfGenerator( $puppeteer, $dompdf );
+		$generator = new PdfGenerator( $engine );
 
-		// Create a temporary template for testing (no WP functions needed).
+		// Create a temporary template for testing.
 		$templateDir = dirname( __DIR__, 5 ) . '/includes/Services/Pdf/Templates';
 		$testFile    = $templateDir . '/test-template.php';
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
@@ -132,43 +89,8 @@ class PdfGeneratorTest extends TestCase {
 		}
 	}
 
-	public function test_generate_falls_back_to_dompdf_on_puppeteer_failure(): void {
-		$pdfBinary = '%PDF-1.4 fallback content';
-
-		$puppeteer = Mockery::mock( PdfEngineInterface::class );
-		$puppeteer->shouldReceive( 'isAvailable' )->andReturn( true );
-		$puppeteer->shouldReceive( 'getName' )->andReturn( 'puppeteer' );
-		$puppeteer->shouldReceive( 'generate' )->andThrow( new \RuntimeException( 'Node.js failed' ) );
-
-		$dompdf = Mockery::mock( PdfEngineInterface::class );
-		$dompdf->shouldReceive( 'isAvailable' )->andReturn( true );
-		$dompdf->shouldReceive( 'generate' )->once()->andReturn( $pdfBinary );
-
-		$this->mockCommonPdfFunctions();
-
-		$generator = new PdfGenerator( $puppeteer, $dompdf );
-
-		$templateDir = dirname( __DIR__, 5 ) . '/includes/Services/Pdf/Templates';
-		$testFile    = $templateDir . '/fallback-template.php';
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
-		file_put_contents( $testFile, '<html><body>Fallback</body></html>' );
-
-		try {
-			$result = $generator->generate( 'fallback-template', [] );
-			$this->assertSame( $pdfBinary, $result );
-		} finally {
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
-			unlink( $testFile );
-		}
-	}
-
 	public function test_generate_throws_when_template_not_found(): void {
-		$dompdf = Mockery::mock( PdfEngineInterface::class );
-		$dompdf->shouldReceive( 'isAvailable' )->andReturn( true );
-		$dompdf->shouldReceive( 'getName' )->andReturn( 'dompdf' );
-
-		$puppeteer = Mockery::mock( PdfEngineInterface::class );
-		$puppeteer->shouldReceive( 'isAvailable' )->andReturn( false );
+		$engine = Mockery::mock( PdfEngineInterface::class );
 
 		Functions\when( 'apply_filters' )->alias(
 			function ( string $tag, $value ) {
@@ -178,9 +100,52 @@ class PdfGeneratorTest extends TestCase {
 		Functions\when( '__' )->returnArg();
 		Functions\when( 'sanitize_file_name' )->returnArg();
 
-		$generator = new PdfGenerator( $puppeteer, $dompdf );
+		$generator = new PdfGenerator( $engine );
 
 		$this->expectException( \RuntimeException::class );
 		$generator->generate( 'nonexistent-template', [] );
+	}
+
+	public function test_generateToFile_writes_pdf_to_disk(): void {
+		$pdfBinary = '%PDF-1.4 file content';
+
+		$engine = Mockery::mock( PdfEngineInterface::class );
+		$engine->shouldReceive( 'generate' )->once()->andReturn( $pdfBinary );
+
+		$this->mockCommonPdfFunctions();
+		Functions\when( 'wp_mkdir_p' )->justReturn( true );
+
+		$generator = new PdfGenerator( $engine );
+
+		// Create a temporary template.
+		$templateDir = dirname( __DIR__, 5 ) . '/includes/Services/Pdf/Templates';
+		$testFile    = $templateDir . '/write-test.php';
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+		file_put_contents( $testFile, '<html><body>Write Test</body></html>' );
+
+		$outputPath = sys_get_temp_dir() . '/test-output-' . uniqid() . '.pdf';
+
+		try {
+			$result = $generator->generateToFile( 'write-test', [], $outputPath );
+
+			$this->assertTrue( $result );
+			$this->assertFileExists( $outputPath );
+			$this->assertSame( $pdfBinary, file_get_contents( $outputPath ) );
+		} finally {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
+			@unlink( $testFile );
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
+			@unlink( $outputPath );
+		}
+	}
+
+	public function test_constructor_creates_default_mpdf_engine_when_no_engine_provided(): void {
+		$this->mockCommonPdfFunctions();
+
+		// MpdfEngine requires wp_upload_dir which we've mocked.
+		$generator = new PdfGenerator();
+		$engine    = $generator->getEngine();
+
+		$this->assertInstanceOf( \Resa\Services\Pdf\MpdfEngine::class, $engine );
 	}
 }

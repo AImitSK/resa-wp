@@ -18,7 +18,7 @@ RESA (Real Estate Smart Assets) is a WordPress plugin that provides interactive,
 - **Charts:** Nivo (D3-based)
 - **Animation:** Framer Motion 11
 - **i18n:** WordPress gettext + `@wordpress/i18n` (JS), development language is German
-- **PDF:** DOMPDF (fallback) + Puppeteer (recommended)
+- **PDF:** mPDF (native SVG support, better CSS than DOMPDF)
 - **Email:** PHPMailer (WordPress-native SMTP) + Brevo API
 - **Monetization:** Freemius SDK 2.x
 
@@ -75,7 +75,7 @@ Both communicate with the backend via WordPress REST API at `/wp-json/resa/v1/`.
 - **Multi-Step Wizard:** Shared `StepWizard` component drives all calculator modules. Module provides its steps, core appends LeadForm + Result automatically. Each step validates independently via Zod. Framer Motion handles animated transitions.
 - **Two-Phase Lead Capture:** Phase 1 (partial lead with UUID session) when user reaches the form, Phase 2 (complete lead) on submission. Enables funnel tracking and GDPR compliance.
 - **Feature Gating:** `FeatureGate` class checks module flag + Freemius plan. Free: 2 modules (Mietpreis + Immobilienwert), Pro: all 8, paid: future Freemius add-ons. Limits: free max 1 location, 50 visible leads.
-- **Service Layer:** Backend calculators implement `CalculatorInterface`. Email dispatches through SMTP or Brevo transport. PDF generates via DOMPDF or Puppeteer. All services are core — modules consume them.
+- **Service Layer:** Backend calculators implement `CalculatorInterface`. Email dispatches through SMTP or Brevo transport. PDF generates via mPDF with native SVG support. All services are core — modules consume them.
 - **REST Controller Base:** All API endpoints extend `RestController` with nonce verification, permission checks, response formatting. Module endpoints under `/resa/v1/modules/{slug}/*`.
 - **CSS Isolation:** Frontend widget uses Tailwind `resa-` prefix, `.resa-widget-root` importance scope, custom mini-reset, no preflight. This is critical — the widget must not break host themes.
 
@@ -153,7 +153,7 @@ Ausführliche Version: `.claude/WORKFLOW.md`
 - `wp-security` — Sanitization, Escaping, Nonces, Capabilities, prepare(), permission_callback
 - `wp-i18n` — Text-Domain `'resa'`, esc_html\_\_(), Translator-Kommentare, \_n(), DACH-Format
 - `freemius` — can_use_premium_code(), FeatureGate, Module-Flags (free/pro/paid), Free-Limits (2 Free-Tools, 1 Location, 50 Leads)
-- `dompdf` — DOMPDF CSS-Limits (kein Flex/Grid), Table-Layout, Puppeteer-Fallback, SimpleCharts für SVG
+- `nivo-charts` (PDF) — SimpleBarChart/SimpleGaugeChart für statische SVG-Charts in PDFs, mPDF rendert SVG nativ
 - `nivo-charts` — resaChartTheme, resaColors, Dual-Rendering (Web interaktiv / PDF statisch), DACH-Zahlenformat
 
 **Sprache:** Kommunikation immer auf Deutsch. Rückfragen statt Annahmen.

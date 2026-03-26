@@ -8,36 +8,27 @@ use Resa\Api\PdfSettingsController;
 use Resa\Models\Agent;
 
 /**
- * PDF generation orchestrator with automatic engine detection.
+ * PDF generation orchestrator.
  *
- * Tries Puppeteer first (better quality), falls back to DOMPDF.
- * Both Free and Premium users get the best available engine.
+ * Uses mPDF for all PDF generation. The previous dual-engine system
+ * (DOMPDF + Puppeteer) has been replaced with a single, reliable engine.
  */
 class PdfGenerator {
 
 	/**
-	 * Puppeteer engine instance.
+	 * PDF engine instance.
 	 *
 	 * @var PdfEngineInterface
 	 */
-	private PdfEngineInterface $puppeteer;
-
-	/**
-	 * DOMPDF engine instance.
-	 *
-	 * @var PdfEngineInterface
-	 */
-	private PdfEngineInterface $dompdf;
+	private PdfEngineInterface $engine;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param PdfEngineInterface|null $puppeteer Puppeteer engine (or null for default).
-	 * @param PdfEngineInterface|null $dompdf    DOMPDF engine (or null for default).
+	 * @param PdfEngineInterface|null $engine PDF engine (or null for default MpdfEngine).
 	 */
-	public function __construct( ?PdfEngineInterface $puppeteer = null, ?PdfEngineInterface $dompdf = null ) {
-		$this->puppeteer = $puppeteer ?? new PuppeteerEngine();
-		$this->dompdf    = $dompdf ?? new DompdfEngine();
+	public function __construct( ?PdfEngineInterface $engine = null ) {
+		$this->engine = $engine ?? new MpdfEngine();
 	}
 
 	/**
@@ -48,34 +39,12 @@ class PdfGenerator {
 	 * @param array<string,mixed> $options  Engine options (paper, margins, etc.).
 	 * @return string Raw PDF binary.
 	 *
-	 * @throws \RuntimeException When no engine can produce a PDF.
+	 * @throws \RuntimeException When engine cannot produce a PDF.
 	 */
 	public function generate( string $template, array $data, array $options = [] ): string {
-		$html   = $this->renderTemplate( $template, $data );
-		$engine = $this->detectEngine();
+		$html = $this->renderTemplate( $template, $data );
 
-		/**
-		 * Filter the selected PDF engine before generation.
-		 *
-		 * @param PdfEngineInterface $engine   Selected engine.
-		 * @param string             $template Template name.
-		 * @param array              $data     Template data.
-		 */
-		$engine = apply_filters( 'resa_pdf_engine', $engine, $template, $data );
-
-		try {
-			$pdf = $engine->generate( $html, $options );
-		} catch ( \RuntimeException $e ) {
-			// Falls Puppeteer fehlschlägt, Fallback auf DOMPDF.
-			if ( $engine->getName() === 'puppeteer' && $this->dompdf->isAvailable() ) {
-				$fallbackHtml = $this->renderTemplate( $template, $data, true );
-				$pdf          = $this->dompdf->generate( $fallbackHtml, $options );
-			} else {
-				throw $e;
-			}
-		}
-
-		return $pdf;
+		return $this->engine->generate( $html, $options );
 	}
 
 	/**
@@ -109,64 +78,42 @@ class PdfGenerator {
 	}
 
 	/**
-	 * Detect the best available engine.
-	 *
-	 * Priority: Puppeteer (if available) > DOMPDF.
-	 * Both plans get the best engine — PDF quality is not a premium feature.
+	 * Get the PDF engine instance.
 	 *
 	 * @return PdfEngineInterface
-	 *
-	 * @throws \RuntimeException When no engine is available.
 	 */
-	public function detectEngine(): PdfEngineInterface {
-		if ( $this->puppeteer->isAvailable() ) {
-			return $this->puppeteer;
-		}
-
-		if ( $this->dompdf->isAvailable() ) {
-			return $this->dompdf;
-		}
-
-		throw new \RuntimeException( 'Keine PDF-Engine verfügbar. Bitte installieren Sie DOMPDF oder Node.js 18+.' );
+	public function getEngine(): PdfEngineInterface {
+		return $this->engine;
 	}
 
 	/**
-	 * Get information about available engines (for admin UI / diagnostics).
+	 * Get information about the engine (for admin UI / diagnostics).
 	 *
-	 * @return array<string,array<string,mixed>>
+	 * @return array<string,mixed>
 	 */
 	public function getEngineInfo(): array {
 		return [
-			'puppeteer' => [
-				'available' => $this->puppeteer->isAvailable(),
-				'name'      => $this->puppeteer->getName(),
-			],
-			'dompdf'    => [
-				'available' => $this->dompdf->isAvailable(),
-				'name'      => $this->dompdf->getName(),
-			],
+			'engine'    => $this->engine->getName(),
+			'available' => $this->engine->isAvailable(),
 		];
 	}
 
 	/**
 	 * Render an HTML template with data.
 	 *
-	 * @param string              $template   Template name.
-	 * @param array<string,mixed> $data       Template variables.
-	 * @param bool                $forDompdf  Whether to render for DOMPDF (simplified charts).
+	 * @param string              $template Template name.
+	 * @param array<string,mixed> $data     Template variables.
 	 * @return string Rendered HTML.
 	 *
 	 * @throws \RuntimeException When template file not found.
 	 */
-	private function renderTemplate( string $template, array $data, bool $forDompdf = false ): string {
+	private function renderTemplate( string $template, array $data ): string {
 		$templateFile = $this->getTemplatePath( $template );
 
 		if ( ! file_exists( $templateFile ) ) {
 			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message, not HTML output.
 			throw new \RuntimeException( 'PDF-Template nicht gefunden: ' . $template );
 		}
-
-		$data['is_dompdf'] = $forDompdf;
 
 		// Inject PDF settings if not already provided.
 		if ( ! isset( $data['margins'] ) || ! isset( $data['show_agents'] ) ) {
@@ -292,8 +239,7 @@ class PdfGenerator {
 	/**
 	 * Convert agent photo URLs to base64 data URIs.
 	 *
-	 * Puppeteer inside Docker cannot resolve localhost URLs,
-	 * so photos must be embedded as data URIs (same as logos).
+	 * Photos must be embedded as data URIs for reliable rendering in PDF.
 	 *
 	 * @param array<string,mixed> &$data Template data (modified in place).
 	 */

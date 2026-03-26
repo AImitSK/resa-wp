@@ -52,15 +52,14 @@ Startet auf `http://localhost:5173` mit HMR. WordPress erkennt den Dev-Server ü
 
 ## Docker-Services
 
-| Service          | URL                   | Beschreibung                              |
-| ---------------- | --------------------- | ----------------------------------------- |
-| WordPress        | http://localhost:8080 | WordPress + PHP 8.1, Plugin-Dir gemountet |
-| phpMyAdmin       | http://localhost:8081 | Datenbank-Verwaltung                      |
-| Mailpit          | http://localhost:8025 | E-Mail-Catch (SMTP auf Port 1025)         |
-| Node (Puppeteer) | http://localhost:3000 | PDF-Service mit Chromium                  |
-| MySQL            | intern (3306)         | MySQL 8.0                                 |
+| Service    | URL                   | Beschreibung                              |
+| ---------- | --------------------- | ----------------------------------------- |
+| WordPress  | http://localhost:8080 | WordPress + PHP 8.1, Plugin-Dir gemountet |
+| phpMyAdmin | http://localhost:8081 | Datenbank-Verwaltung                      |
+| Mailpit    | http://localhost:8025 | E-Mail-Catch (SMTP auf Port 1025)         |
+| MySQL      | intern (3306)         | MySQL 8.0                                 |
 
-WordPress-Umgebungsvariable: `RESA_PDF_SERVICE_URL=http://node:3000`
+PDF-Generierung via mPDF (rein PHP, keine externen Services nötig).
 
 ## Nützliche Commands
 
@@ -93,4 +92,4 @@ npm run i18n:build
 - **PHP:** Xdebug im Docker-Container (Port 9003)
 - **E-Mails:** Alle Mails werden von Mailpit abgefangen → http://localhost:8025
 - **DB:** phpMyAdmin → http://localhost:8081
-- **PDF:** Node-Service Logs: `docker compose logs node`
+- **PDF:** Generiert via mPDF, Temp-Dateien in `wp-content/uploads/resa-mpdf-tmp/`

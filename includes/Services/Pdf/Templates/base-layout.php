@@ -2,6 +2,8 @@
 /**
  * Base PDF layout template.
  *
+ * Uses mPDF for rendering with native SVG support.
+ *
  * Variables available via extract():
  *
  * @var string $title          Document title.
@@ -17,7 +19,6 @@
  * @var string $agent_name     Legacy: single agent name (fallback).
  * @var string $agent_phone    Legacy: single agent phone (fallback).
  * @var string $agent_email    Legacy: single agent email (fallback).
- * @var bool   $is_dompdf      Whether rendering via DOMPDF.
  *
  * @package Resa\Services\Pdf
  */
