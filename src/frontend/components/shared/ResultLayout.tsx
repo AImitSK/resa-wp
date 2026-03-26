@@ -174,7 +174,18 @@ export function ResultLayout({
 				) : (
 					<div className="resa-flex resa-flex-col resa-items-center resa-text-center resa-gap-3">
 						<div className="resa-w-12 resa-h-12 resa-rounded-full resa-bg-primary-foreground/20 resa-flex resa-items-center resa-justify-center">
-							<ResaIcon name="check" size={24} />
+							<svg
+								width="24"
+								height="24"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="3"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+							>
+								<polyline points="20 6 9 17 4 12" />
+							</svg>
 						</div>
 						<div>
 							<p className="resa-font-semibold resa-text-base resa-mb-1">
