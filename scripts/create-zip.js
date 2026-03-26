@@ -45,6 +45,17 @@ const EXCLUDE_PATTERNS = [
 	'**/*.map',
 ];
 
+// mPDF fonts to keep (all others will be excluded to reduce ZIP size)
+// DejaVu is our default font, covers Latin/German characters
+const MPDF_FONTS_TO_KEEP = [
+	'DejaVuSans',
+	'DejaVuSansCondensed',
+	'DejaVuSansMono',
+	'DejaVuSerif',
+	'DejaVuSerifCondensed',
+	'DejaVuinfo.txt',
+];
+
 async function createZip() {
 	console.log(`Erstelle ${zipName} ...`);
 
@@ -92,6 +103,16 @@ async function createZip() {
 						return false;
 					}
 				}
+
+				// Filter mPDF fonts - keep only DejaVu fonts to reduce size (~88MB -> ~8MB)
+				if (entry.name.includes('mpdf/mpdf/ttfonts/')) {
+					const fontFile = entry.name.split('/').pop();
+					const isKeptFont = MPDF_FONTS_TO_KEEP.some((f) => fontFile.startsWith(f));
+					if (!isKeptFont) {
+						return false;
+					}
+				}
+
 				return entry;
 			});
 			console.log(`  + ${dir}`);
